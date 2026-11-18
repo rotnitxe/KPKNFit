@@ -118,6 +118,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsPropertyKey
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import com.example.kpkn.domain.biomechanics.framing.FramingVerdict
@@ -492,8 +493,9 @@ internal fun TechniqueRecorderStage(
     }
 
     LaunchedEffect(previewView, activeSession, lens, cameraRetryGeneration) {
-        if (previewView == null || activeSession == null) return@LaunchedEffect
-        previewStreaming = false
+        val view = previewView ?: return@LaunchedEffect
+        if (activeSession == null) return@LaunchedEffect
+        previewStreaming = view.previewStreamState.value == PreviewView.StreamState.STREAMING && activeSession != null
         delay(8_000)
         if (!previewStreaming) {
             if (cameraRetryGeneration == 0) {
@@ -524,9 +526,11 @@ internal fun TechniqueRecorderStage(
         if (!cameraPermissionGranted || isCameraUnavailable) return TechniqueCaptureStartResult.UNAVAILABLE
         val session = activeSession ?: return TechniqueCaptureStartResult.UNAVAILABLE
         val captureRequest = latestRequest.captureRequest.copy(
-            analysisRequestedForCapture = false,
-            framingGateBypassed = null,
-            framingWarning = null,
+            analysisRequestedForCapture = analysisEnabledForTake,
+            framingGateBypassed = if (analysisEnabledForTake && (ignoreFramingGate || !framingStatus.allowsCapture(framingVerdict))) true else null,
+            framingWarning = if (analysisEnabledForTake && (ignoreFramingGate || !framingStatus.allowsCapture(framingVerdict))) {
+                FramingInstruction.spoken(framingVerdict, framingStatus, preferredView)
+            } else null,
         )
         completion.start(
             onResult = { result ->
@@ -560,7 +564,7 @@ internal fun TechniqueRecorderStage(
 
     fun stopRecording(): TechniqueCaptureStopResult {
         val capture = mediaCapture ?: return TechniqueCaptureStopResult.UNAVAILABLE
-        if (isStopping || completion.pending) return TechniqueCaptureStopResult.BUSY
+        if (isStopping) return TechniqueCaptureStopResult.BUSY
         if (!capture.isRecording.value) {
             activity?.requestedOrientation = originalOrientation
             return TechniqueCaptureStopResult.NOT_RECORDING
@@ -846,7 +850,7 @@ internal fun TechniqueRecorderStageContent(
         isRecording && isPaused -> "Reanuda o detén la grabación"
         isRecording -> "Pausa o detén la grabación"
         !analysisEnabledForTake -> "Análisis apagado para esta toma; puedes analizar el vídeo manualmente después"
-        framingStatus == FramingCheckStatus.CHECKING -> "Espera el veredicto antes de grabar"
+        framingStatus == FramingCheckStatus.CHECKING -> "Comprobando encuadre; puedes grabar igualmente"
         framingStatus == FramingCheckStatus.UNAVAILABLE -> "No se pudo comprobar el encuadre; puedes grabar igualmente"
         else -> "El encuadre se revisa antes de comenzar"
     }
@@ -971,14 +975,20 @@ internal fun TechniqueRecorderStageContent(
             ) {
                 // `.v2-record-control`: círculo crema de 49 con la cámara (o la pausa al grabar).
                 if (!isRecording && !isProcessing) Ref02RecordControl(
-                    isRecording = false, onClick = onRecord,
-                    modifier = Modifier.testTag("technique_record").semantics {
-                        if (isProcessing) stateDescription = "Procesando vídeo"
-                    },
-                    enabled = available && canRecord,
+                    isRecording = false,
+                    onClick = { if (canRecord) onRecord() else onRecordAnyway() },
+                    modifier = Modifier.testTag("technique_record"),
+                    enabled = available && (canRecord || canRecordAnyway),
                 ) else if (isRecording) {
                     RecorderTextAction("Detener", onStop, modifier = Modifier.testTag("technique_record_stop"), color = WizardColors.danger)
-                } else Box(Modifier.size(49.dp), contentAlignment = Alignment.Center) {
+                } else Box(
+                    Modifier.size(49.dp).testTag("technique_record").semantics {
+                        disabled()
+                        contentDescription = "Procesando vídeo"
+                        stateDescription = "Procesando vídeo"
+                    },
+                    contentAlignment = Alignment.Center,
+                ) {
                     Text("…", style = KpknType.metricM, color = WizardColors.textMuted)
                 }
                 Column(Modifier.weight(1f).testTag("technique_capture_state")) {
@@ -994,13 +1004,6 @@ internal fun TechniqueRecorderStageContent(
                         color = WizardColors.textMuted,
                         modifier = Modifier.testTag("technique_capture_hint"),
                     )
-                    if (!isRecording && analysisEnabledForTake && !canRecord && canRecordAnyway && !isProcessing) {
-                        RecorderTextAction(
-                            text = "Grabar de todas formas",
-                            onClick = onRecordAnyway,
-                            modifier = Modifier.testTag("technique_record_anyway"),
-                        )
-                    }
                     if (isRecording) {
                         RecorderTextAction(
                             text = if (isPaused) "Reanudar" else "Pausar",
@@ -1013,11 +1016,10 @@ internal fun TechniqueRecorderStageContent(
                 CaptureCommandPill(
                     text = when {
                         isRecording -> "«Detener vídeo»"
-                        useForceStart -> "«Grabar de todas formas»"
                         else -> "«Iniciar vídeo»"
                     },
                     enabled = voiceCommandsEnabled && available && !isProcessing &&
-                        (isRecording || canRecord || (useForceStart && canRecordAnyway)),
+                        (isRecording || canRecord || canRecordAnyway),
                     modifier = Modifier.testTag("technique_voice_command"),
                     onClick = if (useForceStart) onRecordAnyway else onRecord,
                 )
@@ -1079,8 +1081,8 @@ private fun FramingCornerFrame(ready: Boolean, modifier: Modifier = Modifier) {
             Offset(half, size.height - half) to Pair(Offset(l, size.height - half), Offset(half, size.height - l)),
             Offset(size.width - half, size.height - half) to Pair(Offset(size.width - l, size.height - half), Offset(size.width - half, size.height - l)),
         ).forEach { (origin, ends) ->
-            drawLine(corner, origin, ends.first, w)
-            drawLine(corner, origin, ends.second, w)
+            drawLine(corner, origin, ends.first, w, cap = androidx.compose.ui.graphics.StrokeCap.Round)
+            drawLine(corner, origin, ends.second, w, cap = androidx.compose.ui.graphics.StrokeCap.Round)
         }
     }
 }
@@ -1184,8 +1186,7 @@ private fun CaptureGuidePanel(
         }
         Text(
             text = if (voiceCommandsEnabled) {
-                if (analysisEnabledForTake) "«Iniciar vídeo» · «Grabar de todas formas» · «Detener vídeo»"
-                else "«Iniciar vídeo» · «Detener vídeo»"
+                "«Iniciar vídeo» · «Detener vídeo»"
             } else {
                 "Activa Modo Voz para controlar la grabación."
             },

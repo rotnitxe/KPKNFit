@@ -852,4 +852,20 @@ class TechniqueAnalysisWorkerTest {
         assertNull(customRef.definitionId)
         assertTrue(customRef.isCustom)
     }
+
+    @Test
+    fun worker_clears_live_telemetry_when_analysis_finishes() = runBlocking {
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "telemetry-clear")
+        VideoAnalysisRepository.publishLiveTelemetry(
+            com.example.kpkn.data.media.technique.LiveAnalysisTelemetry(
+                mediaId = media.id,
+                phase = com.example.kpkn.data.media.technique.LiveAnalysisPhase.POSE_AND_BAR,
+                progressPct = 64,
+            ),
+        )
+        install { _, _ -> TechniqueAnalysisOutcome.Done(TechniqueReportSamples.fullReport()) }
+
+        assertEquals(ListenableWorker.Result.success(), work(media.id).doWork())
+        assertNull(VideoAnalysisRepository.liveTelemetryFlow.value[media.id])
+    }
 }

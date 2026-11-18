@@ -9,6 +9,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -109,6 +110,7 @@ fun RepBreakdownModule(
     modifier: Modifier = Modifier,
     review: AnalysisReviewUi? = null,
     onToggleKind: ((Int) -> Unit)? = null,
+    embedded: Boolean = false,
 ) {
     val metrics = breakdown.metrics
     if (metrics.isEmpty()) return
@@ -128,7 +130,7 @@ fun RepBreakdownModule(
             }
         },
     )
-    KpknModule(modifier = modifier.testTag(ANALYSIS_BREAKDOWN_TAG)) {
+    val content: @Composable () -> Unit = {
         KpknModuleHeader("Por repetición")
         if (metrics.size > 1) {
             KpknSegmentedControl(
@@ -179,7 +181,6 @@ fun RepBreakdownModule(
                 horizontalArrangement = Arrangement.spacedBy(18.dp),
                 verticalArrangement = Arrangement.spacedBy(6.dp),
             ) {
-                // Una entrada por zona de las parciales (M4); sin zona, la de siempre.
                 if (shown.hasPartial) shown.partialZones.forEach { zone ->
                     LegendItem(text = zone?.let { "Parcial ${partialZoneText(it)}" } ?: "Parcial", failed = false, tint = zone?.let(::zoneColor))
                 }
@@ -190,6 +191,11 @@ fun RepBreakdownModule(
             Spacer(Modifier.height(10.dp))
             Text(text = note, style = KpknType.caption, color = WizardColors.textFaint)
         }
+    }
+    if (embedded) {
+        Column(modifier = modifier.fillMaxWidth().testTag(ANALYSIS_BREAKDOWN_TAG)) { content() }
+    } else {
+        KpknModule(modifier = modifier.testTag(ANALYSIS_BREAKDOWN_TAG)) { content() }
     }
 }
 
@@ -341,6 +347,9 @@ private fun RepBarChart(metric: RepMetricUi, reps: List<RepBarUi>, selected: Int
                 drawHatchedBar(left, top, barWidth, barHeight, radius, color, strokeWidth = 1.4.dp.toPx(), spacing = 4.dp.toPx())
             } else {
                 drawBar(left, top, barWidth, barHeight, radius, color)
+                if (isChosen) {
+                    drawPath(barPath(left, top, barWidth, barHeight, radius), Color(0xFFF2EEE6), style = Stroke(width = 1.5.dp.toPx()))
+                }
             }
 
             // Número de la repetición bajo la barra: todos hasta 12; con más, uno de cada tanto y siempre la elegida.

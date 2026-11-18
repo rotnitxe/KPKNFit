@@ -227,7 +227,7 @@ internal fun MediaCameraSurface(session: MediaCameraSession, modifier: Modifier 
             }
         },
     )
-    DisposableEffect(view) {
+    DisposableEffect(view, session) {
         val current = view
         if (current != null) session.attach(current)
         onDispose { if (current != null) session.detach(current) }

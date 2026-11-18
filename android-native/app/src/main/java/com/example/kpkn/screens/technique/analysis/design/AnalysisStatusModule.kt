@@ -196,6 +196,50 @@ private fun MessageBody(
 // ── ¿Qué movimiento es? ──
 
 @Composable
+internal fun ProfilePickerContent(
+    guess: AnalysisProfileId?,
+    selected: AnalysisProfileId?,
+    expanded: Boolean,
+    onSelect: (AnalysisProfileId) -> Unit,
+    onToggle: () -> Unit,
+    onConfirm: () -> Unit,
+) {
+    val options = profileOptions(guess, selected, expanded)
+    KpknModuleHeader("Elige el movimiento")
+    Text(text = "¿Qué movimiento es?", style = KpknType.dialogTitle, color = WizardColors.text)
+    Spacer(Modifier.height(6.dp))
+    Text(
+        text = "No reconocemos este ejercicio. Elige el que más se parezca y medimos su técnica.",
+        style = KpknType.caption,
+        color = WizardColors.textMuted,
+    )
+    Spacer(Modifier.height(8.dp))
+    options.forEachIndexed { index, option ->
+        if (index > 0) AnalysisDivider()
+        KpknRadioRow(
+            selected = option.id == selected,
+            title = option.title,
+            subtitle = option.subtitle,
+            onClick = { onSelect(option.id) },
+        )
+    }
+    AnalysisDivider()
+    KpknTextAction(
+        text = if (expanded) "Ver menos" else "Ver los $ALL_PROFILE_COUNT movimientos",
+        onClick = onToggle,
+        modifier = Modifier.padding(vertical = 2.dp),
+    )
+    Spacer(Modifier.height(8.dp))
+    KpknPrimaryPill(
+        text = "Analizar",
+        onClick = onConfirm,
+        modifier = Modifier.fillMaxWidth(),
+        tag = ANALYSIS_PROFILE_ANALYZE_TAG,
+        enabled = selected != null,
+    )
+}
+
+@Composable
 private fun ProfileBody(
     status: AnalysisStatusUi.NeedsProfile,
     selected: AnalysisProfileId?,
@@ -205,39 +249,14 @@ private fun ProfileBody(
     onConfirm: () -> Unit,
     modifier: Modifier,
 ) {
-    val options = profileOptions(status.guess, selected, expanded)
     KpknModule(modifier = modifier.testTag(ANALYSIS_STATUS_TAG)) {
-        KpknModuleHeader("Elige el movimiento")
-        Text(text = "¿Qué movimiento es?", style = KpknType.dialogTitle, color = WizardColors.text)
-        Spacer(Modifier.height(6.dp))
-        Text(
-            text = "No reconocemos este ejercicio. Elige el que más se parezca y medimos su técnica.",
-            style = KpknType.caption,
-            color = WizardColors.textMuted,
-        )
-        Spacer(Modifier.height(8.dp))
-        options.forEachIndexed { index, option ->
-            if (index > 0) AnalysisDivider()
-            KpknRadioRow(
-                selected = option.id == selected,
-                title = option.title,
-                subtitle = option.subtitle,
-                onClick = { onSelect(option.id) },
-            )
-        }
-        AnalysisDivider()
-        KpknTextAction(
-            text = if (expanded) "Ver menos" else "Ver los $ALL_PROFILE_COUNT movimientos",
-            onClick = onToggle,
-            modifier = Modifier.padding(vertical = 2.dp),
-        )
-        Spacer(Modifier.height(8.dp))
-        KpknPrimaryPill(
-            text = "Analizar",
-            onClick = onConfirm,
-            modifier = Modifier.fillMaxWidth(),
-            tag = ANALYSIS_PROFILE_ANALYZE_TAG,
-            enabled = selected != null,
+        ProfilePickerContent(
+            guess = status.guess,
+            selected = selected,
+            expanded = expanded,
+            onSelect = onSelect,
+            onToggle = onToggle,
+            onConfirm = onConfirm,
         )
     }
 }

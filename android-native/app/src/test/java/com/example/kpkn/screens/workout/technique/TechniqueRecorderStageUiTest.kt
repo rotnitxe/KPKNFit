@@ -126,9 +126,9 @@ class TechniqueRecorderStageUiTest {
         }
     }
 
-    private fun checkLayout() {
+    private fun checkLayout(recording: Boolean = false) {
         val guide = rule.onNodeWithTag("technique_guide_text", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
-        val record = rule.onNodeWithTag("technique_record").fetchSemanticsNode().boundsInRoot
+        val record = rule.onNodeWithTag(if (recording) "technique_record_stop" else "technique_record").fetchSemanticsNode().boundsInRoot
         val controls = rule.onNodeWithTag("technique_controls").fetchSemanticsNode().boundsInRoot
         assertTrue("La guía tapa los controles", guide.bottom < controls.top)
         assertTrue("La guía tapa REC", guide.bottom < record.top)
@@ -160,7 +160,7 @@ class TechniqueRecorderStageUiTest {
 
     @Test fun escena_en_reposo_al_100_sin_texto_cortado() { show(1f, analysisEnabledForTake = true); checkLayout() }
     @Test fun escena_en_reposo_al_130_sin_texto_cortado() { show(1.3f, warning = true, analysisEnabledForTake = true); checkLayout() }
-    @Test fun escena_grabando_al_130_separa_guia_cronometro_y_rec() { show(1.3f, recording = true, analysisEnabledForTake = true); checkLayout() }
+    @Test fun escena_grabando_al_130_separa_guia_cronometro_y_rec() { show(1.3f, recording = true, analysisEnabledForTake = true); checkLayout(recording = true) }
 
     @Test fun sin_permiso_la_grabacion_esta_desactivada() {
         show(1.3f, permission = false)
@@ -179,8 +179,8 @@ class TechniqueRecorderStageUiTest {
 
     @Test fun el_toggle_maestro_inicia_apagado_y_solo_entonces_activa_la_guia() {
         show(1f)
-        rule.onNodeWithText("Análisis técnico").assertExists()
-        rule.onNodeWithText("Apagado para esta toma; el vídeo queda disponible para análisis manual.").assertExists()
+        rule.onNodeWithText("Guía de encuadre").assertExists()
+        rule.onNodeWithText("Desactivada; puedes analizar el vídeo después de guardarlo.").assertExists()
         rule.onNodeWithTag("technique_analysis_toggle").assertIsOff()
         rule.onNodeWithTag("technique_guide_text").assertDoesNotExist()
         rule.onNodeWithTag("technique_voice_action").assertTextEquals("Activar Modo Voz")
@@ -205,13 +205,14 @@ class TechniqueRecorderStageUiTest {
         rule.runOnIdle { assertEquals(listOf("voice:true"), actions) }
     }
 
-    @Test fun mientras_comprueba_bloquea_la_grabacion_y_lo_explica() {
-        show(1f, status = FramingCheckStatus.CHECKING, canRecord = false, analysisEnabledForTake = true)
+    @Test fun mientras_comprueba_permite_grabar_si_la_camara_esta_lista() {
+        show(1f, status = FramingCheckStatus.CHECKING, canRecord = true, analysisEnabledForTake = true)
         rule.onNodeWithTag("technique_framing").assertExists()
         rule.onNodeWithText("Comprobando encuadre…", useUnmergedTree = true).assertExists()
         rule.onNodeWithTag("technique_capture_title").assertTextEquals("Comprobando encuadre")
-        rule.onNodeWithTag("technique_capture_hint").assertTextEquals("Espera el veredicto antes de grabar")
-        rule.onNodeWithTag("technique_record").assertIsNotEnabled()
+        rule.onNodeWithTag("technique_capture_hint")
+            .assertTextEquals("Comprobando encuadre; puedes grabar igualmente")
+        rule.onNodeWithTag("technique_record").assertIsEnabled()
     }
 
     @Test fun sin_veredicto_permite_grabar_con_error_explicito() {
@@ -227,14 +228,16 @@ class TechniqueRecorderStageUiTest {
         rule.onNodeWithTag("technique_record").assertIsEnabled()
     }
 
-    @Test fun grabar_de_todas_formas_solo_aparece_si_la_camara_esta_lista() {
-        show(1f, warning = true, canRecord = false, analysisEnabledForTake = true, canRecordAnyway = true)
-        rule.onNodeWithTag("technique_record_anyway").assertExists().performClick()
-        rule.runOnIdle { assertEquals(listOf("rec-anyway"), actions) }
+    @Test fun boton_de_grabar_sin_encuadre_ya_no_duplica_control_secundario() {
+        show(1f, warning = true, canRecord = true, analysisEnabledForTake = true, canRecordAnyway = true)
+        rule.onNodeWithTag("technique_record").assertIsEnabled().performClick()
+        rule.onNodeWithTag("technique_record_anyway").assertDoesNotExist()
+        rule.runOnIdle { assertEquals(listOf("rec"), actions) }
     }
 
-    @Test fun grabar_de_todas_formas_se_oculta_si_la_camara_no_esta_lista() {
+    @Test fun boton_de_grabar_se_deshabilita_si_la_camara_no_esta_lista() {
         show(1f, warning = true, canRecord = false, analysisEnabledForTake = true, canRecordAnyway = false)
+        rule.onNodeWithTag("technique_record").assertIsNotEnabled()
         rule.onNodeWithTag("technique_record_anyway").assertDoesNotExist()
     }
 

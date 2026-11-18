@@ -75,17 +75,40 @@ internal fun LiveModeNumberField(
     allowDecimal: Boolean = true,
 ) {
     var keyboardOpen by remember(tag) { mutableStateOf(false) }
-    BasicTextField(value, {}, modifier.heightIn(min = 44.dp).clickable(enabled = enabled, role = androidx.compose.ui.semantics.Role.Button) { keyboardOpen = true }
-        .testTag(tag).semantics { contentDescription = description },
-        enabled = enabled, readOnly = true, singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = if (time) KeyboardType.Ascii else KeyboardType.Decimal),
-        textStyle = KpknType.metricM.copy(fontSize = (if (value.length > 7) 20 else sizeSp).sp, lineHeight = 40.sp,
-            color = WizardColors.text, textAlign = TextAlign.Center, fontFeatureSettings = "'tnum' 1"),
-        cursorBrush = SolidColor(WizardColors.text),
-        decorationBox = { inner -> Box(Modifier.fillMaxWidth().heightIn(min = 44.dp), contentAlignment = Alignment.Center) {
-            if (value.isBlank()) Text(placeholder, style = KpknType.metricM.copy(fontSize = sizeSp.sp), color = WizardColors.textFaint)
-            inner()
-        } })
+    WorkoutNumericTriggerBox(
+        value = value,
+        enabled = enabled,
+        description = description,
+        onOpen = { keyboardOpen = true },
+        modifier = modifier.heightIn(min = 44.dp),
+        tag = tag,
+        contentAlignment = Alignment.Center,
+        onSetText = onChange,
+    ) {
+        BasicTextField(
+            value,
+            {},
+            Modifier.fillMaxWidth(),
+            enabled = enabled,
+            readOnly = true,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = if (time) KeyboardType.Ascii else KeyboardType.Decimal),
+            textStyle = KpknType.metricM.copy(
+                fontSize = (if (value.length > 7) 20 else sizeSp).sp,
+                lineHeight = 40.sp,
+                color = WizardColors.text,
+                textAlign = TextAlign.Center,
+                fontFeatureSettings = "'tnum' 1",
+            ),
+            cursorBrush = SolidColor(WizardColors.text),
+            decorationBox = { inner ->
+                Box(Modifier.fillMaxWidth().heightIn(min = 44.dp), contentAlignment = Alignment.Center) {
+                    if (value.isBlank()) Text(placeholder, style = KpknType.metricM.copy(fontSize = sizeSp.sp), color = WizardColors.textFaint)
+                    inner()
+                }
+            },
+        )
+    }
     if (keyboardOpen) WorkoutNumericKeyboardDialog(
         title = description,
         initialValue = value,

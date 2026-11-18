@@ -1,6 +1,5 @@
 package com.example.kpkn.ui.components
 
-import android.provider.Settings
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.CubicBezierEasing
@@ -12,6 +11,7 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
@@ -51,13 +51,13 @@ import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.layout
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.ui.design.depth.KpknShadowSpec
 import com.example.kpkn.ui.design.depth.kpknInset
@@ -228,14 +228,8 @@ private fun KpknSheetBody(
     )
     val scope = rememberCoroutineScope()
     val density = LocalDensity.current
-    val context = LocalContext.current
-    val panelInteraction = remember { MutableInteractionSource() }
     val currentOnDismiss by rememberUpdatedState(onDismissRequest)
-    val reduceMotion = remember {
-        runCatching {
-            Settings.Global.getFloat(context.contentResolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) == 0f
-        }.getOrDefault(false)
-    }
+    val reduceMotion = wizardReducedMotion()
 
     var dragOffsetPx by remember { mutableFloatStateOf(0f) }
     var dismissing by remember { mutableStateOf(false) }
@@ -469,11 +463,7 @@ private fun KpknSheetBody(
                         Modifier.kpknFloatingSurface(sheetShape, KpknFloating.SheetElevation)
                     },
                 )
-                .clickable(
-                    interactionSource = panelInteraction,
-                    indication = null,
-                    onClick = {},
-                ),
+                .pointerInput(Unit) { detectTapGestures(onTap = {}) },
         ) {
             KpknSheetContentTheme {
                 CompositionLocalProvider(LocalKpknSheetDismiss provides { dismissAnimated() }) {

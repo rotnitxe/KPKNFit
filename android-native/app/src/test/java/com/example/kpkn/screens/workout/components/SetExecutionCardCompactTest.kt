@@ -181,7 +181,7 @@ class SetExecutionCardCompactTest {
                                     sessionAccentColor = Color(0xFFF49A6E),
                                     initialBodyWeight = 80.0,
                                     recordActionHolder = RecordActionHolder(),
-                                    initialDraft = WorkoutSetDraft(weightText = "102,5"),
+                                    initialDraft = WorkoutSetDraft(weightText = "102,5", isDirty = true),
                                     onShowHistory = {},
                                     onSetBodyWeight = {},
                                     onRecordV2 = { _, _, _, _, _, _, _, _, _, _ -> },

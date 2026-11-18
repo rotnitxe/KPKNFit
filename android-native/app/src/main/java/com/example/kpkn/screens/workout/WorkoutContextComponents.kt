@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout
 
+import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.performance.StrengthModel
 import androidx.compose.animation.*
 import androidx.compose.foundation.clickable
@@ -561,6 +562,60 @@ internal fun WorkoutRmCalcContent(
     val selectedExercise = remember(exercise, exerciseOptions, selectedExerciseId) {
         exerciseOptions.firstOrNull { it.id == selectedExerciseId } ?: exercise
     }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val resolvedSelectedExercise = remember(selectedExercise, context) {
+        val source = selectedExercise ?: return@remember null
+        if (source.reference1RM != null && source.prFor1RM != null && source.referenceTrainingMax != null) {
+            source
+        } else {
+            val configId = com.example.kpkn.data.exercises.sharedLoadConfigurationId(source)
+            val repo = configId?.let {
+                runCatching {
+                    com.example.kpkn.data.repository.SharedExerciseLoadReferenceRepository.getInstance(context)
+                }.getOrNull()
+            }
+            if (repo == null) {
+                source
+            } else {
+                val cfgId = configId ?: return@remember source
+                val exerciseKey = source.resolvedCanonicalExerciseId()
+                val tag = source.workoutTagId
+                val unit = source.trainingMode.toUnitModeV2()
+                val mode = source.sets.firstNotNullOfOrNull { it.loadModeV2 } ?: LoadModeV2.LOAD
+                fun refFor(kind: SharedLoadReferenceKind) = repo.getCompatible(
+                    SharedExerciseLoadReference(
+                        id = sharedLoadReferenceId(
+                            exerciseKey, cfgId, tag, unit, mode, source.loadQuantityConvention, kind,
+                        ),
+                        exerciseKey = exerciseKey,
+                        configurationId = cfgId,
+                        tagId = tag,
+                        unitMode = unit,
+                        loadMode = mode,
+                        quantityConvention = source.loadQuantityConvention,
+                        kind = kind,
+                        baseValueKg = 0.0,
+                        sourceAtMs = 0L,
+                        sourceId = "",
+                    ),
+                )
+                val prRef = refFor(SharedLoadReferenceKind.ESTIMATED_PR)
+                val oneRmRef = refFor(SharedLoadReferenceKind.ONE_RM)
+                val tmRef = refFor(SharedLoadReferenceKind.TRAINING_MAX)
+                val obsRef = refFor(SharedLoadReferenceKind.OBSERVED_SESSION)
+                val shared1Rm = prRef?.suggestedValueKg() ?: oneRmRef?.suggestedValueKg() ?: obsRef?.suggestedValueKg()
+                source.copy(
+                    reference1RM = source.reference1RM ?: shared1Rm,
+                    prFor1RM = source.prFor1RM ?: prRef?.let { r ->
+                        val w = r.prWeightKg
+                        val reps = r.prReps
+                        if (w != null && w > 0.0 && reps != null && reps > 0) PrReference(w, reps, r.effortMode, r.effortValue) else null
+                    },
+                    referenceTrainingMax = source.referenceTrainingMax ?: tmRef?.suggestedValueKg(),
+                )
+            }
+        }
+    }
     val selectedLoadMode = if (selectedExercise?.id == activeExerciseId) currentLoadMode else selectedExercise?.sets
         ?.mapNotNull { it.loadModeV2 }?.distinct()?.singleOrNull()
     val isAssisted = selectedLoadMode == LoadModeV2.ASSISTED
@@ -574,16 +629,21 @@ internal fun WorkoutRmCalcContent(
             .mapNotNull { eligibleWorkoutRmEstimate(it, selectedLoadMode ?: LoadModeV2.LOAD) }
             .maxOrNull()
     }
-    val sharedReference = remember(selectedExercise, currentSessionBest) {
-        currentSessionBest ?: selectedExercise?.let { source ->
+    val sharedReference = remember(resolvedSelectedExercise, currentSessionBest) {
+        currentSessionBest ?: resolvedSelectedExercise?.let { source ->
             declaredWorkoutRmReference(source)
         }
     }
     val canApplySelectedWeight = exerciseOptions.isEmpty() || selectedExercise?.id == activeExerciseId
-    val referenceSource = selectedExercise?.let { source -> when {
+    val hydratedFromSharedRepo = selectedExercise != null &&
+        declaredWorkoutRmReference(selectedExercise) == null &&
+        resolvedSelectedExercise?.let(::declaredWorkoutRmReference) != null
+    val referenceSource = resolvedSelectedExercise?.let { source -> when {
         currentSessionBest != null -> "Mejor serie compatible de hoy"
-        source.reference1RM?.let { it.isFinite() && it > 0.0 } == true -> "1RM declarado para esta variante"
-        source.prFor1RM?.let { it.weight > 0.0 && it.reps > 0 } == true -> "PR declarado para esta variante"
+        source.reference1RM?.let { it.isFinite() && it > 0.0 } == true ->
+            if (hydratedFromSharedRepo) "1RM compartido de otra sesión" else "1RM declarado para esta variante"
+        source.prFor1RM?.let { it.weight > 0.0 && it.reps > 0 } == true ->
+            if (hydratedFromSharedRepo) "PR compartido de otra sesión" else "PR declarado para esta variante"
         source.calculated1RM?.let { it.isFinite() && it > 0.0 } == true -> "1RM calculado guardado"
         else -> null
     } }
@@ -643,7 +703,7 @@ internal fun WorkoutRmCalcContent(
                 Text("${referenceSource ?: "Referencia compartida"} · ${String.format(Locale.forLanguageTag("es"), "%.1f", sharedReference)} kg",
                     style = MaterialTheme.typography.labelSmall, color = sessionAccentColor, modifier = Modifier.testTag("live-rm-shared-reference"))
             } else {
-                val trainingMax = selectedExercise.referenceTrainingMax?.takeIf { it.isFinite() && it > 0.0 }
+                val trainingMax = (resolvedSelectedExercise ?: selectedExercise).referenceTrainingMax?.takeIf { it.isFinite() && it > 0.0 }
                 if (trainingMax != null) {
                     Text("TM de trabajo · ${String.format(Locale.forLanguageTag("es"), "%.1f", trainingMax)} kg · no se convierte en 1RM",
                         style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = .65f), modifier = Modifier.testTag("live-rm-training-max-only"))

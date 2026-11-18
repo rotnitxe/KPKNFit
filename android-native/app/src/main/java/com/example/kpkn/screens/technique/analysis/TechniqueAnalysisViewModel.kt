@@ -142,8 +142,20 @@ class TechniqueAnalysisViewModel @JvmOverloads constructor(
     ) { loaded, row, _ -> loaded to row }
         .mapLatest { (loaded, row) -> assemble(loaded, row) }
 
-    val uiState: StateFlow<TechniqueAnalysisUiState> = combine(assembled, notice) { state, message ->
-        if (message == null) state else state.copy(notice = message)
+    val uiState: StateFlow<TechniqueAnalysisUiState> = combine(
+        assembled,
+        notice,
+        analysis.observeLiveTelemetry(mediaId),
+    ) { state, message, telemetry ->
+        val withTelemetry = if (state.status is AnalysisStatusUi.Analyzing) {
+            state.copy(
+                liveTelemetry = telemetry,
+                durationMs = max(state.durationMs, telemetry?.durationMs ?: 0L),
+            )
+        } else {
+            state
+        }
+        if (message == null) withTelemetry else withTelemetry.copy(notice = message)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), TechniqueAnalysisUiState.Loading)
 
     init {
@@ -176,6 +188,14 @@ class TechniqueAnalysisViewModel @JvmOverloads constructor(
     /** «Analizar»: el análisis completo de un vídeo que no tenía. */
     fun analyze() {
         launchAction("No se pudo pedir el análisis. Inténtalo de nuevo.") { analysis.requestAnalysis(mediaId, AnalysisMode.FULL) }
+    }
+
+    /** Cancela el análisis en curso o en cola, limpia telemetría/sidecar parcial y restaura estado previo o «Sin analizar». */
+    fun cancelAnalysis() {
+        progressFloor.set(0)
+        launchAction("No se pudo cancelar el análisis. Inténtalo de nuevo.") {
+            analysis.cancelAnalysis(mediaId)
+        }
     }
 
     /** «Analizar» con el movimiento que el usuario eligió (`setUserProfileOverride`). */
@@ -279,6 +299,7 @@ class TechniqueAnalysisViewModel @JvmOverloads constructor(
             // Un ejercicio propio (sin ids del catálogo) o un perfil que ya salió de una elección del usuario.
             canChooseMovement = (item.catalogDefinitionId.isNullOrBlank() && item.catalogConfigurationId.isNullOrBlank()) ||
                 overrides.userProfileOverride != null,
+            durationMs = item.durationMs ?: 0L,
         )
         if (row == null) {
             progressFloor.set(0)

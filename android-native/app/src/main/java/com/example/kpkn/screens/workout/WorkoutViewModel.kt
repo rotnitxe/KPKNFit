@@ -3939,7 +3939,13 @@ class WorkoutViewModel(
         }
         if (updatedSession == base) return
         val next = sessionForActiveMode(updatedSession, state.activeMode).allExercises().firstOrNull { it.id == exerciseId }
-        if (persistReferences && repository.getProgramById(programId) != null && previous != null && next != null &&
+        if (persistReferences && next != null &&
+            (previous.referenceTrainingMax != next.referenceTrainingMax ||
+                previous.reference1RM != next.reference1RM ||
+                previous.prFor1RM != next.prFor1RM)) {
+            saveSharedLoadReferencesForLiveExercise(next)
+        }
+        if (persistReferences && repository.getProgramById(programId) != null && next != null &&
             (previous.referenceTrainingMax != next.referenceTrainingMax || previous.reference1RM != next.reference1RM)) {
             // This boundary is invoked after the sheet's Confirmar cambios, never from its cancellable draft.
             viewModelScope.launch(kotlinx.coroutines.Dispatchers.IO) {
@@ -6109,19 +6115,36 @@ class WorkoutViewModel(
                     delay(900L)
                 }
                 if (!isCardioStartCountdownCurrent(request)) return@launch
-                val currentExercise = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return@launch
-                if (request.useGps && !com.example.kpkn.services.cardio.CardioGpsTracker.hasLocationPermission(appContext)) {
-                    cardioGpsPermissionDenied(exerciseId, setIndex)
-                    return@launch
-                }
-                if (request.useGps) startCardioGps(exerciseId, setIndex)
-                else startCardioTimer(exerciseId, currentExercise.cardioDetails?.effectiveDurationSeconds() ?: 1, setIndex)
+                completeCardioCountdownRequest(request)
             } finally {
                 if (_cardioStartCountdown.value?.requestId == request.requestId) {
                     _cardioStartCountdown.value = null
                 }
             }
         }
+    }
+
+    /** Salta la cuenta atrás 3-2-1 del cardio e inicia inmediatamente el paso/GPS correspondiente. */
+    fun skipCardioStartCountdown() {
+        val active = _cardioStartCountdown.value ?: return
+        cardioStartCountdownJob?.cancel()
+        cardioStartCountdownJob = null
+        if (isCardioStartCountdownCurrent(active)) {
+            completeCardioCountdownRequest(active)
+        }
+        if (_cardioStartCountdown.value?.requestId == active.requestId) {
+            _cardioStartCountdown.value = null
+        }
+    }
+
+    private fun completeCardioCountdownRequest(request: CardioStartCountdown) {
+        val currentExercise = visibleExercises(_uiState.value).firstOrNull { it.id == request.exerciseId } ?: return
+        if (request.useGps && !com.example.kpkn.services.cardio.CardioGpsTracker.hasLocationPermission(appContext)) {
+            cardioGpsPermissionDenied(request.exerciseId, request.setIndex)
+            return
+        }
+        if (request.useGps) startCardioGps(request.exerciseId, request.setIndex)
+        else startCardioTimer(request.exerciseId, currentExercise.cardioDetails?.effectiveDurationSeconds() ?: 1, request.setIndex)
     }
 
     private fun isCardioStartCountdownCurrent(request: CardioStartCountdown): Boolean {
@@ -8042,6 +8065,24 @@ class WorkoutViewModel(
         loadMode: LoadModeV2,
         unitMode: UnitModeV2,
     ): CompletedSet? {
+        if (setIdx > 0) {
+            val inSessionPrevious = ((setIdx - 1) downTo 0)
+                .asSequence()
+                .mapNotNull { prevIdx -> _uiState.value.completedSets[workoutSetKey(exercise.id, prevIdx, side)] }
+                .firstOrNull { completed ->
+                    if (completed.isWarmup || completed.skipped || completed.techniqueStatus != null ||
+                        completed.dropSets.isNotEmpty() || completed.restPauses.isNotEmpty()
+                    ) return@firstOrNull false
+                    val actualMode = completed.loadMode ?: completed.recordedPayloadV3?.loadInputMode
+                        ?: completed.homologatedResultV3?.loadMode ?: LoadModeV2.LOAD
+                    val actualUnit = completed.recordedPayloadV3?.unitMode
+                        ?: completed.homologatedResultV3?.unitMode ?: UnitModeV2.REPS
+                    actualMode == loadMode && actualUnit == unitMode &&
+                        completed.reps > 0 &&
+                        com.example.kpkn.domain.workout.LoadSuggestionEngine.inputLoad(completed, actualMode) > 0.0
+                }
+            if (inSessionPrevious != null) return inSessionPrevious
+        }
         val configurationId = sharedLoadConfigurationId(exercise) ?: return null
         val keys = identityKeysForExercise(exercise)
         val exerciseKey = canonicalExerciseKey(exercise)
@@ -8105,7 +8146,7 @@ class WorkoutViewModel(
                         if (set.isWarmup || set.skipped || set.side != null || set.techniqueStatus != null ||
                             set.dropSets.isNotEmpty() || set.restPauses.isNotEmpty() ||
                             set.performedPurpose() != null && set.performedPurpose() != SetPurpose.NONE ||
-                            set.rom != 100 || set.reps <= 0
+                            (set.rom != null && set.rom != 100) || set.reps <= 0
                         ) return@setLoop
                         val mode = set.loadMode ?: set.recordedPayloadV3?.loadInputMode ?: set.homologatedResultV3?.loadMode
                             ?: return@setLoop
@@ -8141,6 +8182,84 @@ class WorkoutViewModel(
                     )
                 }
             }
+        }
+    }
+
+    private fun saveSharedLoadReferencesForLiveExercise(exercise: Exercise) {
+        val configurationId = sharedLoadConfigurationId(exercise) ?: return
+        val exerciseKey = canonicalExerciseKey(exercise)
+        val tagId = _uiState.value.activeTagsByExercise[exercise.id]?.firstOrNull() ?: exercise.workoutTagId
+        val unitMode = exercise.trainingMode.toUnitModeV2()
+        val loadMode = exercise.sets.firstNotNullOfOrNull { it.loadModeV2 } ?: LoadModeV2.LOAD
+        val now = System.currentTimeMillis()
+        val pr = exercise.prFor1RM
+        if (pr != null && exercise.reference1RM?.let { it.isFinite() && it > 0.0 } == true) {
+            sharedLoadReferences.save(
+                com.example.kpkn.data.models.SharedExerciseLoadReference(
+                    id = com.example.kpkn.data.models.sharedLoadReferenceId(
+                        exerciseKey, configurationId, tagId, unitMode, loadMode,
+                        exercise.loadQuantityConvention,
+                        com.example.kpkn.data.models.SharedLoadReferenceKind.ESTIMATED_PR,
+                    ),
+                    exerciseKey = exerciseKey,
+                    configurationId = configurationId,
+                    tagId = tagId,
+                    unitMode = unitMode,
+                    loadMode = loadMode,
+                    quantityConvention = exercise.loadQuantityConvention,
+                    kind = com.example.kpkn.data.models.SharedLoadReferenceKind.ESTIMATED_PR,
+                    baseValueKg = exercise.reference1RM,
+                    sourceAtMs = now,
+                    sourceId = "live-pr:${exercise.id}",
+                    prWeightKg = pr.weight,
+                    prReps = pr.reps,
+                    effortMode = pr.effortMode,
+                    effortValue = pr.effortValue,
+                ),
+            )
+        } else {
+            exercise.reference1RM?.takeIf { it.isFinite() && it > 0.0 }?.let { value ->
+                sharedLoadReferences.save(
+                    com.example.kpkn.data.models.SharedExerciseLoadReference(
+                        id = com.example.kpkn.data.models.sharedLoadReferenceId(
+                            exerciseKey, configurationId, tagId, unitMode, loadMode,
+                            exercise.loadQuantityConvention,
+                            com.example.kpkn.data.models.SharedLoadReferenceKind.ONE_RM,
+                        ),
+                        exerciseKey = exerciseKey,
+                        configurationId = configurationId,
+                        tagId = tagId,
+                        unitMode = unitMode,
+                        loadMode = loadMode,
+                        quantityConvention = exercise.loadQuantityConvention,
+                        kind = com.example.kpkn.data.models.SharedLoadReferenceKind.ONE_RM,
+                        baseValueKg = value,
+                        sourceAtMs = now,
+                        sourceId = "live-1rm:${exercise.id}",
+                    ),
+                )
+            }
+        }
+        exercise.referenceTrainingMax?.takeIf { it.isFinite() && it > 0.0 }?.let { value ->
+            sharedLoadReferences.save(
+                com.example.kpkn.data.models.SharedExerciseLoadReference(
+                    id = com.example.kpkn.data.models.sharedLoadReferenceId(
+                        exerciseKey, configurationId, tagId, unitMode, loadMode,
+                        exercise.loadQuantityConvention,
+                        com.example.kpkn.data.models.SharedLoadReferenceKind.TRAINING_MAX,
+                    ),
+                    exerciseKey = exerciseKey,
+                    configurationId = configurationId,
+                    tagId = tagId,
+                    unitMode = unitMode,
+                    loadMode = loadMode,
+                    quantityConvention = exercise.loadQuantityConvention,
+                    kind = com.example.kpkn.data.models.SharedLoadReferenceKind.TRAINING_MAX,
+                    baseValueKg = value,
+                    sourceAtMs = now,
+                    sourceId = "live-tm:${exercise.id}",
+                ),
+            )
         }
     }
 

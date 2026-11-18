@@ -102,6 +102,8 @@ fun TechniqueScrubber(
     modifier: Modifier = Modifier,
     onScrubStart: () -> Unit = {},
     onScrubEnd: () -> Unit = {},
+    repSpeedWeights: Map<Int, Float> = emptyMap(),
+    observationTimesUs: List<Long> = emptyList(),
 ) {
     val reduced = wizardReducedMotion()
     val haptics = LocalHapticFeedback.current
@@ -250,9 +252,13 @@ fun TechniqueScrubber(
                         val a = left + span * (rep.startUs.toFloat() / durationUs).coerceIn(0f, 1f)
                         val b = left + span * (rep.endUs.toFloat() / durationUs).coerceIn(0f, 1f)
                         if (b <= a) continue
-                        // `.tc-band`: alto 10 + v·16 px en el lienzo (v no está en el dato); 18 dp es la banda media
-                        // común a todas las repeticiones. La elegida NO crece: solo cambia opacidad y anillo.
-                        val bandHeight = 18.dp.toPx()
+                        // `.tc-band`: alto 10 + v·16 dp cuando hay pesos de velocidad; 18 dp por defecto.
+                        val weight = repSpeedWeights[i]
+                        val bandHeight = if (weight != null) {
+                            (10f + weight.coerceIn(0f, 1f) * 16f).dp.toPx()
+                        } else {
+                            18.dp.toPx()
+                        }
                         val top = baseY - bandHeight
                         val width = b - a
                         // `.tc-band`: border-radius 6px 6px 2px 2px.
@@ -301,6 +307,13 @@ fun TechniqueScrubber(
                                 style = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx()),
                             )
                         }
+                    }
+                    // `.tc-ob`: puntos ámbar (8 dp diámetro con halo suave) en instantes con observaciones.
+                    val obsY = baseY + 6.dp.toPx()
+                    for (obsUs in observationTimesUs) {
+                        val obsX = left + span * (obsUs.toFloat() / durationUs).coerceIn(0f, 1f)
+                        drawCircle(color = Color(0x30F7CF73), radius = 7.dp.toPx(), center = Offset(obsX, obsY))
+                        drawCircle(color = Color(0xFFF7CF73), radius = 4.dp.toPx(), center = Offset(obsX, obsY))
                     }
                 }
                 val grow = thumb.value

@@ -10,6 +10,7 @@ import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.gestures.waitForUpOrCancellation
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -246,48 +247,57 @@ fun PlateCalibrationDialog(
                         Canvas(Modifier.fillMaxSize()) {
                             val center = Offset(circle.cx * size.width, circle.cy * size.height)
                             val radius = circle.r * size.width
-                            // Un contorno oscuro bajo el trazo ámbar, para que se lea sobre cualquier fondo.
+                            // Aura suave y contorno oscuro bajo el trazo `.tc-circ` para que destaque sobre cualquier disco.
+                            drawCircle(SymbolPalette.energia.copy(alpha = 0.22f), radius, center, style = Stroke(width = 8.dp.toPx()))
                             drawCircle(Color.Black.copy(alpha = 0.55f), radius, center, style = Stroke(width = 5.dp.toPx()))
                             drawCircle(SymbolPalette.energia, radius, center, style = Stroke(width = 2.5.dp.toPx()))
-                            val tick = 7.dp.toPx()
-                            drawLine(SymbolPalette.energia, Offset(center.x - tick, center.y), Offset(center.x + tick, center.y), strokeWidth = 1.5.dp.toPx())
-                            drawLine(SymbolPalette.energia, Offset(center.x, center.y - tick), Offset(center.x, center.y + tick), strokeWidth = 1.5.dp.toPx())
+                            val tick = 9.dp.toPx()
+                            drawLine(Color(0xFFF2EEE6), Offset(center.x - tick, center.y), Offset(center.x + tick, center.y), strokeWidth = 1.5.dp.toPx())
+                            drawLine(Color(0xFFF2EEE6), Offset(center.x, center.y - tick), Offset(center.x, center.y + tick), strokeWidth = 1.5.dp.toPx())
                         }
                     }
                 }
 
-                Text(
-                    text = "Arrastra el círculo hasta el disco y pellizca para ajustar su tamaño.",
-                    style = KpknType.caption,
-                    color = WizardColors.textMuted,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),
-                )
-                Column(modifier = Modifier.padding(horizontal = 16.dp)) {
+                val bottomShape = RoundedCornerShape(topStart = 22.dp, topEnd = 22.dp)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color(0xDC0E0E12), bottomShape)
+                        .border(1.dp, Color(0x1FFFFFFF), bottomShape)
+                        .padding(horizontal = 16.dp, vertical = 12.dp),
+                ) {
+                    Text(
+                        text = "Arrastra el círculo hasta el disco y pellizca para ajustar su tamaño.",
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                    )
+                    Spacer(Modifier.height(10.dp))
                     Text(text = "Diámetro del disco, en cm", style = KpknType.caption, color = WizardColors.textMuted)
                     PlateDiameterChips(selectedMm = diameterMm, onSelect = { diameterMm = it }, onOther = { showOther = true })
+                    Spacer(Modifier.height(10.dp))
+                    KpknPrimaryPill(
+                        text = "Guardar",
+                        onClick = {
+                            val width = plate.frameWidth.takeIf { it > 0 } ?: frame?.width ?: 0
+                            val height = plate.frameHeight.takeIf { it > 0 } ?: frame?.height ?: 0
+                            if (width > 0 && height > 0) {
+                                onSave(
+                                    PlateSeed(
+                                        tUs = plate.frameUs,
+                                        cx = circle.cx * width,
+                                        cy = circle.cy * height,
+                                        r = circle.r * width,
+                                        userConfirmed = true,
+                                    ),
+                                    diameterMm,
+                                )
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        tag = PLATE_DIALOG_SAVE_TAG,
+                        enabled = frame != null,
+                    )
                 }
-                KpknPrimaryPill(
-                    text = "Guardar",
-                    onClick = {
-                        val width = plate.frameWidth.takeIf { it > 0 } ?: frame?.width ?: 0
-                        val height = plate.frameHeight.takeIf { it > 0 } ?: frame?.height ?: 0
-                        if (width > 0 && height > 0) {
-                            onSave(
-                                PlateSeed(
-                                    tUs = plate.frameUs,
-                                    cx = circle.cx * width,
-                                    cy = circle.cy * height,
-                                    r = circle.r * width,
-                                    userConfirmed = true,
-                                ),
-                                diameterMm,
-                            )
-                        }
-                    },
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    tag = PLATE_DIALOG_SAVE_TAG,
-                    enabled = frame != null,
-                )
             }
             if (showOther) {
                 PlateOtherDiameterDialog(

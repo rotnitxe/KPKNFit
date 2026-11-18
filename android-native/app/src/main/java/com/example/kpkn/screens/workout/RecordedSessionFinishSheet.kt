@@ -9,13 +9,11 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.foundation.rememberScrollState
+import com.example.kpkn.ui.components.KpknSheet
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -45,7 +43,6 @@ import kotlin.math.max
  * tres acciones rápidas; Anotaciones es un panel que entra desde la derecha. El estado vive aquí; el dibujo, en [FinishSheetContent].
  * `calibrationDecisions` se sigue aceptando (la decisión se guarda igual) pero el lienzo aprobado no tiene sitio para su resumen.
  */
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun RecordedSessionFinishSheet(
     name: String,
@@ -143,6 +140,13 @@ internal fun RecordedSessionFinishSheet(
         photoCount = presentation.photos.size, shareAfterSave = shareAfterSave, panelOpen = panelOpen, panelKind = panelKind, checklist = checklist,
         effortSelected = effort, storyThumb = thumb, ridges = ridges, ridgeRecordIndex = ridgeRecord,
     )
+    var lastCommittedNotes by rememberSaveable { mutableStateOf(initialNotes) }
+    fun commitNotesIfChanged() {
+        if (notes != lastCommittedNotes) {
+            lastCommittedNotes = notes
+            onNotesCommitted(notes)
+        }
+    }
     val actions = FinishSheetActions(
         onShare = { enabled ->
             shareAfterSave = enabled
@@ -152,7 +156,7 @@ internal fun RecordedSessionFinishSheet(
         onOpenNotes = { panelKind = FinishPanelKind.NOTES; panelOpen = true },
         onOpenRate = { panelKind = FinishPanelKind.EFFORT; panelOpen = true },
         onClosePanel = {
-            if (panelKind == FinishPanelKind.NOTES) onNotesCommitted(notes)
+            if (panelKind == FinishPanelKind.NOTES) commitNotesIfChanged()
             panelOpen = false
         }, onPhotos = onAlbum,
         onSave = {
@@ -161,7 +165,7 @@ internal fun RecordedSessionFinishSheet(
         },
         onBack = {
             if (!saving) {
-                onNotesCommitted(notes)
+                commitNotesIfChanged()
                 onDismiss()
             }
         },
@@ -171,32 +175,40 @@ internal fun RecordedSessionFinishSheet(
     )
 
     // La hoja del lienzo: 94 % del alto (a lo que mida el contenido si no hay series), fondo #1B1B1D, radio 28 y asa de 40 × 4 a 8 dp del borde.
-    ModalBottomSheet(
-        onDismissRequest = {
-            if (showStory) showStory = false else if (!saving) {
-                onNotesCommitted(notes)
-                onDismiss()
-            }
-        },
-        sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
-        containerColor = Color(0xFF1B1B1D),
-        scrimColor = Color(0xA8000000),
-        shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        dragHandle = null,
-    ) {
-        Box(Modifier.fillMaxWidth().then(if (model.empty) Modifier else Modifier.fillMaxHeight(0.94f))) {
-            if (showStory) {
-                WorkoutStorySheet(
-                    data = story,
-                    hazeState = remember { HazeState() },
-                    options = storyOptions,
-                    onOptionsChange = { storyOptions = it },
-                    shareAfterSave = shareAfterSave,
-                    onShareAfterSaveChange = { shareAfterSave = it },
-                    onDismiss = { showStory = false },
-                    embedded = true,
-                )
-            } else {
+    if (showStory) {
+        WorkoutStorySheet(
+            data = story,
+            hazeState = remember { HazeState() },
+            options = storyOptions,
+            onOptionsChange = { storyOptions = it },
+            shareAfterSave = shareAfterSave,
+            onShareAfterSaveChange = { shareAfterSave = it },
+            onDismiss = {
+                if (openStoryOnStart) {
+                    commitNotesIfChanged()
+                    onDismiss()
+                } else {
+                    showStory = false
+                }
+            },
+            embedded = false,
+        )
+    } else {
+        KpknSheet(
+            onDismissRequest = {
+                if (!saving) {
+                    commitNotesIfChanged()
+                    onDismiss()
+                }
+            },
+            dismissible = !saving,
+            showDragHandle = false,
+            maxHeightFraction = 0.94f,
+            stableHeightFraction = if (model.empty) null else 0.94f,
+            backdropScrim = Color(0xA8000000),
+            surfaceColor = Color(0xFF1B1B1D),
+        ) {
+            Box(Modifier.fillMaxWidth().then(if (model.empty) Modifier else Modifier.fillMaxHeight())) {
                 FinishSheetContent(state, actions, scrollState = finishScrollState)
                 Box(Modifier.align(Alignment.TopCenter).padding(top = 8.dp).size(width = 40.dp, height = 4.dp).clip(RoundedCornerShape(2.dp)).background(Color(0x33FFFFFF)))
             }

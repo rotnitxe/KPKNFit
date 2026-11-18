@@ -72,9 +72,9 @@ class WorkoutBackNavigationTest {
     }
 
     @Test
-    fun readinessSheetConsumesBackWithoutExitDialog() {
+    fun readinessSheetDismissesWithoutExitDialog() {
         assertEquals(
-            WorkoutBackAction.CONSUME_NON_DISMISSIBLE_MODAL,
+            WorkoutBackAction.DISMISS_READINESS,
             resolveWorkoutBackAction(WorkoutOverlayFlags(showReadiness = true)),
         )
     }

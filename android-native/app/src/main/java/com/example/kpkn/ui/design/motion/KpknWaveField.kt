@@ -82,6 +82,12 @@ enum class KpknWaveEdgeFade {
 
     /** `linear-gradient(#000, #000 60%, #0000)`: la del final del cardio (`.cv-finwave`). */
     Finish,
+
+    /** `linear-gradient(#0000 14%, #000 50%, #0000 86%)`: transición de entrada a cardio (`cv-trans`). */
+    TransitionIn,
+
+    /** `linear-gradient(#0000 10%, #000 40%, #0000 80%)`: transición de salida a fuerza (`cv-trans.done`). */
+    TransitionOut,
 }
 
 /** Ancho del sistema de coordenadas del SVG de las ondas (`W = 360`); la altura es `data-h`. */
@@ -189,13 +195,14 @@ fun KpknWaveField(
     edgeFade: KpknWaveEdgeFade = KpknWaveEdgeFade.None,
     viewBoxHeight: Float? = null,
     frozenSeconds: Float? = null,
+    restartKey: Any? = Unit,
 ) {
     val reduced = wizardReducedMotion()
     val target = rememberUpdatedState(state.params)
-    val dynamics = remember { KpknWaveDynamics(state.params, introSeconds.toDouble()) }
-    val tick = remember { mutableLongStateOf(0L) }
+    val dynamics = remember(restartKey) { KpknWaveDynamics(state.params, introSeconds.toDouble()) }
+    val tick = remember(restartKey) { mutableLongStateOf(0L) }
     val frozen = frozenSeconds != null || reduced
-    LaunchedEffect(frozen) {
+    LaunchedEffect(frozen, restartKey) {
         if (frozen) return@LaunchedEffect
         var last = withFrameNanos { it }
         while (true) {
@@ -210,6 +217,8 @@ fun KpknWaveField(
         KpknWaveEdgeFade.None -> Modifier
         KpknWaveEdgeFade.Hero -> Modifier.waveMask(listOf(0f to 0f, 0.14f to 1f, 0.82f to 1f, 1f to 0f))
         KpknWaveEdgeFade.Finish -> Modifier.waveMask(listOf(0f to 1f, 0.6f to 1f, 1f to 0f))
+        KpknWaveEdgeFade.TransitionIn -> Modifier.waveMask(listOf(0f to 0f, 0.14f to 1f, 0.50f to 1f, 0.86f to 1f, 1f to 0f))
+        KpknWaveEdgeFade.TransitionOut -> Modifier.waveMask(listOf(0f to 0f, 0.10f to 1f, 0.40f to 1f, 0.80f to 1f, 1f to 0f))
     }
     Canvas(modifier.then(faded).fillMaxSize()) {
         tick.longValue // suscripción: cada cuadro de la onda redibuja, sin recomponer

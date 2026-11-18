@@ -14,11 +14,14 @@ import androidx.compose.ui.platform.LocalView
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.screens.workout.CardioLiveCard
+import com.example.kpkn.screens.workout.CardioTransitionInfo
+import com.example.kpkn.screens.workout.CardioTransitionOutInfo
 import com.example.kpkn.screens.workout.WorkoutHeaderBar
 import com.example.kpkn.ui.theme.KPKNTheme
 import org.junit.Assume.assumeTrue
@@ -51,6 +54,35 @@ class CardioPulidoRenderSheetTest {
     @Test fun aboveZone() = draw("cv-sobre-zona", nor, elapsed = 1462, hr = 176)
     @Test fun noPulse() = draw("cv-continuo", CardioDetails(type = CardioType.STAIR_CLIMBER, targetDurationSeconds = 1200), elapsed = 19)
     @Test fun ready() = draw("cv-listo", nor, elapsed = 0, status = CardioExecutionStatus.READY)
+    @Test fun paused() = draw("cv-pausa", nor, elapsed = 1462, hr = 160, status = CardioExecutionStatus.PAUSED, inZoneSeconds = 136)
+    @Test fun completed() = draw("cv-final", nor, elapsed = 2400, hr = 148, status = CardioExecutionStatus.AWAITING_CONFIRMATION, inZoneSeconds = 180)
+    @Test fun recorded() = draw("cv-registrado", nor, elapsed = 2400, hr = 148, status = CardioExecutionStatus.RECORDED)
+    @Test fun locked() = draw("cv-bloqueado", nor, elapsed = 1462, hr = 160, inZoneSeconds = 136, tapLock = true)
+    @Test fun countdown() = draw("cv-countdown", nor, elapsed = 0, status = CardioExecutionStatus.READY, countdown = 2)
+    @Test fun transitionIn() = draw(
+        "cv-trans-in",
+        nor,
+        elapsed = 0,
+        status = CardioExecutionStatus.READY,
+        transitionIn = CardioTransitionInfo("Terminaste la fuerza: 2 ejercicios y 7 series."),
+    )
+    @Test fun transitionOut() = draw(
+        "cv-trans-out",
+        nor,
+        elapsed = 2400,
+        hr = 148,
+        status = CardioExecutionStatus.RECORDED,
+        transitionOut = CardioTransitionOutInfo(
+            exerciseName = "Sentadilla trasera",
+            meta = "Fuerza · 4 series · desc. 2 min",
+            firstSet = "100 kg × 6",
+            planEffort = "Objetivo RPE 8",
+            lastTime = "97,5 kg × 6",
+            chips = listOf("4 series", "6 reps", "RPE 8"),
+            footnote = null,
+            onContinue = {},
+        ),
+    )
     @Test @Config(qualifiers = "w360dp-h740dp-xxhdpi")
     fun compact() = draw("cv-trabajo-360x740", nor, elapsed = 1462, hr = 160, height = 740, inZoneSeconds = 136)
     @Test fun font130() = draw("cv-trabajo-fs1.3", nor, elapsed = 1462, hr = 160, font = 1.3f, inZoneSeconds = 136)
@@ -59,8 +91,21 @@ class CardioPulidoRenderSheetTest {
     @Test @Config(qualifiers = "w360dp-h880dp-mdpi")
     fun workMdpi() = draw("cv-trabajo-mdpi", nor, elapsed = 1462, hr = 160, inZoneSeconds = 136, density = 1f)
 
-    private fun draw(name: String, details: CardioDetails, elapsed: Int, hr: Int? = null, height: Int = 880, font: Float = 1f,
-        status: CardioExecutionStatus = CardioExecutionStatus.RUNNING, inZoneSeconds: Int = 0, density: Float = 3f) {
+    private fun draw(
+        name: String,
+        details: CardioDetails,
+        elapsed: Int,
+        hr: Int? = null,
+        height: Int = 880,
+        font: Float = 1f,
+        status: CardioExecutionStatus = CardioExecutionStatus.RUNNING,
+        inZoneSeconds: Int = 0,
+        density: Float = 3f,
+        countdown: Int = 0,
+        transitionIn: CardioTransitionInfo? = null,
+        transitionOut: CardioTransitionOutInfo? = null,
+        tapLock: Boolean = false,
+    ) {
         assumeTrue("requiere KPKN_RENDER_DIR", System.getenv("KPKN_RENDER_DIR") != null)
         rule.mainClock.autoAdvance = false
         rule.setContent {
@@ -77,8 +122,11 @@ class CardioPulidoRenderSheetTest {
                         CardioLiveCard(details, null, Color.White, Modifier.weight(1f).fillMaxWidth(),
                             executionState = CardioTimerState(exerciseId = "cardio", elapsedSeconds = elapsed,
                                 totalSeconds = details.effectiveDurationSeconds(), remainingSeconds = details.effectiveDurationSeconds() - elapsed, status = status),
-                            liveHeartRateBpm = hr, exerciseName = if (details.hasIntervals()) "Cinta · Noruego 4×4" else "Escaladora",
-                            maxHeartRateBpm = 190, bodyWeightKg = 61.0, onRecord = { _, _, _ -> true })
+                            liveHeartRateBpm = hr,
+                            countdownRemaining = countdown,
+                            exerciseName = if (details.hasIntervals()) "Cinta · Noruego 4×4" else "Escaladora",
+                            maxHeartRateBpm = 190, bodyWeightKg = 61.0, onRecord = { _, _, _ -> true },
+                            transitionIn = transitionIn, transitionOut = transitionOut)
                     }
                 } }
             }
@@ -89,6 +137,10 @@ class CardioPulidoRenderSheetTest {
         if (status == CardioExecutionStatus.RUNNING && hr != null && inZoneSeconds > 0) {
             // Avance sin dibujar cada fotograma: solo interesan los tics de 1 s del contador de zona.
             rule.mainClock.advanceTimeBy(inZoneSeconds * 1_000L, ignoreFrameDuration = true)
+            rule.waitForIdle()
+        }
+        if (tapLock) {
+            rule.onNodeWithTag("cardio-lock").performClick()
             rule.waitForIdle()
         }
         repeat(4) { rule.mainClock.advanceTimeByFrame(); rule.waitForIdle() }

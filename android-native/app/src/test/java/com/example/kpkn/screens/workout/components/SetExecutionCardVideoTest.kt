@@ -51,7 +51,7 @@ class SetExecutionCardVideoTest {
                         onShowHistory = {}, onSetBodyWeight = {}, initialBodyWeight = 80.0,
                         recordActionHolder = holder, recordActionPageKey = "page",
                         initialDraft = WorkoutSetDraft(weightText = "95", valueText = if (withSuggestion) "8" else full.toString(),
-                            intensityText = "2", partialReps = if (withSuggestion) initialPartials else partials),
+                            intensityText = "2", partialReps = if (withSuggestion) initialPartials else partials, isDirty = true),
                         onDraftChange = { value, _ -> draft = value },
                         videoAnalysis = if (withSuggestion) SetVideoAnalysisUi("v", SetVideoAnalysisState.Suggest(
                             full, partials, 0, confidence, partialConfidence = partialConfidence)) else null,

@@ -103,6 +103,8 @@ class TechniqueAnalysisWorker(
             }.getOrDefault(false)
             if (marked) clearManualRequestIfFulfilled(repository, mediaId)
             Result.failure(workDataOf(KEY_ERROR_CODE to ERROR_WORKER))
+        } finally {
+            VideoAnalysisRepository.clearLiveTelemetry(mediaId)
         }
     }
 

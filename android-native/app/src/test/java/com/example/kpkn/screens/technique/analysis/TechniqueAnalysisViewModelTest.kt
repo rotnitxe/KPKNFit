@@ -92,6 +92,8 @@ class TechniqueAnalysisViewModelTest {
         TechniqueWorkTestKit.tearDownWorkManager()
         db.close()
         KpknDatabase.closeInstance()
+        File(context.filesDir, "analysis_requests").deleteRecursively()
+        File(context.filesDir, "analysis_publications").deleteRecursively()
         Dispatchers.resetMain()
     }
 
@@ -242,12 +244,14 @@ class TechniqueAnalysisViewModelTest {
 
         // Otra DONE vieja tampoco es publicable; no se vuelve a pedir automáticamente en esta apertura.
         delay(20L)
+        val genId = analysis.currentAnalysisGeneration(item.id)?.id
         analysis.completeDone(
             item,
             TechniqueReportSamples.fullReport().copy(engineVersion = 0),
             TechniqueReportSamples.exercise(),
             item.weightKg,
             AnalysisMode.RECOMPUTE,
+            analysisGenerationId = genId,
         )
         val stillOld = vm.awaitState { it.status is AnalysisStatusUi.Failed }
         assertNull(stillOld.results)
@@ -262,7 +266,14 @@ class TechniqueAnalysisViewModelTest {
         val running = vm.awaitState { (it.status as? AnalysisStatusUi.Analyzing)?.progressPct == 40 }
         assertNull(running.results)
         assertNull(running.overlay)
-        analysis.completeDone(item, TechniqueReportSamples.fullReport(), TechniqueReportSamples.exercise(), item.weightKg, AnalysisMode.RECOMPUTE)
+        analysis.completeDone(
+            item,
+            TechniqueReportSamples.fullReport(),
+            TechniqueReportSamples.exercise(),
+            item.weightKg,
+            AnalysisMode.RECOMPUTE,
+            analysisGenerationId = genId,
+        )
         val current = vm.awaitState { it.status == AnalysisStatusUi.Done }
         assertNotNull(current.results)
         assertNotNull(current.overlay)
@@ -323,7 +334,14 @@ class TechniqueAnalysisViewModelTest {
             assertNull(queued.overlay)
             assertEquals(item.filePath, queued.videoPath)
             assertEquals(1, infos("vid-1").size)
-            analysis.completeDone(item, TechniqueReportSamples.fullReport(), TechniqueReportSamples.exercise(), item.weightKg, AnalysisMode.FULL)
+            analysis.completeDone(
+                item,
+                TechniqueReportSamples.fullReport(),
+                TechniqueReportSamples.exercise(),
+                item.weightKg,
+                AnalysisMode.FULL,
+                analysisGenerationId = analysis.currentAnalysisGeneration(item.id)?.id,
+            )
             val ready = vm.awaitState { it.status == AnalysisStatusUi.Done }
             assertNotNull(ready.results)
             assertNotNull(ready.overlay)

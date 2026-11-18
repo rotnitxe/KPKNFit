@@ -498,7 +498,7 @@ internal fun SetCardExerciseMediaBack(
                     startBounds = faceBounds,
                     title = "Modo visual · serie ${setIndex + 1}",
                     subtitle = details,
-                    onFolded = { expanded = false; foldRequested = false },
+                    onFolded = { expanded = false; techniqueOpen = false; foldRequested = false },
                     foldRequested = foldRequested,
                     beforeFold = {},
                     onOpenAlbum = if (mediaCapture != null) ({ showAlbum = true }) else null,

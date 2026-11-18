@@ -617,9 +617,14 @@ class SetExecutionCardEffortTest {
         rule.onNodeWithContentDescription("Iniciar el cronómetro de la serie").performClick()
         rule.waitForIdle()
 
+        rule.onNodeWithTag("live-card-set-clock-face").assertExists()
         rule.onNodeWithContentDescription("Pausar el cronómetro de la serie").assertExists()
         rule.onNodeWithContentDescription("Pausar el cronómetro de la serie").performClick()
         rule.waitForIdle()
+        rule.onNodeWithContentDescription("Reanudar el cronómetro de la serie").assertExists()
+        rule.onNodeWithTag("live-card-set-clock-finish").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("live-card-set-clock-face").assertDoesNotExist()
         rule.onNodeWithContentDescription("Iniciar el cronómetro de la serie").assertExists()
         assertTrue("detener el reloj no registra la serie", registros.isEmpty())
     }

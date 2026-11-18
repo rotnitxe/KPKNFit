@@ -6,6 +6,7 @@ import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.MobilitySeries
+import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WeekVariant
 import kotlinx.coroutines.CoroutineScope
@@ -204,5 +205,101 @@ class WorkoutStepNavigatorNavigationTest {
         assertEquals("press_1", state.activeStepKey)
         assertEquals(1, state.currentSetIdx)
         assertEquals(false, state.isRestTimerRunning)
+    }
+
+    @Test
+    fun lastSetOfIntermediateExerciseAdvancesExerciseWithoutStoppingActiveRestTimer() {
+        val outgoing = Exercise(
+            id = "bench",
+            name = "Press banca",
+            sets = listOf(ExerciseSet(id = "bench-1"), ExerciseSet(id = "bench-2")),
+        )
+        val nextExercise = Exercise(
+            id = "row",
+            name = "Remo",
+            sets = listOf(ExerciseSet(id = "row-1")),
+        )
+        val session = Session(id = "session", name = "Sesión", exercises = listOf(outgoing, nextExercise))
+        var state = WorkoutUiState(
+            session = session,
+            currentExerciseIdx = 0,
+            currentSetIdx = 1,
+            activeStepKey = WorkoutStepRules.workingStepKey("bench", 1),
+            setJustLoggedKey = "bench_1",
+            completedSets = mapOf(
+                "bench_0" to CompletedSet(id = "c0", reps = 8, weight = 80.0),
+                "bench_1" to CompletedSet(id = "c1", reps = 8, weight = 80.0),
+            ),
+            postExerciseFeedbackByExerciseId = mapOf(
+                "bench" to PostExerciseFeedback(
+                    exerciseId = "bench",
+                    exerciseName = "Press banca",
+                    technicalQuality = 4,
+                ),
+            ),
+            isRestTimerRunning = true,
+            restModalState = WorkoutRestModalState(
+                exerciseId = "bench",
+                exerciseName = "Press banca",
+                kind = RestTimerKind.STANDARD,
+                plannedSeconds = 90,
+                suggestedSeconds = 90,
+                activeSeconds = 90,
+            ),
+        )
+        var stopCalls = 0
+        val navigator = WorkoutStepNavigator(
+            scope = CoroutineScope(Dispatchers.Unconfined),
+            getState = { state },
+            updateState = { transform -> state = transform(state) },
+            ports = object : WorkoutStepNavigator.Ports {
+                override fun visibleExercises(state: WorkoutUiState) = state.session?.exercises.orEmpty()
+                override fun sessionForActiveMode(base: Session, mode: WeekVariant) = base
+                override fun isSetDone(
+                    completedSets: Map<String, CompletedSet>,
+                    exerciseId: String,
+                    setIdx: Int,
+                    isUnilateral: Boolean,
+                ) = completedSets.containsKey("${exerciseId}_$setIdx")
+                override fun buildEditingStateForPosition(
+                    completedSets: Map<String, CompletedSet>,
+                    exercise: Exercise?,
+                    setIdx: Int,
+                    preferredSide: String?,
+                ): WorkoutEditingState? = null
+                override fun stopRestTimer() {
+                    stopCalls += 1
+                    state = state.copy(isRestTimerRunning = false, restModalState = null)
+                }
+                override fun persistOngoingState(immediate: Boolean) = Unit
+                override suspend fun persistOngoingStateAndAwait() = WorkoutPersistResult.Ok
+                override fun refreshLoadSuggestions(state: WorkoutUiState) = Unit
+                override fun clearDraftForSet(exerciseId: String, setIdx: Int, side: String?) = Unit
+                override fun computeImbalanceNotice(
+                    exercise: Exercise,
+                    setIdx: Int,
+                    completedSets: Map<String, CompletedSet>,
+                ): String? = null
+                override fun openFinishSheet() = Unit
+                override fun speakCurrentStepAnnouncementIfEnabled() = Unit
+                override fun isRecordingBusy() = false
+                override fun onRecordingBusyBlocked(message: String) = Unit
+                override fun announcePostExerciseFeedback(exerciseIds: List<String>) = Unit
+                override fun announceFinalPostExerciseFeedback(exerciseIds: List<String>) = Unit
+            },
+        )
+
+        navigator.nextSet(stopRest = false)
+
+        val workingRestActive = state.isRestTimerRunning &&
+            state.restModalState != null &&
+            state.restModalState?.kind != RestTimerKind.WARMUP
+        val anchorExerciseId = state.setJustLoggedKey?.let(::parseCompletedSetKey)?.exerciseId
+        assertEquals(0, stopCalls)
+        assertTrue(workingRestActive)
+        assertEquals(1, state.currentExerciseIdx)
+        assertEquals(0, state.currentSetIdx)
+        assertEquals(WorkoutStepRules.workingStepKey("row", 0), state.activeStepKey)
+        assertEquals("bench", anchorExerciseId)
     }
 }

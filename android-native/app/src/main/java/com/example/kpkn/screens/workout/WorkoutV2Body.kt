@@ -9,6 +9,7 @@ import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.rememberScrollState
@@ -171,6 +172,8 @@ internal fun WorkoutV2Body(
     // y el chip «Descanso 2:41 · +15 s» de cuando el descanso sigue corriendo y otra página está a la vista.
     val restOverrunOnCard = uiState.restOverrun != null && uiState.isRestMinimized && !uiState.isRestTimerRunning
     val restChipHolder = remember { com.example.kpkn.screens.workout.components.RestChipHolder() }
+    var cardioLocked by remember(currentExercise?.id) { mutableStateOf(false) }
+    var cardioShowContext by remember(currentExercise?.id) { mutableStateOf(true) }
     LaunchedEffect(currentExercise?.id, currentExercise?.cardioDetails?.requiresGps) {
         currentExercise
             ?.takeIf { it.isCardio && it.cardioDetails?.requiresGps == true }
@@ -290,6 +293,7 @@ internal fun WorkoutV2Body(
             val paceWork = remember(visibleExercises, uiState.completedSets, uiState.omittedSetKeys) {
                 sessionPaceWork(visibleExercises, uiState.completedSets, uiState.omittedSetKeys)
             }
+            val isCurrentCardio = liveSessionView != LiveSessionView.LIST && currentExercise?.let { cardioDetailsOrNull(it) != null } == true
             WorkoutHeaderBar(
                 exerciseName = headerExerciseName,
                 exerciseChips = headerExerciseChips,
@@ -369,8 +373,9 @@ internal fun WorkoutV2Body(
                 onCreateSupersetClick = onCreateSuperset,
                 bodyHazeState = cardsHazeState,
                 sessionTimeRequest = sessionTimeRequest,
-                showExerciseContext = liveSessionView != LiveSessionView.LIST,
-                cardioLayout = liveSessionView != LiveSessionView.LIST && currentExercise?.let { cardioDetailsOrNull(it) != null } == true,
+                showExerciseContext = liveSessionView != LiveSessionView.LIST && (!isCurrentCardio || cardioShowContext),
+                cardioLayout = isCurrentCardio,
+                exerciseContextAlpha = if (isCurrentCardio && cardioLocked) 0.5f else 1f,
                 glassCapsule = liveSessionView == LiveSessionView.LIST,
             )
             }
@@ -683,32 +688,18 @@ internal fun WorkoutV2Body(
                         }
                         Column(modifier = Modifier.fillMaxSize()) {
                             if (cardioSetIndices.size > 1) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .horizontalScroll(rememberScrollState()),
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                ) {
-                                    cardioSetIndices.forEach { setIndex ->
-                                        val isCompleted =
-                                            WorkoutStepRules.cardioCompletionKey(currentExercise.id, setIndex) in uiState.completedSets
-                                        FilterChip(
-                                            selected = setIndex == currentCardioSetIndex,
-                                            onClick = {
-                                                viewModel.selectWorkoutStep(
-                                                    WorkoutStepRules.cardioStepKey(currentExercise.id, setIndex),
-                                                )
-                                            },
-                                            label = {
-                                                Text(
-                                                    "Serie ${setIndex + 1}" +
-                                                        if (isCompleted) " · Registrada" else "",
-                                                )
-                                            },
+                                CardioSetSelectorPills(
+                                    setIndices = cardioSetIndices,
+                                    selectedSetIndex = currentCardioSetIndex,
+                                    isSetCompleted = { setIndex ->
+                                        WorkoutStepRules.cardioCompletionKey(currentExercise.id, setIndex) in uiState.completedSets
+                                    },
+                                    onSelectSet = { setIndex ->
+                                        viewModel.selectWorkoutStep(
+                                            WorkoutStepRules.cardioStepKey(currentExercise.id, setIndex),
                                         )
-                                    }
-                                }
+                                    },
+                                )
                                 Spacer(modifier = Modifier.height(8.dp))
                             }
                             if (cardioDetails != null) {
@@ -748,13 +739,16 @@ internal fun WorkoutV2Body(
                                                 cardioHealthState.exerciseId == currentExercise.id
                                             },
                                             onCountdownCue = { remaining -> viewModel.playCardioCountdownCue(currentExercise.id, currentCardioSetIndex, remaining) },
+                                            onSkipCountdown = { viewModel.skipCardioStartCountdown() },
+                                            onLockedChanged = { cardioLocked = it },
+                                            onShowExerciseContextChanged = { cardioShowContext = it },
                                             onStartTimer = {
                                                 if (cardioPageActionIsCurrent()) {
                                                     val isLibre = !cardioDetails.hasIntervals() &&
                                                         cardioDetails.targetDurationSeconds == null
                                                     viewModel.startCardioTimer(
                                                         currentExercise.id,
-                                                         if (isLibre) 0 else cardioDetails.effectiveDurationSeconds(),
+                                                        if (isLibre) 0 else cardioDetails.effectiveDurationSeconds(),
                                                         currentCardioSetIndex,
                                                     )
                                                 }
@@ -781,45 +775,8 @@ internal fun WorkoutV2Body(
                                                     false
                                                 }
                                             },
-                                            // Sesión mixta: si antes hubo fuerza, el cardio empieza con «Ahora vamos con cardio».
-                                            transitionIn = visibleExercises.indexOfFirst { it.id == currentExercise.id }.takeIf { it > 0 }?.let { position ->
-                                                val strength = visibleExercises.take(position).filter { cardioDetailsOrNull(it) == null }
-                                                val doneSets = strength.sumOf { ex -> ex.sets.indices.count { i -> ex.completionKeysForSet(i).any { it in uiState.completedSets } } }
-                                                if (strength.isEmpty()) null
-                                                else CardioTransitionInfo("Terminaste la fuerza: ${strength.size} ${if (strength.size == 1) "ejercicio" else "ejercicios"} y $doneSets ${if (doneSets == 1) "serie" else "series"}.")
-                                            },
-                                            // Sesión mixta: si después sigue fuerza, al registrar el cardio aparece «Ahora vamos con fuerza».
-                                            transitionOut = visibleExercises.indexOfFirst { it.id == currentExercise.id }.takeIf { it >= 0 }?.let { position ->
-                                                val nextIdx = (position + 1 until visibleExercises.size).firstOrNull { cardioDetailsOrNull(visibleExercises[it]) == null }
-                                                    ?: return@let null
-                                                val next = visibleExercises[nextIdx]
-                                                val first = next.sets.firstOrNull()
-                                                val firstKg = first?.weight?.takeIf { it > 0.0 }
-                                                val firstReps = first?.targetReps ?: first?.targetRepsRange?.max
-                                                val ghost = viewModel.getGhostForSet(next.id, 0, next.exerciseDbId ?: next.exerciseId, uiState.exerciseTags[next.id])
-                                                CardioTransitionOutInfo(
-                                                    exerciseName = displayWorkoutExerciseName(next),
-                                                    meta = listOfNotNull(
-                                                        "${next.sets.size} ${if (next.sets.size == 1) "serie" else "series"}",
-                                                        next.restTime?.takeIf { it > 0 }?.let { "descanso ${com.example.kpkn.ui.design.KpknSetFormat.rest(it)}" },
-                                                    ).joinToString(" · "),
-                                                    firstSet = when {
-                                                        firstKg != null && firstReps != null -> "${formatDecimal(firstKg)} kg × $firstReps"
-                                                        firstReps != null -> "× $firstReps"
-                                                        else -> null
-                                                    },
-                                                    planEffort = first?.targetRIR?.let { "RIR $it · plan" } ?: first?.targetRPE?.let { "RPE ${formatDecimal(it)} · plan" },
-                                                    lastTime = ghost?.takeIf { it.reps > 0 }?.let { g ->
-                                                        (if (g.weight > 0.0) "${formatDecimal(g.weight)} × ${g.reps}" else "× ${g.reps}") +
-                                                            (g.rir?.let { " · RIR $it" } ?: g.rpe?.let { " · RPE ${formatDecimal(it)}" } ?: "")
-                                                    },
-                                                    chips = next.warmupSets.indices.map { "A${it + 1}" } + next.sets.indices.map { "${it + 1}" },
-                                                    footnote = next.warmupSets.firstOrNull()?.let { w ->
-                                                        firstKg?.let { kg -> "Aproximación A1 · ${formatDecimal(kg * w.percentageOfWorkingWeight / 100.0)} kg × ${w.targetReps} antes de la primera serie" }
-                                                    },
-                                                    onContinue = { viewModel.selectExercise(nextIdx) },
-                                                )
-                                            },
+                                            transitionIn = buildCardioTransitionIn(visibleExercises, currentExercise.id, uiState.completedSets.keys),
+                                            transitionOut = buildCardioTransitionOut(visibleExercises, currentExercise.id, uiState, viewModel),
                                             onRecord = { duration, distance, heartRate ->
                                                 if (cardioPageActionIsCurrent()) {
                                                     viewModel.recordCardioSetUsingGps(duration, distance, heartRate, currentExercise.id, currentCardioSetIndex, executionRef(uiState, currentExercise, currentCardioSetIndex, null))
@@ -2186,6 +2143,11 @@ internal fun WorkoutV2Body(
                                     exerciseName = displayWorkoutExerciseName(pageExercise),
                                     maxHeartRateBpm = (settings.userVitals.age ?: settings.age)?.takeIf { it in 10..100 }?.let { 220 - it },
                                     bodyWeightKg = viewModel.currentBodyWeight(),
+                                    onSkipCountdown = { viewModel.skipCardioStartCountdown() },
+                                    onLockedChanged = { if (pageExercise.id == currentExercise?.id) cardioLocked = it },
+                                    onShowExerciseContextChanged = { if (pageExercise.id == currentExercise?.id) cardioShowContext = it },
+                                    transitionIn = buildCardioTransitionIn(visibleExercises, pageExercise.id, uiState.completedSets.keys),
+                                    transitionOut = buildCardioTransitionOut(visibleExercises, pageExercise.id, uiState, viewModel),
                                     onRecordWithRpe = { duration, distance, heartRate, rpe ->
                                         if (cardioPageActionIsCurrent()) {
                                             viewModel.recordCardioSetUsingGps(duration, distance, heartRate, pageExercise.id, pageSetIndex, executionRef(uiState, pageExercise, pageSetIndex, null), actualRpe = rpe)
@@ -2450,6 +2412,11 @@ internal fun WorkoutV2Body(
                                         exerciseName = displayWorkoutExerciseName(targetExercise),
                                         maxHeartRateBpm = (settings.userVitals.age ?: settings.age)?.takeIf { it in 10..100 }?.let { 220 - it },
                                         bodyWeightKg = viewModel.currentBodyWeight(),
+                                        onSkipCountdown = { viewModel.skipCardioStartCountdown() },
+                                        onLockedChanged = { if (targetExercise.id == currentExercise?.id) cardioLocked = it },
+                                        onShowExerciseContextChanged = { if (targetExercise.id == currentExercise?.id) cardioShowContext = it },
+                                        transitionIn = buildCardioTransitionIn(visibleExercises, targetExercise.id, uiState.completedSets.keys),
+                                        transitionOut = buildCardioTransitionOut(visibleExercises, targetExercise.id, uiState, viewModel),
                                         onRecordWithRpe = { duration, distance, heartRate, rpe ->
                                             if (cardioPageActionIsCurrent()) {
                                                 viewModel.recordCardioSetUsingGps(duration, distance, heartRate, targetExercise.id, activeSetIndex, executionRef(uiState, targetExercise, activeSetIndex, null), actualRpe = rpe)
@@ -2969,3 +2936,91 @@ private fun Modifier.livePagerFullBleed(horizontalInset: Dp): Modifier =
             placeable.placeRelative(x = -extra / 2, y = 0)
         }
     }
+
+@Composable
+private fun CardioSetSelectorPills(
+    setIndices: List<Int>,
+    selectedSetIndex: Int,
+    isSetCompleted: (Int) -> Boolean,
+    onSelectSet: (Int) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 18.dp).horizontalScroll(rememberScrollState()),
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        setIndices.forEach { setIndex ->
+            val selected = setIndex == selectedSetIndex
+            val completed = isSetCompleted(setIndex)
+            val bg = if (selected) Color(0xFFF2EEE6) else Color(0x0DFFFFFF)
+            val fg = when {
+                selected -> Color(0xFF111111)
+                completed -> Color(0xFF43D18C)
+                else -> Color(0xB8F2EEE6)
+            }
+            Box(
+                Modifier.height(34.dp).clip(RoundedCornerShape(17.dp)).background(bg)
+                    .clickable(role = androidx.compose.ui.semantics.Role.Tab) { onSelectSet(setIndex) }
+                    .padding(horizontal = 13.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    "Serie ${setIndex + 1}" + if (completed) " · Registrada" else "",
+                    style = androidx.compose.ui.text.TextStyle(fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.body, fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
+                    color = fg,
+                    maxLines = 1,
+                )
+            }
+        }
+    }
+}
+
+private fun buildCardioTransitionIn(
+    visibleExercises: List<Exercise>,
+    exerciseId: String,
+    completedSets: Set<String>,
+): CardioTransitionInfo? {
+    val position = visibleExercises.indexOfFirst { it.id == exerciseId }.takeIf { it > 0 } ?: return null
+    val strength = visibleExercises.take(position).filter { cardioDetailsOrNull(it) == null }
+    if (strength.isEmpty()) return null
+    val doneSets = strength.sumOf { ex -> ex.sets.indices.count { i -> ex.completionKeysForSet(i).any { it in completedSets } } }
+    return CardioTransitionInfo("Terminaste la fuerza: ${strength.size} ${if (strength.size == 1) "ejercicio" else "ejercicios"} y $doneSets ${if (doneSets == 1) "serie" else "series"}.")
+}
+
+private fun buildCardioTransitionOut(
+    visibleExercises: List<Exercise>,
+    exerciseId: String,
+    uiState: WorkoutUiState,
+    viewModel: WorkoutViewModel,
+): CardioTransitionOutInfo? {
+    val position = visibleExercises.indexOfFirst { it.id == exerciseId }.takeIf { it >= 0 } ?: return null
+    val nextIdx = (position + 1 until visibleExercises.size).firstOrNull { cardioDetailsOrNull(visibleExercises[it]) == null }
+        ?: return null
+    val next = visibleExercises[nextIdx]
+    val first = next.sets.firstOrNull()
+    val firstKg = first?.weight?.takeIf { it > 0.0 }
+    val firstReps = first?.targetReps ?: first?.targetRepsRange?.max
+    val ghost = viewModel.getGhostForSet(next.id, 0, next.exerciseDbId ?: next.exerciseId, uiState.exerciseTags[next.id])
+    return CardioTransitionOutInfo(
+        exerciseName = displayWorkoutExerciseName(next),
+        meta = listOfNotNull(
+            "${next.sets.size} ${if (next.sets.size == 1) "serie" else "series"}",
+            next.restTime?.takeIf { it > 0 }?.let { "descanso ${com.example.kpkn.ui.design.KpknSetFormat.rest(it)}" },
+        ).joinToString(" · "),
+        firstSet = when {
+            firstKg != null && firstReps != null -> "${formatDecimal(firstKg)} kg × $firstReps"
+            firstReps != null -> "× $firstReps"
+            else -> null
+        },
+        planEffort = first?.targetRIR?.let { "RIR $it · plan" } ?: first?.targetRPE?.let { "RPE ${formatDecimal(it)} · plan" },
+        lastTime = ghost?.takeIf { it.reps > 0 }?.let { g ->
+            (if (g.weight > 0.0) "${formatDecimal(g.weight)} × ${g.reps}" else "× ${g.reps}") +
+                (g.rir?.let { " · RIR $it" } ?: g.rpe?.let { " · RPE ${formatDecimal(it)}" } ?: "")
+        },
+        chips = next.warmupSets.indices.map { "A${it + 1}" } + next.sets.indices.map { "${it + 1}" },
+        footnote = next.warmupSets.firstOrNull()?.let { w ->
+            firstKg?.let { kg -> "Aproximación A1 · ${formatDecimal(kg * w.percentageOfWorkingWeight / 100.0)} kg × ${w.targetReps} antes de la primera serie" }
+        },
+        onContinue = { viewModel.selectExercise(nextIdx) },
+    )
+}

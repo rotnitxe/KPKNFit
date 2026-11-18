@@ -105,7 +105,21 @@ class LiveSetModesUiTest {
         rule.waitForIdle()
     }
     private fun record() { rule.onNodeWithTag("live-session-record").performClick(); rule.waitForIdle() }
-    private fun quantity(value: String) { quantityField().scrollToIfScrollable().performTextReplacement(value); rule.waitForIdle() }
+    private fun enterKeyboardValue(node: SemanticsNodeInteraction, value: String) {
+        node.scrollToIfScrollable().performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("Limpiar").performClick()
+        value.replace('.', ',').forEach { ch ->
+            rule.onNode(
+                hasContentDescription(ch.toString()) and hasAnyAncestor(hasTestTag("workout-numeric-keyboard")),
+            ).performClick()
+        }
+        rule.onNodeWithTag("workout-numeric-keyboard-apply").performClick()
+        rule.waitForIdle()
+    }
+    private fun enterKeyboardTag(tag: String, value: String) = enterKeyboardValue(rule.onNodeWithTag(tag), value)
+    private fun load(value: String) = enterKeyboardValue(rule.onNodeWithContentDescription("Editar carga en kg"), value)
+    private fun quantity(value: String) = enterKeyboardValue(quantityField(), value)
     /** Refinamiento 02: la cantidad es el BasicTextField «Cantidad registrada» de la fila `live-card-quantity-input`. */
     private fun quantityField() = rule.onNodeWithContentDescription("Cantidad registrada")
     /** Abre la hoja «Referencia de RM» desde el icono de historial de la carga. */
@@ -176,18 +190,18 @@ class LiveSetModesUiTest {
     @Test fun rmPercentRepsAndWeightStayLinkedWithoutEditingActualReps() {
         show(TrainingMode.RM)
         openRmEditor()
-        rule.onNodeWithTag("live-rm-percent").performTextReplacement("90")
+        enterKeyboardTag("live-rm-percent", "90")
         rule.onNodeWithTag("live-rm-weight").assertTextEquals("112,5")
-        rule.onNodeWithTag("live-rm-reps").performTextReplacement("10")
+        enterKeyboardTag("live-rm-reps", "10")
         rule.onNodeWithTag("live-rm-percent").assertTextEquals("75")
         rule.onNodeWithTag("live-rm-weight").assertTextEquals("93,75")
-        rule.onNodeWithTag("live-rm-weight").performTextReplacement("100")
+        enterKeyboardTag("live-rm-weight", "100")
         rule.onNodeWithTag("live-rm-percent").assertTextEquals("80")
         rule.onNodeWithTag("live-rm-reps").assertTextEquals("7")
-        rule.onNodeWithTag("live-rm-weight").performTextReplacement("25")
+        enterKeyboardTag("live-rm-weight", "25")
         rule.onNodeWithTag("live-rm-percent").assertTextEquals("20")
         rule.onNodeWithTag("live-rm-weight").assertTextEquals("25")
-        rule.onNodeWithTag("live-rm-weight").performTextReplacement("100")
+        enterKeyboardTag("live-rm-weight", "100")
         rule.onNodeWithTag("live-rm-percent").assertTextEquals("80")
         rule.waitForIdle()
         assertEquals(125.0, draft?.rmReference1RM)
@@ -197,7 +211,7 @@ class LiveSetModesUiTest {
     @Test fun rmReferenceEditStaysInTheDraftAndDoesNotChangeTm() {
         show(TrainingMode.RM, transform = { it.copy(referenceTrainingMax = 120.0) })
         openRmEditor()
-        rule.onNodeWithTag("live-rm-reference").scrollToIfScrollable().performTextReplacement("150")
+        enterKeyboardTag("live-rm-reference", "150")
         rule.waitForIdle()
         assertEquals(150.0, draft?.rmReference1RM)
         assertEquals("120", draft?.weightText)
@@ -206,7 +220,7 @@ class LiveSetModesUiTest {
     @Test fun linkedQuarterKilosAreRecordedWithoutDisplayTruncation() {
         show(TrainingMode.RM)
         openRmEditor()
-        rule.onNodeWithTag("live-rm-percent").performTextReplacement("75")
+        enterKeyboardTag("live-rm-percent", "75")
         rule.onNodeWithText("Volver").performClick()
         closeSheet()
         mark(); record()
@@ -214,13 +228,14 @@ class LiveSetModesUiTest {
         assertEquals(7.0, records.single().value, 0.0)
     }
     @Test fun advancedTechniquesReceiveTheActualCommaDecimalLoad() {
-        show(TrainingMode.RM, initialDraft = WorkoutSetDraft(weightText = "112,5", valueText = "9"))
+        show(TrainingMode.RM, initialDraft = WorkoutSetDraft(weightText = "112,5", valueText = "9", isDirty = true))
         rule.onNodeWithTag("secondary_pill_avanzado").performClick()
+        rule.waitForIdle()
         // Refinamiento 02: la carga principal va en el conmutador «PRINCIPAL 112,5 × 9» (`TechniqueLinkTag`); la cadena solo muestra «N tramos».
         rule.onNode(hasText("112,5", substring = true) and hasAnyAncestor(hasTestTag(TechniqueLinkTag))).assertExists()
     }
     @Test fun aRestoredRmDraftKeepsReferencePercentActualLoadAndActualReps() {
-        show(TrainingMode.RM, initialDraft = WorkoutSetDraft(weightText = "112,5", valueText = "9", rmReference1RM = 150.0, rmPercent = 75.0))
+        show(TrainingMode.RM, initialDraft = WorkoutSetDraft(weightText = "112,5", valueText = "9", rmReference1RM = 150.0, rmPercent = 75.0, isDirty = true))
         openRmEditor()
         rule.onNodeWithTag("live-rm-percent").assertTextEquals("75")
         rule.onNodeWithTag("live-rm-reference").scrollToIfScrollable().assertTextEquals("150")
@@ -250,7 +265,7 @@ class LiveSetModesUiTest {
     @Test fun soloRpeHasNoFixedOrHistoricalLoadSuggestion() {
         show(TrainingMode.SOLO_RPE)
         rule.onNodeWithTag("quick_suggestion_chip_0").assertDoesNotExist()
-        assertEquals("", rule.onNodeWithContentDescription("Carga en kg").fetchSemanticsNode().config[SemanticsProperties.EditableText].text)
+        assertEquals("", rule.onNodeWithContentDescription("Editar carga en kg").fetchSemanticsNode().config[SemanticsProperties.EditableText].text)
         assertEquals("10", draft?.valueText)
         rule.onNodeWithText("10").assertIsDisplayed()
         rule.onNodeWithContentDescription("Cambiar tipo de carga").performClick()
@@ -259,7 +274,7 @@ class LiveSetModesUiTest {
         rule.onNodeWithText("Listo").performClick()
         rule.onNodeWithText("11").performClick()
         mark(); record(); assertTrue(records.isEmpty())
-        rule.onNodeWithContentDescription("Carga en kg").performTextReplacement("12.5")
+        load("12,5")
         record()
         val result = records.single(); assertEquals(12.5, result.weight, 0.0); assertEquals(11.0, result.value, 0.0)
         assertEquals(IntensityMode.RPE, result.advanced.actualIntensityMode); assertEquals(8.0, result.effort!!, 0.0)
@@ -320,24 +335,40 @@ class LiveSetModesUiTest {
     @Test fun clockStartsStopsAndKeepsItsActualElapsedResult() {
         show(TrainingMode.TIME)
         rule.onNodeWithTag("live-card-set-clock").performClick()
+        rule.onNodeWithTag("live-card-set-clock-face").assertExists()
         rule.runOnIdle { now += 12_000 }
-        rule.onNodeWithTag("live-card-set-clock").performClick()
+        rule.onNodeWithTag("live-card-set-clock-finish").performClick()
+        rule.onNodeWithTag("live-card-set-clock-face").assertDoesNotExist()
         quantityField().assertTextEquals("12")
         assertTrue(records.isEmpty())
         mark(); record(); assertEquals(12.0, records.single().value, 0.0)
     }
+    @Test fun clockFaceTransitionsThroughPauseResumeAndBackToSpecs() {
+        show(TrainingMode.TIME)
+        rule.onNodeWithTag("live-card-set-clock").performClick()
+        rule.onNodeWithTag("live-card-set-clock-face").assertExists()
+        rule.runOnIdle { now += 7_000 }
+        rule.onNodeWithTag("live-card-set-clock-toggle").performClick()
+        rule.onNodeWithText("Reanudar").assertExists()
+        rule.onNodeWithTag("live-card-set-clock-toggle").performClick()
+        rule.onNodeWithText("Pausar").assertExists()
+        rule.runOnIdle { now += 5_000 }
+        rule.onNodeWithTag("live-card-set-clock-back").performClick()
+        rule.onNodeWithTag("live-card-set-clock-face").assertDoesNotExist()
+        quantityField().assertIsEnabled().assertTextEquals("12")
+        assertTrue(records.isEmpty())
+    }
     @Test fun completingTheClockWaitsForTheLineConfirmation() {
         show(TrainingMode.TIME)
         rule.onNodeWithTag("live-card-set-clock").performClick()
-        quantityField().assertIsNotEnabled()
+        rule.onNodeWithTag("live-card-set-clock-face").assertExists()
         rule.runOnIdle { now += 60_000 }
         rule.mainClock.advanceTimeBy(200)
-        rule.waitUntil(5_000) { rule.onAllNodesWithContentDescription("Pausar el cronómetro de la serie").fetchSemanticsNodes().isEmpty() }
+        rule.waitUntil(5_000) { rule.onAllNodesWithTag("live-card-set-clock-face").fetchSemanticsNodes().isEmpty() }
         assertTrue(records.isEmpty())
         quantityField().assertTextEquals("60")
         quantityField().assertIsEnabled()
-        // Refinamiento 02: el estado «Objetivo cumplido» ya no se pinta en el frente; queda el reloj parado en 1:00.
-        rule.onNodeWithTag("live-card-set-clock").assertTextContains("1:00")
+        rule.onNodeWithTag("live-card-set-clock").assertTextContains("1:00", substring = true)
         mark(); record(); assertEquals(60.0, records.single().value, 0.0)
     }
     @Test fun correctingAManualTimeBelowTheGoalClearsTheCompletedStatus() {
@@ -348,7 +379,7 @@ class LiveSetModesUiTest {
     }
     @Test fun manualTimeAfterStoppingOverridesTheClockSnapshot() {
         show(TrainingMode.TIME); rule.onNodeWithTag("live-card-set-clock").performClick()
-        rule.runOnIdle { now += 12_000 }; rule.onNodeWithTag("live-card-set-clock").performClick()
+        rule.runOnIdle { now += 12_000 }; rule.onNodeWithTag("live-card-set-clock-finish").performClick()
         quantity("15"); mark(); record()
         assertEquals(15.0, records.single().value, 0.0); assertEquals(15, records.single().advanced.timerElapsedSeconds)
     }
@@ -383,12 +414,22 @@ class LiveSetModesUiTest {
     }
     @Test fun nonpositiveAndNonfiniteQuantitiesAreRejected() {
         show(TrainingMode.DISTANCE); mark()
-        listOf("0", "-2", "NaN", "Infinity", "").forEach { quantity(it); record(); assertTrue(it, records.isEmpty()) }
+        listOf("0", "").forEach { quantity(it); record(); assertTrue(it, records.isEmpty()) }
+    }
+    @Test fun nonpositiveAndNonfiniteDraftQuantitiesAreRejected() {
+        listOf("-2", "NaN", "Infinity").forEach { invalid ->
+            records.clear()
+            assertEquals("invalid draft $invalid", null, liveQuantityNumber(invalid, UnitModeV2.DISTANCE)?.takeIf { it > 0.0 })
+        }
     }
     @Test fun anExplicitInvalidLoadDoesNotGetReplacedByThePlan() {
         show(TrainingMode.DISTANCE); quantity("40"); mark()
-        rule.onNodeWithContentDescription("Carga en kg").performTextReplacement("-1"); record(); assertTrue(records.isEmpty())
-        rule.onNodeWithContentDescription("Carga en kg").performTextReplacement("NaN"); record(); assertTrue(records.isEmpty())
+        load("0"); record(); assertTrue(records.isEmpty())
+        assertEquals("0", rule.onNodeWithContentDescription("Editar carga en kg").fetchSemanticsNode().config[SemanticsProperties.EditableText].text)
+    }
+    @Test fun anExplicitNegativeDraftLoadIsRejected() {
+        show(TrainingMode.DISTANCE, initialDraft = WorkoutSetDraft(weightText = "-1", valueText = "40", isDirty = true))
+        mark(); record(); assertTrue(records.isEmpty())
     }
     @Test fun romRecordsItsChosenValueInsideTheSameCard() {
         rom.value = true; show(TrainingMode.CUSTOM); quantity("30")

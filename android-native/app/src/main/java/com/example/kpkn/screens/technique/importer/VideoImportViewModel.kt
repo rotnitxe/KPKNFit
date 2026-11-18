@@ -2,8 +2,11 @@ package com.example.kpkn.screens.technique.importer
 
 import android.app.Application
 import android.content.Intent
+import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -73,6 +76,7 @@ data class VideoImportUiState(
     val pickerInFlight: Boolean = false,
     val isReadingMetadata: Boolean = false,
     val metadata: ImportedVideoMetadata? = null,
+    val thumbnail: ImageBitmap? = null,
     val exercise: VideoImportExercise? = null,
     val weightText: String = "",
     val isImporting: Boolean = false,
@@ -87,6 +91,7 @@ data class VideoImportUiState(
 /** Adaptador de importación; permite comprobar la semilla sin copiar medios reales. */
 interface VideoImportSource {
     suspend fun metadata(uri: Uri): ImportedVideoMetadata
+    suspend fun thumbnail(uri: Uri): ImageBitmap? = null
     suspend fun recover()
     suspend fun findMedia(id: String): WorkoutMedia?
     fun submitUriCapture(uri: Uri, seed: WorkoutMedia): Deferred<WorkoutMedia?>
@@ -136,6 +141,35 @@ private class RepositoryVideoImportSource(private val application: Application) 
             )
         } finally {
             retriever.release()
+        }
+    }
+
+    override suspend fun thumbnail(uri: Uri): ImageBitmap? {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(application, uri)
+            val raw = retriever.getFrameAtTime(500_000L, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
+                ?: retriever.frameAtTime
+                ?: return null
+            val maxEdge = maxOf(raw.width, raw.height).coerceAtLeast(1)
+            val scaled = if (maxEdge > 360) {
+                val scale = 360f / maxEdge.toFloat()
+                Bitmap.createScaledBitmap(
+                    raw,
+                    (raw.width * scale).toInt().coerceAtLeast(1),
+                    (raw.height * scale).toInt().coerceAtLeast(1),
+                    true,
+                ).also { if (it !== raw) raw.recycle() }
+            } else {
+                raw
+            }
+            scaled.asImageBitmap()
+        } catch (_: Exception) {
+            null
+        } catch (_: LinkageError) {
+            null
+        } finally {
+            runCatching { retriever.release() }
         }
     }
 }
@@ -206,7 +240,7 @@ class VideoImportViewModel @JvmOverloads constructor(
         savedState[URI] = uri.toString()
         savedState.remove<String>(METADATA)
         savedState.remove<String>(SEED)
-        _uiState.update { it.copy(uri = uri.toString(), pickerInFlight = false, metadata = null, error = null, isReadingMetadata = true, isSelectionLocked = false, videoError = null) }
+        _uiState.update { it.copy(uri = uri.toString(), pickerInFlight = false, metadata = null, thumbnail = null, error = null, isReadingMetadata = true, isSelectionLocked = false, videoError = null) }
         metadataJob = viewModelScope.launch {
             try {
                 val metadata = withContext(ioDispatcher) { source.metadata(uri) }
@@ -214,6 +248,8 @@ class VideoImportViewModel @JvmOverloads constructor(
                 require(metadata.durationMs <= 600_000L) { "El vídeo debe durar 10 minutos como máximo." }
                 savedState[METADATA] = Json.encodeToString(metadata)
                 _uiState.update { it.copy(metadata = metadata, isReadingMetadata = false) }
+                val thumb = withContext(ioDispatcher) { source.thumbnail(uri) }
+                if (thumb != null) _uiState.update { it.copy(thumbnail = thumb) }
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (error: Exception) {

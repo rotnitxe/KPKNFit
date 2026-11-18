@@ -82,4 +82,40 @@ class WorkoutNumericKeyboardTest {
         assertNull(applied)
         assertTrue(dismissed)
     }
+
+    @Test fun multiFieldTabsAndQuickSteppersApplyBothKgAndReps() {
+        var appliedFields: List<String>? = null
+        var dismissed = false
+        rule.setContent {
+            CompositionLocalProvider(LocalWizardReducedMotion provides true) {
+                KPKNTheme {
+                    MaterialTheme {
+                        WorkoutNumericKeyboardDialog(
+                            title = "Carga · kg",
+                            initialValue = "80",
+                            allowDecimal = true,
+                            fields = listOf(
+                                WorkoutKeyboardField("KG", "Carga · kg", "80", allowDecimal = true),
+                                WorkoutKeyboardField("REPS", "Repeticiones", "8", allowDecimal = false),
+                            ),
+                            initialFieldIndex = 0,
+                            onApplyFields = { appliedFields = it },
+                            onDismiss = { dismissed = true },
+                            onApply = {},
+                        )
+                    }
+                }
+            }
+        }
+
+        rule.onNodeWithTag("workout-numeric-quick-plus").performClick()
+        rule.onNodeWithTag("workout-numeric-keyboard-value").assertTextEquals("82,5")
+        rule.onNodeWithTag("workout-numeric-keyboard-tab-1").performClick()
+        rule.onNodeWithTag("workout-numeric-quick-plus").performClick()
+        rule.onNodeWithTag("workout-numeric-keyboard-value").assertTextEquals("9")
+        rule.onNodeWithTag("workout-numeric-keyboard-apply").performClick()
+
+        assertEquals(listOf("82,5", "9"), appliedFields)
+        assertTrue(dismissed)
+    }
 }

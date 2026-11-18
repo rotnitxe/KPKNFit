@@ -90,8 +90,9 @@ fun PlateCalibrationModule(
     onConfirm: () -> Unit,
     onOpenCalibration: () -> Unit,
     modifier: Modifier = Modifier,
+    embedded: Boolean = false,
 ) {
-    KpknModule(modifier = modifier.testTag(ANALYSIS_PLATE_TAG)) {
+    val content: @Composable () -> Unit = {
         KpknModuleHeader("Velocidad real con el disco")
         // Con la letra grande la etiqueta pasa a dos líneas y se queda sin el aire que le sobra a una sola: se le devuelve.
         Spacer(Modifier.height(if (LocalDensity.current.fontScale >= PLATE_LARGE_FONT_SCALE) 14.dp else 6.dp))
@@ -134,8 +135,6 @@ fun PlateCalibrationModule(
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     AnalysisIconCircle(KpknLineIcons.Target)
                     Spacer(Modifier.width(14.dp))
-                    // «Disco de 45 cm · velocidad en m/s» en dos líneas (el título y lo que da): partido por el punto medio, en la
-                    // columna que deja «Cambiar», queda a medias.
                     Column(modifier = Modifier.weight(1f)) {
                         Text(text = "Disco de $cm cm", style = KpknType.bodyStrong, color = WizardColors.text)
                         Spacer(Modifier.height(2.dp))
@@ -195,6 +194,11 @@ fun PlateCalibrationModule(
                 }
             }
         }
+    }
+    if (embedded) {
+        Column(modifier = modifier.fillMaxWidth().testTag(ANALYSIS_PLATE_TAG)) { content() }
+    } else {
+        KpknModule(modifier = modifier.testTag(ANALYSIS_PLATE_TAG)) { content() }
     }
 }
 

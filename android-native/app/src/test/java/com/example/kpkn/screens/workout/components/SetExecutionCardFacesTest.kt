@@ -13,13 +13,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasContentDescription
+import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
-import androidx.compose.ui.test.performTextReplacement
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.core.app.ApplicationProvider
@@ -252,10 +253,16 @@ class SetExecutionCardFacesTest {
         mostrar()
         val base = alturaDeLaTarjeta()
 
-        // El primer campo editable del anverso es el de la carga: se enfoca (sale el teclado) y se escribe una cifra larga.
-        val carga = rule.onAllNodes(hasSetTextAction())[0]
-        carga.performClick()
-        carga.performTextReplacement("102,5")
+        // El campo de carga abre el teclado numérico compartido; al escribir una cifra larga la tarjeta no cambia de tamaño.
+        rule.onNodeWithContentDescription("Editar carga en kg").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("Limpiar").performClick()
+        listOf("1", "0", "2", ",", "5").forEach { key ->
+            rule.onNode(
+                hasContentDescription(key) and hasAnyAncestor(hasTestTag("workout-numeric-keyboard")),
+            ).performClick()
+        }
+        rule.onNodeWithTag("workout-numeric-keyboard-apply").performClick()
         rule.waitForIdle()
 
         comprobarMismaAltura(base, "con la carga escrita")

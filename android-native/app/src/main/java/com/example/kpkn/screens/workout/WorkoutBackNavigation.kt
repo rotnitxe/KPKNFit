@@ -14,6 +14,7 @@ enum class WorkoutBackAction {
     MINIMIZE_REST,
     DISMISS_POST_EXERCISE_FEEDBACK,
     COLLAPSE_COCKPIT,
+    DISMISS_READINESS,
     RETURN_TO_MOBILITY_FROM_WARMUP,
     SHOW_EXIT_DIALOG,
 }
@@ -43,7 +44,7 @@ fun resolveWorkoutBackAction(flags: WorkoutOverlayFlags): WorkoutBackAction = wh
     flags.isRestOverlayVisible -> WorkoutBackAction.MINIMIZE_REST
     flags.showPostExerciseFeedback -> WorkoutBackAction.DISMISS_POST_EXERCISE_FEEDBACK
     flags.cockpitExpanded -> WorkoutBackAction.COLLAPSE_COCKPIT
-    flags.showReadiness -> WorkoutBackAction.CONSUME_NON_DISMISSIBLE_MODAL
+    flags.showReadiness -> WorkoutBackAction.DISMISS_READINESS
     flags.canReturnToMobilityFromWarmup -> WorkoutBackAction.RETURN_TO_MOBILITY_FROM_WARMUP
     else -> WorkoutBackAction.SHOW_EXIT_DIALOG
 }

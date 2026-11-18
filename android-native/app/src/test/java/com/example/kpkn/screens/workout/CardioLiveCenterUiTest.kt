@@ -32,10 +32,10 @@ import com.example.kpkn.data.models.CardioIntervalBlock
 import com.example.kpkn.data.models.CardioTimerState
 import com.example.kpkn.data.models.CardioType
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
-import com.example.kpkn.screens.workout.components.CardioFigureKind
-import com.example.kpkn.screens.workout.components.cardioFigureCadence
-import com.example.kpkn.screens.workout.components.cardioFigureSpec
+import com.example.kpkn.services.cardio.CardioGpsState
+import com.example.kpkn.services.cardio.CardioGpsStatus
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.theme.KPKNTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -240,22 +240,54 @@ class CardioLiveCenterUiTest {
     }
 
     @Test
-    fun figureFollowsModalityAndIntensity() {
-        assertEquals(CardioFigureKind.RUN, cardioFigureSpec(CardioType.TREADMILL, 12.0).kind)
-        assertEquals(CardioFigureKind.WALK, cardioFigureSpec(CardioType.TREADMILL, 5.0).kind)
-        assertTrue(cardioFigureSpec(CardioType.TREADMILL).indoor)
-        assertFalse(cardioFigureSpec(CardioType.RUN_OUTDOOR).indoor)
-        assertEquals(CardioFigureKind.BIKE, cardioFigureSpec(CardioType.BIKE_STATIONARY).kind)
-        assertEquals(CardioFigureKind.BIKE, cardioFigureSpec(CardioType.AIR_BIKE).kind)
-        assertEquals(CardioFigureKind.ELLIPTICAL, cardioFigureSpec(CardioType.ELLIPTICAL).kind)
-        assertEquals(CardioFigureKind.ROW, cardioFigureSpec(CardioType.ROW_MACHINE).kind)
-        assertEquals(CardioFigureKind.STAIRS, cardioFigureSpec(CardioType.STAIR_CLIMBER).kind)
-        assertEquals(CardioFigureKind.WALK, cardioFigureSpec(CardioType.WALK).kind)
-        val work = cardioFigureCadence(CardioFigureKind.RUN, zone = 4, moving = true)
-        val recover = cardioFigureCadence(CardioFigureKind.RUN, zone = 2, moving = true)
-        assertTrue("más rápido en trabajo que en recuperación", work > recover)
-        assertEquals(0f, cardioFigureCadence(CardioFigureKind.RUN, zone = 4, moving = false))
-        assertEquals(1.5f, cardioFigureCadence(CardioFigureKind.BIKE, zone = 3, moving = true, rpm = 90), 1e-4f)
+    fun activityTypeMapsToLineIcon() {
+        assertEquals(KpknLineIcons.Run, cardioTypeIcon(CardioType.TREADMILL))
+        assertEquals(KpknLineIcons.Run, cardioTypeIcon(CardioType.RUN_OUTDOOR))
+        assertEquals(KpknLineIcons.Bike, cardioTypeIcon(CardioType.BIKE_STATIONARY))
+        assertEquals(KpknLineIcons.Bike, cardioTypeIcon(CardioType.AIR_BIKE))
+        assertEquals(KpknLineIcons.Row, cardioTypeIcon(CardioType.ROW_MACHINE))
+        assertEquals(KpknLineIcons.Stairs, cardioTypeIcon(CardioType.STAIR_CLIMBER))
+        assertEquals(KpknLineIcons.Walk, cardioTypeIcon(CardioType.WALK))
+    }
+
+    @Test
+    fun lockedStateShowsFloatingLockCapsule() {
+        scene(intervals)
+        rule.onNodeWithTag("cardio-lockcap").assertDoesNotExist()
+        rule.onNodeWithTag("cardio-lock").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("cardio-lockcap").assertIsDisplayed()
+        rule.onNodeWithTag("cardio-unlock").assertIsDisplayed()
+    }
+
+    @Test
+    fun gpsDeniedShowsRetryBannerAtTopOfNow() {
+        var retried = false
+        val outdoor = CardioDetails(type = CardioType.RUN_OUTDOOR, targetDurationSeconds = 1800, requiresGps = true, supportsDistance = true)
+        rule.setContent {
+            CompositionLocalProvider(LocalWizardReducedMotion provides true, LocalKpknOverlayHost provides null) {
+                KPKNTheme {
+                    MaterialTheme {
+                        Box(Modifier.requiredSize(360.dp, 720.dp).background(Color.Black)) {
+                            CardioLiveCard(
+                                details = outdoor,
+                                completedSet = null,
+                                accentColor = Color.White,
+                                modifier = Modifier.fillMaxSize(),
+                                executionState = running(outdoor),
+                                gpsState = CardioGpsState(status = CardioGpsStatus.PERMISSION_DENIED),
+                                onRequestGps = { retried = true },
+                                onRecord = { _, _, _ -> true },
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        rule.waitForIdle()
+        rule.onNodeWithText("Ubicación no disponible").assertIsDisplayed()
+        rule.onNodeWithTag("cardio-gps-retry").performClick()
+        assertTrue(retried)
     }
 
     @Test

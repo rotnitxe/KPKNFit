@@ -112,7 +112,9 @@ import com.example.kpkn.screens.workout.components.LiveSheetPrimary
 import com.example.kpkn.screens.workout.components.LiveSheetSectionLabel
 import com.example.kpkn.screens.workout.components.LiveSheetSegmented
 import com.example.kpkn.screens.workout.components.LiveSheetShortCopy
+import com.example.kpkn.screens.workout.components.WorkoutKeyboardField
 import com.example.kpkn.screens.workout.components.WorkoutNumericKeyboardDialog
+import com.example.kpkn.screens.workout.components.WorkoutNumericTriggerBox
 import com.example.kpkn.screens.workout.components.LiveSheetTextAction
 import com.example.kpkn.screens.workout.components.RestRef02CardClockPanel
 import com.example.kpkn.screens.workout.components.VoiceTargetStyle
@@ -880,13 +882,36 @@ private fun ListRowWithEditor(
                 ?: initialWeight(displayedRow)
             val currentValue = activeDraft?.valueText?.takeIf { displayedRow.completed == null && it.isNotBlank() }
                 ?: initialValue(displayedRow)
+            val qtyLabel = if (unit == UnitModeV2.REPS) "REPS" else unitLabel(unit).uppercase()
+            val keyboardFields = listOf(
+                WorkoutKeyboardField("KG", "Carga · kg", currentWeight, allowDecimal = true),
+                WorkoutKeyboardField(
+                    label = qtyLabel,
+                    title = "Cantidad realizada · ${unitLabel(unit)}",
+                    initialValue = currentValue,
+                    allowDecimal = unit != UnitModeV2.REPS,
+                    allowColon = unit == UnitModeV2.TIME,
+                ),
+            )
             WorkoutNumericKeyboardDialog(
                 title = if (editingWeight) "Carga · kg" else "Cantidad realizada · ${unitLabel(unit)}",
                 initialValue = if (editingWeight) currentWeight else currentValue,
                 allowDecimal = if (editingWeight) true else unit != UnitModeV2.REPS,
                 allowColon = !editingWeight && unit == UnitModeV2.TIME,
-                contextValues = listOf("KG" to currentWeight, (if (unit == UnitModeV2.REPS) "REPS" else unitLabel(unit).uppercase()) to currentValue),
-                activeContextIndex = if (editingWeight) 0 else 1,
+                fields = keyboardFields,
+                initialFieldIndex = if (editingWeight) 0 else 1,
+                onApplyFields = { values ->
+                    val nextWeight = values.getOrElse(0) { currentWeight }
+                    val nextValue = values.getOrElse(1) { currentValue }
+                    val base = viewModel.getSetDraft(displayedRow.exercise.id, displayedRow.setIndex, displayedRow.side) ?: WorkoutSetDraft()
+                    viewModel.updateSetDraftFromExercise(
+                        displayedRow.exercise,
+                        displayedRow.setIndex,
+                        displayedRow.side,
+                        base.copy(weightText = nextWeight, valueText = nextValue, isDirty = true),
+                    )
+                    quickKeyboardField = null
+                },
                 onDismiss = { quickKeyboardField = null },
                 onApply = { staged ->
                     val base = viewModel.getSetDraft(displayedRow.exercise.id, displayedRow.setIndex, displayedRow.side) ?: WorkoutSetDraft()
@@ -1268,22 +1293,26 @@ private fun SetListRow(
         Text(row.label, Modifier.width(indexWidth), style = Body.copy(fontSize = 12.sp), color = WizardColors.textFaint, textAlign = TextAlign.Center)
         Text(apreLabel ?: rowType(row.planned), Modifier.weight(1f), style = Body.copy(fontSize = 12.sp),
             color = if (active) WizardColors.text else WizardColors.textMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
-        // La cifra siempre con su unidad («100 kg × 8») y coma decimal; la columna crece si la carga lleva decimales.
-        BoxWithConstraints(Modifier.widthIn(min = valueWidth, max = 132.dp)) {
+        // La cifra siempre con su unidad («100 kg × 8») y coma decimal; la columna crece o se divide en 2 líneas si hay muchos dígitos.
+        BoxWithConstraints(Modifier.widthIn(min = valueWidth, max = 180.dp)) {
             val density = LocalDensity.current
-            val twoLines = maxWidth < 122.dp || density.fontScale >= 1.30f
             val shownLoad = if (row.completed == null) draft?.weightText?.takeIf { it.isNotBlank() }
                 ?: liveListDisplayedRow(row, uiState).planned.weight?.takeIf { it > 0.0 }?.let(::listNumber)
                 ?: row.planned.weight?.takeIf { it > 0.0 }?.let(::listNumber) else row.completed.weight.takeIf { it > 0.0 }?.let(::listNumber)
             val quantity = listRowQuantity(row)
             val shownQuantity = if (row.completed == null) draft?.valueText?.takeIf { it.isNotBlank() } ?: quantity.first else quantity.first
             val shownUnit = quantity.second
-            val valueStyle = SyneValue.copy(fontSize = 15.sp, lineHeight = 18.sp)
+            val totalChars = (shownLoad?.length ?: 1) + shownQuantity.length + (shownUnit?.length ?: 0)
+            val twoLines = maxWidth < 130.dp || density.fontScale >= 1.30f || totalChars > 7
+            val valueStyle = SyneValue.copy(
+                fontSize = if (totalChars > 9) 14.sp else 15.sp,
+                lineHeight = 18.sp,
+            )
             @Composable fun LoadValue() {
                 Text(shownLoad ?: "—", Modifier.testTag("live-list-set-load-${row.key}")
                     .clickable(role = Role.Button, onClick = onEditWeight)
                     .semantics { contentDescription = "Editar carga de ${row.exercise.name}" },
-                    style = valueStyle, color = if (done) WizardColors.textMuted else WizardColors.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    style = valueStyle, color = if (done) WizardColors.textMuted else WizardColors.text, maxLines = 1, softWrap = false)
             }
             @Composable fun QuantityValue() {
                 Row(Modifier.clickable(role = Role.Button, onClick = onEditValue)
@@ -1291,34 +1320,36 @@ private fun SetListRow(
                     verticalAlignment = Alignment.CenterVertically) {
                     Text(shownQuantity, Modifier.testTag("live-list-set-value-${row.key}"),
                         style = valueStyle, color = if (done) WizardColors.textMuted else WizardColors.text,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    shownUnit?.let { Text(" $it", style = Body.copy(fontSize = 10.sp), color = WizardColors.textFaint, maxLines = 1) }
+                        maxLines = 1, softWrap = false)
+                    shownUnit?.let { Text(" $it", style = Body.copy(fontSize = 10.sp), color = WizardColors.textFaint, maxLines = 1, softWrap = false) }
                 }
             }
-            if (twoLines) {
-                Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-                    LoadValue()
-                    QuantityValue()
+            Column(Modifier.widthIn(min = valueWidth), horizontalAlignment = Alignment.CenterHorizontally) {
+                if (twoLines) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        LoadValue()
+                        QuantityValue()
+                    }
+                } else {
+                    Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
+                        LoadValue()
+                        Text(" kg × ", style = Body.copy(fontSize = 10.sp), color = WizardColors.textFaint, maxLines = 1)
+                        QuantityValue()
+                    }
                 }
-            } else {
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                    LoadValue()
-                    Text(" kg × ", style = Body.copy(fontSize = 10.sp), color = WizardColors.textFaint, maxLines = 1)
-                    QuantityValue()
+                // Pulido v1 (15): una sola línea bajo la cifra, con el ROM registrado en la serie («+ 2 parciales · ROM 80 %»), como en el historial.
+                listOfNotNull(
+                    row.completed?.partialReps?.takeIf { it > 0 }?.let { "+ $it parciales" },
+                    row.completed?.rom?.let { liveSetRomLabel(it) },
+                    liveListApreSetPresentation(row.exercise, row.planned.id)
+                        ?.takeIf { it.ordinal == 4 }
+                        ?.let { row.completed?.apreXrm?.reference?.capturedLoadKg }
+                        ?.takeIf { it.isFinite() && it > 0.0 }
+                        ?.let { "XRM futuro · ${listNumber(it)} kg" },
+                ).takeIf { it.isNotEmpty() }?.let { parts ->
+                    Text(parts.joinToString(" · "), Modifier.padding(top = 3.dp), style = Body.copy(fontSize = 11.sp),
+                        color = WizardColors.textFaint, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
                 }
-            }
-            // Pulido v1 (15): una sola línea bajo la cifra, con el ROM registrado en la serie («+ 2 parciales · ROM 80 %»), como en el historial.
-            listOfNotNull(
-                row.completed?.partialReps?.takeIf { it > 0 }?.let { "+ $it parciales" },
-                row.completed?.rom?.let { liveSetRomLabel(it) },
-                liveListApreSetPresentation(row.exercise, row.planned.id)
-                    ?.takeIf { it.ordinal == 4 }
-                    ?.let { row.completed?.apreXrm?.reference?.capturedLoadKg }
-                    ?.takeIf { it.isFinite() && it > 0.0 }
-                    ?.let { "XRM futuro · ${listNumber(it)} kg" },
-            ).takeIf { it.isNotEmpty() }?.let { parts ->
-                Text(parts.joinToString(" · "), Modifier.fillMaxWidth().padding(top = 3.dp), style = Body.copy(fontSize = 11.sp),
-                    color = WizardColors.textFaint, maxLines = 1, overflow = TextOverflow.Ellipsis, textAlign = TextAlign.Center)
             }
         }
         // `row-effort` es un botón: abre «Esfuerzo realizado» de esa serie.
@@ -1707,13 +1738,28 @@ private fun InlineSetEditor(
             BoxWithConstraints(Modifier.fillMaxWidth()) {
                 val fontScale = LocalDensity.current.fontScale
                 val split = maxWidth < 340.dp || fontScale >= 1.35f
+                val qtyLabel = if (unit == UnitModeV2.REPS) "REPS" else unitLabel(unit).uppercase()
+                val editorFields = listOf(
+                    WorkoutKeyboardField("KG", "Carga en kg", weightText, allowDecimal = true),
+                    WorkoutKeyboardField(
+                        label = qtyLabel,
+                        title = "Cantidad realizada",
+                        initialValue = valueText,
+                        allowDecimal = unit != UnitModeV2.REPS,
+                        allowColon = unit == UnitModeV2.TIME,
+                    ),
+                )
+                val applyEditorFields: (List<String>) -> Unit = { values ->
+                    weightText = values.getOrElse(0) { weightText }
+                    updateTimedValue(values.getOrElse(1) { valueText })
+                }
                 if (split) {
                     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                             Row(verticalAlignment = Alignment.Bottom) {
                                 ListMetricField(weightText, { weightText = it; persist() }, metric.copy(fontSize = 28.sp, lineHeight = 34.sp),
                                     Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-weight-${row.key}", "Carga en kg", !busy, placeholder = "—",
-                                    contextValues = listOf("KG" to weightText, (if (unit == UnitModeV2.REPS) "REPS" else unitLabel(unit).uppercase()) to valueText), activeContextIndex = 0)
+                                    fields = editorFields, activeContextIndex = 0, onApplyFields = applyEditorFields)
                                 Text("kg", Modifier.padding(start = 4.dp, bottom = 6.dp), style = Body.copy(fontSize = 13.sp), color = WizardColors.textFaint,
                                     maxLines = 1, softWrap = false)
                             }
@@ -1726,7 +1772,7 @@ private fun InlineSetEditor(
                             ListMetricField(valueText, ::updateTimedValue, metric.copy(fontSize = 24.sp, lineHeight = 30.sp, textAlign = TextAlign.End),
                                 Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-value-${row.key}", "Cantidad realizada", !busy && !timedClockRunning,
                                 decimal = unit != UnitModeV2.REPS, allowColon = unit == UnitModeV2.TIME,
-                                contextValues = listOf("KG" to weightText, (if (unit == UnitModeV2.REPS) "REPS" else unitLabel(unit).uppercase()) to valueText), activeContextIndex = 1)
+                                fields = editorFields, activeContextIndex = 1, onApplyFields = applyEditorFields)
                             Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "km"; else -> "reps" }, Modifier.padding(start = 4.dp, bottom = 5.dp),
                                 style = Body.copy(fontSize = 13.sp), color = WizardColors.textFaint, maxLines = 1, softWrap = false)
                         }
@@ -1737,7 +1783,7 @@ private fun InlineSetEditor(
                         Row(Modifier.weight(1.15f), verticalAlignment = Alignment.Bottom) {
                             ListMetricField(weightText, { weightText = it; persist() }, metric.copy(fontSize = 28.sp, lineHeight = 34.sp),
                                 Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-weight-${row.key}", "Carga en kg", !busy, placeholder = "—",
-                                contextValues = listOf("KG" to weightText, (if (unit == UnitModeV2.REPS) "REPS" else unitLabel(unit).uppercase()) to valueText), activeContextIndex = 0)
+                                fields = editorFields, activeContextIndex = 0, onApplyFields = applyEditorFields)
                             Text("kg", Modifier.padding(start = 4.dp, bottom = 6.dp), style = Body.copy(fontSize = 13.sp), color = WizardColors.textFaint,
                                 maxLines = 1, softWrap = false)
                         }
@@ -1749,7 +1795,7 @@ private fun InlineSetEditor(
                             ListMetricField(valueText, ::updateTimedValue, metric.copy(fontSize = 24.sp, lineHeight = 30.sp, textAlign = TextAlign.End),
                                 Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-value-${row.key}", "Cantidad realizada", !busy && !timedClockRunning,
                                 decimal = unit != UnitModeV2.REPS, allowColon = unit == UnitModeV2.TIME,
-                                contextValues = listOf("KG" to weightText, (if (unit == UnitModeV2.REPS) "REPS" else unitLabel(unit).uppercase()) to valueText), activeContextIndex = 1)
+                                fields = editorFields, activeContextIndex = 1, onApplyFields = applyEditorFields)
                             Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "km"; else -> "reps" }, Modifier.padding(start = 2.dp, bottom = 5.dp),
                                 style = Body.copy(fontSize = 13.sp), color = WizardColors.textFaint, maxLines = 1, softWrap = false)
                         }
@@ -1935,26 +1981,36 @@ private fun ListMetricField(
     allowColon: Boolean = false,
     contextValues: List<Pair<String, String>> = emptyList(),
     activeContextIndex: Int? = null,
+    fields: List<WorkoutKeyboardField> = emptyList(),
+    onApplyFields: ((List<String>) -> Unit)? = null,
 ) {
     var keyboardOpen by remember(tag) { mutableStateOf(false) }
-    BasicTextField(
+    WorkoutNumericTriggerBox(
         value = value,
-        onValueChange = {},
         enabled = enabled,
-        readOnly = true,
-        modifier = modifier.clickable(enabled = enabled, role = Role.Button) { keyboardOpen = true }
-            .testTag(tag).semantics { contentDescription = description },
-        textStyle = style,
-        singleLine = true,
-        keyboardOptions = KeyboardOptions(keyboardType = if (allowColon) KeyboardType.Ascii else if (decimal) KeyboardType.Decimal else KeyboardType.Number),
-        cursorBrush = SolidColor(WizardColors.text),
-        decorationBox = { inner ->
-            Box {
-                if (value.isEmpty() && placeholder != null) Text(placeholder, style = style.copy(color = WizardColors.textFaint))
-                inner()
-            }
-        },
-    )
+        description = description,
+        onOpen = { keyboardOpen = true },
+        modifier = modifier,
+        tag = tag,
+        onSetText = onChange,
+    ) {
+        BasicTextField(
+            value = value,
+            onValueChange = {},
+            enabled = enabled,
+            readOnly = true,
+            textStyle = style,
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = if (allowColon) KeyboardType.Ascii else if (decimal) KeyboardType.Decimal else KeyboardType.Number),
+            cursorBrush = SolidColor(WizardColors.text),
+            decorationBox = { inner ->
+                Box {
+                    if (value.isEmpty() && placeholder != null) Text(placeholder, style = style.copy(color = WizardColors.textFaint))
+                    inner()
+                }
+            },
+        )
+    }
     if (keyboardOpen) WorkoutNumericKeyboardDialog(
         title = description,
         initialValue = value,
@@ -1962,6 +2018,9 @@ private fun ListMetricField(
         allowColon = allowColon,
         contextValues = contextValues,
         activeContextIndex = activeContextIndex,
+        fields = fields,
+        initialFieldIndex = activeContextIndex ?: 0,
+        onApplyFields = onApplyFields,
         onDismiss = { keyboardOpen = false },
         onApply = onChange,
     )
@@ -2148,12 +2207,12 @@ private fun ListCardioBlock(exercise: Exercise, done: Boolean, onOpen: () -> Uni
     val steps = remember(details) { cardioSteps(details) }
     val zones = steps.map { it.zone }
     Column(
-        Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 6.dp).clip(RoundedCornerShape(20.dp)).background(Color(0xFF111111))
-            .border(1.dp, Color(0x10FFFFFF), RoundedCornerShape(20.dp)).padding(14.dp).testTag("live-list-cardio-${exercise.id}"),
+        Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 6.dp).clip(RoundedCornerShape(24.dp)).background(Color(0xFF111111))
+            .border(1.dp, Color(0x10FFFFFF), RoundedCornerShape(24.dp)).padding(16.dp).testTag("live-list-cardio-${exercise.id}"),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Box(Modifier.size(40.dp).clip(RoundedCornerShape(13.dp)).background(Color(0x0BFFFFFF)), contentAlignment = Alignment.Center) {
-                Icon(KpknLineIcons.Run, null, Modifier.size(20.dp), tint = WizardColors.text)
+            Box(Modifier.size(44.dp).clip(RoundedCornerShape(14.dp)).background(Color(0x0CFFFFFF)), contentAlignment = Alignment.Center) {
+                Icon(cardioTypeIcon(details.type), null, Modifier.size(22.dp), tint = WizardColors.text)
             }
             Column(Modifier.weight(1f)) {
                 Text(displayWorkoutExerciseName(exercise), style = SyneValue.copy(fontSize = 16.sp, lineHeight = 21.sp), color = WizardColors.text)
@@ -2170,13 +2229,13 @@ private fun ListCardioBlock(exercise: Exercise, done: Boolean, onOpen: () -> Uni
         }
         CardioProfile(steps, -1, 0f, Modifier.padding(top = 12.dp))
         Row(
-            Modifier.fillMaxWidth().padding(top = 11.dp).height(43.dp).clip(RoundedCornerShape(13.dp))
+            Modifier.fillMaxWidth().padding(top = 12.dp).height(50.dp).clip(androidx.compose.foundation.shape.CircleShape)
                 .background(if (done) Color(0x14FFFFFF) else WizardColors.cta)
                 .clickable(role = Role.Button, onClick = onOpen).testTag("live-list-cardio-open-${exercise.id}"),
             horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(if (done) KpknLineIcons.Check else KpknLineIcons.Play, null, Modifier.size(14.dp), tint = if (done) WizardColors.text else WizardColors.ctaContent)
-            Text(if (done) "  Cardio registrado · abrir" else "  Empezar cardio", style = Body.copy(fontSize = 14.sp, fontWeight = FontWeight.SemiBold),
+            Icon(if (done) KpknLineIcons.Check else KpknLineIcons.Play, null, Modifier.size(16.dp), tint = if (done) WizardColors.text else WizardColors.ctaContent)
+            Text(if (done) "  Cardio registrado · abrir" else "  Empezar cardio", style = Body.copy(fontSize = 15.sp, fontWeight = FontWeight.SemiBold),
                 color = if (done) WizardColors.text else WizardColors.ctaContent)
         }
     }

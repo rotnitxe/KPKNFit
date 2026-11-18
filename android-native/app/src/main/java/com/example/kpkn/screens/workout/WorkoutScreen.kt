@@ -1333,6 +1333,12 @@ fun WorkoutScreen(
         )
     }
 
+    val dismissReadinessSheet = {
+        readinessSheetDismissed = true
+        viewModel.dismissAutomaticReadiness()
+        viewModel.announceCurrentStepOnReadinessDismissed()
+    }
+
     val backAction = resolveWorkoutBackAction(
         WorkoutOverlayFlags(
             showExitDialog = showExitDialog,
@@ -1367,6 +1373,7 @@ fun WorkoutScreen(
                 }
                 WorkoutBackAction.MINIMIZE_REST -> viewModel.minimizeRestOverlay()
                 WorkoutBackAction.DISMISS_POST_EXERCISE_FEEDBACK -> viewModel.dismissPostExerciseSheet()
+                WorkoutBackAction.DISMISS_READINESS -> dismissReadinessSheet()
                 WorkoutBackAction.COLLAPSE_COCKPIT -> Unit
                 WorkoutBackAction.SHOW_EXIT_DIALOG -> showExitDialog = true
                 WorkoutBackAction.DISMISS_EXIT_DIALOG,
@@ -1385,11 +1392,7 @@ fun WorkoutScreen(
         readinessHaze = overlayHazeState,
         bottomHazeState = overlayHazeState,
         gender = settings.userVitals.gender,
-        onReadinessDismissed = {
-            readinessSheetDismissed = true
-            viewModel.dismissAutomaticReadiness()
-            viewModel.announceCurrentStepOnReadinessDismissed()
-        },
+        onReadinessDismissed = dismissReadinessSheet,
         voiceSessionEnabled = uiState.voiceSessionEnabled,
         voiceCaptureMode = settings.voiceCaptureMode,
         onVoiceToggle = onToggleVoice,

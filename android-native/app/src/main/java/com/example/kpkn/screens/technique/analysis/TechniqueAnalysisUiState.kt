@@ -5,6 +5,7 @@ import com.example.kpkn.domain.biomechanics.bar.PlatePublicationPolicy
 import com.example.kpkn.domain.biomechanics.bar.PlateTrackingContinuity
 
 import androidx.compose.runtime.Immutable
+import com.example.kpkn.data.media.technique.LiveAnalysisTelemetry
 import com.example.kpkn.data.models.WorkoutMedia
 import com.example.kpkn.data.repository.CaptureOverrides
 import com.example.kpkn.domain.biomechanics.bar.BarTrack
@@ -27,6 +28,7 @@ import com.example.kpkn.domain.biomechanics.profiles.PathRule
 import com.example.kpkn.domain.biomechanics.profiles.UnsupportedReasons
 import com.example.kpkn.screens.technique.player.TechniqueOverlayData
 import com.example.kpkn.screens.technique.player.TechniqueRepMark
+import com.example.kpkn.screens.technique.player.TechniqueTrailSource
 import com.example.kpkn.screens.workout.design.approxCount
 import com.example.kpkn.screens.workout.design.partialZoneText
 import com.example.kpkn.screens.workout.design.partialsPhrase
@@ -71,6 +73,8 @@ data class TechniqueAnalysisUiState(
     /** El ejercicio es propio o el perfil vino de una elección del usuario. */
     val canChooseMovement: Boolean = false,
     val notice: String? = null,
+    val liveTelemetry: LiveAnalysisTelemetry? = null,
+    val durationMs: Long = 0L,
 ) {
     /** Hay un análisis terminado de este ejercicio al que abrir la tendencia. */
     val canOpenTrends: Boolean get() = exerciseKey != null && results != null
@@ -114,6 +118,31 @@ sealed interface AnalysisStatusUi {
     data object ReportMissing : AnalysisStatusUi
 }
 
+/** Datos instantáneos de cada repetición usados por el HUD sobre el vídeo. */
+@Immutable
+data class RepHudUi(
+    val position: Int,
+    val number: Int,
+    val kind: RepKind,
+    val departUs: Long,
+    val turnStartUs: Long,
+    val turnEndUs: Long,
+    val arriveUs: Long,
+    val romDeg: Int?,
+    val romApprox: Boolean,
+    val mcvMps: Double?,
+    val relPctOfBest: Int?,
+    val durationMs: Long,
+)
+
+/** Estado vivo calculado para la píldora `.tc-stat` en el HUD. */
+@Immutable
+data class LiveHudStatus(
+    val direction: Int, // -1 bajada/excéntrica, 0 pausa/neutro, +1 subida/concéntrica
+    val phaseLabel: String,
+    val valueLabel: String,
+)
+
 /** Los módulos de un análisis terminado. Un módulo sin dato es `null` o una lista vacía, y no se pinta. */
 @Immutable
 data class AnalysisResultsUi(
@@ -122,6 +151,11 @@ data class AnalysisResultsUi(
     val observations: List<ObservationUi>,
     val plate: PlateModuleUi?,
     val tips: List<CameraTip>,
+    val confidence: CountConfidence = CountConfidence.ALTA,
+    val qualityReasons: List<String> = emptyList(),
+    val velocityUnit: VelocityUnit? = null,
+    val usesPlate: Boolean = false,
+    val repTelemetry: List<RepHudUi> = emptyList(),
 )
 
 // ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -586,7 +620,103 @@ internal fun buildResults(
     observations = buildObservations(report, marks),
     plate = buildPlate(report, marks, bar, overrides, usesPlate, defaultDiameterMm, frameWidth, frameHeight),
     tips = buildTips(report),
+    confidence = report.confidence,
+    qualityReasons = qualityReasonsOf(report),
+    velocityUnit = report.velocityUnit,
+    usesPlate = usesPlate,
+    repTelemetry = buildRepTelemetry(report, marks),
 )
+
+internal fun qualityReasonsOf(report: SetTechniqueReport): List<String> = buildList {
+    if (AnalysisFlag.LOW_FPS in report.flags) add("Grabación por debajo de 30 fps.")
+    if (AnalysisFlag.OBLIQUE_VIEW in report.flags) add("Vista oblicua: ángulos y recorrido aproximados.")
+    if (AnalysisFlag.BACK_VIEW in report.flags) add("Vista de espaldas: menor visibilidad de puntos clave.")
+    if (AnalysisFlag.MULTI_PERSON in report.flags) add("Más de una persona en el encuadre.")
+    if (AnalysisFlag.SIDE_UNKNOWN in report.flags || AnalysisFlag.FAR_SIDE_WORKING in report.flags) {
+        add("No se distingue con claridad el lado cercano.")
+    }
+    if (AnalysisFlag.PLATE_ELLIPSE in report.flags) add("Disco en ángulo: la velocidad en m/s es aproximada.")
+    if (AnalysisFlag.PLATE_REJECTED in report.flags) add("El disco automático se descartó al no cuadrar.")
+    if (AnalysisFlag.PARALLAX_SUPPRESSED in report.flags) add("Sin corrección de paralaje para el desvío horizontal.")
+    if (AnalysisFlag.PLATE_SCALE_MISMATCH in report.flags) add("El tamaño del disco no coincide con tu estatura.")
+    if (isEmpty()) {
+        when (report.confidence) {
+            CountConfidence.ALTA -> add(
+                if (report.view == ViewKind.OBLIQUE) {
+                    "Encuadre estable en todas las repeticiones"
+                } else {
+                    "Vista lateral limpia · pose estable en todas las repeticiones"
+                },
+            )
+            CountConfidence.MEDIA -> add("Confianza media: conviene revisar alguna repetición.")
+            CountConfidence.BAJA -> add("Confianza baja: vídeo poco claro o encuadre inestable.")
+        }
+    }
+}
+
+private fun buildRepTelemetry(report: SetTechniqueReport, marks: List<TechniqueRepMark>): List<RepHudUi> {
+    if (marks.isEmpty()) return emptyList()
+    val repsByIndex = report.reps.associateBy { it.index }
+    val bestMcv = report.reps.mapNotNull { it.mcv?.takeIf { v -> v.isFinite() && v > 0.0 } }.maxOrNull()
+    return marks.mapIndexed { pos, mark ->
+        val rep = repsByIndex[mark.index]
+        val mcv = rep?.mcv?.takeIf { it.isFinite() && it > 0.0 }
+        val relPct = if (mcv != null && bestMcv != null && bestMcv > 0.0) {
+            ((mcv / bestMcv) * 100.0).roundToInt().coerceIn(0, 100)
+        } else {
+            null
+        }
+        RepHudUi(
+            position = pos,
+            number = pos + 1,
+            kind = mark.kind,
+            departUs = rep?.phases?.departUs ?: mark.startUs,
+            turnStartUs = rep?.phases?.turnStartUs ?: mark.turnUs,
+            turnEndUs = rep?.phases?.turnEndUs ?: mark.turnUs,
+            arriveUs = rep?.phases?.arriveUs ?: mark.endUs,
+            romDeg = rep?.romDeg?.takeIf { it.isFinite() && it > 0.0 }?.roundToInt(),
+            romApprox = report.isOblique(),
+            mcvMps = mcv,
+            relPctOfBest = relPct,
+            durationMs = ((mark.endUs - mark.startUs) / 1000L).coerceAtLeast(0L),
+        )
+    }
+}
+
+internal fun RepBreakdownUi?.scrubberSpeedWeights(): Map<Int, Float> {
+    if (this == null) return emptyMap()
+    val metric = metrics.firstOrNull { it.kind == RepMetricKind.VELOCITY } ?: metrics.firstOrNull() ?: return emptyMap()
+    val out = HashMap<Int, Float>(metric.heights.size)
+    metric.heights.forEachIndexed { index, h -> if (h != null) out[index] = h.coerceIn(0f, 1f) }
+    return out
+}
+
+internal fun buildLiveHudStatus(
+    profileId: AnalysisProfileId?,
+    results: AnalysisResultsUi,
+    positionUs: Long,
+): LiveHudStatus? {
+    val active = results.repTelemetry.firstOrNull { positionUs in it.departUs..it.arriveUs } ?: return null
+    val (eccWord, conWord) = phaseWords(profileId ?: AnalysisProfileId.SQUAT)
+    val eccTitle = eccWord.replaceFirstChar { it.uppercase() }
+    val conTitle = conWord.replaceFirstChar { it.uppercase() }
+    val (dir, phaseLabel) = when {
+        positionUs < active.turnStartUs -> -1 to eccTitle
+        positionUs <= active.turnEndUs -> 0 to "Pausa"
+        else -> 1 to conTitle
+    }
+    val metric = when {
+        dir < 0 -> active.romDeg?.let { "${if (active.romApprox) "≈ " else ""}$it° ROM" }
+            ?: AnalysisFormat.seconds(active.durationMs)
+        dir > 0 && results.velocityUnit == VelocityUnit.MPS && active.mcvMps != null ->
+            "≈ ${AnalysisFormat.decimal(active.mcvMps, 2)} m/s"
+        dir > 0 && active.relPctOfBest != null ->
+            "${active.relPctOfBest} % vel."
+        active.romDeg != null -> "${if (active.romApprox) "≈ " else ""}${active.romDeg}° ROM"
+        else -> AnalysisFormat.seconds(active.durationMs)
+    }
+    return LiveHudStatus(direction = dir, phaseLabel = phaseLabel, valueLabel = metric)
+}
 
 private fun CountConfidence.word(): String = when (this) {
     CountConfidence.ALTA -> "Confianza alta"

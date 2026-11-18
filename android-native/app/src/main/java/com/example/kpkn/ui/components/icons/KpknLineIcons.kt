@@ -728,6 +728,43 @@ object KpknLineIcons {
         icono("KpknLine.Star", listOf("M12 3.5 14.6 8.8 20.5 9.65 16.25 13.8 17.25 19.65 12 16.9 6.75 19.65 7.75 13.8 3.5 9.65 9.4 8.8z"))
     }
 
+    /** Velocímetro (`cvspeed`): arco superior y aguja de ritmo/velocidad. */
+    val Speedometer: ImageVector by lazy {
+        icono("KpknLine.Speedometer", listOf("M4.5 16a7.5 7.5 0 1 1 15 0", "M12 16l3.5-4"))
+    }
+
+    /** Inclinación (`cvincline`): rampa triangular derecha. */
+    val Incline: ImageVector by lazy {
+        icono("KpknLine.Incline", listOf("M4 18h16V9z"))
+    }
+
+    /** Ruta exterior (`cvroute`): dos nodos unidos por curva en S (GPS). */
+    val CardioRoute: ImageVector by lazy {
+        icono(
+            "KpknLine.CardioRoute",
+            listOf(
+                "M4 18a2 2 0 1 0 4 0 2 2 0 1 0-4 0",
+                "M16 6a2 2 0 1 0 4 0 2 2 0 1 0-4 0",
+                "M8 18h6a3 3 0 0 0 0-6h-4a3 3 0 0 1 0-6h6",
+            ),
+        )
+    }
+
+    /** Doble flecha derecha (`cvchev2`, `»` del deslizador de cardio). */
+    val DoubleChevronRight: ImageVector by lazy {
+        icono("KpknLine.DoubleChevronRight", listOf("M7 6l6 6-6 6", "M13 6l6 6-6 6"))
+    }
+
+    /** Triángulo de advertencia (`cvwarn` de cardio en vivo). */
+    val Warning: ImageVector by lazy {
+        icono("KpknLine.Warning", listOf("M12 4l9 15.5H3z", "M12 10v4.5", "M12 17.5v.01"))
+    }
+
+    /** Ojo (`tc-modes`: «Solo vídeo»). */
+    val Eye: ImageVector by lazy {
+        icono("KpknLine.Eye", listOf("M2 12s3.8-6 10-6 10 6 10 6-3.8 6-10 6-10-6-10-6Z", "M12 12m-2.75 0a2.75 2.75 0 1 0 5.5 0a2.75 2.75 0 1 0-5.5 0"))
+    }
+
     /**
      * Construye un icono con los trazados [trazados] (cadenas SVG `d` sobre la retícula de 24). Con [relleno] se pinta
      * sólido y sin trazo; si no, en trazo de 1,75 dp con extremos y uniones redondeados.

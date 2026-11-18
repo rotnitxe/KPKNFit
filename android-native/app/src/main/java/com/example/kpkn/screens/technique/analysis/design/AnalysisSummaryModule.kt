@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -34,6 +36,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.kpkn.domain.biomechanics.metrics.CountConfidence
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
@@ -70,9 +73,10 @@ fun analysisTileTag(id: Enum<*>): String = "analysis-tile-${id.name}"
 fun AnalysisSummaryModule(
     summary: AnalysisSummaryUi,
     modifier: Modifier = Modifier,
+    embedded: Boolean = false,
 ) {
     val twoColumns = LocalDensity.current.fontScale < LARGE_FONT_SCALE
-    KpknModule(modifier = modifier.testTag(ANALYSIS_SUMMARY_TAG)) {
+    val body: @Composable () -> Unit = {
         KpknModuleHeader("Resumen")
         val message = summary.noRepsMessage
         if (message != null) {
@@ -81,41 +85,45 @@ fun AnalysisSummaryModule(
                 Spacer(Modifier.width(14.dp))
                 Text(text = message, style = KpknType.bodyStrong, color = WizardColors.text, modifier = Modifier.weight(1f))
             }
-            return@KpknModule
-        }
-        Spacer(Modifier.height(4.dp))
-        val rows = if (twoColumns) summary.tiles.chunked(2) else summary.tiles.map { listOf(it) }
-        rows.forEachIndexed { index, row ->
-            if (index > 0) Spacer(Modifier.height(22.dp))
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                SummaryTile(row[0], Modifier.weight(1f))
-                if (twoColumns) {
-                    if (row.size > 1) SummaryTile(row[1], Modifier.weight(1f)) else Spacer(Modifier.weight(1f))
+        } else {
+            Spacer(Modifier.height(6.dp))
+            val rows = if (twoColumns) summary.tiles.chunked(2) else summary.tiles.map { listOf(it) }
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                rows.forEach { row ->
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        SummaryTile(row[0], Modifier.weight(1f))
+                        if (twoColumns) {
+                            if (row.size > 1) SummaryTile(row[1], Modifier.weight(1f)) else Spacer(Modifier.weight(1f))
+                        }
+                    }
+                }
+            }
+            val depth = summary.depthLine
+            val partials = summary.partialsLine
+            if (depth != null || partials != null) {
+                Spacer(Modifier.height(14.dp))
+                AnalysisDivider()
+                Spacer(Modifier.height(10.dp))
+                depth?.split(DEPTH_SEPARATOR)?.forEachIndexed { index, part ->
+                    if (index > 0) Spacer(Modifier.height(2.dp))
+                    Text(text = part.keepTogether(), style = KpknType.body, color = WizardColors.text)
+                }
+                if (partials != null) {
+                    if (depth != null) Spacer(Modifier.height(8.dp))
+                    Text(
+                        text = partials.keepTogether(),
+                        style = KpknType.body,
+                        color = WizardColors.text,
+                        modifier = Modifier.testTag(ANALYSIS_PARTIALS_LINE_TAG),
+                    )
                 }
             }
         }
-        val depth = summary.depthLine
-        val partials = summary.partialsLine
-        if (depth != null || partials != null) {
-            Spacer(Modifier.height(18.dp))
-            AnalysisDivider()
-            Spacer(Modifier.height(14.dp))
-            // «Bajo el paralelo en ≈ 7 de 8 · a la par en 1»: cada parte en su línea (partida a media frase deja un «1» huérfano).
-            depth?.split(DEPTH_SEPARATOR)?.forEachIndexed { index, part ->
-                if (index > 0) Spacer(Modifier.height(2.dp))
-                Text(text = part.keepTogether(), style = KpknType.body, color = WizardColors.text)
-            }
-            // «2 parciales en estiramiento (≈ 55 % del recorrido)» (M4): bajo la profundidad, sin partir la estimación de su cifra.
-            if (partials != null) {
-                if (depth != null) Spacer(Modifier.height(8.dp))
-                Text(
-                    text = partials.keepTogether(),
-                    style = KpknType.body,
-                    color = WizardColors.text,
-                    modifier = Modifier.testTag(ANALYSIS_PARTIALS_LINE_TAG),
-                )
-            }
-        }
+    }
+    if (embedded) {
+        Column(modifier = modifier.fillMaxWidth().testTag(ANALYSIS_SUMMARY_TAG)) { body() }
+    } else {
+        KpknModule(modifier = modifier.testTag(ANALYSIS_SUMMARY_TAG)) { body() }
     }
 }
 
@@ -151,7 +159,14 @@ internal fun String.keepTogether(): String {
 
 @Composable
 private fun SummaryTile(tile: SummaryTileUi, modifier: Modifier) {
-    Column(modifier = modifier.testTag(analysisTileTag(tile.id)).semantics(mergeDescendants = true) { }) {
+    Column(
+        modifier = modifier
+            .background(Color(0x0DFFFFFF), RoundedCornerShape(14.dp))
+            .border(1.dp, Color(0x14FFFFFF), RoundedCornerShape(14.dp))
+            .padding(horizontal = 12.dp, vertical = 11.dp)
+            .testTag(analysisTileTag(tile.id))
+            .semantics(mergeDescendants = true) { },
+    ) {
         val note = tile.note
         if (note != null) {
             // Sin cifra: el texto ocupa su sitio y deja la etiqueta a la misma altura que la de la celda de al lado.
@@ -159,10 +174,16 @@ private fun SummaryTile(tile: SummaryTileUi, modifier: Modifier) {
                 Text(text = note, style = KpknType.bodyStrong, color = WizardColors.textMuted)
             }
         } else {
+            val figure = countedFigure(tile)
+            val metricStyle = if (figure.length >= 7) {
+                KpknType.metricL.copy(fontSize = 18.sp, lineHeight = 22.sp, letterSpacing = (-0.5).sp)
+            } else {
+                KpknType.metricL
+            }
             KpknMetric(
-                value = countedFigure(tile),
+                value = figure,
                 unit = tile.unit,
-                style = KpknType.metricL,
+                style = metricStyle,
             )
         }
         Spacer(Modifier.height(2.dp))

@@ -47,6 +47,8 @@ internal fun CardioReadyPulido(
     gpsState: CardioGpsState?, keepScreenOn: Boolean, hazeState: HazeState?,
     onStart: () -> Unit, onSeePlan: () -> Unit,
     showBottomButton: Boolean = true,
+    onRetryGps: (() -> Unit)? = null,
+    onStartWithoutGps: (() -> Unit)? = null,
 ) {
     val first = steps.firstOrNull()
     val zone = first?.zone ?: 2
@@ -62,7 +64,7 @@ internal fun CardioReadyPulido(
                 Text("\u00b7  ${steps.size} ${if (steps.size == 1) "paso" else "pasos"}", style = readyBody.copy(fontSize = 12.5.sp), color = LiveSheetTokens.Faint)
             }
             BoxWithConstraints(Modifier.fillMaxWidth().padding(top = 4.dp).height(if (compact) 138.dp else 292.dp).testTag("cardio-clock")) {
-                CvHalo(cardioZoneColor(zone), maxHeight)
+                CvHalo(cardioZoneColor(zone), maxHeight, periodMsOverride = 2600)
                 KpknWaveField(KpknWaveState.Idle, Modifier.fillMaxSize(), zoneColor = cardioZoneColor(zone),
                     lines = if (compact) 14 else 22, edgeFade = KpknWaveEdgeFade.Hero)
                 Column(Modifier.fillMaxSize().padding(top = if (compact) 4.dp else 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -74,16 +76,36 @@ internal fun CardioReadyPulido(
             }
             Column(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 8.dp).clip(RoundedCornerShape(22.dp))
                 .background(Color(0xFF111111)).border(1.dp, Color(0x10FFFFFF), RoundedCornerShape(22.dp)).padding(horizontal = 16.dp, vertical = 6.dp)) {
-                ReadyCheck(KpknLineIcons.Pulse, "Pulso", if (hasLiveHr) "Reloj \u00b7 listo" else "Sin reloj \u00b7 gu\u00eda por esfuerzo", if (hasLiveHr) "Listo" else "RPE")
-                ReadyCheck(KpknLineIcons.Route, "Lugar", if (!gpsMode) "Interior \u00b7 sin GPS" else if (denied) "Exterior \u00b7 falta permiso de ubicaci\u00f3n" else "Exterior \u00b7 GPS", if (denied) "Revisar" else "Listo")
-                ReadyCheck(KpknLineIcons.Sun, "Pantalla", if (keepScreenOn) "Siempre encendida" else "Se apaga sola", "Listo")
+                ReadyCheck(KpknLineIcons.Pulse, "Pulso", if (hasLiveHr) "Reloj \u00b7 listo" else "Sin reloj \u00b7 gu\u00eda por esfuerzo", if (hasLiveHr) "Listo" else "RPE", dividerAbove = false)
+                ReadyCheck(
+                    KpknLineIcons.CardioRoute,
+                    "Lugar",
+                    if (!gpsMode) "Interior \u00b7 sin GPS" else if (denied) "Exterior \u00b7 falta permiso de ubicaci\u00f3n" else "Exterior \u00b7 GPS",
+                    if (denied) "Revisar" else "Listo",
+                    warn = denied,
+                    dividerAbove = true,
+                    onClick = if (denied) onRetryGps else null,
+                )
+                ReadyCheck(KpknLineIcons.Sun, "Pantalla", if (keepScreenOn) "Siempre encendida" else "Se apaga sola", "Listo", dividerAbove = true)
+            }
+            if (denied && onStartWithoutGps != null) {
+                Box(Modifier.fillMaxWidth().padding(bottom = 8.dp), contentAlignment = Alignment.Center) {
+                    Text(
+                        "Iniciar sin GPS",
+                        Modifier.heightIn(min = 40.dp).clip(CircleShape)
+                            .clickable(role = Role.Button, onClick = onStartWithoutGps)
+                            .padding(horizontal = 14.dp, vertical = 10.dp),
+                        style = readyBody.copy(fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold),
+                        color = readyInk,
+                    )
+                }
             }
             first?.cue?.takeIf { it.isNotBlank() }?.let { cue ->
                 Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp).padding(bottom = 8.dp).clip(RoundedCornerShape(22.dp))
                     .background(Color(0xFF111111)).border(1.dp, Color(0x10FFFFFF), RoundedCornerShape(22.dp)).padding(horizontal = 16.dp, vertical = 11.dp),
                     horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                     Box(Modifier.size(34.dp).clip(CircleShape).background(Color(0x0CFFFFFF)), contentAlignment = Alignment.Center) {
-                        Icon(KpknLineIcons.Sliders, null, Modifier.size(17.dp), tint = cardioZoneColor(zone))
+                        Icon(KpknLineIcons.Speedometer, null, Modifier.size(17.dp), tint = cardioZoneColor(zone))
                     }
                     Text("Primer bloque: ajusta a $cue", style = readyBody.copy(fontSize = 13.sp), color = readyInk)
                 }
@@ -116,15 +138,40 @@ internal fun CardioReadyPulido(
 }
 
 @Composable
-private fun ReadyCheck(icon: ImageVector, title: String, description: String, status: String) {
-    Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
-        Box(Modifier.size(34.dp).clip(CircleShape).background(Color(0x0CFFFFFF)), contentAlignment = Alignment.Center) {
-            Icon(icon, null, Modifier.size(17.dp), tint = LiveSheetTokens.Muted)
+private fun ReadyCheck(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    status: String,
+    warn: Boolean = false,
+    dividerAbove: Boolean = false,
+    onClick: (() -> Unit)? = null,
+) {
+    Column(Modifier.fillMaxWidth().then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)) {
+        if (dividerAbove) {
+            Box(Modifier.fillMaxWidth().height(1.dp).background(Color(0x0DFFFFFF)))
         }
-        Column(Modifier.weight(1f)) {
-            Text(title, style = readyBody.copy(fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold), color = readyInk)
-            Text(description, style = readyBody.copy(fontSize = 12.sp), color = LiveSheetTokens.Muted)
+        Row(Modifier.fillMaxWidth().heightIn(min = 48.dp), horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Box(Modifier.size(34.dp).clip(CircleShape).background(Color(0x0CFFFFFF)), contentAlignment = Alignment.Center) {
+                Icon(icon, null, Modifier.size(17.dp), tint = LiveSheetTokens.Muted)
+            }
+            Column(Modifier.weight(1f)) {
+                Text(title, style = readyBody.copy(fontSize = 13.5.sp, fontWeight = FontWeight.SemiBold), color = readyInk)
+                Text(description, style = readyBody.copy(fontSize = 12.sp), color = LiveSheetTokens.Muted)
+            }
+            val statusColor = when {
+                warn -> Color(0xFFF7CF73)
+                status == "Listo" -> Color(0xFF43D18C)
+                else -> LiveSheetTokens.Faint
+            }
+            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                if (warn) {
+                    Icon(KpknLineIcons.Warning, null, Modifier.size(14.dp), tint = statusColor)
+                } else if (status == "Listo") {
+                    Icon(KpknLineIcons.Check, null, Modifier.size(14.dp), tint = statusColor)
+                }
+                Text(status, style = readyBody.copy(fontSize = 11.sp, fontWeight = FontWeight.SemiBold), color = statusColor)
+            }
         }
-        Text(status, style = readyBody.copy(fontSize = 11.sp, fontWeight = FontWeight.SemiBold), color = if (status == "Listo") Color(0xFF87C9A5) else LiveSheetTokens.Faint)
     }
 }

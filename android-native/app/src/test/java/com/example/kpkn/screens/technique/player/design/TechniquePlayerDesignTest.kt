@@ -267,6 +267,42 @@ class TechniquePlayerDesignTest {
     }
 
     @Test
+    fun singleRowPulidoModeHidesSpeedRowAndWiresRepStepButtons() {
+        val calls = ArrayList<String>()
+        rule.setContent {
+            Column {
+                TechniquePlayerControls(
+                    isPlaying = false,
+                    speed = TechniqueSpeed.NORMAL,
+                    loopEnabled = false,
+                    onPlayPause = { calls += "play" },
+                    onFrameBack = { calls += "back" },
+                    onFrameForward = { calls += "forward" },
+                    onSpeedChange = {},
+                    onLoopToggle = { calls += "loop" },
+                    showSpeedRow = false,
+                    onPrevRep = { calls += "prevRep" },
+                    onNextRep = { calls += "nextRep" },
+                )
+                TechniqueScrubber(
+                    positionUs = { 5_000_000L },
+                    durationUs = TechniqueSamples.MIXED_DURATION_US,
+                    reps = TechniqueSamples.mixedMarks,
+                    selectedRep = 2,
+                    onSeek = {},
+                    repSpeedWeights = mapOf(0 to 0.9f, 1 to 0.6f, 2 to 0.3f),
+                    observationTimesUs = listOf(8_000_000L, 14_000_000L),
+                )
+            }
+        }
+        rule.onNodeWithTag(TECHNIQUE_SPEED_TAG).assertDoesNotExist()
+        rule.onNodeWithTag(TECHNIQUE_PREV_REP_TAG).assertIsDisplayed().performClick()
+        rule.onNodeWithTag(TECHNIQUE_NEXT_REP_TAG).assertIsDisplayed().performClick()
+        rule.onNodeWithTag(TECHNIQUE_PLAY_TAG).performClick()
+        assertEquals(listOf("prevRep", "nextRep", "play"), calls)
+    }
+
+    @Test
     fun noRepsNoChips() {
         rule.setContent { TechniqueRepChips(reps = emptyList(), selectedRep = -1, onSelectRep = {}) }
         rule.onNodeWithTag(TECHNIQUE_REP_CHIPS_TAG).assertDoesNotExist()

@@ -1,7 +1,9 @@
 package com.example.kpkn.screens.technique.analysis.design
 
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Text
@@ -28,9 +30,10 @@ const val ANALYSIS_TIPS_TAG = "analysis-tips"
 fun CameraTipsModule(
     tips: List<CameraTip>,
     modifier: Modifier = Modifier,
+    embedded: Boolean = false,
 ) {
     if (tips.isEmpty()) return
-    KpknModule(modifier = modifier.testTag(ANALYSIS_TIPS_TAG)) {
+    val content: @Composable () -> Unit = {
         KpknModuleHeader("Para medir mejor")
         tips.take(3).forEachIndexed { index, tip ->
             if (index > 0) AnalysisDivider()
@@ -43,5 +46,10 @@ fun CameraTipsModule(
                 Text(text = tip.text, style = KpknType.body, color = WizardColors.text, modifier = Modifier.weight(1f))
             }
         }
+    }
+    if (embedded) {
+        Column(modifier = modifier.fillMaxWidth().testTag(ANALYSIS_TIPS_TAG)) { content() }
+    } else {
+        KpknModule(modifier = modifier.testTag(ANALYSIS_TIPS_TAG)) { content() }
     }
 }

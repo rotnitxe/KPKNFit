@@ -432,6 +432,8 @@ internal fun WorkoutHeaderBar(
     /** En la vista Lista el contexto del ejercicio va dentro de la lista (prototipo 02) y la cabecera queda solo con la isla. */
     showExerciseContext: Boolean = true,
     cardioLayout: Boolean = false,
+    /** Atenuación al 50 % del contexto superior cuando la tarjeta de cardio está bloqueada (`.cv-root.locked .cv-head`). */
+    exerciseContextAlpha: Float = 1f,
     /** En la vista Lista la cápsula es vidrio con desenfoque de [bodyHazeState] (las filas pasan por debajo); en Tarjetas, gris plano. */
     glassCapsule: Boolean = false,
     statusBarInsets: WindowInsets = WindowInsets.statusBars,
@@ -571,7 +573,8 @@ internal fun WorkoutHeaderBar(
                     onOpenTagList = onOpenTagList,
                     onToggleVoice = onToggleVoice,
                     voiceSessionEnabled = voiceSessionEnabled,
-                    modifier = Modifier.padding(start = 6.dp, top = if (cardioLayout) 0.dp else if (compactHeader) 4.dp else 8.dp),
+                    modifier = Modifier.padding(start = 6.dp, top = if (cardioLayout) 0.dp else if (compactHeader) 4.dp else 8.dp)
+                        .graphicsLayer { alpha = exerciseContextAlpha },
                     cardioLayout = cardioLayout,
                 )
             }

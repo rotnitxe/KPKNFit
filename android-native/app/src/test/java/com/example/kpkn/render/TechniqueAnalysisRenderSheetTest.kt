@@ -274,13 +274,25 @@ class TechniqueAnalysisRenderSheetTest {
         estado: TechniqueAnalysisUiState,
         desplazamientosDp: List<Int>,
         fotograma: ImageBitmap? = null,
-        pestana: String? = null,
+        modoCd: String? = null,
+        expandirHoja: Boolean = false,
+        abrirConfianza: Boolean = false,
     ) {
         onlyWhenAsked()
         val scroll = ScrollState(0)
         montar(escala) { Pantalla(estado, scroll, fotograma) }
-        if (pestana != null) {
-            rule.onNodeWithText(pestana).performClick()
+        if (modoCd != null) {
+            rule.onNodeWithTag(com.example.kpkn.screens.technique.analysis.design.TECHNIQUE_MODES_TAG)
+            // Tocamos el botón por su contentDescription («Solo trayectoria» / «Solo vídeo»)
+            rule.onNode(androidx.compose.ui.test.hasContentDescription(modoCd)).performClick()
+            rule.waitForIdle()
+        }
+        if (abrirConfianza) {
+            rule.onNodeWithTag(com.example.kpkn.screens.technique.analysis.design.TECHNIQUE_CONFIDENCE_TAG).performClick()
+            rule.waitForIdle()
+        }
+        if (expandirHoja) {
+            rule.onNodeWithTag(com.example.kpkn.screens.technique.analysis.design.TECHNIQUE_SHEET_HANDLE_TAG).performClick()
             rule.waitForIdle()
         }
         val densidad = 3f
@@ -292,21 +304,34 @@ class TechniqueAnalysisRenderSheetTest {
     }
 
     @Test
-    fun pantallaLista100() = pantalla("lista_100", 1f, estadoLista(), listOf(0, 1500))
+    fun pantallaLista100() = pantalla("lista_100", 1f, estadoLista(), listOf(0, 700))
 
     @Test
-    fun pantallaListaMetricas100() = pantalla("lista_metricas_100", 1f, estadoLista(), listOf(0), pestana = "Métricas")
+    fun pantallaConfianzaAbierta100() = pantalla("confianza_100", 1f, estadoLista(), listOf(0), abrirConfianza = true)
 
     @Test
-    fun pantallaListaRepeticiones100() =
-        pantalla("lista_repeticiones_100", 1f, estadoLista(), listOf(0), pestana = "Repeticiones")
+    fun pantallaFullMinirepro100() = pantalla("full_minirepro_100", 1f, estadoLista(), listOf(0, 600), expandirHoja = true)
 
     @Test
-    fun pantallaLista130() = pantalla("lista_130", 1.3f, estadoLista(), listOf(0, 1700))
+    fun pantallaSoloTrayectoria100() = pantalla("solo_tray_100", 1f, estadoLista(), listOf(0), modoCd = "Solo trayectoria")
+
+    @Test
+    fun pantallaLimpio100() = pantalla("limpio_100", 1f, estadoLista(), listOf(0), modoCd = "Solo vídeo")
+
+    @Test
+    fun pantallaLista130() = pantalla("lista_130", 1.3f, estadoLista(), listOf(0, 800))
 
     @Test
     fun pantallaAnalizando100() =
         pantalla("analizando_100", 1f, TechniqueSamples.statusUiState(AnalysisStatusUi.Analyzing(42, updating = false, queued = false)), listOf(0))
+
+    @Test
+    fun pantallaCola100() =
+        pantalla("cola_100", 1f, TechniqueSamples.statusUiState(AnalysisStatusUi.Analyzing(0, updating = false, queued = true)), listOf(0))
+
+    @Test
+    fun pantallaSinAnalizar100() =
+        pantalla("sin_analizar_100", 1f, TechniqueSamples.statusUiState(AnalysisStatusUi.NotAnalyzed), listOf(0))
 
     @Test
     fun pantallaEligeElMovimiento100() =

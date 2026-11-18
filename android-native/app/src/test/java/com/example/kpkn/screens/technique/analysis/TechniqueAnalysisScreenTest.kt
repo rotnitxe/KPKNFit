@@ -61,7 +61,14 @@ import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_RETRY_TAG
 import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_STATUS_TAG
 import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_SUMMARY_TAG
 import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_ANALYZE_TAG
+import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_CANCEL_TAG
+import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_ANALYZING_STAGE_TAG
 import com.example.kpkn.screens.technique.analysis.design.ANALYSIS_TIPS_TAG
+import com.example.kpkn.screens.technique.analysis.design.TECHNIQUE_CONFIDENCE_CARD_TAG
+import com.example.kpkn.screens.technique.analysis.design.TECHNIQUE_CONFIDENCE_TAG
+import com.example.kpkn.screens.technique.analysis.design.TECHNIQUE_MODES_TAG
+import com.example.kpkn.screens.technique.analysis.design.TECHNIQUE_SHEET_TAG
+import com.example.kpkn.screens.technique.analysis.design.TECHNIQUE_STILL_STAGE_TAG
 import com.example.kpkn.screens.technique.analysis.design.AnalysisStatusModule
 import com.example.kpkn.screens.technique.analysis.design.AnalysisSummaryModule
 import com.example.kpkn.screens.technique.analysis.design.ObservationsModule
@@ -384,6 +391,7 @@ class TechniqueAnalysisScreenTest {
         val trends = ArrayList<String>()
         val profiles = ArrayList<AnalysisProfileId>()
         var reanalyzed = 0
+        var canceled = 0
         val saved = ArrayList<Pair<PlateSeed, Int>>()
         val confirmed = ArrayList<Int>()
         var back = 0
@@ -400,6 +408,7 @@ class TechniqueAnalysisScreenTest {
             onDismissNotice = {},
             onRequestPlateFrame = {},
             onUseReviewedResult = if (deliver) ({ result: ReviewedAnalysisResult -> used = result }) else null,
+            onCancelAnalysis = { canceled++ },
         )
     }
 
@@ -437,25 +446,26 @@ class TechniqueAnalysisScreenTest {
         )
         screen(state, calls)
 
-        // Prototipo 02: «Sentadilla · serie 3» en una sola línea de la cabecera.
+        // Isla superior `.tc-isl`: «Sentadilla trasera · serie 3» en una sola línea.
         rule.onNodeWithText("Sentadilla trasera · serie 3").assertIsDisplayed()
-        // Trayectoria es la pestaña inicial: capas y repetición elegida con su ROM; el reproductor sigue arriba.
-        rule.onNodeWithText("Trayectoria de barra").assertIsDisplayed()
-        rule.onNodeWithText("Articulaciones").assertIsDisplayed()
-        rule.onNodeWithText("ROM ESTIMADO").assertIsDisplayed()
-        rule.onNodeWithText("Métricas").performClick()
-        for (tag in listOf(ANALYSIS_SUMMARY_TAG, ANALYSIS_OBSERVATIONS_TAG, ANALYSIS_TIPS_TAG)) {
+        // HUD flotante: confianza `.tc-q`, modos `.tc-modes` y hoja `.tc-sheet`.
+        rule.onNodeWithTag(TECHNIQUE_CONFIDENCE_TAG).assertIsDisplayed().performClick()
+        rule.onNodeWithTag(TECHNIQUE_CONFIDENCE_CARD_TAG).assertIsDisplayed()
+        rule.onNodeWithTag(TECHNIQUE_MODES_TAG).assertIsDisplayed()
+        rule.onNodeWithTag(TECHNIQUE_SHEET_TAG).assertIsDisplayed()
+        // Capas y módulos integrados dentro del contenido `.tc-x` de la hoja:
+        rule.onNodeWithText("Trayectoria de barra").assertExists()
+        rule.onNodeWithText("Articulaciones").assertExists()
+        rule.onNodeWithText("ROM ESTIMADO").assertExists()
+        for (tag in listOf(ANALYSIS_BREAKDOWN_TAG, ANALYSIS_SUMMARY_TAG, ANALYSIS_OBSERVATIONS_TAG, ANALYSIS_TIPS_TAG)) {
             rule.onNodeWithTag(tag).assertExists()
         }
-        // La primera «Repeticiones» es la pestaña; la otra es la tarjeta del resumen.
-        rule.onAllNodesWithText("Repeticiones").onFirst().performClick()
-        rule.onNodeWithTag(ANALYSIS_BREAKDOWN_TAG).assertExists()
-        // Hecho el análisis, el módulo de estado no pinta nada.
         rule.onNodeWithTag(ANALYSIS_STATUS_TAG).assertDoesNotExist()
 
         rule.onNodeWithTag(TECHNIQUE_ANALYSIS_MENU_TAG).performClick()
         rule.onNodeWithText("Reanalizar").assertIsDisplayed()
-        // «Ver tendencia» está en el menú y en el pie de la pantalla; el menú se compone el último.
+        rule.onNodeWithText("Cómo leer este análisis").assertIsDisplayed()
+        // «Ver tendencia» está en el menú y en la hoja; el menú se compone el último.
         rule.onAllNodesWithText("Ver tendencia").onLast().assertIsDisplayed()
         rule.onNodeWithText("Elegir el tipo de movimiento").assertDoesNotExist()
         rule.onAllNodesWithText("Ver tendencia").onLast().performClick()
@@ -471,8 +481,6 @@ class TechniqueAnalysisScreenTest {
         rule.onNodeWithText("Reanalizar").performClick()
         assertEquals(1, calls.reanalyzed)
 
-        // La tendencia del pie vive en «Métricas», junto al resto de métricas del análisis.
-        rule.onNodeWithText("Métricas").performClick()
         rule.onNodeWithTag(TECHNIQUE_ANALYSIS_TRENDS_TAG).performScrollTo().performClick()
         assertEquals(listOf("back_squat"), calls.trends)
     }
@@ -493,10 +501,9 @@ class TechniqueAnalysisScreenTest {
     fun see_on_an_observation_chooses_its_rep_and_brings_the_video_back_into_view() {
         val calls = Calls()
         screen(TechniqueSamples.analysisUiState(), calls)
-        rule.onNodeWithText("Métricas").performClick()
         rule.onNodeWithTag(analysisObservationSeeTag(0)).performScrollTo().performClick()
         rule.waitForIdle()
-        // La 1.ª observación es de la repetición 9 (posición 8) y la pantalla sube hasta el reproductor.
+        // La 1.ª observación es de la repetición 9 (posición 8) y la hoja vuelve a la cabecera para ver el vídeo.
         assertEquals(8, player.selectedRep)
         assertEquals(0, scroll.value)
     }
@@ -505,7 +512,6 @@ class TechniqueAnalysisScreenTest {
     fun a_bar_of_the_chart_chooses_the_rep_in_the_player() {
         val calls = Calls()
         screen(TechniqueSamples.analysisUiState(), calls)
-        rule.onAllNodesWithText("Repeticiones").onFirst().performClick()
         val chart = rule.onNodeWithTag(ANALYSIS_REP_CHART_TAG).performScrollTo()
         chart.performTouchInput { click(Offset(width * 0.35f, height / 2f)) }
         assertEquals(3, player.selectedRep)
@@ -515,9 +521,8 @@ class TechniqueAnalysisScreenTest {
     fun the_review_corrects_a_partial_and_delivers_the_result_without_registering_the_set() {
         val calls = Calls()
         screen(TechniqueSamples.analysisUiState(), calls, deliver = true)
-        rule.onAllNodesWithText("Repeticiones").onFirst().performClick()
         // La tercera repetición del ejemplo es parcial: se corrige a completa y el pie lo cuenta.
-        rule.onNodeWithTag(ANALYSIS_REP_CHART_TAG).performTouchInput { click(Offset(width * 0.25f, height / 2f)) }
+        rule.onNodeWithTag(ANALYSIS_REP_CHART_TAG).performScrollTo().performTouchInput { click(Offset(width * 0.25f, height / 2f)) }
         rule.onNodeWithTag(ANALYSIS_REP_TOGGLE_TAG).performScrollTo().performClick()
         rule.onNodeWithText("9 reps").assertIsDisplayed()
         rule.onNodeWithText("Original: 8 + 1 reps", substring = true).assertIsDisplayed()
@@ -531,13 +536,25 @@ class TechniqueAnalysisScreenTest {
     }
 
     @Test
-    fun while_analyzing_there_are_no_results_and_no_menu() {
+    fun while_analyzing_there_are_no_results_and_no_menu_and_cancel_invokes_action() {
         val calls = Calls()
         screen(TechniqueSamples.statusUiState(AnalysisStatusUi.Analyzing(42, updating = false, queued = false)), calls)
+        rule.onNodeWithTag(ANALYSIS_ANALYZING_STAGE_TAG).assertIsDisplayed()
         rule.onNodeWithText("Analizando…").assertIsDisplayed()
         rule.onNodeWithTag(ANALYSIS_SUMMARY_TAG).assertDoesNotExist()
         rule.onNodeWithTag(TECHNIQUE_ANALYSIS_MENU_TAG).assertDoesNotExist()
         rule.onNodeWithTag(TECHNIQUE_ANALYSIS_TRENDS_TAG).assertDoesNotExist()
+        rule.onNodeWithTag(ANALYSIS_CANCEL_TAG).assertIsDisplayed().performClick()
+        assertEquals(1, calls.canceled)
+    }
+
+    @Test
+    fun failed_state_renders_still_stage_with_retry_action() {
+        val calls = Calls()
+        screen(TechniqueSamples.statusUiState(AnalysisStatusUi.Failed("Error al leer fotogramas")), calls)
+        rule.onNodeWithTag(TECHNIQUE_STILL_STAGE_TAG).assertIsDisplayed()
+        rule.onNodeWithTag(ANALYSIS_RETRY_TAG).performClick()
+        assertEquals(1, calls.reanalyzed)
     }
 
     @Test
@@ -581,7 +598,6 @@ class TechniqueAnalysisScreenTest {
     fun confirming_the_found_disc_uses_the_chosen_diameter() {
         val calls = Calls()
         screen(suggestedState(), calls, frame = blankFrame())
-        rule.onNodeWithText("Métricas").performClick()
         rule.onNodeWithText("40").performScrollTo().performClick()
         rule.onNodeWithTag(ANALYSIS_PLATE_CONFIRM_TAG).performScrollTo().performClick()
         assertEquals(listOf(400), calls.confirmed)
@@ -595,11 +611,9 @@ class TechniqueAnalysisScreenTest {
         val seed = plate.circle!!
         screen(state, calls, frame = blankFrame())
 
-        rule.onNodeWithText("Métricas").performClick()
         rule.onNodeWithTag(ANALYSIS_PLATE_OPEN_TAG).performScrollTo().performClick()
         rule.onNodeWithTag(PLATE_DIALOG_TAG).assertIsDisplayed()
         rule.onNodeWithText("Marca el disco").assertIsDisplayed()
-
         // «Otro» pide los centímetros en un campo propio y deja el diámetro en el chip (el del diálogo es el último «Otro»).
         rule.onAllNodesWithText("Otro").onLast().performClick()
         rule.onNode(hasSetTextAction()).performTextReplacement("42,5")
@@ -622,7 +636,6 @@ class TechniqueAnalysisScreenTest {
     fun an_invalid_custom_diameter_cannot_be_accepted_and_closing_saves_nothing() {
         val calls = Calls()
         screen(suggestedState(), calls, frame = blankFrame())
-        rule.onNodeWithText("Métricas").performClick()
         rule.onNodeWithTag(ANALYSIS_PLATE_OPEN_TAG).performScrollTo().performClick()
         rule.onAllNodesWithText("Otro").onLast().performClick()
         rule.onNode(hasSetTextAction()).performTextReplacement("5")

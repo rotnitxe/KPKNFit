@@ -41,8 +41,13 @@ import kotlinx.serialization.encodeToString
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
@@ -169,6 +174,10 @@ class VideoAnalysisRepository internal constructor(
     /** Los análisis terminados (DONE) de un ejercicio, por fecha de grabación. */
     fun observeTrend(exerciseKey: String): Flow<List<VideoAnalysisSummary>> =
         db.videoAnalysisDao().observeTrend(exerciseKey).map { rows -> rows.map { it.toSummary() } }
+
+    /** Telemetría en vivo del análisis mientras corre (en memoria; `null` si no está corriendo). */
+    fun observeLiveTelemetry(mediaId: String): Flow<com.example.kpkn.data.media.technique.LiveAnalysisTelemetry?> =
+        liveTelemetryFlow.map { it[mediaId] }.distinctUntilChanged()
 
     /** Los puntos carga-velocidad de una configuración del catálogo, por fecha. */
     fun observeConfigurationPoints(configurationKey: String): Flow<List<VideoAnalysisLoadPoint>> =
@@ -426,6 +435,42 @@ class VideoAnalysisRepository internal constructor(
 
     /** «Reanalizar»: vuelve a decodificar el vídeo y a estimar la pose con la versión actual. */
     suspend fun reanalyze(mediaId: String): Boolean = requestAnalysis(mediaId, AnalysisMode.FULL)
+
+    /**
+     * Cancela un análisis en curso o en cola: invalida su generación actual, cancela el trabajo de WorkManager, limpia el
+     * punto de control `.part` y deja la fila de Room como estaría sin él (`DONE` desde el sidecar anterior si existía, o
+     * borrada quedando el vídeo en «Sin analizar»).
+     */
+    suspend fun cancelAnalysis(mediaId: String): Boolean {
+        val result = generationMutex(mediaId).withLock {
+            val media = videoOf(mediaId)
+            withContext(Dispatchers.IO) {
+                val cancelledToken = ManualAnalysisRequest(
+                    id = UUID.randomUUID().toString(),
+                    mode = AnalysisMode.FULL,
+                    mediaId = mediaId,
+                    requestedAtMs = nowMs(),
+                    manualRequestPending = false,
+                )
+                runCatching { writeManualRequestEntry(cancelledToken) }
+                if (media != null) {
+                    runCatching {
+                        CaptureMetadataFile.update(TechniqueSidecars.captureFile(File(media.filePath))) { current ->
+                            current.copy(manualAnalysisRequestId = null, manualAnalysisRequestMode = null)
+                        }
+                    }
+                    runCatching {
+                        TechniqueSidecars.partFile(File(media.filePath)).delete()
+                    }
+                }
+                clearLiveTelemetry(mediaId)
+            }
+            TechniqueAnalysisScheduler.cancel(appContext, mediaId)
+            restoreOrDrop(mediaId)
+            true
+        }
+        return result
+    }
 
     /**
      * Guarda el disco que el usuario fijó en la pantalla de calibrar ([seed] en píxeles del fotograma de análisis y
@@ -877,6 +922,18 @@ class VideoAnalysisRepository internal constructor(
         private const val INVALID_GENERATION_PREFIX = "!invalid-ledger:"
         private val MONTH_DIR = Regex("\\d{4}-\\d{2}")
         private val generationLocks = ConcurrentHashMap<String, Mutex>()
+        private val _liveTelemetry = MutableStateFlow<Map<String, com.example.kpkn.data.media.technique.LiveAnalysisTelemetry>>(emptyMap())
+
+        val liveTelemetryFlow: StateFlow<Map<String, com.example.kpkn.data.media.technique.LiveAnalysisTelemetry>> =
+            _liveTelemetry.asStateFlow()
+
+        internal fun publishLiveTelemetry(telemetry: com.example.kpkn.data.media.technique.LiveAnalysisTelemetry) {
+            _liveTelemetry.update { current -> current + (telemetry.mediaId to telemetry) }
+        }
+
+        internal fun clearLiveTelemetry(mediaId: String) {
+            _liveTelemetry.update { current -> if (mediaId in current) current - mediaId else current }
+        }
 
         @Volatile
         private var INSTANCE: VideoAnalysisRepository? = null

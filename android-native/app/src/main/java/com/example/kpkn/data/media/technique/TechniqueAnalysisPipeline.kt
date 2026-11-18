@@ -160,6 +160,7 @@ internal data class PipelineDependencies(
     val awaitGate: suspend () -> Unit,
     val sdkInt: Int = Build.VERSION.SDK_INT,
     val onRunStats: (PipelineRunStats) -> Unit = {},
+    val onTelemetry: (LiveAnalysisTelemetry) -> Unit = {},
 ) {
     companion object {
         fun forApp(context: Context): PipelineDependencies {
@@ -189,6 +190,7 @@ internal data class PipelineDependencies(
                 },
                 gateIsClosed = { AnalysisGate.cameraBusy.value || AnalysisGate.isTooHot(app) },
                 awaitGate = { AnalysisGate.awaitClear(app) },
+                onTelemetry = { VideoAnalysisRepository.publishLiveTelemetry(it) },
             )
         }
     }
@@ -273,6 +275,56 @@ class TechniqueAnalysisPipeline internal constructor(
         private var plateRunOutcome: PlateOnlyOutcome? = null
         private var engineMs = 0L
         private lateinit var completedExercise: ExerciseRef
+        private val telemetrySignals = ArrayList<LiveSignalSample>(84)
+        private val telemetryTrail = ArrayList<NormalizedPoint>(84)
+        private var lastTelemetryAtMs = 0L
+        private var lastTelemetryPhase: LiveAnalysisPhase? = null
+        private var telemetryMinY = Float.POSITIVE_INFINITY
+        private var telemetryMaxY = Float.NEGATIVE_INFINITY
+        private var totalDurationUs = 0L
+
+        fun emitTelemetry(
+            percent: Int,
+            phase: LiveAnalysisPhase,
+            ptsUs: Long,
+            durationUs: Long,
+            barNorm: NormalizedPoint? = null,
+            segments: List<Pair<NormalizedPoint, NormalizedPoint>> = emptyList(),
+            force: Boolean = false,
+        ) {
+            val nowMs = System.nanoTime() / 1_000_000L
+            if (!force && phase == lastTelemetryPhase && nowMs - lastTelemetryAtMs < 140L) return
+            lastTelemetryAtMs = nowMs
+            lastTelemetryPhase = phase
+            val durUs = max(durationUs, totalDurationUs).coerceAtLeast(1L)
+            val ptsClamped = ptsUs.coerceIn(0L, durUs)
+            val tFrac = (ptsClamped.toFloat() / durUs.toFloat()).coerceIn(0f, 1f)
+            if (barNorm != null && barNorm.x.isFinite() && barNorm.y.isFinite()) {
+                if (telemetryTrail.size >= 84) telemetryTrail.removeAt(0)
+                telemetryTrail.add(barNorm)
+                val rawH = (1f - barNorm.y).coerceIn(0f, 1f)
+                if (rawH < telemetryMinY) telemetryMinY = rawH
+                if (rawH > telemetryMaxY) telemetryMaxY = rawH
+                val span = (telemetryMaxY - telemetryMinY).takeIf { it > 0.03f } ?: 0.25f
+                val hNorm = ((rawH - telemetryMinY) / span).coerceIn(0.08f, 0.96f)
+                if (telemetrySignals.size >= 84) telemetrySignals.removeAt(0)
+                telemetrySignals.add(LiveSignalSample(tFrac, hNorm))
+            }
+            runCatching {
+                deps.onTelemetry(
+                    LiveAnalysisTelemetry(
+                        mediaId = request.mediaId,
+                        progressPct = percent.coerceIn(0, 100),
+                        phase = phase,
+                        currentPtsMs = ptsClamped / 1_000L,
+                        durationMs = durUs / 1_000L,
+                        signalSamples = telemetrySignals.toList(),
+                        barTrailNormalized = telemetryTrail.toList(),
+                        poseSegmentsNormalized = segments,
+                    ),
+                )
+            }
+        }
 
         suspend fun execute(): TechniqueAnalysisOutcome {
             val ref = withContext(Dispatchers.IO) { completeExercise() }
@@ -333,6 +385,7 @@ class TechniqueAnalysisPipeline internal constructor(
 
         private suspend fun runFull(src: VideoFrameSource, meta: CaptureMetadata): TechniqueAnalysisOutcome {
             val info = src.info
+            totalDurationUs = info.durationUs.coerceAtLeast(0L)
             val clock = timeOf(info)
             val out = VideoFrameMath.outputSize(info.displayWidth, info.displayHeight, tuning.targetLongEdge)
             val partFile = TechniqueSidecars.partFile(video)
@@ -566,6 +619,7 @@ class TechniqueAnalysisPipeline internal constructor(
             poseVersion: Int? = null,
         ): TechniqueAnalysisOutcome {
             emit(PROGRESS_DECODE)
+            emitTelemetry(PROGRESS_DECODE, LiveAnalysisPhase.COUNTING, totalDurationUs, totalDurationUs, force = true)
             val started = System.nanoTime()
             val usable = bar?.takeIf { profile.usesPlate && it.samples.isNotEmpty() }
             val report = try {
@@ -589,6 +643,7 @@ class TechniqueAnalysisPipeline internal constructor(
                 poseEngine = poseEngine,
                 poseVersion = poseVersion,
             )
+            emitTelemetry(100, LiveAnalysisPhase.DONE, totalDurationUs, totalDurationUs, force = true)
             emit(100)
             return outcome
         }
@@ -786,6 +841,9 @@ class TechniqueAnalysisPipeline internal constructor(
                 }
             }
 
+            private var latestPoseSegments: List<Pair<NormalizedPoint, NormalizedPoint>> = emptyList()
+            private var latestPosePoint: NormalizedPoint? = null
+
             private suspend fun consume(frame: DecodedFrame) {
                 if (frame.width != out.width || frame.height != out.height) throw PipelineFailure(ERROR_FRAME_SIZE, false, null)
                 val tUs = clock.real(frame.ptsUs)
@@ -797,6 +855,10 @@ class TechniqueAnalysisPipeline internal constructor(
                     framesPosed++
                     newPose = true
                     if (plate != null) wrists.fill(poses, out.width, out.height, tuning.wristMinVisibility, tUs)
+                    extractPreviewPose(poses.firstOrNull())?.let { (segs, focusPt) ->
+                        latestPoseSegments = segs
+                        if (focusPt != null) latestPosePoint = focusPt
+                    }
                 }
                 val luma = frame.luma
                 if (plate != null && luma != null) plate.onFrame(luma, tUs, wrists, newPose)
@@ -804,7 +866,16 @@ class TechniqueAnalysisPipeline internal constructor(
                 lastPtsUs = frame.ptsUs
                 nextIndex = indexBase + frame.index + 1
                 if (info.durationUs > 0L) {
-                    emit(min(PROGRESS_DECODE.toLong(), frame.ptsUs * PROGRESS_DECODE / info.durationUs).toInt())
+                    val pct = min(PROGRESS_DECODE.toLong(), frame.ptsUs * PROGRESS_DECODE / info.durationUs).toInt()
+                    emit(pct)
+                    emitTelemetry(
+                        percent = pct,
+                        phase = LiveAnalysisPhase.POSE_AND_BAR,
+                        ptsUs = frame.ptsUs,
+                        durationUs = info.durationUs,
+                        barNorm = plate?.latestNormalizedBar ?: latestPosePoint,
+                        segments = latestPoseSegments,
+                    )
                 }
                 if (++sinceGate >= tuning.gateEveryFrames) {
                     sinceGate = 0
@@ -814,6 +885,41 @@ class TechniqueAnalysisPipeline internal constructor(
                     sinceCheckpoint = 0
                     writeCheckpoint()
                 }
+            }
+
+            private fun extractPreviewPose(pose: DetectedPose?): Pair<List<Pair<NormalizedPoint, NormalizedPoint>>, NormalizedPoint?>? {
+                val lm = pose?.image ?: return null
+                fun pt(landmark: PoseLandmark): NormalizedPoint? {
+                    val s = lm.getOrNull(landmark.mp) ?: return null
+                    if (s.visibility < 0.35f || !s.x.isFinite() || !s.y.isFinite()) return null
+                    return NormalizedPoint(s.x.coerceIn(0f, 1f), s.y.coerceIn(0f, 1f))
+                }
+                val pairs = listOf(
+                    PoseLandmark.LEFT_ANKLE to PoseLandmark.LEFT_KNEE,
+                    PoseLandmark.LEFT_KNEE to PoseLandmark.LEFT_HIP,
+                    PoseLandmark.LEFT_HIP to PoseLandmark.LEFT_SHOULDER,
+                    PoseLandmark.RIGHT_ANKLE to PoseLandmark.RIGHT_KNEE,
+                    PoseLandmark.RIGHT_KNEE to PoseLandmark.RIGHT_HIP,
+                    PoseLandmark.RIGHT_HIP to PoseLandmark.RIGHT_SHOULDER,
+                    PoseLandmark.LEFT_SHOULDER to PoseLandmark.LEFT_ELBOW,
+                    PoseLandmark.LEFT_ELBOW to PoseLandmark.LEFT_WRIST,
+                    PoseLandmark.RIGHT_SHOULDER to PoseLandmark.RIGHT_ELBOW,
+                    PoseLandmark.RIGHT_ELBOW to PoseLandmark.RIGHT_WRIST,
+                    PoseLandmark.LEFT_SHOULDER to PoseLandmark.RIGHT_SHOULDER,
+                    PoseLandmark.LEFT_HIP to PoseLandmark.RIGHT_HIP,
+                )
+                val segs = pairs.mapNotNull { (a, b) ->
+                    val pa = pt(a); val pb = pt(b)
+                    if (pa != null && pb != null) pa to pb else null
+                }
+                val wrists = listOfNotNull(pt(PoseLandmark.LEFT_WRIST), pt(PoseLandmark.RIGHT_WRIST))
+                val hips = listOfNotNull(pt(PoseLandmark.LEFT_HIP), pt(PoseLandmark.RIGHT_HIP))
+                val focus = when {
+                    wrists.isNotEmpty() -> NormalizedPoint(wrists.map { it.x }.average().toFloat(), wrists.map { it.y }.average().toFloat())
+                    hips.isNotEmpty() -> NormalizedPoint(hips.map { it.x }.average().toFloat(), hips.map { it.y }.average().toFloat())
+                    else -> null
+                }
+                return segs to focus
             }
 
             /** La pose de un fotograma. Un fallo suelto vale «sin atleta en este fotograma»; demasiados tiran el análisis. */
@@ -1319,6 +1425,10 @@ private class PlateSession(
     var trackingFrames = 0
         private set
     val sampleCount: Int get() = backward.size + forward.size
+    val latestNormalizedBar: NormalizedPoint?
+        get() = if (lastX.isFinite() && lastY.isFinite() && width > 0 && height > 0) {
+            NormalizedPoint((lastX / width).coerceIn(0f, 1f), (lastY / height).coerceIn(0f, 1f))
+        } else null
 
     val waitingCounts: Map<String, Int> get() = waiting
     var lastWaitingReason: String? = null

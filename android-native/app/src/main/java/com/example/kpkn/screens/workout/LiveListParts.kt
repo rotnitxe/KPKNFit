@@ -218,6 +218,21 @@ internal fun LiveListMobilityRow(
                 color = if (done) WizardColors.textMuted else WizardColors.text, maxLines = 2, overflow = TextOverflow.Ellipsis)
             Text(volume, Modifier.padding(top = 2.dp), style = ListBody.copy(fontSize = 11.5.sp), color = WizardColors.textFaint, maxLines = 1)
         }
+        Row(
+            Modifier
+                .padding(end = 4.dp)
+                .clip(RoundedCornerShape(10.dp))
+                .background(ListStepFill)
+                .clickable(role = Role.Button, onClick = onOpen)
+                .semantics { contentDescription = "Ver foto y detalle de ${mobility.name}" }
+                .testTag("live-list-mobility-photo-${mobility.id}")
+                .padding(horizontal = 9.dp, vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            Icon(KpknLineIcons.Info, null, Modifier.size(12.dp), tint = WizardColors.text)
+            Text("Ver foto", style = ListBody.copy(fontSize = 11.sp, fontWeight = FontWeight.SemiBold), color = WizardColors.text)
+        }
         Box(
             Modifier.size(width = 48.dp, height = 46.dp).clickable(role = Role.Checkbox, onClick = onToggle)
                 .semantics { contentDescription = if (done) "Marcar pendiente: ${mobility.name}" else "Completar ${mobility.name}" }

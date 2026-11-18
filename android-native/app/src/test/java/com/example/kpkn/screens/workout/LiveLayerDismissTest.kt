@@ -297,8 +297,8 @@ class LiveLayerDismissTest {
         show { if (open) SummarySheet(onNotesDraft = { kept = it }) }
 
         rule.waitForIdle()
-        // La nota rápida pertenece a la pestaña Anotaciones y conserva el borrador.
-        rule.onNodeWithText("Anotaciones").performClick()
+        // La nota rápida pertenece al panel Anotaciones (abierto desde Notas) y conserva el borrador.
+        rule.onNodeWithTag("finish-notes-open").performClick()
         rule.waitForIdle()
         rule.onNodeWithTag("finish-notes", useUnmergedTree = true).performTextReplacement("Me sentí fuerte")
         pressBack()

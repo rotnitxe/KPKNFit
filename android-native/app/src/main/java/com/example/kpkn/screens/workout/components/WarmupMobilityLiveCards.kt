@@ -376,6 +376,10 @@ internal fun MobilityPhaseLiveCard(
                                                 onToggleComplete(item, checked)
                                             },
                                             onInfo = {
+                                                if (selectedKey != item.stepKey) {
+                                                    moveRunning = false
+                                                    selectedKey = item.stepKey
+                                                }
                                                 guideKey = item.stepKey
                                             },
                                             tag = "mob-row-${item.stepKey}",
@@ -785,7 +789,7 @@ internal fun WarmupPhaseLiveCard(
                             style = PrepRef02Body(10.sp), color = PrepRef02Faint,
                         )
                         if (onWeightDraft != null) {
-                            Box(Modifier.heightIn(min = 32.dp).clickable(role = Role.Button) { loadSheet = true }.testTag("warmup-adjust"),
+                            Box(Modifier.heightIn(min = if (compact) 26.dp else 32.dp).clickable(role = Role.Button) { loadSheet = true }.testTag("warmup-adjust"),
                                 contentAlignment = Alignment.Center) {
                                 Text("Ajustar", style = PrepRef02Body(10.sp), color = PrepRef02Muted)
                             }
@@ -1461,7 +1465,7 @@ private fun Modifier.prepRef02Line(): Modifier = drawBehind {
 /** `.v2-kicker` de la preparación: «MOVILIDAD» / «APROXIMACIONES» y el contador a la derecha. */
 @Composable
 private fun PrepRef02Head(title: String, count: String, compact: Boolean, countTag: String) {
-    Row(Modifier.fillMaxWidth().height(if (compact) 27.dp else 29.dp), verticalAlignment = Alignment.CenterVertically) {
+    Row(Modifier.fillMaxWidth().height(if (compact) 22.dp else 29.dp), verticalAlignment = Alignment.CenterVertically) {
         Text(title, Modifier.weight(1f), style = PrepRef02Body(9.sp).copy(letterSpacing = 0.65.sp), color = PrepRef02Muted)
         Text(count, Modifier.testTag(countTag), style = PrepRef02Body(9.sp).copy(fontFeatureSettings = "'tnum' 1"), color = PrepRef02Muted)
     }
@@ -1472,7 +1476,7 @@ private fun PrepRef02Head(title: String, count: String, compact: Boolean, countT
 private fun PrepRef02Title(text: String, compact: Boolean) {
     Text(
         text,
-        Modifier.padding(top = if (compact) 7.dp else 9.dp, bottom = if (compact) 11.dp else 15.dp),
+        Modifier.padding(top = if (compact) 4.dp else 9.dp, bottom = if (compact) 6.dp else 15.dp),
         style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = if (compact) 20.sp else 21.sp,
             letterSpacing = (-0.6).sp),
         color = WizardColors.text,
@@ -1555,7 +1559,7 @@ private fun PrepRef02WarmRow(
 ) {
     val rowShape = RoundedCornerShape(10.dp)
     Row(
-        Modifier.fillMaxWidth().heightIn(min = if (compact) 44.dp else 47.dp)
+        Modifier.fillMaxWidth().heightIn(min = if (compact) 40.dp else 47.dp)
             .drawBehind {
                 drawLine(Color(0x10FFFFFF), androidx.compose.ui.geometry.Offset(0f, size.height),
                     androidx.compose.ui.geometry.Offset(size.width, size.height), 1.dp.toPx())
@@ -1565,7 +1569,7 @@ private fun PrepRef02WarmRow(
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Row(
-            Modifier.weight(1f).heightIn(min = if (compact) 44.dp else 47.dp)
+            Modifier.weight(1f).heightIn(min = if (compact) 40.dp else 47.dp)
                 .then(if (onSelect != null) Modifier.clickable(role = Role.Button, onClickLabel = "Elegir aproximación $label", onClick = onSelect) else Modifier)
                 .padding(start = 4.dp)
                 .testTag("warmup-row-$label"),
@@ -1636,12 +1640,12 @@ private fun PrepRef02WarmEditor(
     )
     val unit = PrepRef02Body(11.sp)
     Row(
-        Modifier.fillMaxWidth().heightIn(min = 50.dp)
+        Modifier.fillMaxWidth().heightIn(min = if (compact) 44.dp else 50.dp)
             .drawBehind {
                 drawLine(Color(0x10FFFFFF), androidx.compose.ui.geometry.Offset(0f, 0f),
                     androidx.compose.ui.geometry.Offset(size.width, 0f), 1.dp.toPx())
             }
-            .padding(top = 3.dp)
+            .padding(top = if (compact) 2.dp else 3.dp)
             .testTag("warmup-editor"),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp),

@@ -2,6 +2,14 @@ package com.example.kpkn.screens.workout
 
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -17,6 +25,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,7 +40,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TransformOrigin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -51,29 +64,39 @@ import com.example.kpkn.domain.cardio.CardioGuideEngine
 import com.example.kpkn.domain.cardio.CardioIntervalEngine
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
-import com.example.kpkn.screens.workout.components.CardioFigureSpec
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.workout.components.LiveSheet
 import com.example.kpkn.screens.workout.components.LiveSheetLabeledField
 import com.example.kpkn.screens.workout.components.LiveSheetPrimary
 import com.example.kpkn.screens.workout.components.LiveSheetShortCopy
 import com.example.kpkn.screens.workout.components.LiveSheetSubtitle
 import com.example.kpkn.screens.workout.components.LiveSheetTokens
-import com.example.kpkn.screens.workout.components.cardioFigureCadence
-import com.example.kpkn.screens.workout.components.cardioFigureIcon
-import com.example.kpkn.screens.workout.components.cardioFigureSpec
-import com.example.kpkn.screens.workout.components.RestRef02Button
 import com.example.kpkn.services.cardio.CardioGpsState
 import com.example.kpkn.services.cardio.CardioGpsStatus
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.depth.KpknGlassPreset
 import com.example.kpkn.ui.design.depth.KpknGradient
 import com.example.kpkn.ui.design.depth.KpknGradientArgs
 import com.example.kpkn.ui.design.depth.KpknGradientLayer
+import com.example.kpkn.ui.design.depth.kpknGlassPreset
 import com.example.kpkn.ui.design.depth.kpknGradient
+import com.example.kpkn.ui.design.motion.KpknDuration
+import com.example.kpkn.ui.design.motion.KpknFamilies
+import com.example.kpkn.ui.design.motion.KpknMotion
+import com.example.kpkn.ui.design.motion.KpknWaveEdgeFade
+import com.example.kpkn.ui.design.motion.KpknWaveField
+import com.example.kpkn.ui.design.motion.KpknWaveState
+import com.example.kpkn.ui.design.motion.animateKpknFloatAsState
+import com.example.kpkn.ui.design.motion.kpknAnimate
+import com.example.kpkn.ui.design.motion.kpknTween
+import com.example.kpkn.ui.design.motion.rememberKpknClockMs
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
 import kotlin.math.roundToInt
+
+private enum class CardioScreenKind { TRANS_OUT, RECORDED, FINISH, TRANS_IN, LIVE }
 
 /** Lo que dice la transición «Ahora vamos con cardio» en una sesión mixta (fuerza + cardio). */
 internal data class CardioTransitionInfo(val lead: String?)
@@ -149,6 +172,9 @@ internal fun CardioLiveCard(
     onRecordWithRpe: (suspend (durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?, rpe: Double) -> Boolean)? = null,
     transitionIn: CardioTransitionInfo? = null,
     transitionOut: CardioTransitionOutInfo? = null,
+    onSkipCountdown: (() -> Unit)? = null,
+    onLockedChanged: (Boolean) -> Unit = {},
+    onShowExerciseContextChanged: (Boolean) -> Unit = {},
 ) {
     var distanceText by remember(completedSet?.distanceKm) { mutableStateOf(completedSet?.distanceKm?.toString().orEmpty()) }
     var heartRateText by remember(completedSet?.avgHeartRate) { mutableStateOf(completedSet?.avgHeartRate?.toString().orEmpty()) }
@@ -275,8 +301,6 @@ internal fun CardioLiveCard(
     // Al terminar: lo medido por el reloj manda; si no, lo que se corrija en «FC media» y, si no, la media de los pulsos manuales.
     val finishHr = watchAvgHr ?: heartRateText.toIntOrNull() ?: manualAvgHr
     val manualHrAgeSeconds = (durationSeconds - manualHrAtSeconds).coerceAtLeast(0)
-    val figureSpeedKmh = step?.block?.speedKmh ?: details.targetPaceSecondsPerKm?.takeIf { it > 0 }?.let { 3600.0 / it }
-    val figure = cardioFigureSpec(details.type, figureSpeedKmh)
     val estimatedKm = remember(details, elapsed) {
         if (details.hasIntervals()) {
             var acc = 0; var km = 0.0
@@ -300,10 +324,44 @@ internal fun CardioLiveCard(
             total
         } else details.metBase.takeIf { it > 0 }?.let { it * kg * elapsed / 3600.0 }
     }
+    val reduced = wizardReducedMotion()
+    var toastMessage by remember { mutableStateOf<String?>(null) }
+    var toastGeneration by remember { mutableIntStateOf(0) }
+    fun showToast(msg: String) {
+        toastMessage = msg
+        toastGeneration++
+    }
+    LaunchedEffect(toastGeneration) {
+        if (toastMessage != null) {
+            delay(1900)
+            toastMessage = null
+        }
+    }
+    var liveWaveIntroSeconds by remember { mutableFloatStateOf(0f) }
+    var wasReadyOrCountdown by remember { mutableStateOf(status == CardioExecutionStatus.READY || countdownRemaining > 0) }
+    LaunchedEffect(status, countdownRemaining) {
+        if (status == CardioExecutionStatus.READY || countdownRemaining > 0) {
+            wasReadyOrCountdown = true
+        } else if (wasReadyOrCountdown && status == CardioExecutionStatus.RUNNING) {
+            wasReadyOrCountdown = false
+            liveWaveIntroSeconds = 1.4f
+        }
+    }
+
+    val screenKind = when {
+        status == CardioExecutionStatus.RECORDED && !finishing && transitionOut != null && !transitionOutSeen -> CardioScreenKind.TRANS_OUT
+        status == CardioExecutionStatus.RECORDED && !finishing -> CardioScreenKind.RECORDED
+        finishing -> CardioScreenKind.FINISH
+        status == CardioExecutionStatus.READY && transitionIn != null && !transitionSeen -> CardioScreenKind.TRANS_IN
+        else -> CardioScreenKind.LIVE
+    }
+    val showExerciseContext = screenKind == CardioScreenKind.LIVE && countdownRemaining <= 0
+    LaunchedEffect(showExerciseContext) { onShowExerciseContextChanged(showExerciseContext) }
+    LaunchedEffect(locked) { onLockedChanged(locked) }
 
     BoxWithConstraints(modifier.fillMaxSize().clip(RoundedCornerShape(25.dp)).background(Color.Black).testTag("cardio-space")) {
         // El degradado del lienzo se calcula sobre la pantalla completa; el host ya ha reservado la cabecera.
-        val screenHeight = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp.toFloat().coerceAtLeast(1f)
+        val screenHeight = LocalConfiguration.current.screenHeightDp.toFloat().coerceAtLeast(1f)
         val contentHeight = maxHeight.value.coerceAtLeast(1f)
         val rootTop = (screenHeight - contentHeight).coerceAtLeast(0f)
         val gradient = KpknGradient.ResplandorAnchoZona.spec(KpknGradientArgs(zone = cardioZoneColor(shownZone ?: targetZone)))
@@ -311,16 +369,25 @@ internal fun CardioLiveCard(
         val adapted = gradient.copy(layers = listOf(radial.copy(cy = (screenHeight * .24f - rootTop) / contentHeight,
             ry = radial.ry * screenHeight / contentHeight)))
         Box(Modifier.matchParentSize().kpknGradient(adapted))
-        when {
+
+        AnimatedContent(
+            targetState = screenKind,
+            transitionSpec = {
+                if (reduced) EnterTransition.None togetherWith ExitTransition.None
+                else fadeIn(kpknTween(KpknDuration(320), KpknMotion.Estandar)) togetherWith fadeOut(kpknTween(KpknDuration(230), KpknMotion.Suave))
+            },
+            label = "cvSwap",
+        ) { currentScreen ->
+          when (currentScreen) {
             // Al terminar el cardio no hay descanso: si sigue fuerza, la transición aparece enseguida con lo medido.
-            status == CardioExecutionStatus.RECORDED && !finishing && transitionOut != null && !transitionOutSeen -> CardioTransitionOut(
+            CardioScreenKind.TRANS_OUT -> CardioTransitionOut(
                 lead = buildList {
                     add(cardioClock(durationSeconds))
                     recordedDistanceKm?.takeIf { it > 0.0 }?.let { add("${cardioDecimal(it)} km") }
                     val samples = measures.stepSamples.sum()
                     if (samples > 0) add("${(measures.stepInZone.sum() * 100.0 / samples).roundToInt()} % en tu objetivo")
                 }.joinToString(" · ", prefix = "Terminaste el cardio: ", postfix = "."),
-                exerciseName = transitionOut.exerciseName,
+                exerciseName = transitionOut!!.exerciseName,
                 meta = transitionOut.meta,
                 firstSet = transitionOut.firstSet,
                 planEffort = transitionOut.planEffort,
@@ -328,12 +395,14 @@ internal fun CardioLiveCard(
                 chips = transitionOut.chips,
                 footnote = transitionOut.footnote,
                 onContinue = { transitionOutSeen = true; transitionOut.onContinue() },
+                cardioType = details.type,
+                hazeState = cardioHaze,
             )
-            status == CardioExecutionStatus.RECORDED && !finishing -> CardioRecordedView(
+            CardioScreenKind.RECORDED -> CardioRecordedView(
                 exerciseName = exerciseName, durationSeconds = durationSeconds, distanceKm = recordedDistanceKm, avgHr = completedSet?.avgHeartRate ?: avgHr,
                 rpe = completedSet?.rpe, onUpdate = { finishing = true },
             )
-            finishing -> CardioFinishView(
+            CardioScreenKind.FINISH -> CardioFinishView(
                 exerciseName = exerciseName,
                 durationSeconds = durationSeconds,
                 plannedSeconds = plannedDurationSeconds,
@@ -373,9 +442,9 @@ internal fun CardioLiveCard(
                 },
                 onBack = if (status == CardioExecutionStatus.RECORDED) ({ finishing = false }) else ({ finishing = false; onCancelRecord() }),
             )
-            status == CardioExecutionStatus.READY && transitionIn != null && !transitionSeen -> CardioTransitionIn(
+            CardioScreenKind.TRANS_IN -> CardioTransitionIn(
                 title = "Ahora vamos\ncon cardio",
-                lead = transitionIn.lead,
+                lead = transitionIn!!.lead,
                 exerciseName = exerciseName,
                 meta = "Cardio · ${cardioClock(plannedDurationSeconds)} · ${steps.size} ${if (steps.size == 1) "paso" else "pasos"}",
                 firstStep = steps.firstOrNull(),
@@ -383,9 +452,33 @@ internal fun CardioLiveCard(
                 totalLabel = "Total ${cardioClock(plannedDurationSeconds)}" + (estimatedTotalKm(details)?.let { " · ≈ ${cardioDecimal(it)} km" } ?: ""),
                 onSwipeStart = { transitionSeen = true; onRequestStart(gpsMode) },
                 onSeePlan = { transitionSeen = true; page = 1 },
+                cardioType = details.type,
+                hazeState = cardioHaze,
             )
-            else -> Box(Modifier.fillMaxSize()) {
-              Column(Modifier.fillMaxSize().hazeSource(state = cardioHaze)) {
+            CardioScreenKind.LIVE -> Box(Modifier.fillMaxSize()) {
+              val compact = LocalConfiguration.current.screenHeightDp < 800
+              val dockBottomMargin = if (compact) 14.dp else 20.dp
+              val dockApproxHeight = if (compact) 112.dp else 124.dp
+              val pagesDimAlpha by animateKpknFloatAsState(if (locked) 0.50f else 1f, KpknDuration(300), KpknMotion.Suave, label = "cv-locked-dim")
+              val targetIndex = visiblePages.indexOf(visiblePage).coerceAtLeast(0)
+              val pagerPos = remember(visiblePages) { Animatable(targetIndex.toFloat()) }
+              var isDraggingPager by remember { mutableStateOf(false) }
+              var pageEnterKey by remember { mutableIntStateOf(0) }
+              var previousVisiblePage by remember { mutableIntStateOf(visiblePage) }
+              LaunchedEffect(visiblePage) {
+                  if (visiblePage != previousVisiblePage) {
+                      previousVisiblePage = visiblePage
+                      pageEnterKey++
+                  }
+              }
+              LaunchedEffect(targetIndex, isDraggingPager, reduced) {
+                  if (!isDraggingPager) {
+                      if (reduced) pagerPos.snapTo(targetIndex.toFloat())
+                      else pagerPos.animateTo(targetIndex.toFloat(), tween(KpknDuration(420).ms, easing = KpknMotion.Estandar))
+                  }
+              }
+
+              Column(Modifier.fillMaxSize().hazeSource(state = cardioHaze).graphicsLayer { alpha = pagesDimAlpha }) {
                 if (status != CardioExecutionStatus.READY || visiblePage != 0) {
                     // El contexto: máquina o plan, paso y vuelta, con el punto de la zona activa.
                     Column(Modifier.fillMaxWidth().padding(start = 18.dp, end = 16.dp, top = 3.dp)) {
@@ -398,100 +491,152 @@ internal fun CardioLiveCard(
                         }
                     }
                 }
-                Box(
+                val swipeThresholdPx = with(LocalDensity.current) { 50.dp.toPx() }
+                BoxWithConstraints(
                     Modifier.weight(1f).fillMaxWidth()
                         .pointerInput(locked, visiblePages, visiblePage) {
-                            if (locked) return@pointerInput
-                            var dx = 0f
-                            detectHorizontalDragGestures(onDragEnd = {
-                                if (abs(dx) > 40f) {
-                                    val current = visiblePages.indexOf(visiblePage).coerceAtLeast(0)
-                                    val next = (current + if (dx < 0) 1 else -1).coerceIn(0, visiblePages.lastIndex)
-                                    page = visiblePages[next]
+                            if (locked || visiblePages.size <= 1) return@pointerInput
+                            var totalDx = 0f
+                            val widthPx = size.width.toFloat().coerceAtLeast(1f)
+                            val maxIdx = visiblePages.lastIndex.toFloat()
+                            detectHorizontalDragGestures(
+                                onDragStart = {
+                                    isDraggingPager = true
+                                    totalDx = 0f
+                                },
+                                onDragEnd = {
+                                    val startIdx = visiblePages.indexOf(visiblePage).coerceAtLeast(0)
+                                    val nextIdx = when {
+                                        totalDx < -swipeThresholdPx -> minOf(visiblePages.lastIndex, startIdx + 1)
+                                        totalDx > swipeThresholdPx -> maxOf(0, startIdx - 1)
+                                        else -> startIdx
+                                    }
+                                    page = visiblePages[nextIdx]
+                                    isDraggingPager = false
+                                    scope.launch {
+                                        if (reduced) pagerPos.snapTo(nextIdx.toFloat())
+                                        else pagerPos.animateTo(nextIdx.toFloat(), tween(KpknDuration(420).ms, easing = KpknMotion.Estandar))
+                                    }
+                                },
+                                onDragCancel = {
+                                    isDraggingPager = false
+                                    val stay = visiblePages.indexOf(visiblePage).coerceAtLeast(0).toFloat()
+                                    scope.launch {
+                                        pagerPos.animateTo(stay, tween(KpknDuration(420).ms, easing = KpknMotion.Estandar))
+                                    }
+                                },
+                            ) { _, dx ->
+                                totalDx += dx
+                                val startIdx = visiblePages.indexOf(visiblePage).coerceAtLeast(0).toFloat()
+                                val raw = startIdx - totalDx / widthPx
+                                val clamped = when {
+                                    raw < 0f -> raw * 0.35f
+                                    raw > maxIdx -> maxIdx + (raw - maxIdx) * 0.35f
+                                    else -> raw
                                 }
-                                dx = 0f
-                            }) { _, amount -> dx += amount }
+                                scope.launch { pagerPos.snapTo(clamped) }
+                            }
                         },
                 ) {
                     @Suppress("UNUSED_VARIABLE") val tick = measures.tick
-                    when (visiblePage) {
-                        1 -> CardioPlanPage(steps, if (status == CardioExecutionStatus.READY) -1 else stepIndex, plannedDurationSeconds, stepFraction)
-                        2 -> CardioSummaryPage(
-                            elapsed = durationSeconds, planned = plannedDurationSeconds,
-                            distance = recordedDistanceKm?.let { cardioDecimal(it) } ?: estimatedKm?.let { "≈ ${cardioDecimal(it)}" } ?: "—",
-                            distanceNote = if (gpsHasData) "km · GPS" else if (estimatedKm != null) "km · cinta (estimada)" else "km",
-                            avgHr = avgHr, avgHrNote = if (watchAvgHr == null && manualAvgHr != null) "lpm · manual" else null,
-                            kcal = kcal, zoneSeconds = measures.zoneSeconds,
-                            inZonePercent = measures.stepSamples.sum().takeIf { it > 0 }?.let { measures.stepInZone.sum() * 100 / it },
-                            hasHeartRate = watchHr != null, hasManualHeartRate = hrIsManual,
-                            onAddManualHr = { showManualHrSheet = true },
-                        )
-                        else -> if (status == CardioExecutionStatus.READY) {
-                            CardioReadyPulido(
-                                steps = steps,
-                                plannedSeconds = plannedDurationSeconds,
-                                hasLiveHr = hr != null,
-                                gpsMode = gpsMode,
-                                gpsState = gpsState,
-                                keepScreenOn = details.keepScreenOn,
-                                hazeState = cardioHaze,
-                                onStart = { onRequestStart(gpsMode) },
-                                onSeePlan = { page = 1 },
-                                showBottomButton = false,
-                            )
-                        } else {
-                            CardioNowPage(
-                            step = step,
-                            nextStep = steps.getOrNull(stepIndex + 1),
-                            steps = steps,
-                            stepIndex = stepIndex,
-                            stepFraction = stepFraction,
-                            stepLeft = stepLeft,
-                            totalLeft = totalLeft,
-                            ringZone = shownZone ?: targetZone,
-                            hr = hr,
-                            maxHr = maxHr,
-                            shownZone = shownZone,
-                            plannedRpe = plannedRpe,
-                            rpeAnchor = CardioGuideEngine.rpeAnchor(guide.rpeTargetExact),
-                            inZoneSeconds = measures.stepInZone.getOrNull(stepIndex) ?: 0,
-                            hrDrop = measures.stepStartHr?.let { start -> hr?.let { start - it } }?.takeIf { measures.stepElapsed >= 60 && it > 0 },
-                            gpsMode = gpsMode,
-                            gpsState = gpsState,
-                            targetDistanceKm = details.targetDistanceKm,
-                            distanceKm = recordedDistanceKm,
-                            rounds = rounds,
-                            figure = figure,
-                            figureCadence = cardioFigureCadence(figure.kind, targetZone,
-                                moving = running, rpm = step?.block?.rpm),
-                            figureDimmed = status == CardioExecutionStatus.PAUSED || (gpsMode && gpsState?.status == CardioGpsStatus.PAUSED),
-                            hrIsManual = hrIsManual,
-                            hrFromWatch = watchHr != null,
-                            manualHrAgeSeconds = manualHrAgeSeconds,
-                            onAddManualHr = { showManualHrSheet = true },
-                            elapsed = durationSeconds, kcal = kcal, estimatedKm = estimatedKm,
-                        )
+                    val currentPos = pagerPos.value
+                    val settled = !isDraggingPager && abs(currentPos - targetIndex.toFloat()) < 0.001f
+
+                    visiblePages.forEachIndexed { idx, pg ->
+                        val visibleInTrack = if (settled) idx == targetIndex else abs(currentPos - idx) < 1.15f
+                        if (visibleInTrack) {
+                            val pageModifier = Modifier.fillMaxSize()
+                                .graphicsLayer {
+                                    translationX = (idx - currentPos) * size.width
+                                    alpha = if (settled) 1f else (1f - 0.65f * abs(idx - currentPos).coerceIn(0f, 1f))
+                                }
+                                .then(
+                                    if (pg == visiblePage && pageEnterKey > 0) Modifier.kpknAnimate(KpknFamilies.EntradaSube.demo, restartKey = pageEnterKey)
+                                    else Modifier,
+                                )
+                            Box(pageModifier) {
+                                when (pg) {
+                                    1 -> CardioPlanPage(steps, if (status == CardioExecutionStatus.READY) -1 else stepIndex, plannedDurationSeconds, stepFraction)
+                                    2 -> CardioSummaryPage(
+                                        elapsed = durationSeconds, planned = plannedDurationSeconds,
+                                        distance = recordedDistanceKm?.let { cardioDecimal(it) } ?: estimatedKm?.let { "≈ ${cardioDecimal(it)}" } ?: "—",
+                                        distanceNote = if (gpsHasData) "km · GPS" else if (estimatedKm != null) "km · cinta (estimada)" else "km",
+                                        avgHr = avgHr, avgHrNote = if (watchAvgHr == null && manualAvgHr != null) "lpm · manual" else null,
+                                        kcal = kcal, zoneSeconds = measures.zoneSeconds,
+                                        inZonePercent = measures.stepSamples.sum().takeIf { it > 0 }?.let { measures.stepInZone.sum() * 100 / it },
+                                        hasHeartRate = watchHr != null, hasManualHeartRate = hrIsManual,
+                                        onAddManualHr = { showManualHrSheet = true },
+                                    )
+                                    else -> if (status == CardioExecutionStatus.READY) {
+                                        CardioReadyPulido(
+                                            steps = steps,
+                                            plannedSeconds = plannedDurationSeconds,
+                                            hasLiveHr = hr != null,
+                                            gpsMode = gpsMode,
+                                            gpsState = gpsState,
+                                            keepScreenOn = details.keepScreenOn,
+                                            hazeState = cardioHaze,
+                                            onStart = { onRequestStart(gpsMode) },
+                                            onSeePlan = { page = 1 },
+                                            showBottomButton = false,
+                                            onRetryGps = if (gpsMode) onRequestGps else null,
+                                            onStartWithoutGps = if (isGpsDeniedOrDisabled) ({ onRequestStart(false) }) else null,
+                                        )
+                                    } else {
+                                        CardioNowContent(
+                                            step = step,
+                                            nextStep = steps.getOrNull(stepIndex + 1),
+                                            steps = steps,
+                                            stepIndex = stepIndex,
+                                            stepFraction = stepFraction,
+                                            stepLeft = stepLeft,
+                                            totalLeft = totalLeft,
+                                            ringZone = shownZone ?: targetZone,
+                                            hr = hr,
+                                            maxHr = maxHr,
+                                            shownZone = shownZone,
+                                            plannedRpe = plannedRpe,
+                                            rpeAnchor = CardioGuideEngine.rpeAnchor(guide.rpeTargetExact),
+                                            inZoneSeconds = measures.stepInZone.getOrNull(stepIndex) ?: 0,
+                                            hrDrop = measures.stepStartHr?.let { start -> hr?.let { start - it } }?.takeIf { measures.stepElapsed >= 60 && it > 0 },
+                                            gpsMode = gpsMode,
+                                            gpsState = gpsState,
+                                            targetDistanceKm = details.targetDistanceKm,
+                                            distanceKm = recordedDistanceKm,
+                                            paused = status == CardioExecutionStatus.PAUSED || (gpsMode && gpsState?.status == CardioGpsStatus.PAUSED),
+                                            hrIsManual = hrIsManual,
+                                            hrFromWatch = watchHr != null,
+                                            manualHrAgeSeconds = manualHrAgeSeconds,
+                                            onAddManualHr = { showManualHrSheet = true },
+                                            elapsed = durationSeconds,
+                                            kcal = kcal,
+                                            estimatedKm = estimatedKm,
+                                            onRetryGps = if (gpsMode) ({ onRequestGps(); showToast("Solicitando GPS…") }) else null,
+                                            introSeconds = liveWaveIntroSeconds,
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                     // Bloqueo: la pantalla no responde a toques accidentales; el dock enseña «Mantén para desbloquear».
                     if (locked) Box(Modifier.fillMaxSize().clickable(remember { MutableInteractionSource() }, indication = null) {}
                         .semantics { contentDescription = "Pantalla bloqueada" }.testTag("cardio-locked"))
                 }
-                if (isGpsDeniedOrDisabled) {
-                    if (status == CardioExecutionStatus.READY) {
-                        Text(
-                            "Iniciar sin GPS",
-                            Modifier.align(Alignment.CenterHorizontally).heightIn(min = 40.dp)
-                                .clickable(role = Role.Button, onClick = { onRequestStart(false) })
-                                .padding(horizontal = 10.dp, vertical = 6.dp),
-                            style = CBody.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
-                            color = WizardColors.text,
-                        )
-                    }
-                    Text("Ubicación no disponible · reintentar permiso", Modifier.align(Alignment.CenterHorizontally).heightIn(min = 40.dp)
-                        .clickable(role = Role.Button, onClick = onRequestGps).padding(10.dp), style = CBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Muted)
-                }
               }
+                if (locked) {
+                    CardioLockCapsule(
+                        cardioHaze,
+                        Modifier.align(Alignment.BottomCenter).padding(bottom = dockApproxHeight + dockBottomMargin + 12.dp),
+                    )
+                }
+                toastMessage?.let { msg ->
+                    CardioToastPill(
+                        msg,
+                        cardioHaze,
+                        Modifier.align(Alignment.BottomCenter).padding(bottom = dockApproxHeight + dockBottomMargin + 12.dp),
+                    )
+                }
                 val paused = status == CardioExecutionStatus.PAUSED || (gpsMode && gpsState?.status == CardioGpsStatus.PAUSED)
                 CardioDock(
                     page = visiblePage,
@@ -504,21 +649,38 @@ internal fun CardioLiveCard(
                     onMain = { if (running) pause() else if (status == CardioExecutionStatus.READY) onRequestStart(gpsMode) else startOrResume() },
                     onLock = { locked = true },
                     onUnlock = { locked = false },
-                    onSkip = if (details.hasIntervals() && (running || paused)) onSkipBlock else null,
-                    modifier = Modifier.align(Alignment.BottomCenter).padding(start = 10.dp, end = 10.dp,
-                        bottom = if (androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp < 800) 14.dp else 20.dp),
+                    onSkip = if (details.hasIntervals() && (running || paused)) ({
+                        val upcoming = steps.getOrNull(stepIndex + 1)
+                        onSkipBlock()
+                        if (upcoming != null) showToast("Paso ${stepIndex + 2} de ${steps.size} · ${upcoming.name}")
+                    }) else null,
+                    modifier = Modifier.align(Alignment.BottomCenter).padding(start = 10.dp, end = 10.dp, bottom = dockBottomMargin),
                     hazeState = cardioHaze,
                     mainTag = if (status == CardioExecutionStatus.READY) "cardio-start" else "cardio-main",
                 )
             }
+          }
         }
         val pausedNow = status == CardioExecutionStatus.PAUSED || (gpsMode && gpsState?.status == CardioGpsStatus.PAUSED)
         if (pausedNow && !finishing && countdownRemaining <= 0) {
-            CardioPauseVeil(measures.pausedSeconds, cardioClock(stepLeft), onResume = { startOrResume() }, onFinish = { beginFinish() })
+            val compact = LocalConfiguration.current.screenHeightDp < 800
+            CardioPauseVeil(
+                measures.pausedSeconds,
+                cardioClock(stepLeft),
+                onResume = { startOrResume() },
+                onFinish = { beginFinish() },
+                hazeState = cardioHaze,
+                bottomClearance = if (compact) 116.dp else 134.dp,
+            )
         }
         if (countdownRemaining > 0) {
             val first = steps.getOrNull(stepIndex)
-            CardioCountdown(countdownRemaining, listOfNotNull(first?.name, first?.seconds?.let(::cardioClock), first?.cue?.takeIf { it.isNotBlank() }).joinToString(" · "))
+            CardioCountdown(
+                countdownRemaining,
+                listOfNotNull(first?.name, first?.seconds?.let(::cardioClock), first?.cue?.takeIf { it.isNotBlank() }).joinToString(" · "),
+                zoneColor = cardioZoneColor(shownZone ?: targetZone),
+                onSkip = onSkipCountdown,
+            )
         }
     }
 
@@ -544,6 +706,7 @@ internal fun CardioLiveCard(
                 measures.manualSum += bpm
                 measures.manualCount++
                 measures.hrMax = maxOf(measures.hrMax, bpm)
+                showToast("Pulso guardado · $bpm lpm")
             },
             onDismiss = { showManualHrSheet = false },
         )
@@ -573,53 +736,6 @@ private fun estimatedTotalKm(details: CardioDetails): Double? =
  * Página «Ahora»: el recuadro del reloj con la figura, el pulso y su objetivo, la cinta, el estado, los mandos de la máquina (con
  * «Añadir pulso» sin reloj), el siguiente paso y el perfil.
  */
-@OptIn(ExperimentalLayoutApi::class)
-@Composable
-private fun CardioNowPage(
-    step: CardioStep?,
-    nextStep: CardioStep?,
-    steps: List<CardioStep>,
-    stepIndex: Int,
-    stepFraction: Float,
-    stepLeft: Int,
-    totalLeft: Int,
-    ringZone: Int,
-    hr: Int?,
-    maxHr: Int?,
-    shownZone: Int?,
-    plannedRpe: Int,
-    rpeAnchor: String,
-    inZoneSeconds: Int,
-    hrDrop: Int?,
-    gpsMode: Boolean,
-    gpsState: CardioGpsState?,
-    targetDistanceKm: Double?,
-    distanceKm: Double?,
-    rounds: Int,
-    figure: CardioFigureSpec,
-    figureCadence: Float,
-    figureDimmed: Boolean,
-    hrIsManual: Boolean,
-    hrFromWatch: Boolean,
-    manualHrAgeSeconds: Int,
-    onAddManualHr: () -> Unit,
-    elapsed: Int,
-    kcal: Double?,
-    estimatedKm: Double?,
-) {
-    CardioNowContent(
-        step = step, nextStep = nextStep, steps = steps, stepIndex = stepIndex,
-        stepFraction = stepFraction, stepLeft = stepLeft, totalLeft = totalLeft,
-        ringZone = ringZone, hr = hr, maxHr = maxHr, shownZone = shownZone,
-        plannedRpe = plannedRpe, rpeAnchor = rpeAnchor, inZoneSeconds = inZoneSeconds,
-        hrDrop = hrDrop, gpsMode = gpsMode, gpsState = gpsState,
-        targetDistanceKm = targetDistanceKm, distanceKm = distanceKm,
-        paused = figureDimmed, hrIsManual = hrIsManual, hrFromWatch = hrFromWatch,
-        manualHrAgeSeconds = manualHrAgeSeconds, onAddManualHr = onAddManualHr,
-        elapsed = elapsed, kcal = kcal, estimatedKm = estimatedKm,
-    )
-}
-
 /** Página Plan: perfil y línea temporal con el paso actual y los ya completados. */
 @Composable
 private fun CardioPlanPage(steps: List<CardioStep>, current: Int, plannedSeconds: Int, progress: Float) {
@@ -629,6 +745,7 @@ private fun CardioPlanPage(steps: List<CardioStep>, current: Int, plannedSeconds
             Text("${steps.size} ${if (steps.size == 1) "paso" else "pasos"} \u00b7 ${(plannedSeconds / 60f).roundToInt()} min", style = CBody.copy(fontSize = 12.sp), color = LiveSheetTokens.Faint)
         }
         CardioProfile(steps, current, progress, Modifier.padding(top = 10.dp), height = 50.dp)
+        val activeProgress by animateKpknFloatAsState(progress.coerceIn(0f, 1f), KpknDuration(900), KpknMotion.Lineal, label = "cv-plan-bar")
         Column(Modifier.padding(top = 8.dp).drawBehind {
             val x = 11.dp.toPx()
             drawLine(Color(0x12FFFFFF), androidx.compose.ui.geometry.Offset(x, 14.dp.toPx()),
@@ -640,7 +757,7 @@ private fun CardioPlanPage(steps: List<CardioStep>, current: Int, plannedSeconds
                 val zoneColor = cardioZoneColor(step.zone)
                 Row(Modifier.fillMaxWidth().heightIn(min = 46.dp).clip(RoundedCornerShape(14.dp))
                     .background(if (active) Color(0x0CFFFFFF) else Color.Transparent)
-                    .drawBehind { if (active) drawRect(zoneColor, topLeft = androidx.compose.ui.geometry.Offset(0f, size.height - 2.dp.toPx()), size = androidx.compose.ui.geometry.Size(size.width * progress.coerceIn(0f, 1f), 2.dp.toPx())) }
+                    .drawBehind { if (active) drawRect(zoneColor, topLeft = androidx.compose.ui.geometry.Offset(0f, size.height - 2.dp.toPx()), size = androidx.compose.ui.geometry.Size(size.width * activeProgress, 2.dp.toPx())) }
                     .padding(end = 12.dp), verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                     Box(Modifier.size(24.dp), contentAlignment = Alignment.Center) {
@@ -662,10 +779,12 @@ private fun CardioPlanPage(steps: List<CardioStep>, current: Int, plannedSeconds
     }
 }
 
-/** Página Datos: se muestran mediciones reales; sin pulso se ofrece registrarlo. */
+/** Página Datos: mediciones reales con `.cv-cell` y animación `cv-bar` escalonada en las zonas. */
 @Composable
 private fun CardioSummaryPage(elapsed: Int, planned: Int, distance: String, distanceNote: String, avgHr: Int?, kcal: Double?, zoneSeconds: IntArray,
     inZonePercent: Int?, avgHrNote: String? = null, hasHeartRate: Boolean, hasManualHeartRate: Boolean = false, onAddManualHr: () -> Unit) {
+    val reduced = wizardReducedMotion()
+    val barsClock = rememberKpknClockMs(running = hasHeartRate && !reduced, key = "cv-summary-bars", endMs = 1160f)
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 166.dp).testTag("cardio-summary")) {
         Row(Modifier.fillMaxWidth().padding(bottom = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             Text("Datos", style = CSyne.copy(fontSize = 18.sp, lineHeight = 22.sp), color = WizardColors.text)
@@ -677,36 +796,43 @@ private fun CardioSummaryPage(elapsed: Int, planned: Int, distance: String, dist
             Triple("FC MEDIA", avgHr?.toString() ?: "—", if (avgHr != null) avgHrNote ?: "lpm" else "sin pulso"),
             Triple("ENERGÍA", kcal?.let { "≈ ${it.roundToInt()}" } ?: "—", if (kcal != null) "kcal estimadas" else "sin peso corporal"),
         )
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            cells.chunked(2).forEach { pair ->
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    pair.forEach { (label, value, note) ->
-                        Column(Modifier.weight(1f).clip(RoundedCornerShape(20.dp)).background(Color(0xFF111111))
-                            .border(1.dp, Color(0x10FFFFFF), RoundedCornerShape(20.dp)).padding(horizontal = 14.dp, vertical = 13.dp)) {
-                            Text(label, style = CBody.copy(fontSize = 10.sp, letterSpacing = 1.2.sp, fontWeight = FontWeight.SemiBold), color = LiveSheetTokens.Faint)
-                            Text(value, Modifier.padding(top = 5.dp), style = CSyne.copy(fontSize = 26.sp, lineHeight = 29.sp, fontWeight = FontWeight.ExtraBold), color = WizardColors.text, maxLines = 1)
-                            Text(note, Modifier.padding(top = 3.dp), style = CBody.copy(fontSize = 11.5.sp), color = LiveSheetTokens.Faint)
-                        }
-                    }
-                }
-            }
-        }
+        CardioSumGrid(cells)
         Text("TIEMPO POR ZONA", Modifier.padding(top = 18.dp), style = CBody.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp, fontWeight = FontWeight.SemiBold), color = LiveSheetTokens.Faint)
         if (hasHeartRate) {
             val total = zoneSeconds.sum().coerceAtLeast(1)
             Column(Modifier.padding(top = 8.dp)) {
-                (5 downTo 1).forEach { z ->
+                (5 downTo 1).forEachIndexed { idx, z ->
                     Row(Modifier.fillMaxWidth().heightIn(min = 30.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         Text("Z$z", Modifier.width(24.dp), style = CSyne.copy(fontSize = 12.sp), color = WizardColors.text)
                         BoxWithConstraints(Modifier.weight(1f).height(8.dp).clip(RoundedCornerShape(4.dp)).background(Color(0x0FFFFFFF))) {
-                            Box(Modifier.fillMaxHeight().width(maxWidth * (zoneSeconds[z - 1].toFloat() / total)).background(cardioZoneColor(z)))
+                            val ratio = (zoneSeconds[z - 1].toFloat() / total).coerceIn(0f, 1f)
+                            Box(
+                                Modifier.fillMaxHeight().width(maxWidth * ratio)
+                                    .graphicsLayer {
+                                        transformOrigin = TransformOrigin(0f, 0.5f)
+                                        if (!reduced) {
+                                            val p = ((barsClock.value - (100f + idx * 60f)) / 800f).coerceIn(0f, 1f)
+                                            scaleX = KpknMotion.Estandar.transform(p)
+                                        }
+                                    }
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(cardioZoneColor(z)),
+                            )
                         }
                         Text(cardioClock(zoneSeconds[z - 1]), Modifier.width(42.dp), style = CBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Muted, textAlign = TextAlign.End)
                     }
                 }
             }
-            Text(inZonePercent?.let { "$it % del trabajo en tu zona objetivo" } ?: "Aún no hay tiempo medido en zona.",
-                Modifier.padding(top = 12.dp), style = CBody.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold), color = WizardColors.text)
+            Row(Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                val measuredTotal = zoneSeconds.sum() > 0 && inZonePercent != null
+                Icon(if (measuredTotal) KpknLineIcons.Check else KpknLineIcons.Info, null, Modifier.size(17.dp),
+                    tint = if (measuredTotal) WizardColors.text else LiveSheetTokens.Muted)
+                Text(
+                    inZonePercent?.takeIf { zoneSeconds.sum() > 0 }?.let { "$it % del trabajo en tu zona objetivo" } ?: "Aún no hay tiempo medido en zona.",
+                    style = CBody.copy(fontSize = 13.sp, fontWeight = if (measuredTotal) FontWeight.SemiBold else FontWeight.Medium),
+                    color = if (measuredTotal) WizardColors.text else LiveSheetTokens.Muted,
+                )
+            }
         } else {
             Column(Modifier.fillMaxWidth().padding(top = 8.dp).border(1.dp, Color(0x26FFFFFF), RoundedCornerShape(20.dp)).padding(horizontal = 16.dp, vertical = 14.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -728,20 +854,32 @@ private fun CardioSummaryPage(elapsed: Int, planned: Int, distance: String, dist
 }
 
 @Composable
-private fun CardioSumGrid(cells: List<Triple<String, String, String>>, onClick: List<(() -> Unit)?> = emptyList()) {
+private fun CardioSumGrid(
+    cells: List<Triple<String, String, String>>,
+    onClick: List<(() -> Unit)?> = emptyList(),
+    editable: List<Boolean> = emptyList(),
+) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         cells.chunked(2).forEachIndexed { row, pair ->
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 pair.forEachIndexed { col, (label, value, note) ->
-                    val action = onClick.getOrNull(row * 2 + col)
-                    CardioSumCell(label, value, note, Modifier.weight(1f).then(if (action != null) Modifier.clickable(role = Role.Button, onClick = action) else Modifier))
+                    val idx = row * 2 + col
+                    val action = onClick.getOrNull(idx)
+                    val isEditable = editable.getOrElse(idx) { action != null }
+                    CardioSumCell(
+                        label = label,
+                        value = value,
+                        note = note,
+                        modifier = Modifier.weight(1f).then(if (action != null) Modifier.clickable(role = Role.Button, onClick = action) else Modifier),
+                        editable = isEditable,
+                    )
                 }
             }
         }
     }
 }
 
-/** «Cardio terminado»: lo medido, el cumplimiento por paso y el RPE real (sin marcar hasta que se elige) para guardar. */
+/** «Cardio terminado»: onda superior `Done`, `.cv-cell` (editables con borde y lápiz), barras `cv-grow`, RPE y pie `.cv-foot` en vidrio. */
 @Composable
 private fun CardioFinishView(
     exerciseName: String,
@@ -767,34 +905,67 @@ private fun CardioFinishView(
     onSave: () -> Unit,
     onBack: () -> Unit,
 ) {
+    val compact = LocalConfiguration.current.screenHeightDp < 800
+    val reduced = wizardReducedMotion()
+    val finishHaze = remember { HazeState() }
+    val cmpClock = rememberKpknClockMs(running = !reduced, key = "cv-fin-cmp", endMs = 600f + steps.size * 40f)
+    val distanceMissing = distanceKm == null && estimatedKm == null
+    val hrMissing = avgHr == null
+    val finishColor = cardioZoneColor(2)
+
     Column(Modifier.fillMaxSize().testTag("cardio-finish-view")) {
-        Column(Modifier.weight(1f).fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 14.dp)) {
-            Text(exerciseName.uppercase(), style = CBody.copy(fontSize = 9.sp, letterSpacing = 1.sp), color = LiveSheetTokens.Faint)
-            Text("Cardio terminado", Modifier.padding(top = 6.dp, bottom = 12.dp), style = CSyne.copy(fontSize = 26.sp, lineHeight = 34.sp), color = WizardColors.text)
+        Column(Modifier.weight(1f).fillMaxWidth().hazeSource(state = finishHaze).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 10.dp)) {
+            Box(Modifier.fillMaxWidth().padding(bottom = 2.dp).height(if (compact) 40.dp else 86.dp)) {
+                KpknWaveField(
+                    KpknWaveState.Done,
+                    Modifier.fillMaxSize(),
+                    zoneColor = finishColor,
+                    lines = 9,
+                    introSeconds = 1.6f,
+                    edgeFade = KpknWaveEdgeFade.Finish,
+                    restartKey = "finish-wave",
+                )
+            }
+            Text(exerciseName.uppercase(), style = CBody.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp, fontWeight = FontWeight.SemiBold), color = LiveSheetTokens.Faint)
+            Text("Cardio terminado", Modifier.padding(top = 6.dp, bottom = 14.dp), style = CSyne.copy(fontSize = if (compact) 24.sp else 27.sp, lineHeight = 29.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-0.8).sp), color = WizardColors.text)
             CardioSumGrid(
-                listOf(
+                cells = listOf(
                     Triple("TIEMPO ACTIVO", cardioClock(durationSeconds), if (pausedSeconds > 0) "pausa ${cardioClock(pausedSeconds)} aparte" else "de ${cardioClock(plannedSeconds)}"),
                     Triple("DISTANCIA", distanceKm?.let { cardioDecimal(it) } ?: estimatedKm?.let { "≈ ${cardioDecimal(it)}" } ?: "—",
-                        if (distanceKm == null && estimatedKm == null) "toca para añadir" else distanceSource),
+                        if (distanceMissing) "toca para añadir" else distanceSource),
                     Triple("FC MEDIA", avgHr?.toString() ?: "—", avgHr?.let { "lpm" + (maxHr?.let { m -> " · máx $m" } ?: "") } ?: "toca para añadir"),
                     Triple("ENERGÍA", kcal?.let { "≈ ${it.roundToInt()}" } ?: "—", if (kcal != null) "kcal estimadas" else "sin peso corporal"),
                 ),
                 onClick = listOf(null, onEditDistance, onEditHeartRate, null),
+                editable = listOf(false, onEditDistance != null && distanceMissing, onEditHeartRate != null && hrMissing, false),
             )
-            CardioPageTitle("CUMPLIMIENTO POR PASO", Modifier.padding(top = 14.dp))
+            CardioPageTitle("CUMPLIMIENTO POR PASO", Modifier.padding(top = 18.dp))
             val measured = stepSamples.any { it > 0 }
-            Row(Modifier.fillMaxWidth().height(26.dp), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
+            Row(Modifier.fillMaxWidth().height(28.dp), horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.Bottom) {
                 steps.forEachIndexed { i, step ->
                     val samples = stepSamples.getOrElse(i) { 0 }
                     val pct = if (samples > 0) stepInZone[i] * 100 / samples else null
-                    Box(Modifier.weight(step.seconds.toFloat().coerceAtLeast(1f)).fillMaxHeight().clip(RoundedCornerShape(5.dp))
-                        .background(cardioZoneColor(step.zone).copy(alpha = when {
-                            pct == null -> .25f
-                            pct >= 85 -> 1f
-                            pct >= 60 -> .7f
-                            else -> .45f
-                        })), contentAlignment = Alignment.Center) {
-                        if (pct != null && pct < 85) Text("$pct %", style = CSyne.copy(fontSize = 9.sp), color = Color(0xFF111111))
+                    Box(
+                        Modifier.weight(step.seconds.toFloat().coerceAtLeast(1f)).fillMaxHeight()
+                            .graphicsLayer {
+                                transformOrigin = TransformOrigin(0.5f, 1f)
+                                if (!reduced) {
+                                    val p = ((cmpClock.value - i * 40f) / 600f).coerceIn(0f, 1f)
+                                    val e = KpknMotion.Estandar.transform(p)
+                                    scaleY = 0.05f + 0.95f * e
+                                    alpha = e
+                                }
+                            }
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(cardioZoneColor(step.zone).copy(alpha = when {
+                                pct == null -> .25f
+                                pct >= 85 -> 1f
+                                pct >= 60 -> .7f
+                                else -> .45f
+                            })),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        if (pct != null && pct < 85) Text("$pct %", style = CSyne.copy(fontSize = 9.5.sp), color = Color(0xFF111111))
                     }
                 }
             }
@@ -803,51 +974,104 @@ private fun CardioFinishView(
                 else {
                     val inside = steps.indices.count { i -> stepSamples[i] > 0 && stepInZone[i] * 100 / stepSamples[i] >= 85 }
                     val worst = steps.indices.filter { stepSamples[it] > 0 }.minByOrNull { stepInZone[it] * 100 / stepSamples[it] }
-                    "$inside de ${steps.count { true }} pasos dentro del objetivo" + (worst?.takeIf { stepInZone[it] * 100 / stepSamples[it] < 85 }?.let {
+                    "$inside de ${steps.size} pasos dentro del objetivo" + (worst?.takeIf { stepInZone[it] * 100 / stepSamples[it] < 85 }?.let {
                         " · ${steps[it].name}${steps[it].round?.let { r -> " $r" } ?: ""} se quedó en ${stepInZone[it] * 100 / stepSamples[it]} %"
                     } ?: "")
                 },
-                Modifier.padding(top = 6.dp), style = CBody.copy(fontSize = 10.5.sp, lineHeight = 15.sp), color = LiveSheetTokens.Faint,
+                Modifier.padding(top = 6.dp), style = CBody.copy(fontSize = 11.5.sp, lineHeight = 16.sp), color = LiveSheetTokens.Faint,
             )
-            Row(Modifier.fillMaxWidth().padding(top = 14.dp, bottom = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(top = if (compact) 12.dp else 16.dp, bottom = 10.dp), verticalAlignment = Alignment.CenterVertically) {
                 CardioPageTitle("¿CUÁNTO TE COSTÓ? · ESFUERZO REAL", Modifier.weight(1f).padding(bottom = 0.dp))
-                Text(rpe?.let { "RPE $it" } ?: "Sin marcar", style = CBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Muted,
-                    modifier = Modifier.testTag("cardio-rpe-label"))
+                Text(
+                    rpe?.let { "RPE $it · ${CardioGuideEngine.rpeAnchor(it.toDouble())}" } ?: "Sin marcar",
+                    style = CBody.copy(fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold),
+                    color = if (rpe != null) WizardColors.text else LiveSheetTokens.Muted,
+                    modifier = Modifier.testTag("cardio-rpe-label"),
+                )
             }
             CardioRpePicker(rpe, plannedRpe, onRpe)
-            Text("El plan ($plannedRpe) es una referencia; marca lo que sentiste.", Modifier.padding(top = 6.dp), style = CBody.copy(fontSize = 10.sp),
+            Text("Esfuerzo real. El plan ($plannedRpe) es una referencia; marca lo que sentiste.", Modifier.padding(top = 8.dp), style = CBody.copy(fontSize = 11.5.sp),
                 color = LiveSheetTokens.Faint)
-            if (failed) Text("No se pudo guardar. Tus datos se conservan; vuelve a intentarlo.", Modifier.padding(top = 8.dp),
-                style = CBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Danger)
+            if (failed) {
+                Row(Modifier.padding(top = 10.dp), verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Icon(KpknLineIcons.Warning, null, Modifier.padding(top = 2.dp).size(15.dp), tint = LiveSheetTokens.Danger)
+                    Text("No se pudo guardar. Tus datos se conservan; vuelve a intentarlo.", style = CBody.copy(fontSize = 12.sp, lineHeight = 17.sp), color = LiveSheetTokens.Danger)
+                }
+            }
         }
-        Column(Modifier.fillMaxWidth().padding(horizontal = 12.dp, vertical = 10.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-            RestRef02Button(if (saving) "Guardando…" else "Guardar cardio", onSave, primary = true, modifier = Modifier.fillMaxWidth(), height = 50.dp,
-                enabled = rpe != null && !saving, tag = "cardio-save")
-            if (!saving) Text("Volver al cardio", Modifier.heightIn(min = 40.dp).clickable(role = Role.Button, onClick = onBack).padding(10.dp),
-                style = CBody.copy(fontSize = 11.sp), color = LiveSheetTokens.Muted)
+        val footShape = RoundedCornerShape(30.dp)
+        Column(
+            Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, bottom = if (compact) 14.dp else 20.dp)
+                .kpknGlassPreset(finishHaze, KpknGlassPreset.VidrioIsla, footShape)
+                .border(1.dp, Color(0x1FFFFFFF), footShape).padding(10.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(2.dp),
+        ) {
+            CardioPillButton(
+                label = if (saving) "Guardando…" else "Guardar cardio",
+                onClick = onSave,
+                primary = true,
+                icon = if (!saving) KpknLineIcons.Check else null,
+                modifier = Modifier.fillMaxWidth(),
+                enabled = rpe != null && !saving,
+                tag = "cardio-save",
+            )
+            if (!saving) {
+                Box(
+                    Modifier.height(40.dp).clip(CircleShape).clickable(role = Role.Button, onClick = onBack).padding(horizontal = 18.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text("Volver al cardio", style = CBody.copy(fontSize = 12.5.sp, fontWeight = FontWeight.SemiBold), color = WizardColors.text)
+                }
+            }
         }
     }
 }
 
-/** El cardio ya registrado: lo guardado y «Actualizar cardio». */
+/** El cardio ya registrado: onda superior `Done`, tick `.cv-pop`, `.cv-cell` y pie `.cv-foot` vidrio con «Actualizar cardio». */
 @Composable
 private fun CardioRecordedView(exerciseName: String, durationSeconds: Int, distanceKm: Double?, avgHr: Int?, rpe: Double?, onUpdate: () -> Unit) {
-    Column(Modifier.fillMaxSize().padding(16.dp).testTag("cardio-recorded"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        Text(exerciseName.uppercase(), style = CBody.copy(fontSize = 9.sp, letterSpacing = 1.sp), color = LiveSheetTokens.Faint)
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Box(Modifier.size(34.dp).clip(CircleShape).background(WizardColors.text), contentAlignment = Alignment.Center) {
-                Icon(KpknLineIcons.Check, null, Modifier.size(18.dp), tint = Color(0xFF111111))
+    val compact = LocalConfiguration.current.screenHeightDp < 800
+    val recHaze = remember { HazeState() }
+    Column(Modifier.fillMaxSize().testTag("cardio-recorded")) {
+        Column(Modifier.weight(1f).fillMaxWidth().hazeSource(state = recHaze).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 10.dp)) {
+            Box(Modifier.fillMaxWidth().height(70.dp)) {
+                KpknWaveField(
+                    KpknWaveState.Done,
+                    Modifier.fillMaxSize(),
+                    zoneColor = cardioZoneColor(2),
+                    lines = 8,
+                    introSeconds = 1.2f,
+                    edgeFade = KpknWaveEdgeFade.Finish,
+                    restartKey = "recorded-wave",
+                )
             }
-            Text("Cardio registrado", style = CSyne.copy(fontSize = 22.sp, lineHeight = 29.sp), color = WizardColors.text)
+            Text(exerciseName.uppercase(), style = CBody.copy(fontSize = 10.5.sp, letterSpacing = 1.4.sp, fontWeight = FontWeight.SemiBold), color = LiveSheetTokens.Faint)
+            Row(Modifier.padding(top = 8.dp, bottom = 16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                Box(
+                    Modifier.size(44.dp).kpknAnimate(KpknFamilies.ReboteAparece.demo, restartKey = "recorded-tick")
+                        .clip(CircleShape).background(WizardColors.text),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(KpknLineIcons.Check, null, Modifier.size(22.dp), tint = Color(0xFF111111))
+                }
+                Text("Cardio registrado", style = CSyne.copy(fontSize = 26.sp, lineHeight = 29.sp, fontWeight = FontWeight.ExtraBold), color = WizardColors.text)
+            }
+            CardioSumGrid(listOf(
+                Triple("TIEMPO ACTIVO", cardioClock(durationSeconds), "registrado"),
+                Triple("DISTANCIA", distanceKm?.let { cardioDecimal(it) } ?: "—", "km"),
+                Triple("FC MEDIA", avgHr?.toString() ?: "—", "lpm"),
+                Triple("ESFUERZO", rpe?.let { "RPE ${it.roundToInt()}" } ?: "—", "real"),
+            ))
         }
-        CardioSumGrid(listOf(
-            Triple("TIEMPO ACTIVO", cardioClock(durationSeconds), "registrado"),
-            Triple("DISTANCIA", distanceKm?.let { cardioDecimal(it) } ?: "—", "km"),
-            Triple("FC MEDIA", avgHr?.toString() ?: "—", "lpm"),
-            Triple("ESFUERZO", rpe?.let { "RPE ${it.roundToInt()}" } ?: "—", "real"),
-        ))
-        Spacer(Modifier.weight(1f))
-        RestRef02Button("Actualizar cardio", onUpdate, primary = false, modifier = Modifier.fillMaxWidth(), tag = "cardio-update")
+        val footShape = RoundedCornerShape(30.dp)
+        Box(
+            Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, bottom = if (compact) 14.dp else 20.dp)
+                .kpknGlassPreset(recHaze, KpknGlassPreset.VidrioIsla, footShape)
+                .border(1.dp, Color(0x1FFFFFFF), footShape).padding(10.dp),
+        ) {
+            CardioPillButton("Actualizar cardio", onUpdate, primary = false, modifier = Modifier.fillMaxWidth(), tag = "cardio-update")
+        }
     }
 }
 

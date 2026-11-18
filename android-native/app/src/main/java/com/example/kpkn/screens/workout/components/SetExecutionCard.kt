@@ -1626,6 +1626,7 @@ internal fun SetInputCardV2(
         )
     }
     var numericKeyboardTarget by remember(exercise.id, setIndex, sideKey) { mutableStateOf<String?>(null) }
+    var timeModeClockFullscreen by remember(exercise.id, setIndex, sideKey) { mutableStateOf(timerState.running) }
     var timerNowMs by remember(exercise.id, setIndex, sideKey) { mutableLongStateOf(clockNowMillis()) }
     val timerRunning = timerState.running
     val timerElapsedSeconds = timerState.seconds(timerNowMs, plannedTarget)
@@ -1638,6 +1639,7 @@ internal fun SetInputCardV2(
             updateActiveValueText(timerState.seconds(now, plannedTarget).toString())
         } else {
             timerState = timerState.start(now, restart = timerState.complete(now, plannedTarget))
+            timeModeClockFullscreen = true
         }
     }
     fun finishSetTimer() {
@@ -1645,6 +1647,7 @@ internal fun SetInputCardV2(
         timerNowMs = now
         if (timerState.running) timerState = timerState.stop(now, plannedTarget)
         updateActiveValueText(timerState.seconds(now, plannedTarget).toString())
+        timeModeClockFullscreen = false
     }
 
     // Wiring para limpiar estado técnico al cambiar de lado (fix #1 ALTO: evita contaminación L→R)
@@ -1913,12 +1916,50 @@ internal fun SetInputCardV2(
             updateActiveValueText(timerState.seconds(timerNowMs, plannedTarget).toString())
             if (timerState.complete(timerNowMs, plannedTarget)) {
                 timerState = timerState.stop(timerNowMs, plannedTarget)
+                timeModeClockFullscreen = false
             } else delay(1_000)
         }
     }
 
     val reportWeightText = if (supportsIndependentSides) weightTextForSide(selectedSide) else weightText
     val reportValueText = if (supportsIndependentSides) valueTextForSide(selectedSide) else valueText
+    val cardQtyUnitLabel = when (resolvedPlannedUnitMode) {
+        UnitModeV2.TIME -> "TIEMPO"
+        UnitModeV2.DISTANCE -> "DISTANCIA"
+        UnitModeV2.CUSTOM -> exercise.customUnit?.takeIf { it.isNotBlank() }?.uppercase() ?: "CANTIDAD"
+        UnitModeV2.REPS -> "REPS"
+    }
+    val cardQtyTitle = when (resolvedPlannedUnitMode) {
+        UnitModeV2.TIME -> "Cantidad registrada · s"
+        UnitModeV2.DISTANCE -> "Cantidad registrada · m"
+        UnitModeV2.CUSTOM -> "Cantidad registrada · ${exercise.customUnit?.takeIf { it.isNotBlank() } ?: "u"}"
+        UnitModeV2.REPS -> "Repeticiones"
+    }
+    val cardKeyboardFields = listOf(
+        WorkoutKeyboardField("KG", "Carga · kg", reportWeightText, allowDecimal = true),
+        WorkoutKeyboardField(
+            label = cardQtyUnitLabel,
+            title = cardQtyTitle,
+            initialValue = reportValueText,
+            allowDecimal = resolvedPlannedUnitMode != UnitModeV2.REPS,
+            allowColon = isTimeMode,
+        ),
+    )
+    fun applyCardKeyboardFields(values: List<String>) {
+        val typedWeight = values.getOrElse(0) { reportWeightText }
+        val typedValue = values.getOrElse(1) { reportValueText }
+        loadMode = loadModeAfterEnteredWeight(loadMode, typedWeight)
+        updateActiveWeightText(typedWeight)
+        updateActiveValueText(typedValue)
+        if (resolvedPlannedUnitMode == UnitModeV2.REPS) {
+            typedValue.toIntOrNull()?.let { repsWheelCenterIndex.intValue = it }
+        } else if (isTimeMode && !timerState.running) {
+            parseLiveDurationSeconds(typedValue)?.let { seconds ->
+                timerState = LiveSetClockState(accumulatedMs = seconds * 1_000L)
+                timerNowMs = clockNowMillis()
+            }
+        }
+    }
     val timeGoalComplete = isTimeMode && !timerRunning && plannedTarget != null && plannedTarget > 0 &&
         (parseLiveDurationSeconds(reportValueText) ?: 0) >= plannedTarget
     val targetPlateLoad = reportWeightText.replace(',','.').toDoubleOrNull() ?: plannedWeightGhost?.replace(',','.')?.toDoubleOrNull()
@@ -1977,221 +2018,47 @@ internal fun SetInputCardV2(
         loadIncrementKg = quickLoadIncrementFor(exercise, currentSet),
         previousSessionTagLabel = activeTag,
     )
-    @Composable fun ModeLoadButton() {
-        LiveLoadModeButton(loadMode, loadModeMenuExpanded, { loadModeMenuExpanded = true }, { loadModeMenuExpanded = false },
-            onSelect = { next ->
+    val quickLoadsForMenu = if (liveMode == LiveSetCardMode.SOLO_RPE) emptyList() else quickLoadOptions
+    val renderModeLoadButton: @Composable () -> Unit = {
+        ModeLoadButton(
+            loadMode = loadMode,
+            expanded = loadModeMenuExpanded,
+            onOpen = { loadModeMenuExpanded = true },
+            onDismiss = { loadModeMenuExpanded = false },
+            onSelectLoadMode = { next ->
                 selectLiveLoadMode(next)
                 // La hoja sigue abierta: la asistida pide el peso corporal en la misma hoja.
                 loadModeMenuExpanded = true
             },
-            quickLoads = if (liveMode == LiveSetCardMode.SOLO_RPE) emptyList() else quickLoadOptions,
+            quickLoads = quickLoadsForMenu,
             onQuickLoad = { option ->
                 selectLiveLoadMode(loadModeAfterChipSelection(option))
                 updateActiveWeightText(if (option.targetLoadMode == LoadModeV2.BODYWEIGHT) "" else option.weight.toLiveNumberString())
                 if (liveMode == LiveSetCardMode.RM && option.weight > 0) rmValues.loadReference?.let { rmPercent = option.weight / it * 100 }
             },
             weightText = reportWeightText,
-            onWeight = { typed -> updateActiveWeightText(typed) },
+            onWeightChange = { typed -> updateActiveWeightText(typed) },
             bodyWeightText = bodyWeightText,
-            onBodyWeight = { bodyWeightText = it },
-            onSaveBodyWeight = { weight -> onSetBodyWeight(weight); showBodyWeightPrompt = false })
+            onBodyWeightChange = { bodyWeightText = it },
+            onSaveBodyWeight = { weight -> onSetBodyWeight(weight); showBodyWeightPrompt = false },
+        )
     }
-    @Composable
-    fun LegacyLoadHero() {
-        // `.v2-load` del prototipo 02: «CARGA» (o «LASTRE» / «AYUDA EXTERNA») con el modo a la derecha, la cifra en Syne con «kg» pegado y
-        // −/+ en cuadros de 36, y debajo la referencia con el icono de historial. Filete inferior al 6 %.
-        val plates = plateHint
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(horizontal = cardInset)
-                .drawBehind { drawLine(Color(0x10FFFFFF), Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
-                .padding(top = (if (tightCard) 5.dp else 9.dp) + roomExtra * .12f, bottom = (if (tightCard) 5.dp else 7.dp) + roomExtra * .08f),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth().height(19.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    when (loadMode) {
-                        LoadModeV2.ASSISTED -> "AYUDA EXTERNA"
-                        LoadModeV2.LASTRE -> "LASTRE"
-                        else -> "CARGA"
-                    },
-                    // Con inventario de discos, cómo montar la carga va en la descripción accesible de la etiqueta.
-                    modifier = Modifier.weight(1f)
-                        .then(if (plates == null) Modifier else Modifier.testTag("load-plate-label").semantics { contentDescription = plates.text }),
-                    style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp),
-                    color = Ref02CardMuted,
-                )
-                ModeLoadButton()
-            }
-            // Una carga larga («1.250,5») encoge la cifra en vez de montarse sobre «kg» y los botones − / +.
-            val heroChars = reportWeightText.ifBlank { plannedWeightGhost.orEmpty() }.length
-            val heroScale = when { heroChars <= 4 -> 1f; heroChars == 5 -> .8f; heroChars == 6 -> .68f; else -> .58f }
-            val heroSize = (if (tightCard) 40.sp else 47.sp) * heroScale
-            val heroStyle = TextStyle(
-                fontFamily = WizardFonts.display,
-                fontSize = heroSize,
-                fontWeight = FontWeight.ExtraBold,
-                letterSpacing = (-1.5).sp,
-                fontFeatureSettings = "'lnum' 1, 'tnum' 1",
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth().height(if (tightCard) 48.dp else 56.dp).testTag("live-card-load-hero")
-                    // Modo Voz (v-record): destino del vuelo de la carga dictada; brilla al recibirla.
-                    .voiceFlightTarget(voiceFieldTargetKey(exercise.id, setIndex, VoiceFlightField.LOAD)),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                // Sin carga escrita se ve en tinta la del plan (es la que se registra); sin plan, «—» atenuado.
-                Row(Modifier.weight(1f), verticalAlignment = Alignment.Bottom) {
-                    BasicTextField(
-                        value = reportWeightText,
-                        onValueChange = {},
-                        readOnly = true,
-                        modifier = Modifier.width(IntrinsicSize.Max).clickable(role = Role.Button) { numericKeyboardTarget = "weight" }
-                            .semantics { contentDescription = "Editar carga en kg" },
-                        singleLine = true,
-                        textStyle = heroStyle.copy(color = WizardColors.text),
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        decorationBox = { innerTextField ->
-                            Box {
-                                if (reportWeightText.isBlank()) {
-                                    Text(plannedWeightGhost ?: "—", style = heroStyle,
-                                        color = if (plannedWeightGhost != null) WizardColors.text else Ref02CardFaint)
-                                }
-                                innerTextField()
-                            }
-                        },
-                    )
-                    Text("kg", Modifier.padding(start = 4.dp, bottom = if (tightCard) 9.dp else 11.dp),
-                        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp), color = Ref02CardFaint, maxLines = 1, softWrap = false)
-                }
-                val increment = quickLoadIncrementFor(exercise, currentSet)
-                fun adjust(direction: Int) {
-                    val current = reportWeightText.replace(',', '.').toDoubleOrNull()
-                        ?: plannedWeightGhost?.replace(',', '.')?.toDoubleOrNull()
-                        ?: 0.0
-                    updateActiveWeightText(ref02Quantity((current + increment * direction).coerceAtLeast(0.0)))
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                    Ref02StepButton(KpknLineIcons.Minus, "Disminuir carga", 36.dp, 36.dp) { adjust(-1) }
-                    Ref02StepButton(KpknLineIcons.Plus, "Aumentar carga", 36.dp, 36.dp) { adjust(1) }
-                }
-            }
-            if (numericKeyboardTarget == "weight") WorkoutNumericKeyboardDialog(
-                title = "Carga · kg",
-                initialValue = reportWeightText,
-                allowDecimal = true,
-                contextValues = listOf("KG" to reportWeightText,
-                    (if (resolvedPlannedUnitMode == UnitModeV2.REPS) "REPS" else resolvedPlannedUnitMode.name) to reportValueText),
-                activeContextIndex = 0,
-                onDismiss = { numericKeyboardTarget = null },
-                onApply = { typed ->
-                    loadMode = loadModeAfterEnteredWeight(loadMode, typed)
-                    updateActiveWeightText(typed)
-                    numericKeyboardTarget = null
-                },
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth().heightIn(min = 25.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-            ) {
-                val bodyLoad = loadMode == LoadModeV2.BODYWEIGHT || loadMode == LoadModeV2.LASTRE || loadMode == LoadModeV2.ASSISTED
-                val missingBodyWeight = bodyLoad && bodyWeightText.isBlank()
-                val isRm = liveMode == LiveSetCardMode.RM
-                Text(
-                    when {
-                        isRm -> "${rmValues.percent.toLiveNumberString()}% · RM ${rmValues.loadReference?.toLiveNumberString() ?: "—"} kg"
-                        missingBodyWeight -> "${liveLoadModeLabel(loadMode)} · añade tu peso corporal"
-                        bodyLoad -> "${liveLoadModeLabel(loadMode)} · corporal $bodyWeightText kg"
-                        else -> ghostSet?.let { previous ->
-                            buildString {
-                                append("Anterior · ")
-                                append(previous.weight.toTrimmedNumberString())
-                                append(" × ")
-                                append(previous.reps)
-                                previous.rir?.let { append(" · RIR $it") }
-                                // Pulido v1 (15): el ROM de la serie anterior («Anterior · 120 × 5 · ROM 100 %»).
-                                previous.rom?.let { append(" · ").append(liveSetRomLabel(it)) }
-                            }
-                        } ?: "Sin historial anterior"
-                    } + (if (!bodyLoad && exercise.loadEstimate != null) " · ${VariantLoadEstimates.PRESCRIPTION_LABEL}" else ""),
-                    modifier = Modifier.weight(1f)
-                        .then(if (missingBodyWeight) Modifier.clickable(role = Role.Button) { loadModeMenuExpanded = true } else Modifier)
-                        .then(exercise.loadEstimate?.takeIf { !bodyLoad }?.let { estimate ->
-                            Modifier.semantics { contentDescription = VariantLoadEstimates.accessibilityLabel(estimate, null) }
-                        } ?: Modifier)
-                        .testTag("live-card-load-reference"),
-                    style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp),
-                    color = if (missingBodyWeight) WizardColors.text else Ref02CardFaint,
-                )
-                // `.v2-reference > button`: el icono de historial (o la hoja del RM en una serie por porcentaje). Su zona táctil no crece
-                // en vertical: invadiría la del chip de vídeo de la cabecera de la cantidad, justo debajo.
-                val baseViewConfiguration = androidx.compose.ui.platform.LocalViewConfiguration.current
-                val flatTouch = remember(baseViewConfiguration) {
-                    object : androidx.compose.ui.platform.ViewConfiguration by baseViewConfiguration {
-                        override val minimumTouchTargetSize = androidx.compose.ui.unit.DpSize(48.dp, 0.dp)
-                    }
-                }
-                CompositionLocalProvider(androidx.compose.ui.platform.LocalViewConfiguration provides flatTouch) {
-                    Box(
-                        Modifier.size(width = 28.dp, height = 25.dp)
-                            .clickable(role = Role.Button) { if (isRm) rmSheetOpen = true else onShowHistory() }
-                            .semantics { contentDescription = "Consultar referencia" }
-                            .testTag("live-card-reference-history"),
-                        contentAlignment = Alignment.Center,
-                    ) { Icon(KpknLineIcons.History, null, Modifier.size(14.dp), tint = Ref02CardMuted) }
-                }
-            }
-        }
-        if (rmSheetOpen) {
-            LiveSheet(title = "Referencia de RM", onDismiss = { rmSheetOpen = false }, tag = "live-rm-sheet") {
-                LiveRmFocus(rmValues, reportWeightText,
-                    onWeight = { typed ->
-                        loadMode = loadModeAfterEnteredWeight(loadMode, typed)
-                        updateActiveWeightText(typed)
-                        val weight = typed.replace(',', '.').toDoubleOrNull()
-                        val reference = rmValues.loadReference
-                        if (weight != null && weight.isFinite() && weight > 0 && reference != null) rmPercent = weight / reference * 100
-                    },
-                    onPercent = ::applyRmPercent,
-                    onEstimatedReps = { reps ->
-                        val percentOfRm = estimatePercent1RM(reps)
-                        val next = if (rmValues.usesTrainingMax && rmValues.oneRm != null && rmValues.trainingMax != null)
-                            percentOfRm * rmValues.oneRm / rmValues.trainingMax else percentOfRm
-                        applyRmPercent(next)
-                    },
-                    onReference = { reference ->
-                        rmReference = reference
-                        liveRmValues(exercise, currentSet, rmPercent, reference).weight?.let { updateActiveWeightText(it.toLiveNumberString()) }
-                    },
-                    prLabel = exercise.prFor1RM?.takeIf { rmReference == pristineRmReference }?.let { "PR: ${it.weight.toLiveNumberString()} kg × ${it.reps}" },
-                    fallbackWeight = plannedWeightGhost,
-                    modeButton = { ModeLoadButton() })
-            }
-        }
-    }
-
-    /** «Detalle del registro» (prototipo 02): sustituye a los popups de reps con ayuda, parciales y ROM. */
-    @Composable
-    fun SetDetailSheetHost() {
-        if (!showFeedbackExtrasPopup) return
-        val partials = partialSets.sum().coerceAtLeast(0)
-        LiveSetDetailSheet(
-            exerciseName = displayWorkoutExerciseName(exercise),
-            setLabel = (setIndex + 1).toString(),
-            completeReps = reportValueText,
+    val renderSetDetailSheetHost: @Composable () -> Unit = {
+        SetDetailSheetHost(
+            visible = showFeedbackExtrasPopup,
+            exercise = exercise,
+            setIndex = setIndex,
+            reportValueText = reportValueText,
+            isFailedSet = isFailedSet,
             onCompleteReps = { if (!isFailedSet) { updateActiveValueText(it); repsInputGeneration++ } },
-            partials = partials,
+            partials = partialSets.sum().coerceAtLeast(0),
             onPartials = { next ->
                 partialSets = listOf(next)
                 showPartialsMode = next > 0
             },
-            assisted = assistedRepsValue,
+            assistedReps = assistedRepsValue,
             onAssisted = { next -> assistedRepsValue = next.coerceAtMost(reportValueText.toIntOrNull() ?: next) },
-            romOn = romValue != null,
-            rom = romValue,
+            romValue = romValue,
             onRomToggle = { on ->
                 romValue = if (on) (romValue ?: DEFAULT_ROM_PERCENT) else null
                 // El ejercicio registra ROM igual que si el editor lo dijera: el resto de sus series nacen con el slider.
@@ -2208,60 +2075,8 @@ internal fun SetInputCardV2(
             note = setNoteText,
             onNote = { setNoteText = it },
             onDismiss = { showFeedbackExtrasPopup = false },
-            showCompleteReps = !isTimeMode,
+            isTimeMode = isTimeMode,
         )
-    }
-
-    @Composable
-    fun LegacyDetailRow() {
-        // `.lv-det` / `.lv-rom` del lienzo. Sin ROM, el resumen de parciales y ayuda (o «Parciales, ayuda y ROM ›»); si hay que avisar, el
-        // aviso en línea. Con ROM (el ejercicio lo registra: `Exercise.trackRom`, o se encendió en la hoja) ese mismo hueco lleva la banda
-        // de 36 dp: ROM y valor, el deslizador de 10 a 100 % y «Detalle ›», que abre la hoja. La tarjeta no cambia de tamaño.
-        val partials = partialSets.sum().coerceAtLeast(0)
-        val romOn = romValue != null
-        val rowMin = if (tightCard) 26.dp else 27.dp
-        val summary = buildList {
-            if (partials > 0) add("+$partials parciales")
-            if (assistedRepsValue > 0) add("$assistedRepsValue con ayuda")
-        }.joinToString(" · ").ifBlank { "Parciales, ayuda y ROM" }
-        val inlineError = quantityError ?: if (effortHintVisible && !hasChosenReportedEffort) "Marca tu esfuerzo antes de registrar." else null
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .heightIn(min = rowMin)
-                // Con la banda la fila no es un botón entera (arrastrar el deslizador no puede abrir la hoja): abre «Detalle ›».
-                .then(if (inlineError == null && !romOn) Modifier.clickable(role = Role.Button, onClickLabel = "Abrir detalle del registro") {
-                    showFeedbackExtrasPopup = true
-                } else Modifier)
-                .testTag("live-card-detail"),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            // El aviso en línea y el resumen se funden entre sí (nada aparece de golpe al marcar o al fallar el registro).
-            Crossfade(targetState = inlineError, modifier = Modifier.weight(1f), animationSpec = if (reducedMotion) snap() else tween(200, easing = FastOutSlowInEasing),
-                label = "live-card-detail-swap") { shownError ->
-                if (shownError != null) {
-                    Text(shownError, Modifier.fillMaxWidth().testTag("live-card-inline-error").semantics { liveRegion = LiveRegionMode.Polite },
-                        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp), color = Color(0xFFFFB5AD))
-                } else if (romOn) {
-                    // pulido:lv-A11 lv-T08
-                    RomBand(
-                        value = romValue ?: LiveRomFullPercent,
-                        onValueChange = { romValue = it },
-                        hasDetail = partials > 0 || assistedRepsValue > 0,
-                        onOpenDetail = { showFeedbackExtrasPopup = true },
-                        hapticsEnabled = hapticFeedbackEnabled,
-                    )
-                } else {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text(summary, modifier = Modifier.weight(1f), style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp),
-                            color = Ref02CardMuted)
-                        Icon(KpknLineIcons.ChevronRight, null, tint = Ref02CardMuted, modifier = Modifier.size(12.dp))
-                    }
-                }
-            }
-        }
-        SetDetailSheetHost()
     }
 
     val flipRotation by animateFloatAsState(
@@ -2486,8 +2301,85 @@ internal fun SetInputCardV2(
                 )
             }
 
+            if (isTimeMode && timeModeClockFullscreen) {
+                SetCardTimeModeFace(
+                    running = timerRunning,
+                    elapsedSeconds = timerElapsedSeconds,
+                    remainingSeconds = timerRemainingSeconds,
+                    plannedTargetSeconds = plannedTarget,
+                    loadSummary = reportWeightText.takeIf { it.isNotBlank() }?.let { "Carga · $it kg" },
+                    sessionAccentColor = sessionAccentColor,
+                    enabled = !isFailedSet,
+                    formatTime = { seconds -> formatTime(seconds) },
+                    onTogglePause = { toggleSetTimer() },
+                    onFinish = { finishSetTimer() },
+                    onBackToSpecs = {
+                        if (timerState.running) {
+                            val now = clockNowMillis()
+                            timerNowMs = now
+                            timerState = timerState.stop(now, plannedTarget)
+                            updateActiveValueText(timerState.seconds(now, plannedTarget).toString())
+                        }
+                        timeModeClockFullscreen = false
+                    },
+                    modifier = Modifier.weight(1f),
+                )
+            } else {
             if (legacyModeLayout) {
-                LegacyLoadHero()
+                LegacyLoadHero(
+                    plateHint = plateHint,
+                    loadMode = loadMode,
+                    cardInset = cardInset,
+                    tightCard = tightCard,
+                    roomExtra = roomExtra,
+                    reportWeightText = reportWeightText,
+                    plannedWeightGhost = plannedWeightGhost,
+                    exercise = exercise,
+                    setIndex = setIndex,
+                    currentSet = currentSet,
+                    numericKeyboardTarget = numericKeyboardTarget,
+                    onNumericKeyboardTargetChange = { numericKeyboardTarget = it },
+                    cardKeyboardFields = cardKeyboardFields,
+                    onApplyCardKeyboardFields = { values -> applyCardKeyboardFields(values) },
+                    onWeightKeyboardApplied = { typed ->
+                        loadMode = loadModeAfterEnteredWeight(loadMode, typed)
+                        updateActiveWeightText(typed)
+                    },
+                    onUpdateActiveWeightText = { updateActiveWeightText(it) },
+                    bodyWeightText = bodyWeightText,
+                    liveMode = liveMode,
+                    rmValues = rmValues,
+                    ghostSet = ghostSet,
+                    onOpenLoadModeMenu = { loadModeMenuExpanded = true },
+                    rmSheetOpen = rmSheetOpen,
+                    onRmSheetOpenChange = { rmSheetOpen = it },
+                    onShowHistory = onShowHistory,
+                    onRmWeightEntered = { typed ->
+                        loadMode = loadModeAfterEnteredWeight(loadMode, typed)
+                        updateActiveWeightText(typed)
+                        val weight = typed.replace(',', '.').toDoubleOrNull()
+                        val reference = rmValues.loadReference
+                        if (weight != null && weight.isFinite() && weight > 0 && reference != null) rmPercent = weight / reference * 100
+                    },
+                    onApplyRmPercent = { next -> applyRmPercent(next) },
+                    onEstimatedReps = { reps ->
+                        val percentOfRm = estimatePercent1RM(reps)
+                        val next = if (rmValues.usesTrainingMax && rmValues.oneRm != null && rmValues.trainingMax != null) {
+                            percentOfRm * rmValues.oneRm / rmValues.trainingMax
+                        } else {
+                            percentOfRm
+                        }
+                        applyRmPercent(next)
+                    },
+                    onRmReferenceChanged = { reference ->
+                        rmReference = reference
+                        liveRmValues(exercise, currentSet, rmPercent, reference).weight?.let { updateActiveWeightText(it.toLiveNumberString()) }
+                    },
+                    prLabel = exercise.prFor1RM?.takeIf { rmReference == pristineRmReference }?.let {
+                        "PR: ${it.weight.toLiveNumberString()} kg × ${it.reps}"
+                    },
+                    modeButton = renderModeLoadButton,
+                )
             }
 
             Column(
@@ -2498,334 +2390,107 @@ internal fun SetInputCardV2(
             ) {
                     val roomyStepper = supportsIndependentSides || exercise.isInSuperset()
 
-                    @Composable
-                    fun ValueStepperBlock(modifier: Modifier = Modifier) {
-                        Column(
-                            modifier = modifier,
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                        ) {
-                            val maxRepsForPopup = reportValueText.toIntOrNull() ?: 0
-                            val partialRepsValueForPopup = partialSets.sum().coerceAtLeast(0)
-                            var showVideoMenu by remember(exercise.id, setIndex, sideKey, videoAnalysis?.mediaId) { mutableStateOf(false) }
-                            // El plan frente a lo marcado (cabecera del carrusel de repeticiones). pulido:lv-A03
-                            val ghostForPlan = if (supportsIndependentSides) { if (selectedSide == "left") leftValueGhost else rightValueGhost } else plannedValueGhost
-                            val currentReps = if (isFailedSet) 0 else reportValueText.toIntOrNull() ?: ghostForPlan.toIntOrNull() ?: 0
-                            val planMinReps: Int? = if (isAmrap) amrapMinimumReps else (plannedRepRange?.min ?: plannedTarget?.takeIf { it > 0 })
-                            val planMaxReps: Int? = if (isAmrap) null else (plannedRepRange?.max ?: planMinReps)
-                            val repsPlanLabel = RepsCarouselMath.label(
-                                value = currentReps, min = planMinReps, max = planMaxReps, amrap = isAmrap, failed = isFailedSet,
-                                noPlan = if (isAmrap) (if (currentSet.purpose == com.example.kpkn.data.models.SetPurpose.CALIBRATOR) "0 reps permitido" else "Sin mínimo") else "",
-                            )
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(if (legacyModeLayout) 21.dp else 24.dp)
-                                    .testTag("set_reps_header"),
-                                horizontalArrangement = Arrangement.Start,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                                ) {
-                                    Text(
-                                        when (resolvedPlannedUnitMode) {
-                                            UnitModeV2.TIME -> "TIEMPO"
-                                            UnitModeV2.DISTANCE -> "DISTANCIA"
-                                            UnitModeV2.CUSTOM -> (exercise.customUnit?.takeIf { it.isNotBlank() } ?: "Cantidad").uppercase()
-                                            UnitModeV2.REPS -> if (legacyModeLayout) "REPETICIONES" else "REPS"
-                                        },
-                                        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, fontWeight = FontWeight.SemiBold,
-                                            letterSpacing = 1.sp),
-                                        color = Ref02CardMuted,
-                                    )
-                                    if (isTimeMode && !legacyModeLayout) {
-                                        // Ley 1 (LV8): lo que decía el temporizador debajo del todo, ya sin sitio en la tarjeta, va aquí en una línea.
-                                        val timerSupport = when {
-                                            timerRunning -> "Restan ${formatTime(timerRemainingSeconds)}"
-                                            timerElapsedSeconds > 0 -> "Registrado ${timerElapsedSeconds}s"
-                                            plannedTarget != null -> "Objetivo ${plannedTarget}s"
-                                            else -> null
-                                        }
-                                        timerSupport?.let { support ->
-                                            Text(
-                                                " · $support",
-                                                style = KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp),
-                                                color = if (timerRunning) sessionAccentColor else WizardColors.textFaint,
-                                                maxLines = 1,
-                                            )
-                                        }
-                                    }
-                                    if (!isTimeMode && !legacyModeLayout) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(16.dp)
-                                                .clip(CircleShape)
-                                                .clickable(role = Role.Button) { showFeedbackExtrasPopup = true },
-                                            contentAlignment = Alignment.Center,
-                                        ) {
-                                            Icon(
-                                                KpknLineIcons.Plus,
-                                                contentDescription = "Detalle del registro: parciales, ayuda y ROM",
-                                                modifier = Modifier.size(12.dp),
-                                                tint = WizardColors.textMuted,
-                                            )
-                                            SetDetailSheetHost()
-                                        }
-                                    }
-                                }
-                                Spacer(Modifier.weight(1f))
-                                // A la derecha de la cabecera: el reloj de la serie por tiempo o, en repeticiones, el plan frente a lo marcado
-                                // («Plan 4–6 ✓», «Plan 5 · −1», «Mínimo 8», «Serie fallida»). pulido:lv-J04
-                                if (resolvedPlannedUnitMode == UnitModeV2.REPS) {
-                                    Row(
-                                        Modifier.semantics(mergeDescendants = true) {}.testTag(if (isAmrap) "amrap-purpose-badge" else "live-card-plan-label"),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
-                                    ) {
-                                        if (repsPlanLabel.inPlan) Icon(KpknLineIcons.Check, null, Modifier.size(12.dp), tint = WizardColors.text)
-                                        Text(
-                                            repsPlanLabel.text,
-                                            style = TextStyle(fontFamily = WizardFonts.body, fontSize = 11.sp, fontWeight = FontWeight.Medium,
-                                                fontFeatureSettings = "'tnum' 1, 'lnum' 1"),
-                                            color = if (repsPlanLabel.inPlan) WizardColors.text else Ref02CardFaint,
-                                            maxLines = 1, softWrap = false,
-                                        )
-                                    }
-                                } else if (legacyModeLayout && isAmrap) {
-                                    Text(
-                                        when {
-                                            amrapMinimumReps != null -> "Mínimo $amrapMinimumReps"
-                                            currentSet.purpose == com.example.kpkn.data.models.SetPurpose.CALIBRATOR -> "0 reps permitido"
-                                            else -> "Sin mínimo"
-                                        },
-                                        Modifier.testTag("amrap-purpose-badge"),
-                                        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp), color = Ref02CardFaint,
-                                    )
-                                }
-                                if (resolvedPlannedUnitMode == UnitModeV2.REPS) videoAnalysis?.let { analysis ->
-                                    Box {
-                                        WorkoutVideoChip(
-                                            value = analysis,
-                                            onClick = {
-                                                showFeedbackExtrasPopup = false
-                                                showVideoMenu = true
-                                            },
-                                            sessionAccentColor = sessionAccentColor,
-                                        )
-                                        if (showVideoMenu && analysis.state !is SetVideoAnalysisState.Unsupported) {
-                                            Popup(
-                                                popupPositionProvider = remember(density) {
-                                                    WorkoutVideoMenuPositionProvider(with(density) { 14.dp.roundToPx() })
-                                                },
-                                                onDismissRequest = { showVideoMenu = false },
-                                                properties = PopupProperties(focusable = true),
-                                            ) {
-                                                WorkoutVideoRepsSuggestion(
-                                                    value = analysis,
-                                                    onUse = { result ->
-                                                        if (sessionCompletedSet == null && resolvedPlannedUnitMode == UnitModeV2.REPS && !isFailedSet) {
-                                                            updateActiveValueText(result.reps.toString())
-                                                            repsWheelCenterIndex.intValue = result.reps
-                                                            // El centro viejo no puede sobrescribir el borrador tras «Usar».
-                                                            repsInputGeneration++
-                                                            if (result.partialConfidence != CountConfidence.BAJA) {
-                                                                partialSets = listOf(result.partials.coerceAtLeast(0))
-                                                                showPartialsMode = result.partials > 0
-                                                            }
-                                                            // El ROM que midió el análisis se escribe en el mismo campo que el slider y la voz.
-                                                            if (tracksRom) result.romPercent?.let { romValue = it.coerceIn(0, DEFAULT_ROM_PERCENT) }
-                                                        }
-                                                        showVideoMenu = false
-                                                    },
-                                                    onCorrect = { onVideoCorrect(it); showVideoMenu = false },
-                                                    onMarkFailure = {
-                                                        if (sessionCompletedSet != null) onVideoMarkFailure()
-                                                        else effortScale.items.indexOfFirst { it.isFailure }.takeIf { it >= 0 }?.let(::onEffortSelected)
-                                                        showVideoMenu = false
-                                                    },
-                                                    onOpenAnalysis = { onOpenAnalysis(it); showVideoMenu = false },
-                                                    onRetryAnalysis = onRetryAnalysis?.let { retry ->
-                                                        { id -> retry(id); showVideoMenu = false }
-                                                    },
-                                                    modifier = Modifier.width(264.dp)
-                                                        .testTag(WorkoutVideoMenuTag)
-                                                        .background(Color(0xFF151515), RoundedCornerShape(16.dp))
-                                                        .border(1.dp, WizardColors.text.copy(alpha = 0.10f), RoundedCornerShape(16.dp))
-                                                        .verticalScroll(rememberScrollState())
-                                                        .padding(14.dp),
-                                                )
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            Spacer(modifier = Modifier.height(if (legacyModeLayout) 0.dp else if (roomyStepper) 8.dp else 6.dp))
-
-                            if (isTimeMode) {
-                                val progress = plannedTarget?.takeIf { it > 0 }
-                                    ?.let { (timerElapsedSeconds.toFloat() / it.toFloat()).coerceIn(0f, 1f) }
-                                val completedGoal = !timerRunning && progress == 1f
-                                Column(
-                                    Modifier.fillMaxWidth().padding(bottom = 8.dp).testTag("live-card-set-clock"),
-                                    verticalArrangement = Arrangement.spacedBy(7.dp),
-                                ) {
-                                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                                        Column(Modifier.weight(1f)) {
-                                            Text(
-                                                if (timerRunning && plannedTarget != null) "RESTAN" else "TIEMPO REGISTRADO",
-                                                style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp,
-                                                    fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp),
-                                                color = Ref02CardMuted,
-                                            )
-                                            Text(
-                                                formatTime(if (timerRunning && plannedTarget != null) timerRemainingSeconds else timerElapsedSeconds),
-                                                style = TextStyle(fontFamily = WizardFonts.display, fontSize = 30.sp,
-                                                    fontWeight = FontWeight.Bold, fontFeatureSettings = "'tnum' 1"),
-                                                color = if (timerRunning) sessionAccentColor else WizardColors.text,
-                                                modifier = Modifier.testTag("live-card-set-clock-value"),
-                                            )
-                                        }
-                                        plannedTarget?.takeIf { it > 0 }?.let { target ->
-                                            Text("Objetivo · ${formatTime(target)}", style = KpknType.caption.copy(fontSize = 11.sp),
-                                                color = Ref02CardMuted)
-                                        }
-                                    }
-                                    if (progress != null) {
-                                        Box(Modifier.fillMaxWidth().height(4.dp).clip(RoundedCornerShape(3.dp)).background(Color(0xFF282828))) {
-                                            Box(Modifier.fillMaxWidth(progress).height(4.dp).background(sessionAccentColor))
-                                        }
-                                    }
-                                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Text(
-                                            when {
-                                                timerRunning -> "Pausar"
-                                                completedGoal -> "Reiniciar"
-                                                timerElapsedSeconds > 0 -> "Reanudar"
-                                                else -> "Iniciar"
-                                            },
-                                            Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).background(Color(0xFF202020))
-                                                .clickable(enabled = !isFailedSet, role = Role.Button, onClick = ::toggleSetTimer)
-                                                .semantics { contentDescription = if (timerRunning) "Pausar cronómetro de la serie" else "Iniciar cronómetro de la serie" }
-                                                .testTag("live-card-set-clock-toggle").padding(vertical = 10.dp),
-                                            style = KpknType.action.copy(fontSize = 13.sp), color = WizardColors.text, textAlign = TextAlign.Center,
-                                        )
-                                        if (timerRunning) Text(
-                                            "Terminar",
-                                            Modifier.weight(1f).clip(RoundedCornerShape(10.dp)).background(Color(0xFF202020))
-                                                .clickable(enabled = !isFailedSet, role = Role.Button, onClick = ::finishSetTimer)
-                                                .testTag("live-card-set-clock-finish").padding(vertical = 10.dp),
-                                            style = KpknType.action.copy(fontSize = 13.sp), color = WizardColors.text, textAlign = TextAlign.Center,
-                                        )
-                                    }
-                                }
-                            }
-
-                            val quantityGhost = if (supportsIndependentSides) {
-                                if (selectedSide == "left") leftValueGhost else rightValueGhost
-                            } else {
-                                plannedValueGhost
-                            }
-                            if (legacyModeLayout && resolvedPlannedUnitMode != UnitModeV2.REPS) {
-                                // En una serie por tiempo, antes de arrancar el reloj el campo enseña el objetivo del plan (como la carga del plan).
-                                val timeNotStarted = isTimeMode && !timerRunning && timerElapsedSeconds == 0
-                                Ref02QuantityInput(
-                                    value = if (isFailedSet) "0" else if (timeNotStarted && reportValueText == "0") "" else reportValueText,
-                                    placeholder = quantityGhost.takeIf { it.isNotBlank() && it != "0" }
-                                        ?: plannedTarget?.takeIf { isTimeMode && it.toDouble() > 0.0 }?.let { it.toDouble().toTrimmedNumberString() },
-                                    unit = when (resolvedPlannedUnitMode) {
-                                        UnitModeV2.TIME -> "s"
-                                        UnitModeV2.DISTANCE -> "m"
-                                        else -> exercise.customUnit?.takeIf { it.isNotBlank() } ?: "u"
-                                    },
-                                    decimal = resolvedPlannedUnitMode != UnitModeV2.REPS,
-                                    allowColon = isTimeMode,
-                                    contextValues = listOf("KG" to reportWeightText,
-                                        (if (resolvedPlannedUnitMode == UnitModeV2.REPS) "REPS" else resolvedPlannedUnitMode.name) to reportValueText),
-                                    activeContextIndex = 1,
-                                    enabled = !isFailedSet && !timerRunning,
-                                    onValueChange = {
-                                        updateActiveValueText(it)
-                                        if (isTimeMode && !timerState.running) {
-                                            parseLiveDurationSeconds(it)?.let { seconds ->
-                                                timerState = LiveSetClockState(accumulatedMs = seconds * 1_000L)
-                                                timerNowMs = clockNowMillis()
-                                            }
-                                        }
-                                    },
-                                    onStep = { step ->
-                                        val current = (if (isTimeMode) parseLiveDurationSeconds(reportValueText)?.toDouble() else null)
-                                            ?: reportValueText.replace(',', '.').toDoubleOrNull()
-                                            ?: quantityGhost.replace(',', '.').toDoubleOrNull() ?: 0.0
-                                        updateActiveValueText(ref02Quantity((current + step).coerceAtLeast(0.0)))
-                                    },
-                                )
-                            } else {
-                                // El ✓ lee las repeticiones del centro del carrusel: se mantiene en la cifra que se ve.
-                                SideEffect { repsWheelCenterIndex.intValue = currentReps }
-                                RepsCarousel(
-                                    value = currentReps,
-                                    onValueChange = { next ->
-                                        updateActiveValueText(next.toString())
-                                        repsWheelCenterIndex.intValue = next
-                                    },
-                                    planMin = planMinReps,
-                                    planMax = planMaxReps,
-                                    amrap = isAmrap,
-                                    failed = isFailedSet,
-                                    lastValue = RepsCarouselMath.lastValue(currentReps, quantityGhost.toIntOrNull() ?: planMaxReps),
-                                    modifier = Modifier.padding(top = 4.dp),
-                                    enabled = !isFailedSet,
-                                    belowPlanColor = sessionAccentColor,
-                                    hapticsEnabled = hapticFeedbackEnabled,
-                                    reducedMotion = reducedMotion,
-                                    onCenterValueClick = { numericKeyboardTarget = "reps" },
-                                )
-                                if (numericKeyboardTarget == "reps") WorkoutNumericKeyboardDialog(
-                                    title = "Repeticiones",
-                                    initialValue = reportValueText,
-                                    allowDecimal = false,
-                                    contextValues = listOf("KG" to reportWeightText, "REPS" to reportValueText),
-                                    activeContextIndex = 1,
-                                    onDismiss = { numericKeyboardTarget = null },
-                                    onApply = { typed ->
-                                        updateActiveValueText(typed)
-                                        repsWheelCenterIndex.intValue = typed.toIntOrNull() ?: currentReps
-                                        numericKeyboardTarget = null
-                                    },
-                                )
-                            }
-                        }
-                    }
-
-                    @Composable
-                    fun EffortBlock() {
-                        // Pulido v1 (13): un solo esfuerzo, el del lienzo (`.lv-effb`); el viejo deslizador de fuego ya no se pinta.
-                        LiveEffortRange(
-                            scale = effortScale,
-                            selectedIndex = effortIndex,
-                            onSelect = { onEffortSelected(it) },
-                            compact = tightCard,
-                            modifier = Modifier.voiceFlightTarget(voiceFieldTargetKey(exercise.id, setIndex, VoiceFlightField.EFFORT)),
-                            hapticsEnabled = hapticFeedbackEnabled,
-                            // Un fotograma fijado (hojas de render y pruebas) o la tarjeta fuera de pantalla: el calor no corre.
-                            animate = effortAnimate && effortFireSecondsOverride == null,
-                            onClear = {
-                                effortIndex = null
-                                intensityText = ""
-                                reachedFailure = false
-                            },
-                        )
-                    }
-
                     // Misma ruta de video por chip/menu que en el diseno nuevo, sin fila duplicada.
                     // Sin aire propio arriba: el cuerpo reparte el sobrante entre los bloques (`.lv-body` space-between).
-                    ValueStepperBlock(Modifier.fillMaxWidth().padding(top = roomExtra * .1f)
-                        .voiceFlightTarget(voiceFieldTargetKey(exercise.id, setIndex, VoiceFlightField.QUANTITY)))
-                    EffortBlock()
-                    LegacyDetailRow()
+                    ValueStepperBlock(
+                        exercise = exercise,
+                        setIndex = setIndex,
+                        sideKey = sideKey,
+                        supportsIndependentSides = supportsIndependentSides,
+                        selectedSide = selectedSide,
+                        leftValueGhost = leftValueGhost,
+                        rightValueGhost = rightValueGhost,
+                        plannedValueGhost = plannedValueGhost,
+                        reportValueText = reportValueText,
+                        isFailedSet = isFailedSet,
+                        isAmrap = isAmrap,
+                        amrapMinimumReps = amrapMinimumReps,
+                        plannedRepRange = plannedRepRange,
+                        plannedTarget = plannedTarget,
+                        currentSet = currentSet,
+                        legacyModeLayout = legacyModeLayout,
+                        resolvedPlannedUnitMode = resolvedPlannedUnitMode,
+                        isTimeMode = isTimeMode,
+                        timerRunning = timerRunning,
+                        timerElapsedSeconds = timerElapsedSeconds,
+                        timerRemainingSeconds = timerRemainingSeconds,
+                        roomyStepper = roomyStepper,
+                        sessionAccentColor = sessionAccentColor,
+                        videoAnalysis = videoAnalysis,
+                        onShowDetails = { showFeedbackExtrasPopup = true },
+                        onDismissDetails = { showFeedbackExtrasPopup = false },
+                        onApplyVideoResult = { result ->
+                            if (sessionCompletedSet == null && resolvedPlannedUnitMode == UnitModeV2.REPS && !isFailedSet) {
+                                updateActiveValueText(result.reps.toString())
+                                repsWheelCenterIndex.intValue = result.reps
+                                // El centro viejo no puede sobrescribir el borrador tras «Usar».
+                                repsInputGeneration++
+                                if (result.partialConfidence != CountConfidence.BAJA) {
+                                    partialSets = listOf(result.partials.coerceAtLeast(0))
+                                    showPartialsMode = result.partials > 0
+                                }
+                                // El ROM que midió el análisis se escribe en el mismo campo que el slider y la voz.
+                                if (tracksRom) result.romPercent?.let { romValue = it.coerceIn(0, DEFAULT_ROM_PERCENT) }
+                            }
+                        },
+                        onVideoCorrect = onVideoCorrect,
+                        onVideoMarkFailure = {
+                            if (sessionCompletedSet != null) onVideoMarkFailure()
+                            else effortScale.items.indexOfFirst { it.isFailure }.takeIf { it >= 0 }?.let { onEffortSelected(it) }
+                        },
+                        onOpenAnalysis = onOpenAnalysis,
+                        onRetryAnalysis = onRetryAnalysis,
+                        onToggleTimer = { toggleSetTimer() },
+                        cardKeyboardFields = cardKeyboardFields,
+                        onApplyCardKeyboardFields = { values -> applyCardKeyboardFields(values) },
+                        onUpdateActiveValueText = { value -> updateActiveValueText(value) },
+                        onManualTimeEntered = { seconds ->
+                            if (!timerState.running) {
+                                timerState = LiveSetClockState(accumulatedMs = seconds * 1_000L)
+                                timerNowMs = clockNowMillis()
+                            }
+                        },
+                        onUpdateRepsWheelCenter = { repsWheelCenterIndex.intValue = it },
+                        numericKeyboardTarget = numericKeyboardTarget,
+                        onNumericKeyboardTargetChange = { numericKeyboardTarget = it },
+                        hapticFeedbackEnabled = hapticFeedbackEnabled,
+                        reducedMotion = reducedMotion,
+                        detailSheetHost = renderSetDetailSheetHost,
+                        modifier = Modifier.fillMaxWidth().padding(top = roomExtra * .1f)
+                            .voiceFlightTarget(voiceFieldTargetKey(exercise.id, setIndex, VoiceFlightField.QUANTITY)),
+                    )
+                    EffortBlock(
+                        effortScale = effortScale,
+                        selectedIndex = effortIndex,
+                        onSelect = { index -> onEffortSelected(index) },
+                        compact = tightCard,
+                        exerciseId = exercise.id,
+                        setIndex = setIndex,
+                        hapticFeedbackEnabled = hapticFeedbackEnabled,
+                        animate = effortAnimate && effortFireSecondsOverride == null,
+                        onClear = {
+                            effortIndex = null
+                            intensityText = ""
+                            reachedFailure = false
+                        },
+                    )
+                    LegacyDetailRow(
+                        partials = partialSets.sum().coerceAtLeast(0),
+                        romValue = romValue,
+                        onRomChange = { romValue = it },
+                        assistedReps = assistedRepsValue,
+                        tightCard = tightCard,
+                        quantityError = quantityError,
+                        effortHintVisible = effortHintVisible,
+                        hasChosenReportedEffort = hasChosenReportedEffort,
+                        reducedMotion = reducedMotion,
+                        hapticFeedbackEnabled = hapticFeedbackEnabled,
+                        onOpenDetails = { showFeedbackExtrasPopup = true },
+                        detailSheetHost = renderSetDetailSheetHost,
+                    )
                     modeResultContent?.invoke(liveMode)
                 }
+            }
 
 
 
@@ -4011,6 +3676,699 @@ internal fun SetInputCardV2(
 private val Ref02CardMuted = Color(0xFFB9B5AE)
 private val Ref02CardFaint = Color(0xFF92908A)
 
+@Composable
+private fun ModeLoadButton(
+    loadMode: LoadModeV2,
+    expanded: Boolean,
+    onOpen: () -> Unit,
+    onDismiss: () -> Unit,
+    onSelectLoadMode: (LoadModeV2) -> Unit,
+    quickLoads: List<QuickLoadChipOption>,
+    onQuickLoad: (QuickLoadChipOption) -> Unit,
+    weightText: String,
+    onWeightChange: (String) -> Unit,
+    bodyWeightText: String,
+    onBodyWeightChange: (String) -> Unit,
+    onSaveBodyWeight: (Double) -> Unit,
+) {
+    LiveLoadModeButton(
+        mode = loadMode,
+        expanded = expanded,
+        onOpen = onOpen,
+        onDismiss = onDismiss,
+        onSelect = onSelectLoadMode,
+        quickLoads = quickLoads,
+        onQuickLoad = onQuickLoad,
+        weightText = weightText,
+        onWeight = onWeightChange,
+        bodyWeightText = bodyWeightText,
+        onBodyWeight = onBodyWeightChange,
+        onSaveBodyWeight = onSaveBodyWeight,
+    )
+}
+
+@Composable
+private fun LegacyLoadHero(
+    plateHint: com.example.kpkn.domain.training.PlateLoadLabel?,
+    loadMode: LoadModeV2,
+    cardInset: androidx.compose.ui.unit.Dp,
+    tightCard: Boolean,
+    roomExtra: androidx.compose.ui.unit.Dp,
+    reportWeightText: String,
+    plannedWeightGhost: String?,
+    exercise: Exercise,
+    setIndex: Int,
+    currentSet: ExerciseSet,
+    numericKeyboardTarget: String?,
+    onNumericKeyboardTargetChange: (String?) -> Unit,
+    cardKeyboardFields: List<WorkoutKeyboardField>,
+    onApplyCardKeyboardFields: (List<String>) -> Unit,
+    onWeightKeyboardApplied: (String) -> Unit,
+    onUpdateActiveWeightText: (String) -> Unit,
+    bodyWeightText: String,
+    liveMode: LiveSetCardMode,
+    rmValues: LiveRmValues,
+    ghostSet: CompletedSet?,
+    onOpenLoadModeMenu: () -> Unit,
+    rmSheetOpen: Boolean,
+    onRmSheetOpenChange: (Boolean) -> Unit,
+    onShowHistory: () -> Unit,
+    onRmWeightEntered: (String) -> Unit,
+    onApplyRmPercent: (Double) -> Unit,
+    onEstimatedReps: (Int) -> Unit,
+    onRmReferenceChanged: (Double) -> Unit,
+    prLabel: String?,
+    modeButton: @Composable () -> Unit,
+) {
+    // `.v2-load` del prototipo 02: «CARGA» (o «LASTRE» / «AYUDA EXTERNA») con el modo a la derecha, la cifra en Syne con «kg» pegado y
+    // −/+ en cuadros de 36, y debajo la referencia con el icono de historial. Filete inferior al 6 %.
+    Column(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = cardInset)
+            .drawBehind { drawLine(Color(0x10FFFFFF), Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx()) }
+            .padding(top = (if (tightCard) 5.dp else 9.dp) + roomExtra * .12f, bottom = (if (tightCard) 5.dp else 7.dp) + roomExtra * .08f),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth().height(19.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                when (loadMode) {
+                    LoadModeV2.ASSISTED -> "AYUDA EXTERNA"
+                    LoadModeV2.LASTRE -> "LASTRE"
+                    else -> "CARGA"
+                },
+                // Con inventario de discos, cómo montar la carga va en la descripción accesible de la etiqueta.
+                modifier = Modifier.weight(1f)
+                    .then(if (plateHint == null) Modifier else Modifier.testTag("load-plate-label").semantics { contentDescription = plateHint.text }),
+                style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 1.sp),
+                color = Ref02CardMuted,
+            )
+            modeButton()
+        }
+        // Una carga larga («1.250,5») encoge la cifra en vez de montarse sobre «kg» y los botones − / +.
+        val heroChars = reportWeightText.ifBlank { plannedWeightGhost.orEmpty() }.length
+        val heroScale = when { heroChars <= 4 -> 1f; heroChars == 5 -> .8f; heroChars == 6 -> .68f; else -> .58f }
+        val heroSize = (if (tightCard) 40.sp else 47.sp) * heroScale
+        val heroStyle = TextStyle(
+            fontFamily = WizardFonts.display,
+            fontSize = heroSize,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = (-1.5).sp,
+            fontFeatureSettings = "'lnum' 1, 'tnum' 1",
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().height(if (tightCard) 48.dp else 56.dp).testTag("live-card-load-hero")
+                // Modo Voz (v-record): destino del vuelo de la carga dictada; brilla al recibirla.
+                .voiceFlightTarget(voiceFieldTargetKey(exercise.id, setIndex, VoiceFlightField.LOAD)),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            // Sin carga escrita se ve en tinta la del plan (es la que se registra); sin plan, «—» atenuado.
+            Row(Modifier.weight(1f), verticalAlignment = Alignment.Bottom) {
+                WorkoutNumericTriggerBox(
+                    value = reportWeightText,
+                    enabled = true,
+                    description = "Editar carga en kg",
+                    onOpen = { onNumericKeyboardTargetChange("weight") },
+                    modifier = Modifier.width(IntrinsicSize.Max),
+                    onSetText = onWeightKeyboardApplied,
+                ) {
+                    BasicTextField(
+                        value = reportWeightText,
+                        onValueChange = {},
+                        readOnly = true,
+                        modifier = Modifier.width(IntrinsicSize.Max),
+                        singleLine = true,
+                        textStyle = heroStyle.copy(color = WizardColors.text),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                        decorationBox = { innerTextField ->
+                            Box {
+                                if (reportWeightText.isBlank()) {
+                                    Text(plannedWeightGhost ?: "—", style = heroStyle,
+                                        color = if (plannedWeightGhost != null) WizardColors.text else Ref02CardFaint)
+                                }
+                                innerTextField()
+                            }
+                        },
+                    )
+                }
+                Text("kg", Modifier.padding(start = 4.dp, bottom = if (tightCard) 9.dp else 11.dp),
+                    style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp), color = Ref02CardFaint, maxLines = 1, softWrap = false)
+            }
+            val increment = quickLoadIncrementFor(exercise, currentSet)
+            fun adjust(direction: Int) {
+                val current = reportWeightText.replace(',', '.').toDoubleOrNull()
+                    ?: plannedWeightGhost?.replace(',', '.')?.toDoubleOrNull()
+                    ?: 0.0
+                onUpdateActiveWeightText(ref02Quantity((current + increment * direction).coerceAtLeast(0.0)))
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                Ref02StepButton(KpknLineIcons.Minus, "Disminuir carga", 36.dp, 36.dp) { adjust(-1) }
+                Ref02StepButton(KpknLineIcons.Plus, "Aumentar carga", 36.dp, 36.dp) { adjust(1) }
+            }
+        }
+        if (numericKeyboardTarget == "weight") WorkoutNumericKeyboardDialog(
+            title = "Carga · kg",
+            initialValue = reportWeightText,
+            allowDecimal = true,
+            fields = cardKeyboardFields,
+            initialFieldIndex = 0,
+            onApplyFields = { values ->
+                onApplyCardKeyboardFields(values)
+                onNumericKeyboardTargetChange(null)
+            },
+            onDismiss = { onNumericKeyboardTargetChange(null) },
+            onApply = { typed ->
+                onWeightKeyboardApplied(typed)
+                onNumericKeyboardTargetChange(null)
+            },
+        )
+        Row(
+            modifier = Modifier.fillMaxWidth().heightIn(min = 25.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            val bodyLoad = loadMode == LoadModeV2.BODYWEIGHT || loadMode == LoadModeV2.LASTRE || loadMode == LoadModeV2.ASSISTED
+            val missingBodyWeight = bodyLoad && bodyWeightText.isBlank()
+            val isRm = liveMode == LiveSetCardMode.RM
+            Text(
+                when {
+                    isRm -> "${rmValues.percent.toLiveNumberString()}% · RM ${rmValues.loadReference?.toLiveNumberString() ?: "—"} kg"
+                    missingBodyWeight -> "${liveLoadModeLabel(loadMode)} · añade tu peso corporal"
+                    bodyLoad -> "${liveLoadModeLabel(loadMode)} · corporal $bodyWeightText kg"
+                    else -> ghostSet?.let { previous ->
+                        buildString {
+                            append("Anterior · ")
+                            append(previous.weight.toTrimmedNumberString())
+                            append(" × ")
+                            append(previous.reps)
+                            previous.rir?.let { append(" · RIR $it") }
+                            // Pulido v1 (15): el ROM de la serie anterior («Anterior · 120 × 5 · ROM 100 %»).
+                            previous.rom?.let { append(" · ").append(liveSetRomLabel(it)) }
+                        }
+                    } ?: "Sin historial anterior"
+                } + (if (!bodyLoad && exercise.loadEstimate != null) " · ${VariantLoadEstimates.PRESCRIPTION_LABEL}" else ""),
+                modifier = Modifier.weight(1f)
+                    .then(if (missingBodyWeight) Modifier.clickable(role = Role.Button, onClick = onOpenLoadModeMenu) else Modifier)
+                    .then(exercise.loadEstimate?.takeIf { !bodyLoad }?.let { estimate ->
+                        Modifier.semantics { contentDescription = VariantLoadEstimates.accessibilityLabel(estimate, null) }
+                    } ?: Modifier)
+                    .testTag("live-card-load-reference"),
+                style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp),
+                color = if (missingBodyWeight) WizardColors.text else Ref02CardFaint,
+            )
+            // `.v2-reference > button`: el icono de historial (o la hoja del RM en una serie por porcentaje). Su zona táctil no crece
+            // en vertical: invadiría la del chip de vídeo de la cabecera de la cantidad, justo debajo.
+            val baseViewConfiguration = androidx.compose.ui.platform.LocalViewConfiguration.current
+            val flatTouch = remember(baseViewConfiguration) {
+                object : androidx.compose.ui.platform.ViewConfiguration by baseViewConfiguration {
+                    override val minimumTouchTargetSize = androidx.compose.ui.unit.DpSize(48.dp, 0.dp)
+                }
+            }
+            CompositionLocalProvider(androidx.compose.ui.platform.LocalViewConfiguration provides flatTouch) {
+                Box(
+                    Modifier.size(width = 28.dp, height = 25.dp)
+                        .clickable(role = Role.Button) { if (isRm) onRmSheetOpenChange(true) else onShowHistory() }
+                        .semantics { contentDescription = "Consultar referencia" }
+                        .testTag("live-card-reference-history"),
+                    contentAlignment = Alignment.Center,
+                ) { Icon(KpknLineIcons.History, null, Modifier.size(14.dp), tint = Ref02CardMuted) }
+            }
+        }
+    }
+    if (rmSheetOpen) {
+        LiveSheet(title = "Referencia de RM", onDismiss = { onRmSheetOpenChange(false) }, tag = "live-rm-sheet") {
+            LiveRmFocus(
+                rmValues,
+                reportWeightText,
+                onWeight = onRmWeightEntered,
+                onPercent = onApplyRmPercent,
+                onEstimatedReps = onEstimatedReps,
+                onReference = onRmReferenceChanged,
+                prLabel = prLabel,
+                fallbackWeight = plannedWeightGhost,
+                modeButton = modeButton,
+            )
+        }
+    }
+}
+
+/** «Detalle del registro» (prototipo 02): sustituye a los popups de reps con ayuda, parciales y ROM. */
+@Composable
+private fun SetDetailSheetHost(
+    visible: Boolean,
+    exercise: Exercise,
+    setIndex: Int,
+    reportValueText: String,
+    isFailedSet: Boolean,
+    onCompleteReps: (String) -> Unit,
+    partials: Int,
+    onPartials: (Int) -> Unit,
+    assistedReps: Int,
+    onAssisted: (Int) -> Unit,
+    romValue: Int?,
+    onRomToggle: (Boolean) -> Unit,
+    onRom: (Int) -> Unit,
+    saveToProgram: Boolean,
+    onSaveToProgramChange: ((Boolean) -> Unit)?,
+    note: String,
+    onNote: (String) -> Unit,
+    onDismiss: () -> Unit,
+    isTimeMode: Boolean,
+) {
+    if (!visible) return
+    LiveSetDetailSheet(
+        exerciseName = displayWorkoutExerciseName(exercise),
+        setLabel = (setIndex + 1).toString(),
+        completeReps = reportValueText,
+        onCompleteReps = onCompleteReps,
+        partials = partials,
+        onPartials = onPartials,
+        assisted = assistedReps,
+        onAssisted = onAssisted,
+        romOn = romValue != null,
+        rom = romValue,
+        onRomToggle = onRomToggle,
+        onRom = onRom,
+        saveToProgram = saveToProgram,
+        onSaveToProgramChange = onSaveToProgramChange,
+        note = note,
+        onNote = onNote,
+        onDismiss = onDismiss,
+        showCompleteReps = !isTimeMode,
+    )
+}
+
+@Composable
+private fun LegacyDetailRow(
+    partials: Int,
+    romValue: Int?,
+    onRomChange: (Int) -> Unit,
+    assistedReps: Int,
+    tightCard: Boolean,
+    quantityError: String?,
+    effortHintVisible: Boolean,
+    hasChosenReportedEffort: Boolean,
+    reducedMotion: Boolean,
+    hapticFeedbackEnabled: Boolean,
+    onOpenDetails: () -> Unit,
+    detailSheetHost: @Composable () -> Unit,
+) {
+    // `.lv-det` / `.lv-rom` del lienzo. Sin ROM, el resumen de parciales y ayuda (o «Parciales, ayuda y ROM ›»); si hay que avisar, el
+    // aviso en línea. Con ROM (el ejercicio lo registra: `Exercise.trackRom`, o se encendió en la hoja) ese mismo hueco lleva la banda
+    // de 36 dp: ROM y valor, el deslizador de 10 a 100 % y «Detalle ›», que abre la hoja. La tarjeta no cambia de tamaño.
+    val romOn = romValue != null
+    val rowMin = if (tightCard) 26.dp else 27.dp
+    val summary = buildList {
+        if (partials > 0) add("+$partials parciales")
+        if (assistedReps > 0) add("$assistedReps con ayuda")
+    }.joinToString(" · ").ifBlank { "Parciales, ayuda y ROM" }
+    val inlineError = quantityError ?: if (effortHintVisible && !hasChosenReportedEffort) "Marca tu esfuerzo antes de registrar." else null
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .heightIn(min = rowMin)
+            // Con la banda la fila no es un botón entera (arrastrar el deslizador no puede abrir la hoja): abre «Detalle ›».
+            .then(if (inlineError == null && !romOn) Modifier.clickable(role = Role.Button, onClickLabel = "Abrir detalle del registro", onClick = onOpenDetails) else Modifier)
+            .testTag("live-card-detail"),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        // El aviso en línea y el resumen se funden entre sí (nada aparece de golpe al marcar o al fallar el registro).
+        Crossfade(
+            targetState = inlineError,
+            modifier = Modifier.weight(1f),
+            animationSpec = if (reducedMotion) snap() else tween(200, easing = FastOutSlowInEasing),
+            label = "live-card-detail-swap",
+        ) { shownError ->
+            if (shownError != null) {
+                Text(shownError, Modifier.fillMaxWidth().testTag("live-card-inline-error").semantics { liveRegion = LiveRegionMode.Polite },
+                    style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp), color = Color(0xFFFFB5AD))
+            } else if (romOn) {
+                // pulido:lv-A11 lv-T08
+                RomBand(
+                    value = romValue ?: LiveRomFullPercent,
+                    onValueChange = onRomChange,
+                    hasDetail = partials > 0 || assistedReps > 0,
+                    onOpenDetail = onOpenDetails,
+                    hapticsEnabled = hapticFeedbackEnabled,
+                )
+            } else {
+                Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(summary, modifier = Modifier.weight(1f), style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, lineHeight = 13.sp),
+                        color = Ref02CardMuted)
+                    Icon(KpknLineIcons.ChevronRight, null, tint = Ref02CardMuted, modifier = Modifier.size(12.dp))
+                }
+            }
+        }
+    }
+    detailSheetHost()
+}
+
+@Composable
+private fun ValueStepperBlock(
+    exercise: Exercise,
+    setIndex: Int,
+    sideKey: String,
+    supportsIndependentSides: Boolean,
+    selectedSide: String,
+    leftValueGhost: String,
+    rightValueGhost: String,
+    plannedValueGhost: String,
+    reportValueText: String,
+    isFailedSet: Boolean,
+    isAmrap: Boolean,
+    amrapMinimumReps: Int?,
+    plannedRepRange: RepRange?,
+    plannedTarget: Int?,
+    currentSet: ExerciseSet,
+    legacyModeLayout: Boolean,
+    resolvedPlannedUnitMode: UnitModeV2,
+    isTimeMode: Boolean,
+    timerRunning: Boolean,
+    timerElapsedSeconds: Int,
+    timerRemainingSeconds: Int,
+    roomyStepper: Boolean,
+    sessionAccentColor: Color,
+    videoAnalysis: com.example.kpkn.screens.workout.SetVideoAnalysisUi?,
+    onShowDetails: () -> Unit,
+    onDismissDetails: () -> Unit,
+    onApplyVideoResult: (com.example.kpkn.screens.workout.SetVideoAnalysisState.Suggest) -> Unit,
+    onVideoCorrect: (com.example.kpkn.screens.workout.SetVideoAnalysisState.Mismatch) -> Unit,
+    onVideoMarkFailure: () -> Unit,
+    onOpenAnalysis: (String) -> Unit,
+    onRetryAnalysis: ((String) -> Unit)?,
+    onToggleTimer: () -> Unit,
+    cardKeyboardFields: List<WorkoutKeyboardField>,
+    onApplyCardKeyboardFields: (List<String>) -> Unit,
+    onUpdateActiveValueText: (String) -> Unit,
+    onManualTimeEntered: (Int) -> Unit,
+    onUpdateRepsWheelCenter: (Int) -> Unit,
+    numericKeyboardTarget: String?,
+    onNumericKeyboardTargetChange: (String?) -> Unit,
+    hapticFeedbackEnabled: Boolean,
+    reducedMotion: Boolean,
+    detailSheetHost: @Composable () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val density = LocalDensity.current
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        var showVideoMenu by remember(exercise.id, setIndex, sideKey, videoAnalysis?.mediaId) { mutableStateOf(false) }
+        // El plan frente a lo marcado (cabecera del carrusel de repeticiones). pulido:lv-A03
+        val ghostForPlan = if (supportsIndependentSides) { if (selectedSide == "left") leftValueGhost else rightValueGhost } else plannedValueGhost
+        val currentReps = if (isFailedSet) 0 else reportValueText.toIntOrNull() ?: ghostForPlan.toIntOrNull() ?: 0
+        val planMinReps: Int? = if (isAmrap) amrapMinimumReps else (plannedRepRange?.min ?: plannedTarget?.takeIf { it > 0 })
+        val planMaxReps: Int? = if (isAmrap) null else (plannedRepRange?.max ?: planMinReps)
+        val repsPlanLabel = RepsCarouselMath.label(
+            value = currentReps, min = planMinReps, max = planMaxReps, amrap = isAmrap, failed = isFailedSet,
+            noPlan = if (isAmrap) (if (currentSet.purpose == com.example.kpkn.data.models.SetPurpose.CALIBRATOR) "0 reps permitido" else "Sin mínimo") else "",
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(if (legacyModeLayout) 21.dp else 24.dp)
+                .testTag("set_reps_header"),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(2.dp),
+            ) {
+                Text(
+                    when (resolvedPlannedUnitMode) {
+                        UnitModeV2.TIME -> "TIEMPO"
+                        UnitModeV2.DISTANCE -> "DISTANCIA"
+                        UnitModeV2.CUSTOM -> (exercise.customUnit?.takeIf { it.isNotBlank() } ?: "Cantidad").uppercase()
+                        UnitModeV2.REPS -> if (legacyModeLayout) "REPETICIONES" else "REPS"
+                    },
+                    style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.sp),
+                    color = Ref02CardMuted,
+                )
+                if (isTimeMode && !legacyModeLayout) {
+                    // Ley 1 (LV8): lo que decía el temporizador debajo del todo, ya sin sitio en la tarjeta, va aquí en una línea.
+                    val timerSupport = when {
+                        timerRunning -> "Restan ${formatTime(timerRemainingSeconds)}"
+                        timerElapsedSeconds > 0 -> "Registrado ${timerElapsedSeconds}s"
+                        plannedTarget != null -> "Objetivo ${plannedTarget}s"
+                        else -> null
+                    }
+                    timerSupport?.let { support ->
+                        Text(
+                            " · $support",
+                            style = KpknType.caption.copy(fontSize = 11.sp, lineHeight = 14.sp),
+                            color = if (timerRunning) sessionAccentColor else WizardColors.textFaint,
+                            maxLines = 1,
+                        )
+                    }
+                }
+                if (!isTimeMode && !legacyModeLayout) {
+                    Box(
+                        modifier = Modifier
+                            .size(16.dp)
+                            .clip(CircleShape)
+                            .clickable(role = Role.Button, onClick = onShowDetails),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Icon(
+                            KpknLineIcons.Plus,
+                            contentDescription = "Detalle del registro: parciales, ayuda y ROM",
+                            modifier = Modifier.size(12.dp),
+                            tint = WizardColors.textMuted,
+                        )
+                        detailSheetHost()
+                    }
+                }
+            }
+            Spacer(Modifier.weight(1f))
+            // A la derecha de la cabecera: el reloj de la serie por tiempo o, en repeticiones, el plan frente a lo marcado
+            // («Plan 4–6 ✓», «Plan 5 · −1», «Mínimo 8», «Serie fallida»). pulido:lv-J04
+            if (resolvedPlannedUnitMode == UnitModeV2.REPS) {
+                Row(
+                    Modifier.semantics(mergeDescendants = true) {}.testTag(if (isAmrap) "amrap-purpose-badge" else "live-card-plan-label"),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    if (repsPlanLabel.inPlan) Icon(KpknLineIcons.Check, null, Modifier.size(12.dp), tint = WizardColors.text)
+                    Text(
+                        repsPlanLabel.text,
+                        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 11.sp, fontWeight = FontWeight.Medium,
+                            fontFeatureSettings = "'tnum' 1, 'lnum' 1"),
+                        color = if (repsPlanLabel.inPlan) WizardColors.text else Ref02CardFaint,
+                        maxLines = 1, softWrap = false,
+                    )
+                }
+            } else if (legacyModeLayout && isAmrap) {
+                Text(
+                    when {
+                        amrapMinimumReps != null -> "Mínimo $amrapMinimumReps"
+                        currentSet.purpose == com.example.kpkn.data.models.SetPurpose.CALIBRATOR -> "0 reps permitido"
+                        else -> "Sin mínimo"
+                    },
+                    Modifier.testTag("amrap-purpose-badge"),
+                    style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp), color = Ref02CardFaint,
+                )
+            }
+            if (resolvedPlannedUnitMode == UnitModeV2.REPS) videoAnalysis?.let { analysis ->
+                Box {
+                    WorkoutVideoChip(
+                        value = analysis,
+                        onClick = {
+                            onDismissDetails()
+                            showVideoMenu = true
+                        },
+                        sessionAccentColor = sessionAccentColor,
+                    )
+                    if (showVideoMenu && analysis.state !is SetVideoAnalysisState.Unsupported) {
+                        Popup(
+                            popupPositionProvider = remember(density) {
+                                WorkoutVideoMenuPositionProvider(with(density) { 14.dp.roundToPx() })
+                            },
+                            onDismissRequest = { showVideoMenu = false },
+                            properties = PopupProperties(focusable = true),
+                        ) {
+                            WorkoutVideoRepsSuggestion(
+                                value = analysis,
+                                onUse = { result ->
+                                    onApplyVideoResult(result)
+                                    showVideoMenu = false
+                                },
+                                onCorrect = { onVideoCorrect(it); showVideoMenu = false },
+                                onMarkFailure = {
+                                    onVideoMarkFailure()
+                                    showVideoMenu = false
+                                },
+                                onOpenAnalysis = { onOpenAnalysis(it); showVideoMenu = false },
+                                onRetryAnalysis = onRetryAnalysis?.let { retry ->
+                                    { id -> retry(id); showVideoMenu = false }
+                                },
+                                modifier = Modifier.width(264.dp)
+                                    .testTag(WorkoutVideoMenuTag)
+                                    .background(Color(0xFF151515), RoundedCornerShape(16.dp))
+                                    .border(1.dp, WizardColors.text.copy(alpha = 0.10f), RoundedCornerShape(16.dp))
+                                    .verticalScroll(rememberScrollState())
+                                    .padding(14.dp),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+        Spacer(modifier = Modifier.height(if (legacyModeLayout) 0.dp else if (roomyStepper) 8.dp else 6.dp))
+
+        if (isTimeMode) {
+            val progress = plannedTarget?.takeIf { it > 0 }
+                ?.let { (timerElapsedSeconds.toFloat() / it.toFloat()).coerceIn(0f, 1f) }
+            val completedGoal = !timerRunning && progress == 1f
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 6.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFF202020))
+                        .border(1.dp, sessionAccentColor.copy(alpha = 0.45f), RoundedCornerShape(12.dp))
+                        .clickable(enabled = !isFailedSet, role = Role.Button, onClick = onToggleTimer)
+                        .semantics { contentDescription = "Iniciar el cronómetro de la serie" }
+                        .testTag("live-card-set-clock")
+                        .padding(horizontal = 12.dp, vertical = 10.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Icon(
+                        KpknLineIcons.Play,
+                        contentDescription = null,
+                        modifier = Modifier.size(14.dp),
+                        tint = sessionAccentColor,
+                    )
+                    Spacer(Modifier.size(6.dp))
+                    Text(
+                        when {
+                            completedGoal -> "Reiniciar (${formatTime(timerElapsedSeconds)})"
+                            timerElapsedSeconds > 0 -> "Reanudar (${formatTime(timerElapsedSeconds)})"
+                            plannedTarget != null && plannedTarget > 0 -> "Iniciar timer (${formatTime(plannedTarget)})"
+                            else -> "Iniciar timer"
+                        },
+                        style = KpknType.action.copy(fontSize = 13.sp, fontWeight = FontWeight.SemiBold),
+                        color = WizardColors.text,
+                    )
+                }
+            }
+        }
+
+        val quantityGhost = if (supportsIndependentSides) {
+            if (selectedSide == "left") leftValueGhost else rightValueGhost
+        } else {
+            plannedValueGhost
+        }
+        if (legacyModeLayout && resolvedPlannedUnitMode != UnitModeV2.REPS) {
+            // En una serie por tiempo, antes de arrancar el reloj el campo enseña el objetivo del plan (como la carga del plan).
+            val timeNotStarted = isTimeMode && !timerRunning && timerElapsedSeconds == 0
+            Ref02QuantityInput(
+                value = if (isFailedSet) "0" else if (timeNotStarted && reportValueText == "0") "" else reportValueText,
+                placeholder = quantityGhost.takeIf { it.isNotBlank() && it != "0" }
+                    ?: plannedTarget?.takeIf { isTimeMode && it.toDouble() > 0.0 }?.let { it.toDouble().toTrimmedNumberString() },
+                unit = when (resolvedPlannedUnitMode) {
+                    UnitModeV2.TIME -> "s"
+                    UnitModeV2.DISTANCE -> "m"
+                    else -> exercise.customUnit?.takeIf { it.isNotBlank() } ?: "u"
+                },
+                decimal = resolvedPlannedUnitMode != UnitModeV2.REPS,
+                allowColon = isTimeMode,
+                fields = cardKeyboardFields,
+                initialFieldIndex = 1,
+                onApplyFields = onApplyCardKeyboardFields,
+                enabled = !isFailedSet && !timerRunning,
+                onValueChange = {
+                    onUpdateActiveValueText(it)
+                    if (isTimeMode) {
+                        parseLiveDurationSeconds(it)?.let(onManualTimeEntered)
+                    }
+                },
+                onStep = { step ->
+                    val current = (if (isTimeMode) parseLiveDurationSeconds(reportValueText)?.toDouble() else null)
+                        ?: reportValueText.replace(',', '.').toDoubleOrNull()
+                        ?: quantityGhost.replace(',', '.').toDoubleOrNull() ?: 0.0
+                    onUpdateActiveValueText(ref02Quantity((current + step).coerceAtLeast(0.0)))
+                },
+            )
+        } else {
+            // El ✓ lee las repeticiones del centro del carrusel: se mantiene en la cifra que se ve.
+            SideEffect { onUpdateRepsWheelCenter(currentReps) }
+            RepsCarousel(
+                value = currentReps,
+                onValueChange = { next ->
+                    onUpdateActiveValueText(next.toString())
+                    onUpdateRepsWheelCenter(next)
+                },
+                planMin = planMinReps,
+                planMax = planMaxReps,
+                amrap = isAmrap,
+                failed = isFailedSet,
+                lastValue = RepsCarouselMath.lastValue(currentReps, quantityGhost.toIntOrNull() ?: planMaxReps),
+                modifier = Modifier.padding(top = 4.dp),
+                enabled = !isFailedSet,
+                belowPlanColor = sessionAccentColor,
+                hapticsEnabled = hapticFeedbackEnabled,
+                reducedMotion = reducedMotion,
+                onCenterValueClick = { onNumericKeyboardTargetChange("reps") },
+            )
+            if (numericKeyboardTarget == "reps") WorkoutNumericKeyboardDialog(
+                title = "Repeticiones",
+                initialValue = reportValueText,
+                allowDecimal = false,
+                fields = cardKeyboardFields,
+                initialFieldIndex = 1,
+                onApplyFields = { values ->
+                    onApplyCardKeyboardFields(values)
+                    onNumericKeyboardTargetChange(null)
+                },
+                onDismiss = { onNumericKeyboardTargetChange(null) },
+                onApply = { typed ->
+                    onUpdateActiveValueText(typed)
+                    onUpdateRepsWheelCenter(typed.toIntOrNull() ?: currentReps)
+                    onNumericKeyboardTargetChange(null)
+                },
+            )
+        }
+    }
+}
+
+@Composable
+private fun EffortBlock(
+    effortScale: EffortScale,
+    selectedIndex: Int?,
+    onSelect: (Int) -> Unit,
+    compact: Boolean,
+    exerciseId: String,
+    setIndex: Int,
+    hapticFeedbackEnabled: Boolean,
+    animate: Boolean,
+    onClear: () -> Unit,
+) {
+    // Pulido v1 (13): un solo esfuerzo, el del lienzo (`.lv-effb`); el viejo deslizador de fuego ya no se pinta.
+    LiveEffortRange(
+        scale = effortScale,
+        selectedIndex = selectedIndex,
+        onSelect = onSelect,
+        compact = compact,
+        modifier = Modifier.voiceFlightTarget(voiceFieldTargetKey(exerciseId, setIndex, VoiceFlightField.EFFORT)),
+        hapticsEnabled = hapticFeedbackEnabled,
+        // Un fotograma fijado (hojas de render y pruebas) o la tarjeta fuera de pantalla: el calor no corre.
+        animate = animate,
+        onClear = onClear,
+    )
+}
+
 /** `.step-buttons button`: cuadro de esquinas 12 con relleno blanco al 3 % e icono gris de 15. */
 @Composable
 private fun Ref02StepButton(
@@ -4039,6 +4397,9 @@ private fun Ref02QuantityInput(
     onValueChange: (String) -> Unit,
     onStep: (Int) -> Unit,
     allowColon: Boolean = false,
+    fields: List<WorkoutKeyboardField> = emptyList(),
+    initialFieldIndex: Int = 1,
+    onApplyFields: ((List<String>) -> Unit)? = null,
     contextValues: List<Pair<String, String>> = emptyList(),
     activeContextIndex: Int? = null,
 ) {
@@ -4047,23 +4408,31 @@ private fun Ref02QuantityInput(
         fontFeatureSettings = "'tnum' 1")
     Row(Modifier.fillMaxWidth().height(49.dp).testTag("live-card-quantity-input"), verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        BasicTextField(
+        WorkoutNumericTriggerBox(
             value = value,
-            onValueChange = {},
             enabled = enabled,
-            readOnly = true,
-            singleLine = true,
-            textStyle = style.copy(color = WizardColors.text),
-            keyboardOptions = KeyboardOptions(keyboardType = if (decimal || allowColon) KeyboardType.Text else KeyboardType.Number),
-            modifier = Modifier.width(130.dp).clickable(enabled = enabled, role = Role.Button) { keyboardOpen = true }
-                .semantics { contentDescription = "Cantidad registrada" },
-            decorationBox = { inner ->
-                Box {
-                    if (value.isBlank()) Text(placeholder ?: "—", style = style, color = if (placeholder != null) WizardColors.text else Ref02CardFaint)
-                    inner()
-                }
-            },
-        )
+            description = "Cantidad registrada",
+            onOpen = { keyboardOpen = true },
+            modifier = Modifier.width(130.dp),
+            onSetText = onValueChange,
+        ) {
+            BasicTextField(
+                value = value,
+                onValueChange = {},
+                enabled = enabled,
+                readOnly = true,
+                singleLine = true,
+                textStyle = style.copy(color = WizardColors.text),
+                keyboardOptions = KeyboardOptions(keyboardType = if (decimal || allowColon) KeyboardType.Text else KeyboardType.Number),
+                modifier = Modifier.fillMaxWidth(),
+                decorationBox = { inner ->
+                    Box {
+                        if (value.isBlank()) Text(placeholder ?: "—", style = style, color = if (placeholder != null) WizardColors.text else Ref02CardFaint)
+                        inner()
+                    }
+                },
+            )
+        }
         Text(unit, style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp), color = Ref02CardFaint)
         Spacer(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -4076,6 +4445,9 @@ private fun Ref02QuantityInput(
         initialValue = value,
         allowDecimal = decimal,
         allowColon = allowColon,
+        fields = fields,
+        initialFieldIndex = initialFieldIndex,
+        onApplyFields = onApplyFields,
         contextValues = contextValues,
         activeContextIndex = activeContextIndex,
         onDismiss = { keyboardOpen = false },

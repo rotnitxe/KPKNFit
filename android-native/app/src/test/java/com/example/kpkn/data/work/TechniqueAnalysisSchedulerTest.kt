@@ -706,6 +706,41 @@ class TechniqueAnalysisSchedulerTest {
         assertEquals(VideoAnalysisStatus.QUEUED, status(media.id))
     }
 
+    @Test
+    fun cancelAnalysis_cancels_work_clears_telemetry_and_drops_first_time_row() = runBlocking {
+        val media = TechniqueWorkTestKit.insertVideo(db, store, "cancel-new")
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.FULL))
+        val partFile = TechniqueSidecars.partFile(File(media.filePath)).apply { writeText("partial") }
+        VideoAnalysisRepository.publishLiveTelemetry(
+            com.example.kpkn.data.media.technique.LiveAnalysisTelemetry(
+                mediaId = media.id,
+                phase = com.example.kpkn.data.media.technique.LiveAnalysisPhase.POSE_AND_BAR,
+                progressPct = 42,
+            ),
+        )
+        assertNotNull(VideoAnalysisRepository.liveTelemetryFlow.value[media.id])
+
+        assertTrue(repository.cancelAnalysis(media.id))
+
+        assertTrue(infos(media.id).all { it.state == WorkInfo.State.CANCELLED || it.state.isFinished })
+        assertNull(status(media.id))
+        assertFalse(partFile.exists())
+        assertNull(VideoAnalysisRepository.liveTelemetryFlow.value[media.id])
+        assertNull(repository.pendingManualAnalysisRequest(media.id))
+    }
+
+    @Test
+    fun cancelAnalysis_restores_prior_done_row_when_recompute_was_active() = runBlocking {
+        val media = analyzedVideo("cancel-recompute")
+        assertTrue(repository.requestAnalysis(media.id, AnalysisMode.FULL))
+        assertEquals(VideoAnalysisStatus.QUEUED, status(media.id))
+
+        assertTrue(repository.cancelAnalysis(media.id))
+
+        assertEquals(VideoAnalysisStatus.DONE, status(media.id))
+        assertNull(repository.pendingManualAnalysisRequest(media.id))
+    }
+
     private companion object {
         val BATTERY_NOT_LOW: Constraints = Constraints.Builder().setRequiresBatteryNotLow(true).build()
         const val ROW_COLUMNS =

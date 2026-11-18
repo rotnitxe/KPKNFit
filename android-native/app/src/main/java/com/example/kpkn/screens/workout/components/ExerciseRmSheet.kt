@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout.components
 
+import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.screens.workout.declaredWorkoutRmReference
 import com.example.kpkn.screens.workout.eligibleWorkoutRmEstimate
@@ -146,14 +147,78 @@ internal fun ExerciseRmSheet(
     onTagSelected: (String?) -> Unit = {},
     currentTagId: String? = selectedTagId,
 ) {
-    val expectedLoadMode = exercise.sets.mapNotNull { it.loadModeV2 }.distinct().singleOrNull()
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val resolvedExercise = remember(exercise, selectedTagId, currentTagId) {
+        val targetTag = selectedTagId ?: currentTagId ?: exercise.workoutTagId
+        val switchingTag = selectedTagId != null && selectedTagId != exercise.workoutTagId
+        val needsShared = switchingTag ||
+            exercise.reference1RM == null ||
+            exercise.prFor1RM == null ||
+            exercise.referenceTrainingMax == null
+        if (!needsShared) {
+            exercise
+        } else {
+            val configId = com.example.kpkn.data.exercises.sharedLoadConfigurationId(exercise)
+            val repo = configId?.let { runCatching { com.example.kpkn.data.repository.SharedExerciseLoadReferenceRepository.getInstance(context) }.getOrNull() }
+            if (repo == null) {
+                exercise
+            } else {
+                val cfgId = configId ?: return@remember exercise
+                val exerciseKey = exercise.resolvedCanonicalExerciseId()
+                val unit = exercise.trainingMode.toUnitModeV2()
+                val mode = exercise.sets.firstNotNullOfOrNull { it.loadModeV2 } ?: LoadModeV2.LOAD
+                fun refFor(kind: com.example.kpkn.data.models.SharedLoadReferenceKind) = repo.getCompatible(
+                    com.example.kpkn.data.models.SharedExerciseLoadReference(
+                        id = com.example.kpkn.data.models.sharedLoadReferenceId(
+                            exerciseKey, cfgId, targetTag, unit, mode, exercise.loadQuantityConvention, kind,
+                        ),
+                        exerciseKey = exerciseKey,
+                        configurationId = cfgId,
+                        tagId = targetTag,
+                        unitMode = unit,
+                        loadMode = mode,
+                        quantityConvention = exercise.loadQuantityConvention,
+                        kind = kind,
+                        baseValueKg = 0.0,
+                        sourceAtMs = 0L,
+                        sourceId = "",
+                    ),
+                )
+                val prRef = refFor(com.example.kpkn.data.models.SharedLoadReferenceKind.ESTIMATED_PR)
+                val oneRmRef = refFor(com.example.kpkn.data.models.SharedLoadReferenceKind.ONE_RM)
+                val tmRef = refFor(com.example.kpkn.data.models.SharedLoadReferenceKind.TRAINING_MAX)
+                val obsRef = refFor(com.example.kpkn.data.models.SharedLoadReferenceKind.OBSERVED_SESSION)
+                val shared1Rm = prRef?.suggestedValueKg() ?: oneRmRef?.suggestedValueKg() ?: obsRef?.suggestedValueKg()
+                val sharedPr = prRef?.let { r ->
+                    val w = r.prWeightKg
+                    val reps = r.prReps
+                    if (w != null && w > 0.0 && reps != null && reps > 0) PrReference(w, reps, r.effortMode, r.effortValue) else null
+                }
+                val sharedTm = tmRef?.suggestedValueKg()
+                if (switchingTag) {
+                    exercise.copy(
+                        reference1RM = shared1Rm,
+                        prFor1RM = sharedPr,
+                        referenceTrainingMax = sharedTm,
+                    )
+                } else {
+                    exercise.copy(
+                        reference1RM = exercise.reference1RM ?: shared1Rm,
+                        prFor1RM = exercise.prFor1RM ?: sharedPr,
+                        referenceTrainingMax = exercise.referenceTrainingMax ?: sharedTm,
+                    )
+                }
+            }
+        }
+    }
+    val expectedLoadMode = resolvedExercise.sets.mapNotNull { it.loadModeV2 }.distinct().singleOrNull()
     val selectedTagName = tagOptions.firstOrNull { it.id == selectedTagId || it.name == selectedTagId }?.name
-    val reference = remember(history, currentSets, exercise, expectedLoadMode, selectedTagId, selectedTagName, currentTagId) {
-        buildExerciseRmReference(history, currentSets, exercise = exercise, expectedLoadMode = expectedLoadMode,
+    val reference = remember(history, currentSets, resolvedExercise, expectedLoadMode, selectedTagId, selectedTagName, currentTagId) {
+        buildExerciseRmReference(history, currentSets, exercise = resolvedExercise, expectedLoadMode = expectedLoadMode,
             selectedTagId = selectedTagId, selectedTagName = selectedTagName, currentTagId = currentTagId)
     }
-    val trainingMax = exercise.referenceTrainingMax?.takeIf { it.isFinite() && it > 0.0 }
-    val ranges = remember(exercise, currentSets) { exerciseRmSessionRanges(exercise, currentSets) }
+    val trainingMax = resolvedExercise.referenceTrainingMax?.takeIf { it.isFinite() && it > 0.0 }
+    val ranges = remember(resolvedExercise, currentSets) { exerciseRmSessionRanges(resolvedExercise, currentSets) }
     val rows = remember(reference, ranges) { buildExerciseRmRows(reference, ranges) }
     val ink = Color(0xFFF2EEE6)
     KpknSheet(backdropScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Veil, additionalGlassScrim = com.example.kpkn.screens.workout.components.LiveSheetTokens.Panel, onDismissRequest = onDismiss, hazeState = hazeState, stableHeightFraction = .9f, modifier = Modifier.testTag("exercise-rm-sheet")) {

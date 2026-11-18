@@ -650,12 +650,9 @@ class PrepLiveCardsUiTest {
     }
 
 
-    /** Pestañas de la tarjeta: Checklist (la que abre), Movimiento (0) y Articulaciones (2). */
-    private fun openMovement() { rule.onNodeWithTag("mob-view-0").performClick() }
-
-    /** La guía de un movimiento (con su reloj, si es de tiempo) vive en su hoja; se abre desde el «i» de la fila del Checklist. */
+    /** Pestañas de la tarjeta: Checklist (1, por defecto) y Articulaciones (2); la foto/guía vive por fila. */
     private fun openGuide(name: String) {
-        rule.onNodeWithContentDescription("Detalle de $name").performClick()
+        rule.onNodeWithContentDescription("Ver foto y detalle de $name").performClick()
         rule.waitForIdle()
     }
 
@@ -664,15 +661,14 @@ class PrepLiveCardsUiTest {
         assertNoOwnRecordButtons()
         assertRoadmapLabel(h.fab, "Registrar movimiento 1")
         val skip = nodeOfTag("prep-skip"); assertInside(card, "Omitir", skip.boundsInRoot); assertTouch("Omitir", skip)
-        (0..2).forEach { assertInside(card, "pestaña $it", bounds("mob-view-$it")) }
+        rule.onNodeWithTag("mob-view-0").assertDoesNotExist()
+        listOf(1, 2).forEach { assertInside(card, "pestaña $it", bounds("mob-view-$it")) }
         assertInside(card, "mensajes", bounds("mob-status"))
         assertInside(card, "lista", bounds("mob-list-pane"))
         rule.onNodeWithText("MOVILIDAD").assertIsDisplayed()
         rule.onNodeWithText("Prepara el movimiento.").assertIsDisplayed()
         rule.onNodeWithTag("mob-count", useUnmergedTree = true).assertTextEquals("0 / 3")
-        openMovement()
-        assertInside(card, "panel del movimiento", bounds("mob-movement-pane"))
-        val guide = nodeOfTag("mob-open-guide"); assertInside(card, "Ver guía", guide.boundsInRoot); assertTouch("Ver guía", guide)
+        assertInside(card, "botón Ver foto", bounds("mob-row-m1-photo"))
     }
 
     /** El descanso corto sustituye el contenido de la tarjeta de movilidad. */
@@ -715,12 +711,8 @@ class PrepLiveCardsUiTest {
     @Test fun h6ARepsMovementShowsItsDoseAndHasNoClock() {
         showMobility(MobilityHarness(mobilityItems()))
         assertNoStatus("mob-status")
-        openMovement()
-        rule.onNodeWithTag("mob-movement-pane").assertIsDisplayed()
-        rule.onNodeWithText("10 reps").assertIsDisplayed()
         rule.onNodeWithText("Gato-vaca").assertIsDisplayed()
-        rule.onNodeWithTag("mob-open-guide").performClick()
-        rule.waitForIdle()
+        openGuide("Gato-vaca")
         rule.onNodeWithTag("mob-dose-summary", useUnmergedTree = true).assertTextEquals("10 reps")
         rule.onNodeWithText("Respira con calma.").assertIsDisplayed()
         rule.onNodeWithTag("mob-dose", useUnmergedTree = true).assertDoesNotExist()
@@ -774,8 +766,7 @@ class PrepLiveCardsUiTest {
         assertStatus("mob-status", "Movimiento 1 hecho.")
         rule.onNodeWithTag("mob-count", useUnmergedTree = true).assertTextEquals("1 / 3")
         assertRoadmapLabel(h.fab, "Registrar movimiento 2")
-        // El movimiento en pantalla pasa al siguiente pendiente.
-        openMovement()
+        // El siguiente movimiento pendiente sigue visible en el checklist.
         rule.onNodeWithText("Movilidad de cadera").assertIsDisplayed()
     }
 
@@ -969,8 +960,8 @@ class PrepLiveCardsUiTest {
     @Test fun renderH5At740WithLargeFont() { showWarmup(WarmupHarness(threeRows()), 740, 1.3f); assertFrame(740, adaptHeight = true); render("h5-740-130") }
     @Test fun renderH6RepsAt880() { showMobility(MobilityHarness(mobilityItems())); assertFrame(880); render("h6-reps-880") }
     @Test fun renderH6RepsAt740() { showMobility(MobilityHarness(mobilityItems()), 740); assertFrame(740); render("h6-reps-740") }
-    @Test fun renderH6MovementAt880() { showMobility(MobilityHarness(mobilityItems())); openMovement(); assertFrame(880); render("h6-movimiento-880") }
-    @Test fun renderH6MovementAt740() { showMobility(MobilityHarness(mobilityItems()), 740); openMovement(); assertFrame(740); render("h6-movimiento-740") }
+    @Test fun renderH6MovementAt880() { showMobility(MobilityHarness(mobilityItems())); openGuide("Movilidad de cadera"); render("h6-movimiento-880") }
+    @Test fun renderH6MovementAt740() { showMobility(MobilityHarness(mobilityItems()), 740); openGuide("Movilidad de cadera"); render("h6-movimiento-740") }
     @Test fun renderH6ListAt880() { showMobility(MobilityHarness(mobilityItems(8))); assertFrame(880); render("h6-lista-880") }
     @Test fun renderH6ListAt740() { showMobility(MobilityHarness(mobilityItems(8)), 740); assertFrame(740); render("h6-lista-740") }
     @Test fun renderH6JointsAt880() { showMobility(MobilityHarness(mobilityItems())); rule.onNodeWithTag("mob-view-2").performClick(); assertFrame(880); render("h6-articulaciones-880") }

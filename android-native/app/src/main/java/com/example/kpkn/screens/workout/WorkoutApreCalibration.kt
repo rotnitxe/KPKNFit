@@ -3,9 +3,11 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.data.models.*
 import com.example.kpkn.data.protocols.ProgressionRule
 import com.example.kpkn.domain.calibration.*
+import com.example.kpkn.domain.exercises.resolvedCanonicalExerciseId
 import com.example.kpkn.domain.training.Apre
 import com.example.kpkn.domain.training.LiveApreBlock
 import com.example.kpkn.domain.training.resolveLiveApreBlock
+import com.example.kpkn.domain.workout.WorkoutTagResolver
 import java.util.UUID
 
 internal fun liveApreBlock(state: WorkoutUiState, exercise: Exercise): LiveApreBlock? = resolveLiveApreBlock(
@@ -146,9 +148,40 @@ internal fun buildRecordedApreCalibration(
 internal fun buildRecordedApreXrm(
     state: WorkoutUiState, exercise: Exercise, index: Int, completed: CompletedSet, now: Long,
     inventory: EquipmentInventory? = null,
-): ApreXrmCapture? = com.example.kpkn.domain.training.captureApreXrm(
-    exercise, index, completed, state.livePlanContext?.sourceProtocolId,
-    state.livePlanContext?.progression is ProgressionRule.ApreXrm,
-    calibrationIncrement(exercise, exercise.sets[index], inventory), now,
-    state.programId.takeIf { it.isNotBlank() }, calibrationContextForSet(state, exercise, index, completed.side, completed),
-)
+): ApreXrmCapture? {
+    val plannedSet = exercise.sets.getOrNull(index) ?: return null
+    val plannedContext = com.example.kpkn.domain.training.plannedApreContext(exercise, plannedSet, completed.side)
+    val liveContext = calibrationContextForSet(state, exercise, index, completed.side, completed)
+    val effectiveContext = normalizeDefaultTagInLiveApreContext(state, exercise, liveContext, plannedContext)
+    return com.example.kpkn.domain.training.captureApreXrm(
+        exercise, index, completed, state.livePlanContext?.sourceProtocolId,
+        state.livePlanContext?.progression is ProgressionRule.ApreXrm,
+        calibrationIncrement(exercise, plannedSet, inventory), now,
+        state.programId.takeIf { it.isNotBlank() }, effectiveContext,
+    )
+}
+
+private fun normalizeDefaultTagInLiveApreContext(
+    state: WorkoutUiState,
+    exercise: Exercise,
+    live: CalibrationContext,
+    planned: CalibrationContext,
+): CalibrationContext {
+    val liveParts = live.equipmentKey.split('|')
+    val plannedParts = planned.equipmentKey.split('|')
+    if (liveParts.size != 6 || plannedParts.size != 6) return live
+    val canonicalId = exercise.resolvedCanonicalExerciseId()
+    val defaultTagTokens = state.userCreatedTags.values.asSequence()
+        .flatten()
+        .filter { tag ->
+            tag.exerciseKey == canonicalId &&
+                (tag.isDefault || (tag.ownsUntaggedHistory && WorkoutTagResolver.isDefaultName(tag.name)))
+        }
+        .flatMap { tag -> sequenceOf(tag.id, tag.name) }
+        .filter { it.isNotBlank() }
+        .toSet()
+    val contextTag = liveParts[2]
+    if (contextTag !in defaultTagTokens || contextTag == "na") return live
+    val normalizedParts = liveParts.toMutableList().apply { this[2] = plannedParts[2] }
+    return live.copy(equipmentKey = normalizedParts.joinToString("|"))
+}
