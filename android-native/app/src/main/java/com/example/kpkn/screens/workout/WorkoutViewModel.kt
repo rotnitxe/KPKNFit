@@ -4193,6 +4193,15 @@ class WorkoutViewModel(
         ExerciseNicknameResolver.nicknames = repository.settings.value.exerciseNicknames
     }
 
+    fun setExerciseLoadIncrementKg(exerciseKey: String, incrementKg: Double?) {
+        val clean = incrementKg?.let { com.example.kpkn.domain.workout.LiveInputDockEngine.clampStepKg(it) }
+        repository.updateSettings { settings ->
+            val next = settings.exerciseLoadIncrementsKg.toMutableMap()
+            if (clean == null) next.remove(exerciseKey) else next[exerciseKey] = clean
+            settings.copy(exerciseLoadIncrementsKg = next)
+        }
+    }
+
     fun showSeriesTypeSheet(exerciseId: String, fromIdx: Int = 0, toIdx: Int? = null) {
         val ex = visibleExercises(_uiState.value).firstOrNull { it.id == exerciseId } ?: return
         val start = fromIdx.coerceIn(0, (ex.sets.size - 1).coerceAtLeast(0))

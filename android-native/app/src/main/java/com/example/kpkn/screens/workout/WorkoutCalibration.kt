@@ -76,7 +76,18 @@ internal fun calibrationContextForSet(
     )
 }
 
-internal fun calibrationIncrement(exercise: Exercise, set: ExerciseSet, inventory: EquipmentInventory? = null): Double {
+fun exerciseLoadIncrementKey(exercise: Exercise): String =
+    exercise.catalogConfigurationId ?: exercise.resolvedCanonicalExerciseId()
+
+internal fun calibrationIncrement(
+    exercise: Exercise,
+    set: ExerciseSet,
+    inventory: EquipmentInventory? = null,
+    customIncrementsKg: Map<String, Double> = emptyMap(),
+): Double {
+    val key = exerciseLoadIncrementKey(exercise)
+    customIncrementsKg[key]?.takeIf { it.isFinite() && it in 0.1..25.0 }?.let { return it }
+    customIncrementsKg[exercise.id]?.takeIf { it.isFinite() && it in 0.1..25.0 }?.let { return it }
     inventory?.machines?.singleOrNull { it.configurationId != null && it.configurationId == exercise.catalogConfigurationId }
         ?.incrementKg?.takeIf { it.isFinite() && it > 0 }?.let { return it }
     val equipment = listOfNotNull(exercise.setupDetails?.equipmentNotes, set.machineBrand,

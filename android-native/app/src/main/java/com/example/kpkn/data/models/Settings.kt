@@ -87,6 +87,8 @@ data class Settings(
     val voiceExerciseAliases: Map<String, String> = emptyMap(),
     /** Display nicknames keyed by catalogDefinitionId / exerciseDbId / canonical id. */
     val exerciseNicknames: Map<String, String> = emptyMap(),
+    /** Incremento personalizado por ejercicio (kg) para el deslizador de carga en vivo. Vacío = heurística/inventario. */
+    val exerciseLoadIncrementsKg: Map<String, Double> = emptyMap(),
     val showPRsInWorkout: Boolean = true,
     /** Preferencia heredada: se conserva al importar; el cálculo usa el modelo único versionado StrengthModel. */
     val oneRMFormula: OneRMFormula = OneRMFormula.BRZYCKI,
