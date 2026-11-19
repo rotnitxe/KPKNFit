@@ -53,6 +53,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
@@ -77,8 +78,11 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import com.example.kpkn.domain.workout.LiveInputDockMode
+import com.example.kpkn.domain.workout.LiveInputFieldKind
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -250,6 +254,7 @@ internal fun LiveSessionListView(
     /** Fuente del desenfoque de la isla de arriba: las filas de la lista se registran aquí para verse borrosas a través del vidrio. */
     hazeState: HazeState? = null,
 ) {
+    val settings by viewModel.settings.collectAsState()
     var expandedKey by rememberSaveable { mutableStateOf<String?>(null) }
     var recordRequest by remember { mutableIntStateOf(0) }
     // Un toque en ✓ de una fila cerrada la abre y registra a la vez; tocar el esfuerzo abre su escala.
@@ -862,6 +867,7 @@ private fun ListRowWithEditor(
     media: ListEditorMedia = ListEditorMedia(),
 ) {
     val displayedRow = liveListDisplayedRow(row, uiState)
+    val settings by viewModel.settings.collectAsState()
     var quickKeyboardField by rememberSaveable(row.key) { mutableStateOf<String?>(null) }
     val activeDraft = viewModel.getSetDraft(row.exercise.id, row.setIndex, row.side)
     Column(Modifier.fillMaxWidth().animateContentSize()) {
@@ -883,14 +889,33 @@ private fun ListRowWithEditor(
             val currentValue = activeDraft?.valueText?.takeIf { displayedRow.completed == null && it.isNotBlank() }
                 ?: initialValue(displayedRow)
             val qtyLabel = if (unit == UnitModeV2.REPS) "REPS" else unitLabel(unit).uppercase()
+            val loadStepKey = exerciseLoadIncrementKey(displayedRow.exercise)
+            val exerciseLoadStep = calibrationIncrement(
+                exercise = displayedRow.exercise,
+                set = displayedRow.planned,
+                inventory = settings.resolvedEquipmentInventory(),
+                customIncrementsKg = settings.exerciseLoadIncrementsKg,
+            )
             val keyboardFields = listOf(
-                WorkoutKeyboardField("KG", "Carga · kg", currentWeight, allowDecimal = true),
+                WorkoutKeyboardField(
+                    label = "KG",
+                    title = "Carga · kg",
+                    initialValue = currentWeight,
+                    allowDecimal = true,
+                    kind = LiveInputFieldKind.WEIGHT,
+                    previousValue = displayedRow.planned.weight?.takeIf { it > 0.0 }?.let(::listNumber),
+                    stepDelta = exerciseLoadStep,
+                ),
                 WorkoutKeyboardField(
                     label = qtyLabel,
                     title = "Cantidad realizada · ${unitLabel(unit)}",
                     initialValue = currentValue,
                     allowDecimal = unit != UnitModeV2.REPS,
                     allowColon = unit == UnitModeV2.TIME,
+                    kind = if (unit == UnitModeV2.TIME) LiveInputFieldKind.TIME_MM_SS
+                           else if (unit == UnitModeV2.REPS) LiveInputFieldKind.REPS
+                           else LiveInputFieldKind.QUANTITY,
+                    previousValue = listRowQuantity(displayedRow).first.takeIf { it != "—" && it.isNotBlank() },
                 ),
             )
             WorkoutNumericKeyboardDialog(
@@ -900,6 +925,13 @@ private fun ListRowWithEditor(
                 allowColon = !editingWeight && unit == UnitModeV2.TIME,
                 fields = keyboardFields,
                 initialFieldIndex = if (editingWeight) 0 else 1,
+                showFieldTabs = true,
+                initialMode = LiveInputDockMode.LENS,
+                allowCustomLoadStep = true,
+                loadStepKg = exerciseLoadStep,
+                onLoadStepKgChange = { step ->
+                    viewModel.setExerciseLoadIncrementKg(loadStepKey, step)
+                },
                 onApplyFields = { values ->
                     val nextWeight = values.getOrElse(0) { currentWeight }
                     val nextValue = values.getOrElse(1) { currentValue }
@@ -1304,9 +1336,13 @@ private fun SetListRow(
             val shownUnit = quantity.second
             val totalChars = (shownLoad?.length ?: 1) + shownQuantity.length + (shownUnit?.length ?: 0)
             val twoLines = maxWidth < 130.dp || density.fontScale >= 1.30f || totalChars > 7
-            val valueStyle = SyneValue.copy(
+            val valueStyle = TextStyle(
+                fontFamily = WizardFonts.body,
+                fontWeight = FontWeight.Bold,
                 fontSize = if (totalChars > 9) 14.sp else 15.sp,
                 lineHeight = 18.sp,
+                fontFeatureSettings = "'tnum' 1, 'lnum' 1",
+                platformStyle = PlatformTextStyle(includeFontPadding = false),
             )
             @Composable fun LoadValue() {
                 Text(shownLoad ?: "—", Modifier.testTag("live-list-set-load-${row.key}")
@@ -1333,7 +1369,15 @@ private fun SetListRow(
                 } else {
                     Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
                         LoadValue()
-                        Text(" kg × ", style = Body.copy(fontSize = 10.sp), color = WizardColors.textFaint, maxLines = 1)
+                        Text(
+                            text = " kg × ",
+                            style = Body.copy(
+                                fontSize = 11.sp,
+                                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                            ),
+                            color = WizardColors.textFaint,
+                            maxLines = 1,
+                        )
                         QuantityValue()
                     }
                 }
@@ -2020,6 +2064,7 @@ private fun ListMetricField(
         activeContextIndex = activeContextIndex,
         fields = fields,
         initialFieldIndex = activeContextIndex ?: 0,
+        showFieldTabs = fields.size > 1,
         onApplyFields = onApplyFields,
         onDismiss = { keyboardOpen = false },
         onApply = onChange,

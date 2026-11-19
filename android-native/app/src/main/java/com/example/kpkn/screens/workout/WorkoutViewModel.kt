@@ -203,6 +203,7 @@ class WorkoutViewModel(
 
     private val _uiState = MutableStateFlow(WorkoutUiState(programId = programId))
     val uiState: StateFlow<WorkoutUiState> = _uiState.asStateFlow()
+    val settings: StateFlow<Settings> = repository.settings
     private val _cardioStartCountdown = MutableStateFlow<CardioStartCountdown?>(null)
     internal val cardioStartCountdown: StateFlow<CardioStartCountdown?> = _cardioStartCountdown.asStateFlow()
 

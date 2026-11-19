@@ -53,6 +53,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -817,8 +818,14 @@ private fun inlineRomLoadOptions(options: List<QuickLoadChipOption>): List<Quick
     return picked.take(2)
 }
 
-private fun quickLoadIncrementFor(exercise: Exercise, currentSet: ExerciseSet): Double =
-    com.example.kpkn.screens.workout.calibrationIncrement(exercise, currentSet)
+private fun quickLoadIncrementFor(
+    exercise: Exercise,
+    currentSet: ExerciseSet,
+    inventory: com.example.kpkn.data.models.EquipmentInventory? = null,
+    customLoadStepKg: Double? = null,
+): Double =
+    customLoadStepKg?.takeIf { it.isFinite() && it in 0.1..25.0 }
+        ?: com.example.kpkn.screens.workout.calibrationIncrement(exercise, currentSet, inventory)
 
 @Composable
 internal fun WorkoutMiniTextField(
@@ -948,6 +955,8 @@ internal fun SetInputCardV2(
     amrapResultPanel: (@Composable (() -> Unit) -> Unit)? = null,
     clockNowMillis: () -> Long = { android.os.SystemClock.elapsedRealtime() },
     equipmentInventory: com.example.kpkn.data.models.EquipmentInventory? = null,
+    customLoadStepKg: Double? = null,
+    onCustomLoadStepChange: ((Double?) -> Unit)? = null,
     /**
      * «Registrar ROM» de «Detalle del registro»: además de esta serie, lo fija en el ejercicio de la sesión (`Exercise.trackRom`). El
      * segundo valor es «Guardar también en el programa» (sin él, vale solo para esta sesión).
@@ -2015,7 +2024,7 @@ internal fun SetInputCardV2(
         }?.suggestedWeight,
         suggestedLoadMode = resolvedWeightSuggestion?.suggestedLoadMode,
         previousSessionFirstSetWeight = thisSessionPreviousWorkingWeight?.takeIf { it > 0.0 } ?: previousSessionFirstSetWeight,
-        loadIncrementKg = quickLoadIncrementFor(exercise, currentSet),
+        loadIncrementKg = quickLoadIncrementFor(exercise, currentSet, equipmentInventory, customLoadStepKg),
         previousSessionTagLabel = activeTag,
     )
     val quickLoadsForMenu = if (liveMode == LiveSetCardMode.SOLO_RPE) emptyList() else quickLoadOptions
@@ -2345,6 +2354,9 @@ internal fun SetInputCardV2(
                         loadMode = loadModeAfterEnteredWeight(loadMode, typed)
                         updateActiveWeightText(typed)
                     },
+                    equipmentInventory = equipmentInventory,
+                    customLoadStepKg = customLoadStepKg,
+                    onCustomLoadStepChange = onCustomLoadStepChange,
                     onUpdateActiveWeightText = { updateActiveWeightText(it) },
                     bodyWeightText = bodyWeightText,
                     liveMode = liveMode,
@@ -3908,6 +3920,9 @@ private fun LegacyLoadHero(
     onRmReferenceChanged: (Double) -> Unit,
     prLabel: String?,
     modeButton: @Composable () -> Unit,
+    equipmentInventory: com.example.kpkn.data.models.EquipmentInventory? = null,
+    customLoadStepKg: Double? = null,
+    onCustomLoadStepChange: ((Double?) -> Unit)? = null,
 ) {
     // `.v2-load` del prototipo 02: «CARGA» (o «LASTRE» / «AYUDA EXTERNA») con el modo a la derecha, la cifra en Syne con «kg» pegado y
     // −/+ en cuadros de 36, y debajo la referencia con el icono de historial. Filete inferior al 6 %.
@@ -3945,6 +3960,7 @@ private fun LegacyLoadHero(
             letterSpacing = (-1.5).sp,
             fontFeatureSettings = "'lnum' 1, 'tnum' 1",
         )
+        val increment = quickLoadIncrementFor(exercise, currentSet, equipmentInventory, customLoadStepKg)
         Row(
             modifier = Modifier.fillMaxWidth().height(if (tightCard) 48.dp else 56.dp).testTag("live-card-load-hero")
                 // Modo Voz (v-record): destino del vuelo de la carga dictada; brilla al recibirla.
@@ -3966,25 +3982,44 @@ private fun LegacyLoadHero(
                         value = reportWeightText,
                         onValueChange = {},
                         readOnly = true,
-                        modifier = Modifier.width(IntrinsicSize.Max),
+                        modifier = Modifier.width(IntrinsicSize.Max).alignByBaseline(),
                         singleLine = true,
-                        textStyle = heroStyle.copy(color = WizardColors.text),
+                        textStyle = heroStyle.copy(
+                            color = WizardColors.text,
+                            platformStyle = PlatformTextStyle(includeFontPadding = false),
+                        ),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
                         decorationBox = { innerTextField ->
                             Box {
                                 if (reportWeightText.isBlank()) {
-                                    Text(plannedWeightGhost ?: "—", style = heroStyle,
-                                        color = if (plannedWeightGhost != null) WizardColors.text else Ref02CardFaint)
+                                    Text(
+                                        plannedWeightGhost ?: "—",
+                                        style = heroStyle.copy(
+                                            platformStyle = PlatformTextStyle(includeFontPadding = false),
+                                        ),
+                                        color = if (plannedWeightGhost != null) WizardColors.text else Ref02CardFaint,
+                                    )
                                 }
                                 innerTextField()
                             }
                         },
                     )
                 }
-                Text("kg", Modifier.padding(start = 4.dp, bottom = if (tightCard) 9.dp else 11.dp),
-                    style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp), color = Ref02CardFaint, maxLines = 1, softWrap = false)
+                Text(
+                    text = "kg",
+                    modifier = Modifier.alignByBaseline().padding(start = 4.dp),
+                    style = TextStyle(
+                        fontFamily = WizardFonts.body,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        fontFeatureSettings = "'lnum' 1, 'tnum' 1",
+                        platformStyle = PlatformTextStyle(includeFontPadding = false),
+                    ),
+                    color = Ref02CardFaint,
+                    maxLines = 1,
+                    softWrap = false,
+                )
             }
-            val increment = quickLoadIncrementFor(exercise, currentSet)
             fun adjust(direction: Int) {
                 val current = reportWeightText.replace(',', '.').toDoubleOrNull()
                     ?: plannedWeightGhost?.replace(',', '.')?.toDoubleOrNull()
@@ -3996,22 +4031,34 @@ private fun LegacyLoadHero(
                 Ref02StepButton(KpknLineIcons.Plus, "Aumentar carga", 36.dp, 36.dp) { adjust(1) }
             }
         }
-        if (numericKeyboardTarget == "weight") WorkoutNumericKeyboardDialog(
-            title = "Carga · kg",
-            initialValue = reportWeightText,
-            allowDecimal = true,
-            fields = cardKeyboardFields,
-            initialFieldIndex = 0,
-            onApplyFields = { values ->
-                onApplyCardKeyboardFields(values)
-                onNumericKeyboardTargetChange(null)
-            },
-            onDismiss = { onNumericKeyboardTargetChange(null) },
-            onApply = { typed ->
-                onWeightKeyboardApplied(typed)
-                onNumericKeyboardTargetChange(null)
-            },
-        )
+        if (numericKeyboardTarget == "weight") {
+            val weightOnlyField = WorkoutKeyboardField(
+                label = "KG",
+                title = "Carga · kg",
+                initialValue = reportWeightText,
+                allowDecimal = true,
+                kind = com.example.kpkn.domain.workout.LiveInputFieldKind.WEIGHT,
+                previousValue = ghostSet?.weight?.takeIf { it > 0 }?.toTrimmedNumberString(),
+                stepDelta = increment,
+            )
+            WorkoutNumericKeyboardDialog(
+                title = "Carga · kg",
+                initialValue = reportWeightText,
+                allowDecimal = true,
+                fields = listOf(weightOnlyField),
+                initialFieldIndex = 0,
+                showFieldTabs = false,
+                initialMode = com.example.kpkn.domain.workout.LiveInputDockMode.LENS,
+                allowCustomLoadStep = true,
+                loadStepKg = increment,
+                onLoadStepKgChange = { onCustomLoadStepChange?.invoke(it) },
+                onDismiss = { onNumericKeyboardTargetChange(null) },
+                onApply = { typed ->
+                    onWeightKeyboardApplied(typed)
+                    onNumericKeyboardTargetChange(null)
+                },
+            )
+        }
         Row(
             modifier = Modifier.fillMaxWidth().heightIn(min = 25.dp),
             verticalAlignment = Alignment.CenterVertically,
@@ -4491,23 +4538,32 @@ private fun ValueStepperBlock(
                 reducedMotion = reducedMotion,
                 onCenterValueClick = { onNumericKeyboardTargetChange("reps") },
             )
-            if (numericKeyboardTarget == "reps") WorkoutNumericKeyboardDialog(
-                title = "Repeticiones",
-                initialValue = reportValueText,
-                allowDecimal = false,
-                fields = cardKeyboardFields,
-                initialFieldIndex = 1,
-                onApplyFields = { values ->
-                    onApplyCardKeyboardFields(values)
-                    onNumericKeyboardTargetChange(null)
-                },
-                onDismiss = { onNumericKeyboardTargetChange(null) },
-                onApply = { typed ->
-                    onUpdateActiveValueText(typed)
-                    onUpdateRepsWheelCenter(typed.toIntOrNull() ?: currentReps)
-                    onNumericKeyboardTargetChange(null)
-                },
-            )
+            if (numericKeyboardTarget == "reps") {
+                val repsOnlyField = WorkoutKeyboardField(
+                    label = "REPS",
+                    title = "Repeticiones",
+                    initialValue = reportValueText,
+                    allowDecimal = false,
+                    kind = com.example.kpkn.domain.workout.LiveInputFieldKind.REPS,
+                    previousValue = quantityGhost.takeIf { it.isNotBlank() && it != "—" },
+                )
+                WorkoutNumericKeyboardDialog(
+                    title = "Repeticiones",
+                    initialValue = reportValueText,
+                    allowDecimal = false,
+                    fields = listOf(repsOnlyField),
+                    initialFieldIndex = 0,
+                    showFieldTabs = false,
+                    initialMode = com.example.kpkn.domain.workout.LiveInputDockMode.KEYPAD,
+                    allowCustomLoadStep = false,
+                    onDismiss = { onNumericKeyboardTargetChange(null) },
+                    onApply = { typed ->
+                        onUpdateActiveValueText(typed)
+                        onUpdateRepsWheelCenter(typed.toIntOrNull() ?: currentReps)
+                        onNumericKeyboardTargetChange(null)
+                    },
+                )
+            }
         }
     }
 }
@@ -4609,19 +4665,35 @@ private fun Ref02QuantityInput(
             Ref02StepButton(KpknLineIcons.Plus, "Aumentar cantidad", 41.dp, 40.dp, enabled) { onStep(1) }
         }
     }
-    if (keyboardOpen) WorkoutNumericKeyboardDialog(
-        title = "Cantidad registrada · $unit",
-        initialValue = value,
-        allowDecimal = decimal,
-        allowColon = allowColon,
-        fields = fields,
-        initialFieldIndex = initialFieldIndex,
-        onApplyFields = onApplyFields,
-        contextValues = contextValues,
-        activeContextIndex = activeContextIndex,
-        onDismiss = { keyboardOpen = false },
-        onApply = onValueChange,
-    )
+    if (keyboardOpen) {
+        val effectiveFieldList = if (fields.isNotEmpty()) fields else listOf(
+            WorkoutKeyboardField(
+                label = unit.uppercase(),
+                title = "Cantidad registrada · $unit",
+                initialValue = value,
+                allowDecimal = decimal,
+                allowColon = allowColon,
+                kind = if (allowColon) com.example.kpkn.domain.workout.LiveInputFieldKind.TIME_MM_SS
+                       else com.example.kpkn.domain.workout.LiveInputFieldKind.QUANTITY,
+            ),
+        )
+        WorkoutNumericKeyboardDialog(
+            title = "Cantidad registrada · $unit",
+            initialValue = value,
+            allowDecimal = decimal,
+            allowColon = allowColon,
+            fields = effectiveFieldList,
+            initialFieldIndex = initialFieldIndex,
+            showFieldTabs = false,
+            initialMode = com.example.kpkn.domain.workout.LiveInputDockMode.LENS,
+            allowCustomLoadStep = false,
+            onApplyFields = onApplyFields,
+            contextValues = contextValues,
+            activeContextIndex = activeContextIndex,
+            onDismiss = { keyboardOpen = false },
+            onApply = onValueChange,
+        )
+    }
 }
 
 /** El reloj de la serie por tiempo en la cabecera de «TIEMPO» (`set-clock`): play/pausa y el tiempo. */

@@ -1996,7 +1996,14 @@ internal fun WorkoutV2Body(
                                                     isCompleted = isCompleted,
                                                     actualReps = completedSet?.reps?.takeIf { isCompleted && it > 0 },
                                                     // El mismo paso de −/+ que la carga de la serie efectiva (`quickLoadIncrementFor`).
-                                                    loadIncrementKg = member.sets.firstOrNull()?.let { calibrationIncrement(member, it) } ?: 2.5,
+                                                    loadIncrementKg = member.sets.firstOrNull()?.let {
+                                                        calibrationIncrement(
+                                                            exercise = member,
+                                                            set = it,
+                                                            inventory = settings.resolvedEquipmentInventory(),
+                                                            customIncrementsKg = settings.exerciseLoadIncrementsKg,
+                                                        )
+                                                    } ?: 2.5,
                                                 ),
                                             )
                                         }
@@ -2443,8 +2450,13 @@ internal fun WorkoutV2Body(
                                             .tourAnchor(TourAnchors.WORKOUT_SERIE),
                                     ) {
                                         WorkoutSetInputOwner(targetExercise, activeSet.id, executionKey = executionRef(uiState, targetExercise, activeSetIndex, cardSide)) {
-                                        SetInputCardV2(
-                                    equipmentInventory = settings.equipmentInventory,
+                                            val loadStepKey = com.example.kpkn.screens.workout.exerciseLoadIncrementKey(targetExercise)
+                                            SetInputCardV2(
+                                                equipmentInventory = settings.equipmentInventory,
+                                                customLoadStepKg = settings.exerciseLoadIncrementsKg[loadStepKey],
+                                                onCustomLoadStepChange = { step ->
+                                                    viewModel.setExerciseLoadIncrementKg(loadStepKey, step)
+                                                },
                                     exercise = targetExercise,
                                     setIndex = activeSetIndex,
                                     currentSet = activeSet,

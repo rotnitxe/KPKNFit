@@ -114,6 +114,8 @@ internal fun LiveModeNumberField(
         initialValue = value,
         allowDecimal = allowDecimal && !time,
         allowColon = time,
+        showFieldTabs = false,
+        allowCustomLoadStep = allowDecimal && !time,
         onDismiss = { keyboardOpen = false },
         onApply = onChange,
     )

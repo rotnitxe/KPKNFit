@@ -1,7 +1,9 @@
 package com.example.kpkn.services.competition
 
 import android.app.AlarmManager
+import android.content.Intent
 import androidx.test.core.app.ApplicationProvider
+import com.example.kpkn.data.db.CompetitionRecordEntity
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toEntity
 import com.example.kpkn.data.models.CompetitionRecord
@@ -81,5 +83,42 @@ class CompetitionReminderManagerTest {
         } finally {
             database.close()
         }
+    }
+
+    @Test
+    fun boot_reschedule_skips_corrupted_record_and_preserves_valid_alarms() = runBlocking {
+        val database = KpknDatabase.createInMemory(context)
+        try {
+            database.competitionRecordDao().upsert(
+                CompetitionRecordEntity(
+                    id = "corrupt-1",
+                    title = "Corrupt",
+                    eventDate = "2099-01-01",
+                    status = "PLANNED",
+                    sportType = "POWERLIFTING",
+                    plannedSessionId = "",
+                    updatedAtMs = 0L,
+                    data = "{not-valid-json",
+                ),
+            )
+            database.competitionRecordDao().upsert(futureRecord("valid-1").toEntity())
+
+            CompetitionReminderBootReceiver.reschedulePersistedRecords(context, database)
+
+            val alarmManager = context.getSystemService(AlarmManager::class.java)
+            assertEquals(4, shadowOf(alarmManager).scheduledAlarms.size)
+        } finally {
+            database.close()
+        }
+    }
+
+    @Test
+    fun post_result_receiver_handles_intent_without_blocking_or_throwing() {
+        val intent = Intent(context, CompetitionReminderReceiver::class.java).apply {
+            putExtra(CompetitionReminderManager.EXTRA_RECORD_ID, "missing-id")
+            putExtra(CompetitionReminderManager.EXTRA_TYPE, CompetitionReminderManager.TYPE_POST_RESULT)
+            putExtra(CompetitionReminderManager.EXTRA_TITLE, "Copa KPKN")
+        }
+        CompetitionReminderReceiver().onReceive(context, intent)
     }
 }
