@@ -77,9 +77,15 @@ class WorkoutStoryDeviceTest {
                     // Solo fixtures de prueba, exportados por Android para la inspección física del ZFlip.
                     val output=File(context.getExternalFilesDir(null),"qa-stories").apply { mkdirs() }
                     File(output,"lv13-demo-${template.name.lowercase()}.png").outputStream().use { base.compress(Bitmap.CompressFormat.PNG,100,it) }
-                    val toggles=listOf("improvements" to options.copy(improvements=false),"duration" to options.copy(duration=false),"intensity" to options.copy(intensity=false),"exercises" to options.copy(exerciseList=true))
+                    val toggles=listOf(
+                        "improvements" to options.copy(improvements=false),
+                        "duration" to options.copy(duration=false),
+                        "intensity" to options.copy(intensity=false),
+                        "exercises" to options.copy(exerciseList=false),
+                    )
                     val applicable=when(template){
                         WorkoutStoryTemplate.GENERAL->setOf("improvements","duration","intensity","exercises")
+                        WorkoutStoryTemplate.MILESTONES->setOf("improvements","duration")
                         WorkoutStoryTemplate.EXERCISE->setOf("improvements")
                         WorkoutStoryTemplate.PHOTOS->setOf("duration")
                     }

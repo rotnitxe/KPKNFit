@@ -32,7 +32,12 @@ import java.time.format.DateTimeFormatter
 import java.util.Locale
 import kotlin.math.max
 
-internal enum class WorkoutStoryTemplate(val label: String) { GENERAL("General"), EXERCISE("Ejercicio"), PHOTOS("Fotos") }
+internal enum class WorkoutStoryTemplate(val label: String) {
+    GENERAL("General"),
+    MILESTONES("Hitos"),
+    EXERCISE("Ejercicio"),
+    PHOTOS("Fotos"),
+}
 
 internal data class WorkoutStoryOptions(
     val template: WorkoutStoryTemplate = WorkoutStoryTemplate.GENERAL,
@@ -40,8 +45,12 @@ internal data class WorkoutStoryOptions(
     val improvements: Boolean = true,
     val duration: Boolean = true,
     val intensity: Boolean = true,
-    /** Lista «Ejercicios realizados» en la historia general; desactivada por defecto. */
-    val exerciseList: Boolean = false,
+    /** Lista «Ejercicios realizados» en la historia general; activada por defecto. */
+    val exerciseList: Boolean = true,
+    val milestones: Boolean = true,
+    val muscles: Boolean = false,
+    /** Null hereda la paleta de portada del programa activo. */
+    val backgroundId: String? = null,
 )
 
 internal data class WorkoutStoryData(
@@ -102,7 +111,9 @@ internal suspend fun renderWorkoutStoryClassic(context: Context, data: WorkoutSt
         val draw = StoryDrawing(canvas, context, data)
         if (options.template != WorkoutStoryTemplate.PHOTOS) draw.header(data)
         when (options.template) {
-            WorkoutStoryTemplate.GENERAL -> draw.general(data, options)
+            WorkoutStoryTemplate.GENERAL,
+            WorkoutStoryTemplate.MILESTONES,
+            -> draw.general(data, options)
             WorkoutStoryTemplate.EXERCISE -> draw.exercise(data, options)
             WorkoutStoryTemplate.PHOTOS -> draw.photos(context, data, options)
         }

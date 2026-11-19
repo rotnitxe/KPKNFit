@@ -57,10 +57,34 @@ import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 
 internal val storyOptionsSaver = listSaver<WorkoutStoryOptions, Any>(
-    save = { listOf("v2", it.template.name, it.exerciseId.orEmpty(), it.improvements, it.duration, it.intensity, it.exerciseList) },
+    save = {
+        listOf(
+            "v3",
+            it.template.name,
+            it.exerciseId.orEmpty(),
+            it.improvements,
+            it.duration,
+            it.intensity,
+            it.exerciseList,
+            it.milestones,
+            it.muscles,
+            it.backgroundId.orEmpty(),
+        )
+    },
     restore = {
-        if (it.firstOrNull() == "v2" && it.size >= 7) {
-            WorkoutStoryOptions(
+        when {
+            it.firstOrNull() == "v3" && it.size >= 10 -> WorkoutStoryOptions(
+                template = WorkoutStoryTemplate.valueOf(it[1] as String),
+                exerciseId = (it[2] as String).ifBlank { null },
+                improvements = it[3] as Boolean,
+                duration = it[4] as Boolean,
+                intensity = it[5] as Boolean,
+                exerciseList = it[6] as Boolean,
+                milestones = it[7] as Boolean,
+                muscles = it[8] as Boolean,
+                backgroundId = (it[9] as String).ifBlank { null },
+            )
+            it.firstOrNull() == "v2" && it.size >= 7 -> WorkoutStoryOptions(
                 WorkoutStoryTemplate.valueOf(it[1] as String),
                 (it[2] as String).ifBlank { null },
                 it[3] as Boolean,
@@ -68,15 +92,16 @@ internal val storyOptionsSaver = listSaver<WorkoutStoryOptions, Any>(
                 it[5] as Boolean,
                 it[6] as Boolean,
             )
-        } else {
-            val offset = if (it.size == 6) 1 else 0
-            WorkoutStoryOptions(
-                WorkoutStoryTemplate.valueOf(it[0] as String),
-                (it[1] as String).ifBlank { null },
-                it[2 + offset] as Boolean,
-                it[3 + offset] as Boolean,
-                it[4 + offset] as Boolean,
-            )
+            else -> {
+                val offset = if (it.size == 6) 1 else 0
+                WorkoutStoryOptions(
+                    WorkoutStoryTemplate.valueOf(it[0] as String),
+                    (it[1] as String).ifBlank { null },
+                    it[2 + offset] as Boolean,
+                    it[3 + offset] as Boolean,
+                    it[4 + offset] as Boolean,
+                )
+            }
         }
     },
 )
@@ -134,18 +159,27 @@ internal fun WorkoutStorySheet(
     val enabled=!busy&&!rendering&&bitmaps.isNotEmpty()
     val rendering0 = com.example.kpkn.ui.design.motion.rememberKpknPose(com.example.kpkn.screens.workout.LxSpinAnimation)
     // Miniaturas de las plantillas: la propia historia a baja resolución (una por plantilla), en cuanto se pueden dibujar.
-    val thumbs by produceState(emptyMap<WorkoutStoryTemplate, androidx.compose.ui.graphics.ImageBitmap>(), data, templates) {
+    val thumbs by produceState(emptyMap<WorkoutStoryTemplate, androidx.compose.ui.graphics.ImageBitmap>(), data, templates, safeOptions.backgroundId) {
         templates.forEach { template ->
             val small = try {
-                val full = renderStoryPages(context.applicationContext, data, WorkoutStoryOptions(template = template, exerciseId = safeOptions.exerciseId, exerciseList = safeOptions.exerciseList)).first()
+                val full = renderStoryPages(
+                    context.applicationContext,
+                    data,
+                    WorkoutStoryOptions(
+                        template = template,
+                        exerciseId = safeOptions.exerciseId,
+                        exerciseList = safeOptions.exerciseList,
+                        backgroundId = safeOptions.backgroundId,
+                    ),
+                ).first()
                 Bitmap.createScaledBitmap(full, 96, 171, true).also { if (it !== full) full.recycle() }
             } catch (error: CancellationException) { throw error } catch (_: Exception) { null }
             if (small != null) value = value + (template to small.asImageBitmap())
         }
     }
     val content: @Composable ()->Unit={
-        Column(Modifier.fillMaxSize().padding(start = 18.dp, end = 18.dp, top = 10.dp, bottom = 20.dp)
-            .semantics(mergeDescendants = true) { paneTitle = "Historia" }.testTag("story-sheet"),verticalArrangement=Arrangement.spacedBy(10.dp)){
+        Column(Modifier.fillMaxSize().padding(start = 18.dp, end = 18.dp, top = 8.dp, bottom = 14.dp)
+            .semantics(mergeDescendants = true) { paneTitle = "Historia" }.testTag("story-sheet"),verticalArrangement=Arrangement.spacedBy(8.dp)){
             Row(Modifier.fillMaxWidth().padding(top = 2.dp),verticalAlignment=Alignment.CenterVertically,horizontalArrangement=Arrangement.SpaceBetween){
                 Text("Compartir",style=androidx.compose.ui.text.TextStyle(fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 22.sp, letterSpacing = (-0.5).sp),color=FinishCream)
                 Box(Modifier.size(44.dp).clip(androidx.compose.foundation.shape.CircleShape).background(Color(0x0DFFFFFF)).clickable(enabled = !busy){onDismiss()},contentAlignment=Alignment.Center){
@@ -203,15 +237,15 @@ internal fun WorkoutStorySheet(
                     }
                 }
             }
-            // Plantillas como miniaturas de la propia historia (`lx-tpl`): 84 dp de ancho, la elegida con anillo de tinta.
+            // Plantillas como miniaturas de la propia historia (`lx-tpl`): ancho adaptable para 4 plantillas, la elegida con anillo de tinta.
             Row(Modifier.fillMaxWidth().semantics(mergeDescendants = true) { contentDescription = "Plantillas de historia" }.testTag("story-templates"),
-                horizontalArrangement=Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)){
+                horizontalArrangement=Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally)){
                 templates.forEach{template->
                     val on = template==safeOptions.template
                     val thumbShape = RoundedCornerShape(7.dp)
-                    Column(Modifier.width(84.dp).clip(RoundedCornerShape(14.dp)).clickable(enabled=!busy){onOptionsChange(safeOptions.copy(template=template))}.padding(top = 6.dp, bottom = 2.dp)
+                    Column(Modifier.weight(1f).clip(RoundedCornerShape(14.dp)).clickable(enabled=!busy){onOptionsChange(safeOptions.copy(template=template))}.padding(top = 4.dp, bottom = 2.dp)
                         .semantics { selected = on }.testTag("story-template-${template.name}"),
-                        horizontalAlignment=Alignment.CenterHorizontally, verticalArrangement=Arrangement.spacedBy(6.dp)){
+                        horizontalAlignment=Alignment.CenterHorizontally, verticalArrangement=Arrangement.spacedBy(4.dp)){
                         val thumbAlpha by com.example.kpkn.ui.design.motion.animateKpknFloatAsState(if (on) 1f else 0.7f)
                         Box(Modifier.width(32.dp).height(57.dp).graphicsLayer { alpha = thumbAlpha }
                             .kpknShadow(if (on) com.example.kpkn.ui.design.depth.KpknShadow.AnilloActual else com.example.kpkn.ui.design.depth.KpknShadow.BordeInterior, thumbShape)
@@ -225,13 +259,57 @@ internal fun WorkoutStorySheet(
             if(safeOptions.template==WorkoutStoryTemplate.EXERCISE)FlowRow(Modifier.fillMaxWidth(),horizontalArrangement=Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),verticalArrangement=Arrangement.spacedBy(6.dp)){
                 data.lifts.forEach{lift->StoryPill(lift.name,lift.exerciseId==(safeOptions.exerciseId?:data.defaultExerciseId),!busy){onOptionsChange(safeOptions.copy(exerciseId=lift.exerciseId))}}
             }
+            val activeBackground = com.example.kpkn.screens.stories.resolveStoryBackground(data, safeOptions)
+            val programDefaultBg = com.example.kpkn.screens.onboarding.design.entreno.plan.cover.parseLineCover(data.presentation.program?.coverImage)?.second
+                ?: com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground.CARBON
+            val isInheritedTheme = safeOptions.backgroundId == null || activeBackground == programDefaultBg
+            val paletteChoices = listOf(
+                com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground.CARBON,
+                com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground.NOCHE,
+                com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground.MUSGO,
+                com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground.GRAFITO,
+                com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground.CREMA,
+            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    "${if (isInheritedTheme) "Del programa" else "Personalizado"} · ${activeBackground.label}",
+                    style = com.example.kpkn.screens.workout.components.Lx.inter(10.5.sp, FontWeight.SemiBold, 1.1.sp),
+                    color = FinishMuted,
+                )
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                    paletteChoices.forEach { bg ->
+                        val selected = activeBackground == bg
+                        val dotAccent = if (bg == com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground.NOCHE) Color(0xFFB9C9EB) else Color(bg.accent)
+                        Box(
+                            Modifier
+                                .size(if (selected) 22.dp else 18.dp)
+                                .clip(androidx.compose.foundation.shape.CircleShape)
+                                .background(
+                                    androidx.compose.ui.graphics.Brush.linearGradient(listOf(Color(bg.bg), dotAccent)),
+                                )
+                                .border(
+                                    width = if (selected) 2.dp else 1.dp,
+                                    color = if (selected) FinishCream else Color(0x40FFFFFF),
+                                    shape = androidx.compose.foundation.shape.CircleShape,
+                                )
+                                .clickable(enabled = !busy) {
+                                    onOptionsChange(safeOptions.copy(backgroundId = if (bg == programDefaultBg) null else bg.name))
+                                }
+                                .semantics { contentDescription = "Paleta ${bg.label}" }
+                                .testTag("story-palette-${bg.name}"),
+                        )
+                    }
+                }
+            }
             Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
                 Text("INCLUIR",style=com.example.kpkn.screens.workout.components.Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp),color=FinishMuted)
                 FlowRow(horizontalArrangement=Arrangement.spacedBy(6.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
-                    if(safeOptions.template!=WorkoutStoryTemplate.PHOTOS)StoryPill("Mejoras en kg",safeOptions.improvements,!busy){onOptionsChange(safeOptions.copy(improvements=!safeOptions.improvements))}
+                    if(safeOptions.template!=WorkoutStoryTemplate.PHOTOS)StoryPill("Progreso",safeOptions.improvements,!busy){onOptionsChange(safeOptions.copy(improvements=!safeOptions.improvements))}
+                    if(safeOptions.template==WorkoutStoryTemplate.GENERAL||safeOptions.template==WorkoutStoryTemplate.PHOTOS)StoryPill("Hitos",safeOptions.milestones,!busy){onOptionsChange(safeOptions.copy(milestones=!safeOptions.milestones))}
                     if(safeOptions.template!=WorkoutStoryTemplate.EXERCISE)StoryPill("Duración",safeOptions.duration,!busy){onOptionsChange(safeOptions.copy(duration=!safeOptions.duration))}
-                    if(safeOptions.template==WorkoutStoryTemplate.GENERAL)StoryPill("sRPE declarado",safeOptions.intensity,!busy){onOptionsChange(safeOptions.copy(intensity=!safeOptions.intensity))}
+                    if(safeOptions.template==WorkoutStoryTemplate.GENERAL)StoryPill("sRPE",safeOptions.intensity,!busy){onOptionsChange(safeOptions.copy(intensity=!safeOptions.intensity))}
                     if(safeOptions.template==WorkoutStoryTemplate.GENERAL)StoryPill("Ejercicios",safeOptions.exerciseList,!busy){onOptionsChange(safeOptions.copy(exerciseList=!safeOptions.exerciseList))}
+                    if(safeOptions.template==WorkoutStoryTemplate.GENERAL)StoryPill("Músculos",safeOptions.muscles,!busy){onOptionsChange(safeOptions.copy(muscles=!safeOptions.muscles))}
                 }
             }
             Text(message ?: "",Modifier.fillMaxWidth().heightIn(min = 16.dp).testTag("story-message"),style=com.example.kpkn.screens.workout.components.Lx.inter(12.sp, line = 15.6.sp),color=FinishMuted,textAlign=TextAlign.Center)
@@ -309,9 +387,9 @@ internal fun WorkoutStorySheet(
 
 @Composable
 private fun StoryPill(label:String,selected:Boolean,enabled:Boolean,onClick:()->Unit){
-    // `.lx-chip`: 40 dp, píldora; la activa en tinta.
-    Box(Modifier.height(40.dp).clip(RoundedCornerShape(20.dp)).background(if(selected)FinishCream else Color(0x0BFFFFFF))
+    // `.lx-chip`: píldora compacta; la activa en tinta.
+    Box(Modifier.height(34.dp).clip(RoundedCornerShape(17.dp)).background(if(selected)FinishCream else Color(0x0BFFFFFF))
         .clickable(enabled=enabled,onClick=onClick).semantics { this.selected = selected }
-        .padding(horizontal=12.dp).testTag("story-toggle-$label"),contentAlignment=Alignment.Center){
-        Text(label,style=com.example.kpkn.screens.workout.components.Lx.num(13.sp, weight = if (selected) FontWeight.SemiBold else FontWeight.Medium),color=if(selected)Color(0xFF111111)else FinishMuted,maxLines=1)}
+        .padding(horizontal=10.dp).testTag("story-toggle-$label"),contentAlignment=Alignment.Center){
+        Text(label,style=com.example.kpkn.screens.workout.components.Lx.num(12.sp, weight = if (selected) FontWeight.SemiBold else FontWeight.Medium),color=if(selected)Color(0xFF111111)else FinishMuted,maxLines=1)}
 }

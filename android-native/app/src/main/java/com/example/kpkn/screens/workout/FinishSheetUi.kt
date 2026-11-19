@@ -219,9 +219,11 @@ internal class FinishSheetState(
     val storyThumb: androidx.compose.ui.graphics.ImageBitmap?,
     val ridges: List<List<Float>>,
     val ridgeRecordIndex: Int,
+    val storyTemplateSummary: String = "General · ejercicios y progreso",
 )
 
 internal enum class FinishPanelKind { NOTES, EFFORT }
+private enum class FinishDeckTab(val label: String) { HITOS("Hitos"), COMPARATIVA("Comparativa"), MUSCULOS("Músculos") }
 
 internal class FinishSheetActions(
     val onShare: (Boolean) -> Unit = {},
@@ -272,21 +274,29 @@ internal fun FinishSheetContent(
                     )
                 }
             }
+            val defaultTab = when {
+                m.recordList.isNotEmpty() || m.milestones.isNotEmpty() -> FinishDeckTab.HITOS
+                m.liftProgress.any { it.best != null } -> FinishDeckTab.COMPARATIVA
+                else -> FinishDeckTab.MUSCULOS
+            }
+            var selectedDeckTab by rememberSaveable(m.name, m.records, m.milestones.size) { mutableStateOf(defaultTab) }
             Column(
                 Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = 10.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (m.sets > 0) DataModule(state, actions)
                 m.cardio?.let { CardioRow(it) }
-                m.record?.let { RecordStrip(it) }
-                if (m.muscles.isNotEmpty() && !m.empty) MusclesModule(state)
-                if (m.lifts.isNotEmpty() && !m.empty) {
-                    LiftChips(m.lifts)
+                if (!m.empty && (m.record != null || m.milestones.isNotEmpty())) {
+                    FeaturedMilestoneBanner(m) { selectedDeckTab = FinishDeckTab.HITOS }
                 }
-                if (m.liftProgress.any { it.best != null } && !m.empty) {
-                    WeeklyComparison(m.liftProgress)
+                if (!m.empty && (m.recordList.isNotEmpty() || m.milestones.isNotEmpty() || m.liftProgress.any { it.best != null } || m.muscles.isNotEmpty())) {
+                    FinishDetailDeck(
+                        model = m,
+                        dims = d,
+                        selectedTab = selectedDeckTab,
+                        onSelectTab = { selectedDeckTab = it },
+                    )
                 }
-                m.recordList.drop(1).forEach { RecordExtra(it) }
             }
             Column(Modifier.fillMaxWidth().padding(start = 16.dp, end = 16.dp, top = if (m.empty) 18.dp else 8.dp, bottom = 16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 if (!m.empty) StoryCard(state, actions)
@@ -315,16 +325,16 @@ internal fun FinishSheetContent(
 @Composable
 private fun RidgeArt(rows: List<List<Float>>, recordIndex: Int, modifier: Modifier) {
     val pose = rememberKpknPose(remember { draw(1600) })
-    Canvas(modifier.graphicsLayer { alpha = 0.55f }) {
+    Canvas(modifier.graphicsLayer { alpha = 0.34f }) {
         val s = max(size.width / 360f, size.height / 200f)
         val progress = (1f - pose.pose()[KpknChannel.DashOffset]).coerceIn(0f, 1f)
         rows.take(5).forEachIndexed { k, sets ->
             val y0 = 70f + k * 26f
             val n = sets.size
             val record = k == recordIndex
-            val baseAlpha = if (record) 1f else (0.5f - k * 0.04f).coerceAtLeast(0.2f)
+            val baseAlpha = if (record) 0.9f else (0.44f - k * 0.04f).coerceAtLeast(0.18f)
             val color = if (record) Lx.Mus else Lx.Ink
-            val width = (if (record) 2f else 1.1f) * s
+            val width = (if (record) 1.7f else 1.0f) * s
             val steps = 90
             val shown = (steps * progress).toInt()
             var px = 0f
@@ -338,12 +348,11 @@ private fun RidgeArt(rows: List<List<Float>>, recordIndex: Int, modifier: Modifi
                 }
                 val y = y0 - h
                 if (i > 0) {
-                    // `mask-image: radial-gradient(80% 100% at 100% 0%, #000 20%, transparent 75%)` (`lx-X01`): el trazo se desvanece lejos de la esquina
-                    // superior derecha; se aplica por tramo (sin capa ni mezcla).
-                    val dx = (360f - (x + px) / 2f) / (0.8f * 360f)
-                    val dy = ((y + py) / 2f) / 200f
+                    // Atenuada en el lateral izquierdo para que el título se lea sin interferencias y concentrada arriba a la derecha.
+                    val dx = (360f - (x + px) / 2f) / (0.68f * 360f)
+                    val dy = ((y + py) / 2f) / 185f
                     val dist = kotlin.math.sqrt(dx * dx + dy * dy)
-                    val mask = when { dist <= 0.2f -> 1f; dist >= 0.75f -> 0f; else -> (0.75f - dist) / 0.55f }
+                    val mask = when { dist <= 0.18f -> 1f; dist >= 0.70f -> 0f; else -> (0.70f - dist) / 0.52f }
                     if (mask > 0f) drawLine(color.copy(alpha = baseAlpha * mask), Offset(px * s, py * s), Offset(x * s, y * s), strokeWidth = width, cap = StrokeCap.Round)
                 }
                 px = x
@@ -361,48 +370,178 @@ private fun RidgeArt(rows: List<List<Float>>, recordIndex: Int, modifier: Modifi
 private fun DataModule(state: FinishSheetState, actions: FinishSheetActions) {
     val m = state.model
     val d = state.dims
+    var avg4wMode by rememberSaveable(m.name) { mutableStateOf(false) }
+    var activeKpi by rememberSaveable(m.name) { mutableStateOf<String?>(null) }
+    val trendPoints = remember(m.trend, m.trendPoints) {
+        if (m.trendPoints.size >= 2) m.trendPoints
+        else m.trend.mapIndexed { idx, v ->
+            FinishTrendPoint(if (idx == m.trend.lastIndex) "Hoy" else "S${idx + 1}", v)
+        }
+    }
+    var selectedTrendIdx by rememberSaveable(m.name, trendPoints.size) { mutableStateOf((trendPoints.size - 1).coerceAtLeast(0)) }
+
     Column(
         Modifier.fillMaxWidth().kpknAnimate(rise(200)).clip(RoundedCornerShape(22.dp)).background(ModuleBg).border(1.dp, ModuleBorder, RoundedCornerShape(22.dp))
             .padding(d.dataPadding).testTag("finish-data"),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
-            Column(Modifier.weight(1f)) {
+        Column(Modifier.fillMaxWidth()) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                 Text("VOLUMEN", style = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp), color = Lx.Faint)
-                Row(Modifier.padding(top = 3.dp, bottom = 5.dp), horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.Bottom) {
-                    val volumeStyle = androidx.compose.ui.text.TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = d.volumeSize.sp, lineHeight = d.volumeSize.sp, letterSpacing = (-1.2).sp)
-                    if (m.empty) Text("0", Modifier.alignByBaseline(), style = volumeStyle, color = Lx.Ink)
-                    else KpknCountUp(m.volume, style = volumeStyle.copy(color = Lx.Ink), modifier = Modifier.alignByBaseline().testTag("finish-volume"))
-                    Text("kg", Modifier.alignByBaseline(), style = Lx.inter(15.sp, FontWeight.SemiBold), color = Lx.Muted, maxLines = 1, softWrap = false)
+                if (m.volumeAvg4wDelta != null) {
+                    Row(
+                        Modifier.clip(RoundedCornerShape(50)).background(Color(0x0DFFFFFF)).padding(2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        BaselineChip("vs. última", !avg4wMode) { avg4wMode = false }
+                        BaselineChip("media 4s", avg4wMode) { avg4wMode = true }
+                    }
                 }
-                VolumeDelta(m)
             }
-            if (d.showSpark && m.trend.size >= 2) Spark(m.trend, Modifier.size(width = 112.dp, height = 44.dp))
+            Row(Modifier.padding(top = 3.dp, bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(5.dp), verticalAlignment = Alignment.Bottom) {
+                val volumeStyle = androidx.compose.ui.text.TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = d.volumeSize.sp, lineHeight = d.volumeSize.sp, letterSpacing = (-1.2).sp)
+                if (m.empty) Text("0", Modifier.alignByBaseline(), style = volumeStyle, color = Lx.Ink)
+                else KpknCountUp(m.volume, style = volumeStyle.copy(color = Lx.Ink), modifier = Modifier.alignByBaseline().testTag("finish-volume"))
+                Text("kg", Modifier.alignByBaseline(), style = Lx.inter(15.sp, FontWeight.SemiBold), color = Lx.Muted, maxLines = 1, softWrap = false)
+            }
+            VolumeDelta(m, avg4wMode)
         }
+
+        if (d.showSpark && trendPoints.size >= 2) {
+            val safeIdx = selectedTrendIdx.coerceIn(0, trendPoints.lastIndex)
+            val activePt = trendPoints[safeIdx]
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "${activePt.dateLabel} · ${finishGrouped(activePt.volume, 0)} kg",
+                        style = Lx.num(11.sp, weight = FontWeight.SemiBold),
+                        color = if (safeIdx == trendPoints.lastIndex) Lx.Ink else Lx.Muted,
+                    )
+                    Text("Toca para comparar", style = Lx.inter(10.sp), color = Lx.Dim)
+                }
+                InteractiveSpark(
+                    points = trendPoints.map { it.volume },
+                    selectedIndex = safeIdx,
+                    onSelectIndex = { selectedTrendIdx = it },
+                    modifier = Modifier.fillMaxWidth().height(64.dp).testTag("finish-volume-chart"),
+                )
+            }
+        }
+
         Row(
-            Modifier.fillMaxWidth().padding(top = 8.dp).drawWithContent {
+            Modifier.fillMaxWidth().drawWithContent {
                 drawLine(Lx.Div, Offset(0f, 0f), Offset(size.width, 0f), 1.dp.toPx())
                 drawContent()
-            }.padding(top = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            }.padding(top = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            val effort = m.recordedEffort.value
-            val effortSub = m.recordedEffort.coverageLabel
             val i0 = 0.55f
             val durationSeconds = m.durationSeconds
             val durationValue = if (durationSeconds in 1..59) durationSeconds.toString() else m.minutes.toString()
-            val durationUnit = if (durationSeconds in 1..59) "segundos" else "minutos"
-            Tile(Modifier.weight(1f), m.durationFraction, durationValue, "Duración", durationUnit, d, i0 + 0.07f, false, null)
-            Tile(Modifier.weight(1f), m.setsFraction, "${m.sets}", "Series", "de ${m.plannedSets}", d, i0 + 0.14f, false, null)
-            Tile(Modifier.weight(1f), if (effort != null) (effort / 10.0).toFloat() else 0f, effort?.let { finishGrouped(it, 1) } ?: "—", "Esfuerzo",
-                effortSub, d, i0 + 0.21f, false, null)
-            Tile(Modifier.weight(1f), if (m.records > 0) 1f else 0f, "${m.records}", "Récords", if (m.records > 0) "e1RM" else "esta vez no", d, i0 + 0.28f, m.records > 0, null)
+            val durationUnit = if (durationSeconds in 1..59) "seg" else "min"
+            val targetLabel = m.targetMinutes?.let { "meta $it min" } ?: "vuelta 60 min"
+            Tile(
+                Modifier.weight(1f),
+                m.durationFraction,
+                durationValue,
+                "Duración",
+                "$durationUnit · $targetLabel",
+                d,
+                i0 + 0.07f,
+                false,
+                active = activeKpi == "duration",
+            ) { activeKpi = if (activeKpi == "duration") null else "duration" }
+            Tile(
+                Modifier.weight(1f),
+                m.setsFraction,
+                "${m.sets}",
+                "Series",
+                "de ${m.plannedSets} planificadas",
+                d,
+                i0 + 0.14f,
+                false,
+                active = activeKpi == "sets",
+            ) { activeKpi = if (activeKpi == "sets") null else "sets" }
+        }
+
+        activeKpi?.let { kpi ->
+            val pct = if (kpi == "duration") (m.durationFraction * 100).toInt() else (m.setsFraction * 100).toInt()
+            val detailText = if (kpi == "duration") {
+                "Tiempo efectivo: ${finishDurationLabel(m.durationSeconds, m.minutes)} ($pct% de la referencia)"
+            } else {
+                "Cumplimiento: ${m.sets} de ${m.plannedSets} series ($pct%)"
+            }
+            Text(
+                detailText,
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(10.dp)).background(Color(0x0AFFFFFF)).padding(horizontal = 10.dp, vertical = 6.dp),
+                style = Lx.inter(11.sp),
+                color = Lx.Muted,
+            )
+        }
+
+        // Ecualizador de Esfuerzo inline (0–10), pre-cargado con el promedio declarado serie por serie en vivo.
+        val effectiveEffort = state.effortSelected ?: m.recordedEffort.value
+        val isManualEffort = state.effortSelected != null
+        Column(
+            Modifier.fillMaxWidth().drawWithContent {
+                drawLine(Lx.Div, Offset(0f, 0f), Offset(size.width, 0f), 1.dp.toPx())
+                drawContent()
+            }.padding(top = 10.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("ESFUERZO (sRPE)", style = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp), color = Lx.Faint)
+                    Box(
+                        Modifier.clip(RoundedCornerShape(50)).background(Color(0x0DFFFFFF)).padding(horizontal = 7.dp, vertical = 2.dp),
+                    ) {
+                        Text(
+                            if (isManualEffort) "Manual" else if (m.recordedEffort.coveredSets > 0) "Auto · ${m.recordedEffort.coverageLabel}" else "Sin dato",
+                            style = Lx.inter(10.sp, FontWeight.Medium),
+                            color = Lx.Muted,
+                        )
+                    }
+                    if (isManualEffort) {
+                        Text(
+                            "↺ auto",
+                            Modifier.clip(RoundedCornerShape(50)).background(Color(0x14FFFFFF))
+                                .clickable(role = Role.Button) { actions.onEffort(null) }
+                                .padding(horizontal = 7.dp, vertical = 2.dp)
+                                .testTag("finish-effort-reset"),
+                            style = Lx.inter(10.sp, FontWeight.SemiBold),
+                            color = Lx.Ink,
+                        )
+                    }
+                }
+                Text(
+                    effectiveEffort?.let { finishGrouped(it, if (isManualEffort) 0 else 1) } ?: "—",
+                    style = androidx.compose.ui.text.TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp, letterSpacing = (-0.5).sp),
+                    color = Lx.Ink,
+                )
+            }
+            EffortScale(effectiveEffort, actions.onEffort, compact = true, showHeader = false)
         }
     }
 }
 
 @Composable
-private fun VolumeDelta(m: FinishModel) {
-    val delta = m.volumeDelta
+private fun BaselineChip(label: String, selected: Boolean, onClick: () -> Unit) {
+    Text(
+        label,
+        Modifier.clip(RoundedCornerShape(50))
+            .background(if (selected) Lx.Ink else Color.Transparent)
+            .clickable(role = Role.Tab, onClick = onClick)
+            .padding(horizontal = 8.dp, vertical = 3.dp),
+        style = Lx.inter(10.sp, if (selected) FontWeight.SemiBold else FontWeight.Medium),
+        color = if (selected) Lx.OnInk else Lx.Muted,
+        maxLines = 1,
+    )
+}
+
+@Composable
+private fun VolumeDelta(m: FinishModel, avg4wMode: Boolean = false) {
+    val delta = if (avg4wMode) m.volumeAvg4wDelta ?: m.volumeDelta else m.volumeDelta
+    val suffix = if (avg4wMode && m.volumeAvg4wDelta != null) "vs. media 4 sem." else "vs. última vez"
     when {
         m.empty -> Text("Sin series todavía", style = Lx.inter(12.5.sp, FontWeight.Medium), color = Lx.Muted)
         delta == null -> Text("Primera vez con esta sesión", style = Lx.inter(12.5.sp, FontWeight.Medium), color = Lx.Muted)
@@ -413,7 +552,7 @@ private fun VolumeDelta(m: FinishModel) {
                 Text(
                     androidx.compose.ui.text.buildAnnotatedString {
                         append((if (down) "−" else "+") + finishGrouped(abs(delta), 0) + " kg ")
-                        pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Normal, fontSize = 11.5.sp, color = Lx.Faint)); append("vs. última vez"); pop()
+                        pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.Normal, fontSize = 11.5.sp, color = Lx.Faint)); append(suffix); pop()
                     },
                     style = Lx.inter(12.5.sp, FontWeight.SemiBold), color = if (down) Lx.Muted else Lx.Done,
                 )
@@ -422,46 +561,82 @@ private fun VolumeDelta(m: FinishModel) {
     }
 }
 
-/** La línea de las últimas sesiones iguales (116 × 46 del lienzo): se dibuja en 1,6 s, el área y el punto aparecen después. */
+/** Gráfica interactiva de volumen a ancho completo con selección táctil de sesión. */
 @Composable
-private fun Spark(points: List<Double>, modifier: Modifier) {
+private fun InteractiveSpark(points: List<Double>, selectedIndex: Int, onSelectIndex: (Int) -> Unit, modifier: Modifier) {
     val line = rememberKpknPose(remember { draw(1600) })
     val area = rememberKpknPose(remember { fadeIn(600, 1000) })
     val dot = rememberKpknPose(remember { fadeIn(300, 1300) })
-    Canvas(modifier) {
-        val w = 116f
-        val h = 46f
-        val s = min(size.width / w, size.height / h)
+    var widthPx by remember { mutableStateOf(1f) }
+    fun indexAt(x: Float): Int {
+        if (points.size <= 1) return 0
+        val pad = 10f
+        val span = (widthPx - 2 * pad).coerceAtLeast(1f)
+        return (((x - pad) / span) * (points.size - 1)).let { kotlin.math.round(it).toInt() }.coerceIn(0, points.lastIndex)
+    }
+    Canvas(
+        modifier
+            .onSizeChanged { widthPx = it.width.toFloat().coerceAtLeast(1f) }
+            .pointerInput(points.size) { detectTapGestures { p -> onSelectIndex(indexAt(p.x)) } }
+            .pointerInput(points.size) { detectDragGestures { change, _ -> onSelectIndex(indexAt(change.position.x)) } },
+    ) {
+        val w = size.width
+        val h = size.height
+        val padX = 10.dp.toPx()
+        val padY = 10.dp.toPx()
         val lo = points.min()
         val sp = (points.max() - lo).takeIf { it > 0.0 } ?: 1.0
-        fun px(i: Int) = (6f + i * (w - 14f) / (points.size - 1)) * s
-        fun py(v: Double) = (h - 8f - ((v - lo) / sp).toFloat() * (h - 18f)) * s
+        fun px(i: Int) = padX + i * (w - 2 * padX) / (points.size - 1)
+        fun py(v: Double) = h - padY - ((v - lo) / sp).toFloat() * (h - 2 * padY)
         val path = Path().apply { points.forEachIndexed { i, v -> if (i == 0) moveTo(px(i), py(v)) else lineTo(px(i), py(v)) } }
         val fill = Path().apply {
-            addPath(path); lineTo(px(points.size - 1), h * s); lineTo(px(0), h * s); close()
+            addPath(path); lineTo(px(points.size - 1), h); lineTo(px(0), h); close()
         }
-        drawPath(fill, Brush.verticalGradient(listOf(Lx.Ink.copy(alpha = 0.2f * area.pose().alpha), Color.Transparent), startY = 0f, endY = h * s))
+        drawPath(fill, Brush.verticalGradient(listOf(Lx.Ink.copy(alpha = 0.16f * area.pose().alpha), Color.Transparent), startY = 0f, endY = h))
         val measure = android.graphics.PathMeasure(path.asAndroidPath(), false)
         val visible = Path()
         measure.getSegment(0f, measure.length * (1f - line.pose()[KpknChannel.DashOffset]).coerceIn(0f, 1f), visible.asAndroidPath(), true)
-        drawPath(visible, Lx.Ink, style = Stroke(1.8f * s, cap = StrokeCap.Round, join = StrokeJoin.Round))
+        drawPath(visible, Lx.Ink, style = Stroke(2.dp.toPx(), cap = StrokeCap.Round, join = StrokeJoin.Round))
+
         val a = dot.pose().alpha
-        val last = Offset(px(points.size - 1), py(points.last()))
-        drawCircle(Lx.Ink.copy(alpha = a), 3.4f * s, last)
-        drawCircle(Lx.Ink.copy(alpha = 0.3f * a), 7f * s, last, style = Stroke(1f * s))
+        points.forEachIndexed { idx, v ->
+            val center = Offset(px(idx), py(v))
+            if (idx == selectedIndex) {
+                drawCircle(Lx.Ink.copy(alpha = 0.25f * a), 8.dp.toPx(), center)
+                drawCircle(Lx.Ink.copy(alpha = a), 4.2.dp.toPx(), center)
+            } else {
+                drawCircle(ModuleBg, 3.dp.toPx(), center)
+                drawCircle(Lx.Muted.copy(alpha = 0.8f * a), 3.dp.toPx(), center, style = Stroke(1.5.dp.toPx()))
+            }
+        }
     }
 }
 
 /** Un anillo con su cifra, su nombre y su subtítulo. Se llena en 1,1 s con la curva `trazo` y el retardo propio (`lx-A08`). */
 @Composable
-private fun Tile(modifier: Modifier, fraction: Float, center: String, label: String, sub: String, d: FinishDims, delaySec: Float, coral: Boolean, onClick: (() -> Unit)?) {
-    Column(
+private fun Tile(
+    modifier: Modifier,
+    fraction: Float,
+    center: String,
+    label: String,
+    sub: String,
+    d: FinishDims,
+    delaySec: Float,
+    coral: Boolean,
+    active: Boolean = false,
+    onClick: (() -> Unit)?,
+) {
+    Row(
         modifier.kpknAnimate(rise((delaySec * 1000).toInt()))
-            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier),
-        horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(2.dp),
+            .clip(RoundedCornerShape(14.dp))
+            .background(if (active) Color(0x12FFFFFF) else Color(0x06FFFFFF))
+            .then(if (onClick != null) Modifier.clickable(role = Role.Button, onClick = onClick) else Modifier)
+            .padding(horizontal = 10.dp, vertical = 8.dp),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
         val pose = rememberKpknPose(remember(delaySec) { draw(1100, (delaySec * 1000).toInt()) })
-        Box(Modifier.padding(bottom = 2.dp).size(d.ring.dp), contentAlignment = Alignment.Center) {
+        Box(Modifier.size((d.ring - 4).dp), contentAlignment = Alignment.Center) {
             Canvas(Modifier.fillMaxSize()) {
                 val u = size.minDimension / 56f
                 drawCircle(Color(0x12FFFFFF), 22f * u, center = Offset(28f * u, 28f * u), style = Stroke(5f * u))
@@ -469,10 +644,12 @@ private fun Tile(modifier: Modifier, fraction: Float, center: String, label: Str
                 if (sweep > 0f) drawArc(if (coral) Lx.Mus else Lx.Ink, -90f, sweep, false, topLeft = Offset(6f * u, 6f * u), size = Size(44f * u, 44f * u),
                     style = Stroke(5f * u, cap = StrokeCap.Round))
             }
-            Text(center, style = Lx.num(16.sp), color = Lx.Ink)
+            Text(center, style = Lx.num(14.sp), color = Lx.Ink)
         }
-        Text(label, style = Lx.inter(12.sp, FontWeight.SemiBold), color = Lx.Ink)
-        if (d.showTileSub) Text(sub, style = Lx.inter(11.sp), color = Lx.Faint, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(1.dp)) {
+            Text(label, style = Lx.inter(12.sp, FontWeight.SemiBold), color = Lx.Ink, maxLines = 1)
+            if (d.showTileSub) Text(sub, style = Lx.inter(10.5.sp), color = Lx.Faint, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
     }
 }
 
@@ -508,16 +685,33 @@ private fun CardioRow(c: FinishCardio) {
 }
 
 @Composable
-private fun RecordStrip(r: FinishRecord) {
+private fun FeaturedMilestoneBanner(model: FinishModel, onOpenMilestones: () -> Unit) {
+    val topRecord = model.record
+    val topMilestone = model.milestones.firstOrNull()
+    val title: String
+    val subtitle: String
+    when {
+        topRecord != null -> {
+            title = "${if (topRecord.isInitialReference) "Referencia" else "Récord"} · ${topRecord.exerciseName}"
+            subtitle = topRecord.summaryLine
+        }
+        topMilestone != null -> {
+            val prefix = if (topMilestone.kind == "star_goal_reached") "✦ Meta Estrella" else "Hito de sesión"
+            title = "$prefix · ${topMilestone.exerciseName}"
+            subtitle = topMilestone.label + (topMilestone.detail?.let { " · $it" } ?: "")
+        }
+        else -> return
+    }
     val burst = rememberKpknPose(remember { draw(1000, 950, "estandar") })
     Row(
-        Modifier.fillMaxWidth().kpknAnimate(rise(950)).clip(RoundedCornerShape(18.dp)).background(Color(0x14F49A6E)).border(1.dp, Color(0x44F49A6E), RoundedCornerShape(18.dp))
-            .padding(start = 9.dp, top = 9.dp, end = 14.dp, bottom = 9.dp).testTag("finish-record"),
-        horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically,
+        Modifier.fillMaxWidth().kpknAnimate(rise(900)).clip(RoundedCornerShape(18.dp))
+            .background(Color(0x14F49A6E)).border(1.dp, Color(0x44F49A6E), RoundedCornerShape(18.dp))
+            .clickable(role = Role.Button, onClick = onOpenMilestones)
+            .padding(start = 9.dp, top = 9.dp, end = 12.dp, bottom = 9.dp).testTag("finish-record"),
+        horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically,
     ) {
-        Box(Modifier.size(44.dp), contentAlignment = Alignment.Center) {
-            // El estallido (16 trazos finos) se dibuja alrededor del trofeo, 8 dp por fuera de su caja (`inset: -8px`).
-            Canvas(Modifier.size(60.dp).graphicsLayer { clip = false }) {
+        Box(Modifier.size(40.dp), contentAlignment = Alignment.Center) {
+            Canvas(Modifier.size(54.dp).graphicsLayer { clip = false }) {
                 val u = size.minDimension / 60f
                 val p = (1f - burst.pose()[KpknChannel.DashOffset]).coerceIn(0f, 1f)
                 for (i in 0 until 16) {
@@ -530,67 +724,187 @@ private fun RecordStrip(r: FinishRecord) {
                         strokeWidth = (if (i % 4 == 0) 1.8f else 1f) * u, cap = StrokeCap.Round)
                 }
             }
-            Icon(KpknLineIcons.Trophy, null, Modifier.size(20.dp), tint = Lx.Mus)
+            Icon(KpknLineIcons.Trophy, null, Modifier.size(18.dp), tint = Lx.Mus)
         }
-        Column {
+        Column(Modifier.weight(1f)) {
+            Text(title, style = Lx.inter(13.sp, FontWeight.SemiBold), color = Lx.Ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+            Text(subtitle, Modifier.padding(top = 2.dp), style = Lx.inter(11.5.sp), color = Lx.Mus, maxLines = 2, overflow = TextOverflow.Ellipsis)
+        }
+        val totalMilestones = maxOf(model.recordList.size, model.milestones.size)
+        if (totalMilestones > 1) {
             Text(
-                "${if (r.isInitialReference) "Referencia" else "Récord"} · ${r.exerciseName}",
-                style = Lx.inter(13.5.sp, FontWeight.SemiBold), color = Lx.Ink, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                "+${totalMilestones - 1}",
+                Modifier.clip(RoundedCornerShape(50)).background(Color(0x22F49A6E)).padding(horizontal = 8.dp, vertical = 3.dp),
+                style = Lx.num(11.sp, weight = FontWeight.SemiBold),
+                color = Lx.Mus,
             )
-            Text(r.summaryLine, Modifier.padding(top = 2.dp), style = Lx.inter(11.5.sp), color = Lx.Mus, maxLines = 2, overflow = TextOverflow.Ellipsis)
         }
     }
 }
 
 @Composable
-private fun MusclesModule(state: FinishSheetState) {
-    val m = state.model
-    val d = state.dims
-    val rows = m.muscles.take(d.muscleRows)
-    val maxValue = max(1.0, m.muscles.maxOf { it.total })
+private fun FinishDetailDeck(
+    model: FinishModel,
+    dims: FinishDims,
+    selectedTab: FinishDeckTab,
+    onSelectTab: (FinishDeckTab) -> Unit,
+) {
+    val hitoCount = maxOf(model.recordList.size, model.milestones.size)
     Column(
-        Modifier.fillMaxWidth().kpknAnimate(rise(700)).clip(RoundedCornerShape(22.dp)).background(ModuleBg).border(1.dp, ModuleBorder, RoundedCornerShape(22.dp))
-            .padding(d.musclePadding).testTag("finish-muscles"),
+        Modifier.fillMaxWidth().kpknAnimate(rise(700)).clip(RoundedCornerShape(22.dp)).background(ModuleBg)
+            .border(1.dp, ModuleBorder, RoundedCornerShape(22.dp)).padding(dims.musclePadding).testTag("finish-deck"),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Row(Modifier.fillMaxWidth().padding(bottom = 6.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-            Text("MÚSCULOS", style = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp), color = Lx.Faint)
-            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-                Box(Modifier.size(14.dp, 5.dp).clip(RoundedCornerShape(3.dp)).background(Lx.Ink))
-                Text("directas", style = Lx.inter(11.sp), color = Lx.Faint)
-                Box(Modifier.padding(start = 6.dp).size(14.dp, 5.dp).clip(RoundedCornerShape(3.dp)).background(Color(0x4DF2EEE6)))
-                Text("total", style = Lx.inter(11.sp), color = Lx.Faint)
-            }
-        }
-        if (d.barsStyle) {
-            rows.forEachIndexed { i, mu ->
-                val delay = (700 + i * 60)
-                Row(Modifier.fillMaxWidth().height(22.dp).kpknAnimate(fadeUp(delay)), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    Text(mu.name, Modifier.width(96.dp), style = Lx.inter(12.5.sp), color = Lx.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    Box(Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)).background(Color(0x12FFFFFF))) {
-                        Box(Modifier.fillMaxWidth((mu.total / maxValue).toFloat().coerceIn(0f, 1f)).fillMaxHeight().kpknAnimate(grow(delay), transformOrigin = TransformOrigin(0f, 0.5f)).background(Color(0x4DF2EEE6)))
-                        Box(Modifier.fillMaxWidth((mu.direct / maxValue).toFloat().coerceIn(0f, 1f)).fillMaxHeight().kpknAnimate(grow(delay), transformOrigin = TransformOrigin(0f, 0.5f)).background(Lx.Ink))
-                    }
-                    Text(finishGrouped(mu.total, 1), Modifier.width(36.dp), style = Lx.num(12.5.sp), color = Lx.Ink, textAlign = TextAlign.End, maxLines = 1)
-                }
-            }
-        } else {
-            // Niveles B y C: una barra apilada con los cinco primeros y los tres nombres de arriba.
-            Row(Modifier.fillMaxWidth().padding(top = 2.dp, bottom = 9.dp).height(10.dp), horizontalArrangement = Arrangement.spacedBy(3.dp)) {
-                m.muscles.take(5).forEachIndexed { i, mu ->
-                    Box(Modifier.weight(mu.total.toFloat().coerceAtLeast(0.1f)).fillMaxHeight().clip(RoundedCornerShape(5.dp)).background(Lx.Ink.copy(alpha = 1f - i * 0.17f)))
-                }
-            }
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                m.muscles.take(3).forEach { mu ->
+        Row(
+            Modifier.fillMaxWidth().clip(RoundedCornerShape(14.dp)).background(Color(0x0AFFFFFF)).padding(3.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
+        ) {
+            FinishDeckTab.entries.forEach { tab ->
+                val selected = tab == selectedTab
+                val label = if (tab == FinishDeckTab.HITOS && hitoCount > 0) "${tab.label} ($hitoCount)" else tab.label
+                Box(
+                    Modifier.weight(1f).clip(RoundedCornerShape(11.dp))
+                        .background(if (selected) Color(0x1CFFFFFF) else Color.Transparent)
+                        .clickable(role = Role.Tab) { onSelectTab(tab) }
+                        .padding(vertical = 7.dp)
+                        .testTag("finish-deck-tab-${tab.name.lowercase()}"),
+                    contentAlignment = Alignment.Center,
+                ) {
                     Text(
-                        androidx.compose.ui.text.buildAnnotatedString {
-                            append("${mu.name} ")
-                            pushStyle(androidx.compose.ui.text.SpanStyle(fontWeight = FontWeight.SemiBold, color = Lx.Ink)); append(finishGrouped(mu.total, 1)); pop()
-                        },
-                        style = Lx.inter(12.sp), color = Lx.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis,
+                        label,
+                        style = Lx.inter(11.5.sp, if (selected) FontWeight.SemiBold else FontWeight.Medium),
+                        color = if (selected) Lx.Ink else Lx.Muted,
+                        maxLines = 1,
                     )
                 }
             }
+        }
+        when (selectedTab) {
+            FinishDeckTab.HITOS -> MilestonesDeckPage(model)
+            FinishDeckTab.COMPARATIVA -> {
+                val comparable = model.liftProgress.any { it.best != null }
+                if (comparable) WeeklyComparison(model.liftProgress)
+                else Text("Sin ejercicios comparables en esta sesión.", style = Lx.inter(12.sp), color = Lx.Faint)
+            }
+            FinishDeckTab.MUSCULOS -> {
+                if (model.muscles.isNotEmpty()) MusclesModuleContent(model)
+                else Text("Sin volumen muscular registrado.", style = Lx.inter(12.sp), color = Lx.Faint)
+            }
+        }
+    }
+}
+
+@Composable
+private fun MilestonesDeckPage(model: FinishModel) {
+    var expandedIdx by rememberSaveable { mutableStateOf<Int?>(null) }
+    val records = model.recordList
+    val sessionMilestones = model.milestones
+    if (records.isEmpty() && sessionMilestones.isEmpty()) {
+        Column(Modifier.fillMaxWidth().padding(vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Text("Sin récords nuevos en esta sesión", style = Lx.inter(12.5.sp, FontWeight.Medium), color = Lx.Muted)
+            Text("La carga queda registrada para tus comparativas de próxima semana.", style = Lx.inter(11.sp), color = Lx.Faint)
+        }
+        return
+    }
+    Column(Modifier.fillMaxWidth().testTag("finish-milestones-list"), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        records.forEachIndexed { idx, r ->
+            val open = expandedIdx == idx
+            Column(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0x08FFFFFF))
+                    .clickable(role = Role.Button) { expandedIdx = if (open) null else idx }
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "${if (r.isInitialReference) "Referencia" else "Récord"} · ${r.exerciseName}",
+                        Modifier.weight(1f),
+                        style = Lx.inter(12.5.sp, FontWeight.SemiBold),
+                        color = Lx.Ink,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(
+                        r.improvement?.let { "+${finishGrouped(it, 1)} ${r.unit}" } ?: r.currentLabel,
+                        style = Lx.num(11.5.sp, weight = FontWeight.SemiBold),
+                        color = Lx.Mus,
+                    )
+                }
+                if (open) {
+                    Text(r.summaryLine, style = Lx.inter(11.sp), color = Lx.Muted)
+                }
+            }
+        }
+        sessionMilestones.forEachIndexed { idx, ms ->
+            val key = 100 + idx
+            val open = expandedIdx == key
+            Column(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0x08FFFFFF))
+                    .clickable(role = Role.Button) { expandedIdx = if (open) null else key }
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        "${if (ms.kind == "star_goal_reached") "✦ Meta Estrella" else "Hito"} · ${ms.exerciseName}",
+                        Modifier.weight(1f),
+                        style = Lx.inter(12.5.sp, FontWeight.SemiBold),
+                        color = Lx.Ink,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    Text(ms.label.ifBlank { "${finishGrouped(ms.value, 1)} kg" }, style = Lx.num(11.5.sp, weight = FontWeight.SemiBold), color = Lx.Done)
+                }
+                if (open) {
+                    Text(ms.detail ?: "Hito alcanzado durante la sesión", style = Lx.inter(11.sp), color = Lx.Muted)
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun MusclesModuleContent(model: FinishModel) {
+    val maxValue = max(1.0, model.muscles.maxOf { it.total })
+    var selectedIdx by rememberSaveable(model.name) { mutableStateOf(0) }
+    Column(Modifier.fillMaxWidth().testTag("finish-muscles"), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Row(Modifier.fillMaxWidth().padding(bottom = 4.dp), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text("SERIES EFECTIVAS", style = Lx.inter(10.sp, FontWeight.SemiBold, 1.2.sp), color = Lx.Faint)
+            Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(12.dp, 5.dp).clip(RoundedCornerShape(3.dp)).background(Lx.Ink))
+                Text("directas", style = Lx.inter(10.5.sp), color = Lx.Faint)
+                Box(Modifier.padding(start = 4.dp).size(12.dp, 5.dp).clip(RoundedCornerShape(3.dp)).background(Color(0x4DF2EEE6)))
+                Text("total", style = Lx.inter(10.5.sp), color = Lx.Faint)
+            }
+        }
+        model.muscles.forEachIndexed { i, mu ->
+            val delay = 200 + i * 50
+            val active = i == selectedIdx
+            Row(
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(8.dp))
+                    .background(if (active) Color(0x0BFFFFFF) else Color.Transparent)
+                    .clickable(role = Role.Button) { selectedIdx = i }
+                    .padding(horizontal = 6.dp, vertical = 4.dp)
+                    .kpknAnimate(fadeUp(delay)),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(mu.name, Modifier.width(92.dp), style = Lx.inter(12.sp, if (active) FontWeight.SemiBold else FontWeight.Normal), color = if (active) Lx.Ink else Lx.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                Box(Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)).background(Color(0x12FFFFFF))) {
+                    Box(Modifier.fillMaxWidth((mu.total / maxValue).toFloat().coerceIn(0f, 1f)).fillMaxHeight().kpknAnimate(grow(delay), transformOrigin = TransformOrigin(0f, 0.5f)).background(Color(0x4DF2EEE6)))
+                    Box(Modifier.fillMaxWidth((mu.direct / maxValue).toFloat().coerceIn(0f, 1f)).fillMaxHeight().kpknAnimate(grow(delay), transformOrigin = TransformOrigin(0f, 0.5f)).background(Lx.Ink))
+                }
+                Text(finishGrouped(mu.total, 1), Modifier.width(34.dp), style = Lx.num(12.sp), color = Lx.Ink, textAlign = TextAlign.End, maxLines = 1)
+            }
+        }
+        model.muscles.getOrNull(selectedIdx)?.let { sel ->
+            val indirect = (sel.total - sel.direct).coerceAtLeast(0.0)
+            Text(
+                "${sel.name}: ${finishGrouped(sel.direct, 1)} directas + ${finishGrouped(indirect, 1)} indirectas",
+                Modifier.padding(top = 4.dp),
+                style = Lx.inter(11.sp),
+                color = Lx.Muted,
+            )
         }
     }
 }
@@ -626,43 +940,82 @@ private fun LiftChips(lifts: List<FinishLiftChip>) {
 private fun WeeklyComparison(lifts: List<FinishLiftProgress>) {
     val rows = lifts.filter { it.best != null }
     if (rows.isEmpty()) return
+    var useLastSession by rememberSaveable { mutableStateOf(false) }
+    var expandedIdx by rememberSaveable { mutableStateOf<Int?>(null) }
     Column(
-        Modifier.fillMaxWidth().testTag("finish-week-comparison")
-            .clip(RoundedCornerShape(22.dp)).background(ModuleBg).border(1.dp, ModuleBorder, RoundedCornerShape(22.dp))
-            .padding(horizontal = 14.dp, vertical = 12.dp),
+        Modifier.fillMaxWidth().testTag("finish-week-comparison"),
         verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        Text("COMPARACIÓN SEMANAL", style = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp), color = Lx.Faint)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text("PROGRESO POR EJERCICIO", style = Lx.inter(10.sp, FontWeight.SemiBold, 1.2.sp), color = Lx.Faint)
+            if (rows.any { it.previous != null }) {
+                Row(
+                    Modifier.clip(RoundedCornerShape(50)).background(Color(0x0DFFFFFF)).padding(2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    BaselineChip("Sem. ant.", !useLastSession) { useLastSession = false }
+                    BaselineChip("Última", useLastSession) { useLastSession = true }
+                }
+            }
+        }
         rows.forEachIndexed { index, lift ->
             val metric = finishWeeklyMetric(lift)
+            val open = expandedIdx == index
             Column(
-                Modifier.fillMaxWidth().testTag("finish-week-chart-row-$index"),
+                Modifier.fillMaxWidth().clip(RoundedCornerShape(12.dp)).background(Color(0x07FFFFFF))
+                    .clickable(role = Role.Button) { expandedIdx = if (open) null else index }
+                    .padding(horizontal = 10.dp, vertical = 8.dp)
+                    .testTag("finish-week-chart-row-$index"),
                 verticalArrangement = Arrangement.spacedBy(5.dp),
             ) {
-                Text(
-                    if (metric == null) lift.name else "${lift.name} · ${metric.unitLabel}",
-                    style = Lx.inter(12.5.sp, FontWeight.Medium), color = Lx.Muted,
-                    maxLines = 1, overflow = TextOverflow.Ellipsis,
-                )
                 if (metric == null) {
-                    Text("Sin métrica comparable para esta modalidad", style = Lx.inter(11.5.sp), color = Lx.Faint)
+                    Text(lift.name, style = Lx.inter(12.5.sp, FontWeight.Medium), color = Lx.Muted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    Text("Sin métrica comparable para esta modalidad", style = Lx.inter(11.sp), color = Lx.Faint)
                 } else {
-                    val previous = metric.previousValue
+                    val previous = if (useLastSession) {
+                        when (metric.kind) {
+                            FinishWeeklyMetricKind.ESTIMATED_ONE_RM -> lift.previous?.estimated1Rm?.takeIf { it > 0.0 }
+                            FinishWeeklyMetricKind.ADDED_LOAD,
+                            FinishWeeklyMetricKind.ASSISTANCE,
+                            -> lift.previous?.weight?.takeIf { it >= 0.0 }
+                            FinishWeeklyMetricKind.BODYWEIGHT_REPS,
+                            FinishWeeklyMetricKind.TIME_SECONDS,
+                            -> lift.previous?.comparableScore?.takeIf { it > 0.0 }
+                            FinishWeeklyMetricKind.DISTANCE_KM -> lift.previous?.comparableScore?.div(1000.0)?.takeIf { it > 0.0 }
+                        }
+                    } else metric.previousValue
                     val maxValue = maxOf(metric.currentValue, previous ?: 0.0).coerceAtLeast(0.01)
                     val currentImproved = previous?.let {
                         if (metric.lowerIsBetter) metric.currentValue < it else metric.currentValue > it
                     } == true
-                    Text(
-                        "hoy ${metric.display(metric.currentValue)} · sem. ant. ${previous?.let(metric::display) ?: "sin dato comparable"}",
-                        style = Lx.num(11.5.sp, weight = FontWeight.Medium),
-                        color = if (currentImproved) Lx.Done else Lx.Faint,
-                        maxLines = 1, overflow = TextOverflow.Ellipsis,
-                    )
+                    val deltaVal = previous?.let { metric.currentValue - it }
+                    val deltaTag = lift.deltaKg?.let { kg ->
+                        val sign = if (kg > 0.01) "+" else if (kg < -0.01) "−" else "="
+                        if (abs(kg) <= 0.01) "=" else "$sign${finishGrouped(abs(kg), 1)} kg"
+                    } ?: deltaVal?.let {
+                        val pos = if (metric.lowerIsBetter) it < -0.05 else it > 0.05
+                        val sign = if (it >= 0) "+" else "−"
+                        val unit = if (metric.kind == FinishWeeklyMetricKind.BODYWEIGHT_REPS) " reps" else " kg"
+                        "${if (pos) "↑ " else ""}$sign${finishGrouped(abs(it), if (metric.kind == FinishWeeklyMetricKind.BODYWEIGHT_REPS) 0 else 1)}$unit"
+                    }
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text("${lift.name} · ${metric.unitLabel}", Modifier.weight(1f), style = Lx.inter(12.sp, FontWeight.SemiBold), color = Lx.Ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        if (deltaTag != null) {
+                            Text(deltaTag, style = Lx.num(11.sp, weight = FontWeight.SemiBold), color = if (currentImproved) Lx.Done else Lx.Muted)
+                        }
+                    }
                     FinishWeeklyBar("Hoy", metric.currentValue, maxValue, metric.display(metric.currentValue), if (currentImproved) Lx.Done else Lx.Ink)
                     if (previous != null) {
-                        FinishWeeklyBar("Sem. ant.", previous, maxValue, metric.display(previous), Lx.Muted)
+                        FinishWeeklyBar(if (useLastSession) "Última" else "Sem. ant.", previous, maxValue, metric.display(previous), Lx.Muted)
                     } else {
-                        Text("Sin dato comparable la semana anterior", style = Lx.inter(10.5.sp), color = Lx.Faint)
+                        Text(if (useLastSession) "Sin sesión previa comparable" else "Sin dato comparable la semana anterior", style = Lx.inter(10.5.sp), color = Lx.Faint)
+                    }
+                    if (open) {
+                        Text(
+                            "${lift.setCount} series hoy · ${lift.totalHistorySessions} sesiones en historial",
+                            style = Lx.inter(10.5.sp),
+                            color = Lx.Faint,
+                        )
                     }
                 }
             }
@@ -673,15 +1026,14 @@ private fun WeeklyComparison(lifts: List<FinishLiftProgress>) {
 @Composable
 private fun FinishWeeklyBar(label: String, value: Double, maxValue: Double, valueLabel: String, color: Color) {
     val fraction = (value / maxValue).toFloat().coerceIn(0.025f, 1f)
-    Row(
-        Modifier.fillMaxWidth().semantics { contentDescription = "$label: $valueLabel" },
-        horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Text(label, Modifier.width(62.dp), style = Lx.inter(10.5.sp), color = Lx.Faint, maxLines = 1)
-        Box(Modifier.weight(1f).height(6.dp).clip(RoundedCornerShape(3.dp)).background(Color(0x12FFFFFF))) {
+    Column(Modifier.fillMaxWidth().semantics { contentDescription = "$label: $valueLabel" }, verticalArrangement = Arrangement.spacedBy(3.dp)) {
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            Text(label, style = Lx.inter(10.5.sp), color = Lx.Faint, maxLines = 1)
+            Text(valueLabel, style = Lx.num(10.5.sp), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)
+        }
+        Box(Modifier.fillMaxWidth().height(6.dp).clip(RoundedCornerShape(3.dp)).background(Color(0x12FFFFFF))) {
             Box(Modifier.fillMaxWidth(fraction).fillMaxHeight().background(color, RoundedCornerShape(3.dp)))
         }
-        Text(valueLabel, Modifier.width(112.dp), style = Lx.num(10.5.sp), color = color, maxLines = 1, overflow = TextOverflow.Ellipsis)
     }
 }
 
@@ -723,7 +1075,7 @@ private fun StoryCard(state: FinishSheetState, actions: FinishSheetActions) {
             }
             Column(Modifier.weight(1f)) {
                 Text("Preparar historia", style = Lx.inter(14.sp, FontWeight.SemiBold), color = Lx.Ink)
-                Text("General · mejoras y duración", Modifier.padding(top = 2.dp), style = Lx.inter(12.sp, line = 16.2.sp), color = Lx.Faint)
+                Text(state.storyTemplateSummary, Modifier.padding(top = 2.dp), style = Lx.inter(12.sp, line = 16.2.sp), color = Lx.Faint, maxLines = 1, overflow = TextOverflow.Ellipsis)
             }
             Icon(KpknLineIcons.ChevronRight, null, Modifier.size(16.dp), tint = Lx.Faint)
         }
@@ -758,10 +1110,8 @@ internal fun LxSwitch(on: Boolean, onChange: (Boolean) -> Unit) {
 
 @Composable
 private fun QuickRow(state: FinishSheetState, actions: FinishSheetActions) {
-    val effort = state.effortSelected ?: state.model.effort
     Row(Modifier.fillMaxWidth().kpknAnimate(rise(1050)), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         QuickButton(Modifier.weight(1f), "Notas", FreeClockIcons.Note, if (state.notes.isNotBlank()) "✓" else null, actions.onOpenNotes, "finish-notes-open")
-        QuickButton(Modifier.weight(1f), "Valorar", KpknLineIcons.Flame, effort?.let { finishGrouped(it, 1) }, actions.onOpenRate, "finish-rate-open")
         QuickButton(Modifier.weight(1f), "Fotos", FreeClockIcons.Image, state.photoCount.takeIf { it > 0 }?.toString(), actions.onPhotos, "finish-photos-open")
     }
 }
@@ -926,36 +1276,41 @@ private fun TaskRow(item: SessionChecklistItem, actions: FinishSheetActions) {
     }
 }
 
-/** Escala de 11 barras que suben (22 → 52 dp), se arrastra con el dedo; tocar la marcada otra vez la deja sin valorar. */
+/** Escala de 11 barras que suben (20–42 dp en modo compacto o 22–52 dp en panel), se arrastra con el dedo; tocar la marcada otra vez vuelve a auto. */
 @Composable
-private fun EffortScale(effort: Double?, onEffort: (Double?) -> Unit) {
+private fun EffortScale(effort: Double?, onEffort: (Double?) -> Unit, compact: Boolean = false, showHeader: Boolean = true) {
     Column {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
-            Text("ESFUERZO DE LA SESIÓN", style = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp), color = Lx.Faint)
-            Text(effort?.let { finishGrouped(it, 0) } ?: "—", style = androidx.compose.ui.text.TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = 28.sp, letterSpacing = (-0.6).sp), color = Lx.Ink)
+        if (showHeader) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.Bottom) {
+                Text("ESFUERZO DE LA SESIÓN", style = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp), color = Lx.Faint)
+                Text(effort?.let { finishGrouped(it, 0) } ?: "—", style = androidx.compose.ui.text.TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = 28.sp, letterSpacing = (-0.6).sp), color = Lx.Ink)
+            }
         }
         var widthPx by remember { mutableStateOf(1f) }
         fun valueAt(x: Float) = ((x / widthPx) * 11f).toInt().coerceIn(0, 10)
+        val maxBarHeight = if (compact) 40.dp else 52.dp
         Row(
-            Modifier.padding(top = 8.dp).fillMaxWidth().height(52.dp)
-                .pointerInput(effort) { detectTapGestures { p -> val v = valueAt(p.x); onEffort(if (effort == v.toDouble()) null else v.toDouble()) } }
+            Modifier.padding(top = if (showHeader) 8.dp else 2.dp).fillMaxWidth().height(maxBarHeight)
+                .pointerInput(effort) { detectTapGestures { p -> val v = valueAt(p.x); onEffort(if (effort != null && Math.round(effort).toInt() == v) null else v.toDouble()) } }
                 .pointerInput(Unit) { detectDragGestures { change, _ -> onEffort(valueAt(change.position.x).toDouble()) } }
                 .onSizeChanged { widthPx = it.width.toFloat() }
                 .testTag("finish-effort-scale"),
             horizontalArrangement = Arrangement.spacedBy(3.dp), verticalAlignment = Alignment.Bottom,
         ) {
+            val rounded = effort?.let { Math.round(it).toInt() }
             for (i in 0..10) {
-                val on = effort != null && i <= Math.round(effort).toInt()
+                val on = rounded != null && i <= rounded
                 // `lx-T06`: el fondo de cada barra cambia en 160 ms con `suave`.
                 val barColor by animateKpknColorAsState(if (on) Lx.Ink else Color(0x12FFFFFF), KpknDuration(160))
+                val barH = if (compact) (18 + 2 * i).dp else (22 + 3 * i).dp
                 Box(
-                    Modifier.weight(1f).height((22 + 3 * i).dp).clip(RoundedCornerShape(9.dp)).background(barColor).semantics { contentDescription = "Esfuerzo $i" },
+                    Modifier.weight(1f).height(barH).clip(RoundedCornerShape(if (compact) 7.dp else 9.dp)).background(barColor).semantics { contentDescription = "Esfuerzo $i" },
                     contentAlignment = Alignment.BottomCenter,
-                ) { Text("$i", Modifier.padding(bottom = 4.dp), style = Lx.inter(11.sp, FontWeight.SemiBold), color = if (on) Lx.OnInk else Lx.Faint) }
+                ) { Text("$i", Modifier.padding(bottom = if (compact) 2.dp else 4.dp), style = Lx.inter(if (compact) 10.sp else 11.sp, FontWeight.SemiBold), color = if (on) Lx.OnInk else Lx.Faint) }
             }
         }
         Row(Modifier.fillMaxWidth().padding(top = 4.dp), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text("0", style = Lx.inter(11.sp), color = Lx.Dim); Text("10", style = Lx.inter(11.sp), color = Lx.Dim)
+            Text("0 · muy suave", style = Lx.inter(10.5.sp), color = Lx.Dim); Text("10 · máximo", style = Lx.inter(10.5.sp), color = Lx.Dim)
         }
     }
 }

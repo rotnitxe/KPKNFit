@@ -101,10 +101,10 @@ internal fun RecordedSessionFinishSheet(
     }
     val sessionRpe = RpeConversion.sessionRpe(effort, completedExercises)
     val recordedEffort = remember(completedExercises) { RpeConversion.recordedEffort(completedExercises) }
-    val story = remember(name, completedExercises, presentation, durationMinutes, recordedEffort, lifts, finishRecords) {
+    val story = remember(name, completedExercises, presentation, durationMinutes, sessionRpe, recordedEffort, lifts, finishRecords) {
         WorkoutStoryData(
             name, presentation, durationMinutes, sessionTonnage(completedExercises), logicalSetCountFromCompleted(completedExercises),
-            finishAverageRir(completedExercises), "Sin registro", lifts, sessionRpe = recordedEffort.value,
+            finishAverageRir(completedExercises), "Sin registro", lifts, sessionRpe = sessionRpe ?: recordedEffort.value,
             finishRecords = finishRecords,
         )
     }
@@ -124,10 +124,10 @@ internal fun RecordedSessionFinishSheet(
     )
     val context = LocalContext.current
     // Miniatura de la historia (la propia imagen a baja resolución), en segundo plano.
-    val thumb by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, story, model.empty) {
+    val thumb by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, story, storyOptions, model.empty) {
         if (model.empty) return@produceState
         value = try {
-            val full = renderWorkoutStory(context.applicationContext, story, WorkoutStoryOptions())
+            val full = renderWorkoutStory(context.applicationContext, story, storyOptions)
             android.graphics.Bitmap.createScaledBitmap(full, 114, 203, true).also { if (it !== full) full.recycle() }.asImageBitmap()
         } catch (error: CancellationException) { throw error } catch (_: Exception) { null }
     }
@@ -135,10 +135,14 @@ internal fun RecordedSessionFinishSheet(
     val ridgeRecord = remember(completedExercises, model.record) {
         model.record?.let { r -> completedExercises.filter { it.cardioDetails == null }.indexOfFirst { it.exerciseId == r.exerciseId } } ?: -1
     }
+    val activeStoryBg = remember(story, storyOptions) {
+        com.example.kpkn.screens.stories.resolveStoryBackground(story, storyOptions).label
+    }
     val state = FinishSheetState(
         model = model, dims = dims, saving = saving, errorMessage = shownError, blockedMessage = blocked, notes = notes,
         photoCount = presentation.photos.size, shareAfterSave = shareAfterSave, panelOpen = panelOpen, panelKind = panelKind, checklist = checklist,
         effortSelected = effort, storyThumb = thumb, ridges = ridges, ridgeRecordIndex = ridgeRecord,
+        storyTemplateSummary = "${storyOptions.template.label} · $activeStoryBg",
     )
     var lastCommittedNotes by rememberSaveable { mutableStateOf(initialNotes) }
     fun commitNotesIfChanged() {

@@ -66,7 +66,7 @@ class LiveStoryEntryTest {
             }
         }
         rule.onNodeWithTag("workout-story-header").performScrollTo().performClick()
-        rule.onNodeWithText("Preparar historia").performClick()
+        rule.onNodeWithText("Preparar historia").performScrollTo().performClick()
         rule.onNodeWithTag("story-sheet", useUnmergedTree = true).assertIsDisplayed()
         val viewport = rule.onNodeWithTag("story-viewport").fetchSemanticsNode().boundsInRoot
         listOf("story-templates", "story-save-image", "story-share").forEach { tag ->

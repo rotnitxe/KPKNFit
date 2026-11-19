@@ -26,11 +26,13 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.domain.training.insights.MuscleVolumeAccounting
 import com.example.kpkn.domain.workout.CompletedSetLoadSemantics
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverSpec
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverStyle
+import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.parseLineCover
 import com.example.kpkn.screens.workout.FinishLiftProgress
 import com.example.kpkn.screens.workout.WorkoutStoryData
 import com.example.kpkn.screens.workout.WorkoutStoryOptions
@@ -51,8 +53,22 @@ internal data class WorkoutStat(val value: String, val unit: String?, val label:
 /** Una ganancia de fuerza del entreno: el [name] del ejercicio y su [delta], como «+2,5 kg». */
 internal data class WorkoutGain(val name: String, val delta: String)
 
-/** Una fila de «Ejercicios realizados»: nombre y series o duración. */
-internal data class WorkoutExerciseLine(val name: String, val detail: String)
+/** Una fila de «Ejercicios realizados»: nombre, series × kg/carga y progreso opcional. */
+internal data class WorkoutExerciseLine(
+    val name: String,
+    val detail: String,
+    val deltaLabel: String? = null,
+    val isImproved: Boolean = false,
+    val isRecord: Boolean = false,
+)
+
+internal data class WorkoutMilestoneStoryItem(
+    val badge: String,
+    val exerciseName: String,
+    val currentLabel: String,
+    val previousLabel: String?,
+    val deltaLabel: String,
+)
 
 /**
  * Historia de un entreno ya en texto. [dateLine] es la fecha de la cabecera («MIÉ 28 OCT · SEMANA 4») y [title] el nombre de la sesión;
@@ -79,6 +95,13 @@ internal data class WorkoutStory(
     val exerciseLines: List<WorkoutExerciseLine> = emptyList(),
     val exerciseEyebrow: String = "E1RM",
     val exerciseUnit: String? = "kg",
+    val volumeDeltaLabel: String? = null,
+    val volumeImproved: Boolean = true,
+    val milestoneItems: List<WorkoutMilestoneStoryItem> = emptyList(),
+    val musclesSummary: String? = null,
+    val themeBackground: LineCoverBackground = LineCoverBackground.CARBON,
+    val showMilestones: Boolean = true,
+    val previousExerciseRef: Double? = null,
 )
 
 private fun formatStoryDurationShort(seconds: Int): String {
@@ -94,18 +117,55 @@ private fun formatStoryDurationShort(seconds: Int): String {
 
 private fun formatStoryExerciseLineDetail(lift: FinishLiftProgress): String {
     val best = lift.best
-    val time = best?.timeSeconds?.takeIf { it > 0 }
-    val distKm = best?.distanceKm?.takeIf { it > 0.0 }
-    if (best != null && best.reps <= 0 && (time != null || distKm != null)) {
+    val count = lift.setCount.coerceAtLeast(1)
+    if (best == null) return if (count == 1) "1 serie" else "$count series"
+    val time = best.timeSeconds?.takeIf { it > 0 }
+    val distKm = best.distanceKm?.takeIf { it > 0.0 }
+    if (best.reps <= 0 && (time != null || distKm != null)) {
         val distLabel = distKm?.let { km ->
             if (km >= 1.0) "${workoutKgText(km)} km" else "${workoutThousands(km * 1000.0)} m"
         }
         val durLabel = time?.let(::formatStoryDurationShort)
         val metric = listOfNotNull(distLabel, durLabel).joinToString(" · ")
-        return if (lift.setCount > 1) "${lift.setCount} series · $metric" else metric
+        return if (count > 1) "${count}× $metric" else metric
     }
-    val count = lift.setCount.coerceAtLeast(1)
-    return if (count == 1) "1 serie" else "$count series"
+    return when (CompletedSetLoadSemantics.mode(best)) {
+        LoadModeV2.BODYWEIGHT -> "${count}× ${best.reps} reps"
+        LoadModeV2.LASTRE -> CompletedSetLoadSemantics.externalLoadKg(best)
+            ?.let { "${count}× +${workoutKgText(it)} kg" }
+            ?: "${count}× ${best.reps} reps"
+        LoadModeV2.ASSISTED -> CompletedSetLoadSemantics.assistanceKg(best)
+            ?.let { "${count}× −${workoutKgText(it)} kg" }
+            ?: "${count}× ${best.reps} reps"
+        LoadModeV2.LOAD, null -> CompletedSetLoadSemantics.externalLoadKg(best)
+            ?.let { "${count}× ${workoutKgText(it)} kg" }
+            ?: if (count == 1) "1 serie" else "$count series"
+    }
+}
+
+private fun buildStoryExerciseLine(
+    lift: FinishLiftProgress,
+    recordIds: Set<String>,
+    includeProgress: Boolean,
+    includeMilestones: Boolean,
+): WorkoutExerciseLine {
+    val delta = if (includeProgress && lift.isImproved) {
+        lift.deltaKg?.let { "+${workoutKgText(it)}" }
+    } else null
+    return WorkoutExerciseLine(
+        name = lift.name,
+        detail = formatStoryExerciseLineDetail(lift),
+        deltaLabel = delta,
+        isImproved = includeProgress && lift.isImproved,
+        isRecord = includeMilestones && lift.exerciseId in recordIds,
+    )
+}
+
+internal fun resolveStoryBackground(data: WorkoutStoryData, options: WorkoutStoryOptions): LineCoverBackground {
+    options.backgroundId?.let { id ->
+        LineCoverBackground.entries.firstOrNull { it.name == id }?.let { return it }
+    }
+    return parseLineCover(data.presentation.program?.coverImage)?.second ?: LineCoverBackground.CARBON
 }
 
 private fun formatStoryBestEffort(set: CompletedSet): String? = when {
@@ -172,14 +232,65 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
             )
         }
     } else emptyList()
+    val recordIds = data.finishRecords.orEmpty().filter { !it.isInitialReference }.map { it.exerciseId }.toSet()
+    val themeBackground = resolveStoryBackground(data, options)
+    val prevVol = if (options.improvements && data.volume > 0.0) {
+        presentation.history.filter { it.sessionName == data.sessionName }
+            .sortedBy { it.date }
+            .lastOrNull()
+            ?.let { CompletedSetLoadSemantics.historicalLogTonnageKg(it) }
+            ?.takeIf { it > 0.0 }
+    } else null
+    val volumeDiff = prevVol?.let { data.volume - it }
+    val volumePct = if (prevVol != null && volumeDiff != null) (volumeDiff / prevVol) * 100.0 else null
+    val volumeImproved = (volumeDiff ?: 0.0) >= 0.0
+    val volumeDeltaLabel = volumePct?.let { pct ->
+        val sign = if (pct >= 0.0) "+" else "−"
+        "$sign${workoutDecimalComma(abs(pct))}% vol"
+    }
+    val milestoneItems = buildList<WorkoutMilestoneStoryItem> {
+        data.finishRecords.orEmpty().take(2).forEach { r ->
+            add(
+                WorkoutMilestoneStoryItem(
+                    badge = if (r.isInitialReference) "REFERENCIA" else "RÉCORD ${r.metric.uppercase(Locale.forLanguageTag("es"))}",
+                    exerciseName = r.exerciseName,
+                    currentLabel = r.currentLabel,
+                    previousLabel = r.previousLabel,
+                    deltaLabel = r.improvement?.let { "+${workoutKgText(it)} ${r.unit}" } ?: "Nueva marca",
+                ),
+            )
+        }
+        if (isEmpty()) {
+            presentation.milestones.take(2).forEach { m ->
+                add(
+                    WorkoutMilestoneStoryItem(
+                        badge = if (m.kind == "star_goal_reached") "META ESTRELLA ★" else "HITO DE SESIÓN",
+                        exerciseName = m.exerciseName,
+                        currentLabel = m.label.ifBlank { "${workoutKgText(m.value)} kg" },
+                        previousLabel = m.detail,
+                        deltaLabel = if (m.kind == "star_goal_reached") "Objetivo" else "Logro",
+                    ),
+                )
+            }
+        }
+    }
+    val musclesSummary = if (options.muscles) {
+        val lastLogStrength = presentation.history.lastOrNull()?.completedExercises?.filter { it.cardioDetails == null }.orEmpty()
+        // If lifts exist, infer primary summary from finishRecords / lifts; MuscleVolumeAccounting is fed from history or lifts if needed.
+        data.lifts.takeIf { it.isNotEmpty() }?.let { lifts ->
+            val topSets = MuscleVolumeAccounting.sessionSets(lastLogStrength).takeIf { it.isNotEmpty() }
+            topSets?.entries?.sortedByDescending { it.value }?.take(3)
+                ?.joinToString(" · ") { "${it.key} ${workoutKgText(it.value)}s" }
+        }
+    } else null
     // El ejercicio pedido si existe en el entreno; si no, el de la mayor ganancia (o el primero).
     val exerciseId = options.exerciseId?.takeIf { id -> data.lifts.any { it.exerciseId == id } } ?: data.defaultExerciseId
     val lift = exerciseId?.let { id -> data.lifts.firstOrNull { it.exerciseId == id } }
     val history = lift?.history.orEmpty()
     val best = lift?.best
     val exerciseLines = if (options.exerciseList) {
-        val visible = data.lifts.take(8).map { WorkoutExerciseLine(it.name, formatStoryExerciseLineDetail(it)) }
-        if (data.lifts.size > 8) visible + WorkoutExerciseLine("…", "${data.lifts.size - 8} más") else visible
+        val visible = data.lifts.take(6).map { buildStoryExerciseLine(it, recordIds, options.improvements, options.milestones) }
+        if (data.lifts.size > 6) visible + WorkoutExerciseLine("…", "${data.lifts.size - 6} más") else visible
     } else {
         emptyList()
     }
@@ -264,7 +375,12 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
         meta = presentation.program?.name,
         stats = stats,
         gains = gains,
-        records = data.finishRecords?.count { !it.isInitialReference } ?: presentation.records,
+        records = if (options.milestones) {
+            maxOf(
+                data.finishRecords?.count { !it.isInitialReference } ?: presentation.records,
+                presentation.milestones.size,
+            )
+        } else 0,
         recordHighlights = recordHighlights,
         exerciseName = lift?.name,
         exerciseE1rm = exerciseValue,
@@ -277,6 +393,13 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
         exerciseLines = exerciseLines,
         exerciseEyebrow = exerciseEyebrow,
         exerciseUnit = exerciseUnit,
+        volumeDeltaLabel = volumeDeltaLabel,
+        volumeImproved = volumeImproved,
+        milestoneItems = milestoneItems,
+        musclesSummary = musclesSummary,
+        themeBackground = themeBackground,
+        showMilestones = options.milestones,
+        previousExerciseRef = if (options.improvements && exercisePoints.size >= 2) exercisePoints[exercisePoints.lastIndex - 1] else null,
     )
 }
 
@@ -289,16 +412,17 @@ internal fun workoutStoryPagesFrom(data: WorkoutStoryData, options: WorkoutStory
     if (options.template != WorkoutStoryTemplate.GENERAL || !options.exerciseList || data.lifts.isEmpty()) {
         return listOf(single)
     }
+    val recordIds = data.finishRecords.orEmpty().filter { !it.isInitialReference }.map { it.exerciseId }.toSet()
     val estimatedTitleLines = when {
         data.sessionName.length >= 30 -> 3
         data.sessionName.length >= 16 -> 2
         else -> 1
     }
     val extraHeaderPenalty = (estimatedTitleLines - 1).coerceAtLeast(0)
-    val firstPageCap = (6 - single.recordHighlights.size - extraHeaderPenalty).coerceIn(2, 6)
+    val firstPageCap = (6 - extraHeaderPenalty).coerceIn(3, 6)
     val continuationCap = (8 - extraHeaderPenalty).coerceIn(5, 8)
     if (data.lifts.size <= firstPageCap) {
-        return listOf(single.copy(exerciseLines = data.lifts.map { WorkoutExerciseLine(it.name, formatStoryExerciseLineDetail(it)) }))
+        return listOf(single.copy(exerciseLines = data.lifts.map { buildStoryExerciseLine(it, recordIds, options.improvements, options.milestones) }))
     }
     val allLifts = data.lifts
     val page1Lifts = allLifts.take(firstPageCap)
@@ -308,7 +432,7 @@ internal fun workoutStoryPagesFrom(data: WorkoutStoryData, options: WorkoutStory
     val programName = data.presentation.program?.name
 
     val page1 = single.copy(
-        exerciseLines = page1Lifts.map { WorkoutExerciseLine(it.name, formatStoryExerciseLineDetail(it)) },
+        exerciseLines = page1Lifts.map { buildStoryExerciseLine(it, recordIds, options.improvements, options.milestones) },
         meta = listOfNotNull(programName, "1/$totalPages").joinToString(" · "),
     )
     val continuationPages = chunks.mapIndexed { idx, chunk ->
@@ -321,7 +445,8 @@ internal fun workoutStoryPagesFrom(data: WorkoutStoryData, options: WorkoutStory
             gains = emptyList(),
             records = 0,
             recordHighlights = emptyList(),
-            exerciseLines = chunk.map { WorkoutExerciseLine(it.name, formatStoryExerciseLineDetail(it)) },
+            exerciseLines = chunk.map { buildStoryExerciseLine(it, recordIds, options.improvements, options.milestones) },
+            themeBackground = single.themeBackground,
         )
     }
     return listOf(page1) + continuationPages
@@ -384,9 +509,100 @@ internal fun DrawScope.drawWorkoutStory(
 ) {
     when (template) {
         WorkoutStoryTemplate.GENERAL -> drawWorkoutGeneral(story, measurer, progress)
+        WorkoutStoryTemplate.MILESTONES -> drawWorkoutMilestones(story, measurer, progress)
         WorkoutStoryTemplate.EXERCISE -> drawWorkoutExercise(story, measurer, progress)
         WorkoutStoryTemplate.PHOTOS -> drawWorkoutPhotos(story, measurer, photo, progress)
     }
+}
+
+private data class StoryThemePalette(
+    val background: LineCoverBackground,
+    val bg2: Color,
+    val ink: Color,
+    val muted: Color,
+    val faint: Color,
+    val accent: Color,
+    val progressColor: Color,
+    val ruleAlpha: Float,
+    val isLight: Boolean,
+)
+
+private fun storyThemePalette(background: LineCoverBackground): StoryThemePalette = when (background) {
+    LineCoverBackground.CREMA -> StoryThemePalette(
+        background = background,
+        bg2 = Color(background.bg2),
+        ink = Color(0xFF191715),
+        muted = Color(0xFF4E4942),
+        faint = Color(0xFF766F66),
+        accent = Color(0xFFB85D3B),
+        progressColor = Color(0xFF2E7D55),
+        ruleAlpha = 0.12f,
+        isLight = true,
+    )
+    LineCoverBackground.NOCHE -> StoryThemePalette(
+        background = background,
+        bg2 = Color(background.bg2),
+        ink = StoryCanvas.Ink,
+        muted = Color(0xFFC4CFE6),
+        faint = Color(0xFF8593B2),
+        // Evita amarillo chillón en historias nocturnas: usa azul hielo sobrio.
+        accent = Color(0xFFB9C9EB),
+        progressColor = Color(0xFF7FE3B0),
+        ruleAlpha = 0.09f,
+        isLight = false,
+    )
+    LineCoverBackground.MUSGO -> StoryThemePalette(
+        background = background,
+        bg2 = Color(background.bg2),
+        ink = StoryCanvas.Ink,
+        muted = Color(0xFFBAC8BE),
+        faint = Color(0xFF839689),
+        accent = Color(0xFFB5CCB9),
+        progressColor = Color(0xFF7FE3B0),
+        ruleAlpha = 0.09f,
+        isLight = false,
+    )
+    LineCoverBackground.GRAFITO -> StoryThemePalette(
+        background = background,
+        bg2 = Color(background.bg2),
+        ink = StoryCanvas.Ink,
+        muted = Color(0xFFC2C8CE),
+        faint = Color(0xFF878D94),
+        accent = StoryCanvas.Ink,
+        progressColor = Color(0xFF7FE3B0),
+        ruleAlpha = 0.09f,
+        isLight = false,
+    )
+    else -> StoryThemePalette(
+        background = background,
+        bg2 = Color(background.bg2),
+        ink = StoryCanvas.Ink,
+        muted = StoryCanvas.Muted,
+        faint = StoryCanvas.Faint,
+        accent = Color(background.accent),
+        progressColor = Color(0xFF7FE3B0),
+        ruleAlpha = 0.09f,
+        isLight = !background.dark,
+    )
+}
+
+private fun DrawScope.drawTrendSymbol(topLeft: Offset, sizePx: Float, color: Color, up: Boolean) {
+    val path = Path().apply {
+        if (up) {
+            moveTo(topLeft.x, topLeft.y + sizePx)
+            lineTo(topLeft.x + sizePx * 0.38f, topLeft.y + sizePx * 0.55f)
+            lineTo(topLeft.x + sizePx * 0.62f, topLeft.y + sizePx * 0.72f)
+            lineTo(topLeft.x + sizePx, topLeft.y + sizePx * 0.12f)
+            moveTo(topLeft.x + sizePx * 0.68f, topLeft.y + sizePx * 0.12f)
+            lineTo(topLeft.x + sizePx, topLeft.y + sizePx * 0.12f)
+            lineTo(topLeft.x + sizePx, topLeft.y + sizePx * 0.44f)
+        } else {
+            moveTo(topLeft.x, topLeft.y + sizePx * 0.25f)
+            lineTo(topLeft.x + sizePx * 0.45f, topLeft.y + sizePx * 0.7f)
+            lineTo(topLeft.x + sizePx, topLeft.y + sizePx * 0.7f)
+        }
+    }
+    drawPath(path, color = color, style = Stroke(width = 3.2f, cap = StrokeCap.Round, join = StrokeJoin.Round))
 }
 
 /** Pinta la historia con la plantilla [template] en un bitmap de 1080 × 1920, para el PNG. */
@@ -597,17 +813,35 @@ private fun TextMeasurer.workoutHeader(eyebrow: String, name: String, meta: Stri
  * Pinta la cabecera encima de un bloque de contenido que empieza en [contentTop]: la meta (o el nombre, si no hay) acaba [gap] px por
  * encima.
  */
-private fun DrawScope.drawWorkoutHeader(header: WorkoutHeader, contentTop: Float, gap: Float = WORKOUT_META_GAP) {
+private fun DrawScope.drawWorkoutHeader(
+    header: WorkoutHeader,
+    contentTop: Float,
+    gap: Float = WORKOUT_META_GAP,
+    theme: StoryThemePalette = storyThemePalette(LineCoverBackground.CARBON),
+    volumeDelta: TextLayoutResult? = null,
+    volumeImproved: Boolean = true,
+) {
     var bottom = contentTop - gap
-    header.meta?.let { meta ->
-        val metaTop = bottom - meta.size.height
-        drawText(meta, color = StoryCanvas.Muted, topLeft = Offset(StoryCanvas.LEFT, metaTop))
+    if (header.meta != null || volumeDelta != null) {
+        val metaTop = bottom - max(header.meta?.size?.height ?: 0, volumeDelta?.size?.height ?: 0)
+        var nextX = StoryCanvas.LEFT
+        header.meta?.let { meta ->
+            val maxMetaW = if (volumeDelta != null) (StoryCanvas.COLUMN_WIDTH - volumeDelta.size.width - 72f).coerceAtLeast(240f) else StoryCanvas.COLUMN_WIDTH
+            drawText(meta, color = theme.muted, topLeft = Offset(StoryCanvas.LEFT, metaTop))
+            nextX += min(meta.size.width.toFloat(), maxMetaW) + 24f
+        }
+        volumeDelta?.let { delta ->
+            val cueColor = if (volumeImproved) theme.progressColor else theme.muted
+            val cueY = metaTop + (delta.size.height - 20f) / 2f
+            drawTrendSymbol(Offset(nextX, cueY), 20f, cueColor, volumeImproved)
+            drawText(delta, color = cueColor, topLeft = Offset(nextX + 30f, metaTop))
+        }
         bottom = metaTop - WORKOUT_NAME_META_GAP
     }
     val nameTop = bottom - header.name.lineCount * WORKOUT_NAME_SIZE
     val eyebrowTop = nameTop - WORKOUT_EYEBROW_NAME_GAP - header.eyebrow.size.height
-    drawText(header.eyebrow, color = StoryCanvas.Faint, topLeft = Offset(StoryCanvas.LEFT, eyebrowTop))
-    drawText(header.name, color = StoryCanvas.Ink, topLeft = Offset(StoryCanvas.LEFT, nameTop + header.nameLift))
+    drawText(header.eyebrow, color = theme.faint, topLeft = Offset(StoryCanvas.LEFT, eyebrowTop))
+    drawText(header.name, color = theme.ink, topLeft = Offset(StoryCanvas.LEFT, nameTop + header.nameLift))
 }
 
 /** Pone [layout] con su línea base en [baseline] y su borde izquierdo en [x]. */
@@ -616,8 +850,8 @@ private fun DrawScope.drawWorkoutOnBaseline(layout: TextLayoutResult, color: Col
 }
 
 /** Regla de 1 px a todo el ancho de la columna, con su parte superior en [top] y la opacidad [alpha]. */
-private fun DrawScope.drawWorkoutRule(top: Float, alpha: Float) {
-    drawRect(Color.White, topLeft = Offset(StoryCanvas.LEFT, top), size = Size(StoryCanvas.COLUMN_WIDTH, WORKOUT_RULE), alpha = alpha)
+private fun DrawScope.drawWorkoutRule(top: Float, alpha: Float, light: Boolean = false) {
+    drawRect(if (light) Color.Black else Color.White, topLeft = Offset(StoryCanvas.LEFT, top), size = Size(StoryCanvas.COLUMN_WIDTH, WORKOUT_RULE), alpha = alpha)
 }
 
 /** Alto de una pila de filas de texto [heights]: cada fila con su regla y su relleno, y [rowGap] entre filas. */
@@ -666,51 +900,92 @@ private fun workoutGridSecondX(cells: List<WorkoutStatCell>): Float {
 }
 
 /** Rejilla de cifras: cada cifra con su unidad y su etiqueta; la primera columna en el margen y la segunda a la derecha. */
-private fun DrawScope.drawWorkoutGrid(cells: List<WorkoutStatCell>, top: Float) {
+private fun DrawScope.drawWorkoutGrid(
+    cells: List<WorkoutStatCell>,
+    top: Float,
+    theme: StoryThemePalette = storyThemePalette(LineCoverBackground.CARBON),
+) {
     val rowHeight = cells.maxOfOrNull { it.height } ?: return
     val second = workoutGridSecondX(cells)
     cells.forEachIndexed { index, cell ->
         val x = if (index % 2 == 0) StoryCanvas.LEFT else second
         val y = top + (index / 2) * (rowHeight + WORKOUT_GRID_GAP)
-        drawWorkoutOnBaseline(cell.value, StoryCanvas.Ink, x, y + WORKOUT_STAT_BASELINE)
+        drawWorkoutOnBaseline(cell.value, theme.ink, x, y + WORKOUT_STAT_BASELINE)
         cell.unit?.let { unit ->
-            drawWorkoutOnBaseline(unit, StoryCanvas.Muted, x + cell.value.size.width + WORKOUT_STAT_UNIT_GAP, y + WORKOUT_STAT_BASELINE)
+            drawWorkoutOnBaseline(unit, theme.muted, x + cell.value.size.width + WORKOUT_STAT_UNIT_GAP, y + WORKOUT_STAT_BASELINE)
         }
-        drawText(cell.label, color = StoryCanvas.Faint, topLeft = Offset(x, y + WORKOUT_STAT_LINE + WORKOUT_STAT_LABEL_GAP))
+        drawText(cell.label, color = theme.faint, topLeft = Offset(x, y + WORKOUT_STAT_LINE + WORKOUT_STAT_LABEL_GAP))
     }
 }
 
-/** Una fila de texto medida: [name] a la izquierda (gris) y [value] a la derecha (tinta). */
-private class WorkoutRow(val name: TextLayoutResult, val value: TextLayoutResult) {
-    /** Alto de la fila: lo mayor de sus dos textos. */
+/** Una fila de texto medida: [name] a la izquierda, [delta] opcional y [value] a la derecha. */
+private class WorkoutRow(
+    val name: TextLayoutResult,
+    val value: TextLayoutResult,
+    val delta: TextLayoutResult? = null,
+    val isImproved: Boolean = false,
+    val isRecord: Boolean = false,
+) {
+    /** Alto de la fila: lo mayor de sus textos. */
     val height: Float = max(name.size.height.toFloat(), value.size.height.toFloat())
 }
 
-/** Mide una fila; el nombre tiene el ancho que deja libre el valor y se corta con puntos suspensivos. */
-private fun TextMeasurer.workoutRow(label: String, value: String): WorkoutRow {
+/** Mide una fila; el nombre tiene el ancho que deja libre el valor (y delta/icono) y se corta con puntos suspensivos. */
+private fun TextMeasurer.workoutRow(
+    label: String,
+    value: String,
+    deltaLabel: String? = null,
+    isImproved: Boolean = false,
+    isRecord: Boolean = false,
+): WorkoutRow {
     val valueLayout = storyText(value, WorkoutType.rowValue)
-    val nameWidth = (StoryCanvas.COLUMN_WIDTH - valueLayout.size.width - WORKOUT_ROW_NAME_GAP).toInt().coerceAtLeast(120)
+    val deltaLayout = deltaLabel?.let { storyText(it, WorkoutType.statLabel.copy(fontSize = 27f.sp, letterSpacing = 0.sp)) }
+    val iconSpace = if (isRecord || isImproved) 36f else 0f
+    val deltaSpace = deltaLayout?.let { it.size.width + 24f } ?: 0f
+    val nameWidth = (StoryCanvas.COLUMN_WIDTH - valueLayout.size.width - WORKOUT_ROW_NAME_GAP - iconSpace - deltaSpace).toInt().coerceAtLeast(120)
     return WorkoutRow(
         name = storyText(label, WorkoutType.rowName, width = nameWidth, maxLines = 1, ellipsis = true),
         value = valueLayout,
+        delta = deltaLayout,
+        isImproved = isImproved,
+        isRecord = isRecord,
     )
 }
 
-/** Filas de texto: regla al 8 %, nombre a la izquierda y valor a la derecha, centrados en vertical. */
+/** Filas de texto: regla sutil, icono/símbolo de progreso opcional, nombre a la izquierda y valor a la derecha. */
 private fun DrawScope.drawWorkoutRows(
     rows: List<WorkoutRow>,
     top: Float,
     rowPad: Float = WORKOUT_ROW_PAD,
     rowGap: Float = WORKOUT_ROW_GAP,
+    theme: StoryThemePalette = storyThemePalette(LineCoverBackground.CARBON),
 ) {
     var y = top
     for (row in rows) {
-        drawWorkoutRule(y, alpha = 0.08f)
+        drawWorkoutRule(y, alpha = theme.ruleAlpha, light = theme.isLight)
         val middle = y + WORKOUT_RULE + rowPad + row.height / 2f
-        drawText(row.name, color = StoryCanvas.Muted, topLeft = Offset(StoryCanvas.LEFT, middle - row.name.size.height / 2f))
+        var nameX = StoryCanvas.LEFT
+        when {
+            row.isRecord -> {
+                drawPath(workoutSparkle(Offset(StoryCanvas.LEFT + 11f, middle), 10f), color = theme.accent, style = Stroke(width = 2.6f, cap = StrokeCap.Round, join = StrokeJoin.Round))
+                nameX += 34f
+            }
+            row.isImproved -> {
+                drawTrendSymbol(Offset(StoryCanvas.LEFT, middle - 9f), 18f, theme.progressColor, up = true)
+                nameX += 30f
+            }
+        }
+        drawText(row.name, color = theme.muted, topLeft = Offset(nameX, middle - row.name.size.height / 2f))
+        row.delta?.let { delta ->
+            drawText(
+                delta,
+                color = theme.progressColor,
+                topLeft = Offset(StoryCanvas.RIGHT - row.value.size.width - 20f - delta.size.width, middle - delta.size.height / 2f),
+            )
+        }
         drawText(
             row.value,
-            color = StoryCanvas.Ink,
+            color = theme.ink,
             topLeft = Offset(StoryCanvas.RIGHT - row.value.size.width, middle - row.value.size.height / 2f),
         )
         y += WORKOUT_RULE + rowPad + row.height + rowGap
@@ -727,10 +1002,10 @@ private class WorkoutBadge(val text: TextLayoutResult) {
 }
 
 /** Cápsula de marca: borde de 1 px en acento al 44 %, destello de cuatro puntas y el texto en acento. */
-private fun DrawScope.drawWorkoutBadge(badge: WorkoutBadge, top: Float) {
+private fun DrawScope.drawWorkoutBadge(badge: WorkoutBadge, top: Float, accentColor: Color = StoryCanvas.Accent) {
     val left = StoryCanvas.LEFT
     drawRoundRect(
-        color = StoryCanvas.Accent,
+        color = accentColor,
         topLeft = Offset(left + 0.5f, top + 0.5f),
         size = Size(badge.width - 1f, badge.height - 1f),
         cornerRadius = CornerRadius(badge.height / 2f),
@@ -741,12 +1016,12 @@ private fun DrawScope.drawWorkoutBadge(badge: WorkoutBadge, top: Float) {
     val iconCenter = Offset(left + WORKOUT_BADGE_PAD_X + WORKOUT_BADGE_ICON / 2f, top + badge.height / 2f)
     drawPath(
         path = workoutSparkle(iconCenter, 13f),
-        color = StoryCanvas.Accent,
+        color = accentColor,
         style = Stroke(width = 3f, cap = StrokeCap.Round, join = StrokeJoin.Round),
     )
     drawText(
         badge.text,
-        color = StoryCanvas.Accent,
+        color = accentColor,
         topLeft = Offset(
             left + WORKOUT_BADGE_PAD_X + WORKOUT_BADGE_ICON + WORKOUT_BADGE_ICON_GAP,
             top + (badge.height - badge.text.size.height) / 2f,
@@ -835,21 +1110,37 @@ private fun DrawScope.drawWorkoutNumberBlock(
  * Evolución del e1RM: una línea blanca con un punto hueco por sesión y el último en acento con su halo, un velo bajo la línea y cuatro
  * guías como en la referencia. Los puntos ocupan la caja entre [top] y [bottom] con margen arriba y abajo.
  */
-private fun DrawScope.drawWorkoutChart(points: List<Double>, top: Float, bottom: Float) {
-    val low = points.minOrNull() ?: return
-    val high = points.maxOrNull() ?: return
+private fun DrawScope.drawWorkoutChart(
+    points: List<Double>,
+    top: Float,
+    bottom: Float,
+    prevRef: Double? = null,
+    theme: StoryThemePalette = storyThemePalette(LineCoverBackground.CARBON),
+) {
+    val low = min(points.minOrNull() ?: return, prevRef ?: Double.POSITIVE_INFINITY)
+    val high = max(points.maxOrNull() ?: return, prevRef ?: Double.NEGATIVE_INFINITY)
     val left = StoryCanvas.LEFT + WORKOUT_CHART_INSET_LEFT
     val right = StoryCanvas.RIGHT - WORKOUT_CHART_INSET_RIGHT
-    for (step in 0..3) drawWorkoutRule(top + (bottom - top) * step / 3f, alpha = 0.08f)
+    for (step in 0..3) drawWorkoutRule(top + (bottom - top) * step / 3f, alpha = theme.ruleAlpha, light = theme.isLight)
 
     val xs = points.indices.map { index -> left + index * (right - left) / (points.size - 1) }
     val span = high - low
-    val ys = points.map { value ->
-        if (span <= 0.0) {
-            (top + bottom) / 2f
-        } else {
-            bottom - WORKOUT_CHART_PAD - ((value - low) / span).toFloat() * (bottom - top - 2 * WORKOUT_CHART_PAD)
-        }
+    fun yFor(value: Double) = if (span <= 0.0) {
+        (top + bottom) / 2f
+    } else {
+        bottom - WORKOUT_CHART_PAD - ((value - low) / span).toFloat() * (bottom - top - 2 * WORKOUT_CHART_PAD)
+    }
+    val ys = points.map(::yFor)
+
+    if (prevRef != null) {
+        val ry = yFor(prevRef)
+        drawLine(
+            color = theme.muted.copy(alpha = 0.45f),
+            start = Offset(StoryCanvas.LEFT, ry),
+            end = Offset(StoryCanvas.RIGHT, ry),
+            strokeWidth = 2.5f,
+            pathEffect = androidx.compose.ui.graphics.PathEffect.dashPathEffect(floatArrayOf(10f, 10f), 0f),
+        )
     }
 
     val line = Path()
@@ -866,33 +1157,34 @@ private fun DrawScope.drawWorkoutChart(points: List<Double>, top: Float, bottom:
     area.lineTo(xs.last(), bottom)
     area.lineTo(xs.first(), bottom)
     area.close()
+    val areaTint = if (theme.isLight) Color.Black else Color.White
     drawPath(
         area,
         brush = Brush.verticalGradient(
-            colors = listOf(Color.White.copy(alpha = 0.10f), Color.White.copy(alpha = 0f)),
+            colors = listOf(areaTint.copy(alpha = 0.10f), areaTint.copy(alpha = 0f)),
             startY = top,
             endY = bottom,
         ),
     )
-    drawPath(line, color = StoryCanvas.Ink, style = Stroke(width = 6f, cap = StrokeCap.Round, join = StrokeJoin.Round))
+    drawPath(line, color = theme.ink, style = Stroke(width = 6f, cap = StrokeCap.Round, join = StrokeJoin.Round))
 
     xs.forEachIndexed { index, x ->
         val center = Offset(x, ys[index])
         if (index == xs.lastIndex) {
             drawCircle(
                 brush = Brush.radialGradient(
-                    0f to StoryCanvas.Accent.copy(alpha = 0.5f),
-                    1f to StoryCanvas.Accent.copy(alpha = 0f),
+                    0f to theme.accent.copy(alpha = 0.5f),
+                    1f to theme.accent.copy(alpha = 0f),
                     center = center,
                     radius = 44f,
                 ),
                 radius = 44f,
                 center = center,
             )
-            drawCircle(StoryCanvas.Accent, radius = 16f, center = center)
+            drawCircle(theme.accent, radius = 16f, center = center)
         } else {
-            drawCircle(StoryCanvas.Background, radius = 12f, center = center)
-            drawCircle(StoryCanvas.Ink, radius = 12f, center = center, style = Stroke(width = 5f))
+            drawCircle(theme.bg2, radius = 12f, center = center)
+            drawCircle(theme.ink, radius = 12f, center = center, style = Stroke(width = 5f))
         }
     }
 }
@@ -901,42 +1193,128 @@ private fun DrawScope.drawWorkoutChart(points: List<Double>, top: Float, bottom:
 
 private const val WORKOUT_SAFE_TOP = 108f
 
-/** General: portada de ondas, fecha, título con el programa, rejilla de cifras, ganancias, marcas nuevas y pie. */
+/** General: portada de ondas, fecha, título con el programa + progreso, rejilla de cifras, ejercicios realizados, marcas nuevas y pie. */
 private fun DrawScope.drawWorkoutGeneral(story: WorkoutStory, measurer: TextMeasurer, progress: Float) {
+    val theme = storyThemePalette(story.themeBackground)
+    val artBottom = if (story.exerciseLines.isNotEmpty()) 585f else WORKOUT_GENERAL_ART_BOTTOM
     drawStoryBackdrop(
-        cover = LineCoverSpec(LineCoverStyle.ONDAS, LineCoverBackground.CARBON, seed = 4),
+        cover = LineCoverSpec(LineCoverStyle.ONDAS, theme.background, seed = 4),
         measurer = measurer,
         progress = progress,
-        artBottom = WORKOUT_GENERAL_ART_BOTTOM,
+        artBottom = artBottom,
+        backgroundColor = theme.bg2,
     )
     val cells = story.stats.map { measurer.workoutStatCell(it) }
-    val rows = (story.gains + story.recordHighlights).map { measurer.workoutRow(it.name, it.delta) } +
-        story.exerciseLines.map { measurer.workoutRow(it.name, it.detail) }
-    val badge = story.records.takeIf { it > 0 }?.let { WorkoutBadge(measurer.storyText(workoutRecordsText(it), WorkoutType.badge)) }
+    val rows = if (story.exerciseLines.isNotEmpty()) {
+        story.exerciseLines.map { measurer.workoutRow(it.name, it.detail, it.deltaLabel, it.isImproved, it.isRecord) }
+    } else {
+        (story.gains + story.recordHighlights).map { measurer.workoutRow(it.name, it.delta) }
+    }
+    val badge = if (story.showMilestones) {
+        story.records.takeIf { it > 0 }?.let { WorkoutBadge(measurer.storyText(workoutRecordsText(it), WorkoutType.badge)) }
+    } else null
+    val musclesLayout = story.musclesSummary?.let { measurer.storyText("Músculos: $it", WorkoutType.meta.copy(fontSize = 26f.sp), width = StoryCanvas.COLUMN_WIDTH.toInt(), maxLines = 1, ellipsis = true) }
     val gridHeight = workoutGridHeight(cells)
     val header = measurer.workoutHeader(story.dateLine, story.title, story.meta)
-    val footTop = drawStoryFoot(measurer, WORKOUT_FOOT)
+    val volumeDeltaLayout = story.volumeDeltaLabel?.let { measurer.storyText(it, WorkoutType.meta.copy(fontSize = 34f.sp, fontWeight = FontWeight.SemiBold)) }
+    val footTop = drawStoryFoot(measurer, WORKOUT_FOOT, inkColor = theme.ink, faintColor = theme.faint)
     val headerHeight = header.eyebrow.size.height + WORKOUT_EYEBROW_NAME_GAP +
         header.name.lineCount * WORKOUT_NAME_SIZE +
         (header.meta?.let { WORKOUT_NAME_META_GAP + it.size.height } ?: 0f) +
         WORKOUT_META_GAP
     val rowsTopGap = if (cells.isNotEmpty() && rows.isNotEmpty()) WORKOUT_GRID_GAP else 0f
+    val musclesHeight = musclesLayout?.let { 20f + it.size.height } ?: 0f
     val badgeHeight = badge?.let { WORKOUT_BADGE_GAP + it.height } ?: 0f
     val maxBodyHeight = (footTop - WORKOUT_FOOT_GAP - WORKOUT_SAFE_TOP - headerHeight).coerceAtLeast(200f)
     var rowPad = WORKOUT_ROW_PAD
     var rowGap = WORKOUT_ROW_GAP
     val rowHeights = rows.map { it.height }
     var rowsHeight = if (rows.isEmpty()) 0f else rowsTopGap + workoutStackHeight(rowHeights, rowPad, rowGap)
-    if (gridHeight + rowsHeight + badgeHeight > maxBodyHeight && rows.isNotEmpty()) {
-        rowPad = 12f
-        rowGap = 12f
+    if (gridHeight + rowsHeight + musclesHeight + badgeHeight > maxBodyHeight && rows.isNotEmpty()) {
+        rowPad = 11f
+        rowGap = 11f
         rowsHeight = rowsTopGap + workoutStackHeight(rowHeights, rowPad, rowGap)
     }
-    val contentTop = footTop - WORKOUT_FOOT_GAP - (gridHeight + rowsHeight + badgeHeight)
-    drawWorkoutHeader(header, contentTop)
-    if (cells.isNotEmpty()) drawWorkoutGrid(cells, contentTop)
-    if (rows.isNotEmpty()) drawWorkoutRows(rows, contentTop + gridHeight + rowsTopGap, rowPad = rowPad, rowGap = rowGap)
-    badge?.let { drawWorkoutBadge(it, contentTop + gridHeight + rowsHeight + WORKOUT_BADGE_GAP) }
+    val contentTop = footTop - WORKOUT_FOOT_GAP - (gridHeight + rowsHeight + musclesHeight + badgeHeight)
+    drawWorkoutHeader(header, contentTop, theme = theme, volumeDelta = volumeDeltaLayout, volumeImproved = story.volumeImproved)
+    if (cells.isNotEmpty()) drawWorkoutGrid(cells, contentTop, theme = theme)
+    if (rows.isNotEmpty()) drawWorkoutRows(rows, contentTop + gridHeight + rowsTopGap, rowPad = rowPad, rowGap = rowGap, theme = theme)
+    musclesLayout?.let {
+        drawText(it, color = theme.faint, topLeft = Offset(StoryCanvas.LEFT, contentTop + gridHeight + rowsHeight + 16f))
+    }
+    badge?.let { drawWorkoutBadge(it, contentTop + gridHeight + rowsHeight + musclesHeight + WORKOUT_BADGE_GAP, accentColor = theme.accent) }
+}
+
+/**
+ * Hitos: portada de relieve orgánico y tipografía gigante para destacar récords y metas estrella logradas.
+ */
+private fun DrawScope.drawWorkoutMilestones(story: WorkoutStory, measurer: TextMeasurer, progress: Float) {
+    val theme = storyThemePalette(story.themeBackground)
+    drawStoryBackdrop(
+        cover = LineCoverSpec(LineCoverStyle.RELIEVE, theme.background, seed = 6),
+        measurer = measurer,
+        progress = progress,
+        artBottom = 670f,
+        backgroundColor = theme.bg2,
+    )
+    val footTop = drawStoryFoot(measurer, WORKOUT_FOOT, inkColor = theme.ink, faintColor = theme.faint)
+    var y = 682f
+    val eyebrow = measurer.storyText("${story.dateLine} · HITOS", WorkoutType.eyebrow.copy(fontSize = 34f.sp), width = StoryCanvas.COLUMN_WIDTH.toInt(), maxLines = 1, ellipsis = true)
+    drawText(eyebrow, color = theme.accent, topLeft = Offset(StoryCanvas.LEFT, y))
+    y += eyebrow.size.height + 16f
+
+    val titleLayout = measurer.storyText(story.title, WorkoutType.name(94f), width = StoryCanvas.COLUMN_WIDTH.toInt(), maxLines = 2, ellipsis = true)
+    drawText(titleLayout, color = theme.ink, topLeft = Offset(StoryCanvas.LEFT, y))
+    y += titleLayout.size.height + 28f
+
+    val items = story.milestoneItems.take(2)
+    if (items.isEmpty()) {
+        drawWorkoutRule(y, alpha = theme.ruleAlpha, light = theme.isLight)
+        y += 32f
+        val emptyTitle = measurer.storyText("Sesión completada con control", WorkoutType.rowValue.copy(fontSize = 52f.sp), width = StoryCanvas.COLUMN_WIDTH.toInt(), maxLines = 2)
+        drawText(emptyTitle, color = theme.ink, topLeft = Offset(StoryCanvas.LEFT, y))
+        y += emptyTitle.size.height + 18f
+        val emptySub = measurer.storyText("Sin marcas nuevas hoy · el progreso acumulado sigue sumando.", WorkoutType.rowName, width = StoryCanvas.COLUMN_WIDTH.toInt(), maxLines = 2)
+        drawText(emptySub, color = theme.muted, topLeft = Offset(StoryCanvas.LEFT, y))
+    } else {
+        items.forEach { item ->
+            drawWorkoutRule(y, alpha = theme.ruleAlpha, light = theme.isLight)
+            y += 28f
+            val badgeTxt = measurer.storyText(item.badge, WorkoutType.statLabel.copy(fontSize = 27f.sp), width = 560, maxLines = 1, ellipsis = true)
+            val deltaTxt = measurer.storyText(item.deltaLabel, WorkoutType.rowValue.copy(fontSize = 38f.sp))
+            drawText(badgeTxt, color = theme.accent, topLeft = Offset(StoryCanvas.LEFT, y))
+            drawText(deltaTxt, color = theme.progressColor, topLeft = Offset(StoryCanvas.RIGHT - deltaTxt.size.width, y - 4f))
+            y += max(badgeTxt.size.height, deltaTxt.size.height) + 10f
+
+            val exTxt = measurer.storyText(item.exerciseName, WorkoutType.rowName, width = StoryCanvas.COLUMN_WIDTH.toInt(), maxLines = 1, ellipsis = true)
+            drawText(exTxt, color = theme.muted, topLeft = Offset(StoryCanvas.LEFT, y))
+            y += exTxt.size.height + 10f
+
+            val valTxt = measurer.storyText(item.currentLabel, WorkoutType.statValue.copy(fontSize = 92f.sp, lineHeight = 96f.sp), width = StoryCanvas.COLUMN_WIDTH.toInt(), maxLines = 1, ellipsis = true)
+            drawText(valTxt, color = theme.ink, topLeft = Offset(StoryCanvas.LEFT, y))
+            y += valTxt.size.height + 10f
+
+            item.previousLabel?.let { prev ->
+                val prevTxt = measurer.storyText("Antes $prev", WorkoutType.meta.copy(fontSize = 31f.sp), width = StoryCanvas.COLUMN_WIDTH.toInt(), maxLines = 1, ellipsis = true)
+                drawText(prevTxt, color = theme.faint, topLeft = Offset(StoryCanvas.LEFT, y))
+                y += prevTxt.size.height
+            }
+            y += 28f
+        }
+    }
+
+    val summaryParts = story.stats.filter { it.label == "Volumen" || it.label == "Duración" }
+    if (summaryParts.isNotEmpty() && y + 110f < footTop - WORKOUT_FOOT_GAP) {
+        val leftLabel = summaryParts.joinToString(" y ") { it.label }
+        val rightLabel = summaryParts.joinToString(" · ") { "${it.value}${it.unit?.let { u -> " $u" } ?: ""}" }
+        drawWorkoutRows(listOf(measurer.workoutRow(leftLabel, rightLabel)), y, rowPad = 18f, rowGap = 14f, theme = theme)
+        y += 88f
+    }
+
+    if (story.records > 0 && y + 96f < footTop - WORKOUT_FOOT_GAP) {
+        val badge = WorkoutBadge(measurer.storyText(workoutRecordsText(story.records), WorkoutType.badge))
+        drawWorkoutBadge(badge, min(footTop - WORKOUT_FOOT_GAP - badge.height, y + 12f), accentColor = theme.accent)
+    }
 }
 
 /**
@@ -944,18 +1322,20 @@ private fun DrawScope.drawWorkoutGeneral(story: WorkoutStory, measurer: TextMeas
  * ejercicio con datos, solo la fecha, el título y el pie.
  */
 private fun DrawScope.drawWorkoutExercise(story: WorkoutStory, measurer: TextMeasurer, progress: Float) {
+    val theme = storyThemePalette(story.themeBackground)
     drawStoryBackdrop(
-        cover = LineCoverSpec(LineCoverStyle.RELIEVE, LineCoverBackground.CARBON, seed = 5),
+        cover = LineCoverSpec(LineCoverStyle.RELIEVE, theme.background, seed = 5),
         measurer = measurer,
         progress = progress,
         artBottom = WORKOUT_EXERCISE_ART_BOTTOM,
+        backgroundColor = theme.bg2,
     )
     // El relieve queda de fondo, apagado como en el prototipo: la gráfica y la cifra mandan.
-    drawRect(StoryCanvas.Background, size = Size(StoryCanvas.WIDTH.toFloat(), WORKOUT_EXERCISE_ART_BOTTOM), alpha = 0.55f)
-    val footTop = drawStoryFoot(measurer, workoutCaption(story.dateLine))
+    drawRect(theme.bg2, size = Size(StoryCanvas.WIDTH.toFloat(), WORKOUT_EXERCISE_ART_BOTTOM), alpha = 0.55f)
+    val footTop = drawStoryFoot(measurer, workoutCaption(story.dateLine), inkColor = theme.ink, faintColor = theme.faint)
     val name = story.exerciseName
     if (name == null) {
-        drawWorkoutHeader(measurer.workoutHeader(story.dateLine, story.title, meta = null), contentTop = footTop - WORKOUT_FOOT_GAP)
+        drawWorkoutHeader(measurer.workoutHeader(story.dateLine, story.title, meta = null), contentTop = footTop - WORKOUT_FOOT_GAP, theme = theme)
         return
     }
     val rows = listOfNotNull(
@@ -976,28 +1356,50 @@ private fun DrawScope.drawWorkoutExercise(story: WorkoutStory, measurer: TextMea
     val line = measurer.workoutDeltaLine(story.exerciseDelta, story.exerciseSessions)
     val blockTop = rowsTop - WORKOUT_EXERCISE_BLOCK_GAP - workoutNumberBlockHeight(eyebrow, value, line)
 
-    drawWorkoutNumberBlock(eyebrow, value, unit, line, blockTop)
-    drawWorkoutRows(rows, rowsTop)
+    var y = blockTop
+    drawText(eyebrow, color = theme.faint, topLeft = Offset(StoryCanvas.LEFT, y))
+    y += eyebrow.size.height
+    if (value != null) {
+        y += WORKOUT_EYEBROW_NAME_GAP
+        drawText(value, color = theme.ink, topLeft = Offset(StoryCanvas.LEFT, y))
+        if (unit != null) {
+            drawWorkoutOnBaseline(unit, theme.muted, StoryCanvas.LEFT + value.size.width + WORKOUT_BIG_UNIT_GAP, y + value.firstBaseline)
+        }
+        y += value.size.height
+    }
+    if (line != null) {
+        y += WORKOUT_NAME_META_GAP
+        var x = StoryCanvas.LEFT
+        line.delta?.let { delta ->
+            drawText(delta, color = theme.accent, topLeft = Offset(x, y))
+            x += delta.size.width
+        }
+        line.rest?.let { rest -> drawText(rest, color = theme.muted, topLeft = Offset(x, y)) }
+    }
+
+    drawWorkoutRows(rows, rowsTop, theme = theme)
     val chartBottom = blockTop - WORKOUT_CHART_GAP
     if (story.exercisePoints.size >= 2 && chartBottom - WORKOUT_CHART_TOP >= WORKOUT_CHART_MIN) {
-        drawWorkoutChart(story.exercisePoints, top = WORKOUT_CHART_TOP, bottom = chartBottom)
+        drawWorkoutChart(story.exercisePoints, top = WORKOUT_CHART_TOP, bottom = chartBottom, prevRef = story.previousExerciseRef, theme = theme)
     }
 }
 
 /**
  * Fotos: la foto a pantalla completa con degradado a negro en el 45 % inferior (sin foto, la portada de relieve con ese mismo
- * degradado), y abajo la fecha, el título y la línea de cifras separadas por puntos naranja.
+ * degradado), y abajo la fecha, el título y la línea de cifras separadas por puntos en acento.
  */
 private fun DrawScope.drawWorkoutPhotos(story: WorkoutStory, measurer: TextMeasurer, photo: ImageBitmap?, progress: Float) {
+    val theme = storyThemePalette(story.themeBackground)
     if (photo != null) {
         drawWorkoutPhoto(photo)
     } else {
         // Sin foto, el relieve ocupa la parte de arriba y se funde a negro antes del texto, como en el prototipo.
         drawStoryBackdrop(
-            cover = LineCoverSpec(LineCoverStyle.RELIEVE, LineCoverBackground.CARBON, seed = 5),
+            cover = LineCoverSpec(LineCoverStyle.RELIEVE, theme.background, seed = 5),
             measurer = measurer,
             progress = progress,
             artBottom = WORKOUT_PHOTOS_ART_BOTTOM,
+            backgroundColor = StoryCanvas.Background,
         )
     }
     // Degradado a negro en el 45 % inferior, con foto o sin ella: el texto nunca pisa líneas ni una foto clara.
@@ -1020,11 +1422,16 @@ private fun DrawScope.drawWorkoutPhotos(story: WorkoutStory, measurer: TextMeasu
         natural
     }
     val statsTop = footTop - WORKOUT_PHOTO_STATS_GAP - line.height
-    drawWorkoutPhotoLine(line, top = statsTop)
+    drawWorkoutPhotoLine(line, top = statsTop, dotColor = if (theme.isLight) StoryCanvas.Accent else theme.accent)
+    val photoTheme = if (theme.isLight) storyThemePalette(LineCoverBackground.CARBON) else theme
+    val volumeDeltaLayout = story.volumeDeltaLabel?.let { measurer.storyText(it, WorkoutType.meta.copy(fontSize = 32f.sp, fontWeight = FontWeight.SemiBold)) }
     drawWorkoutHeader(
         measurer.workoutHeader(story.dateLine, story.title, meta = null),
         contentTop = statsTop,
         gap = WORKOUT_PHOTO_TITLE_GAP,
+        theme = photoTheme,
+        volumeDelta = volumeDeltaLayout,
+        volumeImproved = story.volumeImproved,
     )
 }
 
@@ -1076,15 +1483,15 @@ private fun TextMeasurer.workoutPhotoLine(stats: List<WorkoutStat>, scale: Float
     },
 )
 
-/** Pinta la línea de fotos con su borde superior en [top]: las cifras sobre una misma base y un punto naranja entre cada par. */
-private fun DrawScope.drawWorkoutPhotoLine(line: WorkoutPhotoLine, top: Float) {
+/** Pinta la línea de fotos con su borde superior en [top]: las cifras sobre una misma base y un punto en acento entre cada par. */
+private fun DrawScope.drawWorkoutPhotoLine(line: WorkoutPhotoLine, top: Float, dotColor: Color = StoryCanvas.Accent) {
     val baseline = top + line.ascent
     var x = StoryCanvas.LEFT
     line.stats.forEachIndexed { index, stat ->
         if (index > 0) {
             x += WORKOUT_DOT_GAP
             drawCircle(
-                StoryCanvas.Accent,
+                dotColor,
                 radius = WORKOUT_DOT_RADIUS,
                 center = Offset(x + WORKOUT_DOT_RADIUS, baseline - WORKOUT_DOT_LIFT),
             )

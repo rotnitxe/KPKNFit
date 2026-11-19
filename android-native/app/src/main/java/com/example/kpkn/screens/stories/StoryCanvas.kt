@@ -182,9 +182,10 @@ internal fun DrawScope.drawStoryBackdrop(
     artBottom: Float = StoryCanvas.ART_BOTTOM,
     studioCover: CoverIdentity? = null,
     personalPhoto: ImageBitmap? = null,
+    backgroundColor: Color = StoryCanvas.Background,
 ) {
     val width = StoryCanvas.WIDTH.toFloat()
-    drawRect(StoryCanvas.Background, topLeft = Offset.Zero, size = Size(width, StoryCanvas.HEIGHT.toFloat()))
+    drawRect(backgroundColor, topLeft = Offset.Zero, size = Size(width, StoryCanvas.HEIGHT.toFloat()))
     // El inset deja el DrawScope de (1080 × artBottom), tanto en el lienzo real como en la vista previa escalada.
     clipRect(0f, 0f, width, artBottom - 2f) {
         inset(left = 0f, top = 0f, right = size.width - width, bottom = size.height - artBottom) {
@@ -203,14 +204,14 @@ internal fun DrawScope.drawStoryBackdrop(
     val solidTop = floor(artBottom - 24f)
     drawRect(
         brush = Brush.verticalGradient(
-            colors = listOf(StoryCanvas.Background.copy(alpha = 0f), StoryCanvas.Background),
+            colors = listOf(backgroundColor.copy(alpha = 0f), backgroundColor),
             startY = fadeTop,
             endY = solidTop,
         ),
         topLeft = Offset(0f, fadeTop),
         size = Size(width, solidTop - fadeTop),
     )
-    drawRect(StoryCanvas.Background, topLeft = Offset(0f, solidTop), size = Size(width, artBottom - solidTop))
+    drawRect(backgroundColor, topLeft = Offset(0f, solidTop), size = Size(width, artBottom - solidTop))
 }
 
 /** Crop a personal photo to the 1080 × [artBottom] cover area, matching the program poster's center crop. */
@@ -278,15 +279,17 @@ internal fun DrawScope.drawStoryFoot(
     measurer: TextMeasurer,
     caption: String,
     bottom: Float = StoryCanvas.FOOT_BOTTOM,
+    inkColor: Color = StoryCanvas.Ink,
+    faintColor: Color = StoryCanvas.Faint,
 ): Float {
     val brand = measurer.storyText("KPKN", brandStyle)
     val note = measurer.storyText(caption, captionStyle, maxLines = 1)
     val rowHeight = max(brand.size.height, note.size.height).toFloat()
     val top = bottom - rowHeight
-    drawText(brand, color = StoryCanvas.Ink, topLeft = Offset(StoryCanvas.LEFT, top + (rowHeight - brand.size.height) / 2f))
+    drawText(brand, color = inkColor, topLeft = Offset(StoryCanvas.LEFT, top + (rowHeight - brand.size.height) / 2f))
     drawText(
         note,
-        color = StoryCanvas.Faint,
+        color = faintColor,
         topLeft = Offset(StoryCanvas.RIGHT - note.size.width, top + (rowHeight - note.size.height) / 2f),
     )
     return top

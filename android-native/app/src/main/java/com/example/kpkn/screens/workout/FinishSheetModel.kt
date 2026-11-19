@@ -22,6 +22,8 @@ internal data class FinishMuscle(val name: String, val total: Double, val direct
 
 internal data class FinishLiftChip(val name: String, val deltaKg: Double?)
 
+internal data class FinishTrendPoint(val dateLabel: String, val volume: Double)
+
 internal data class FinishRecord(
     val exerciseId: String,
     val exerciseName: String,
@@ -226,6 +228,8 @@ internal data class FinishModel(
     val volumeDelta: Double?,
     /** Volumen de las últimas sesiones iguales (hasta 7) y, al final, el de hoy. Sin comparación (< 2 puntos) no se dibuja la línea. */
     val trend: List<Double>,
+    val trendPoints: List<FinishTrendPoint> = emptyList(),
+    val volumeAvg4wDelta: Double? = null,
     val effort: Double?,
     /** Esfuerzo medio derivado de la intensidad realmente registrada; la valoración manual vive aparte. */
     val recordedEffort: com.example.kpkn.domain.training.insights.RpeConversion.RecordedSessionEffort =
@@ -233,6 +237,7 @@ internal data class FinishModel(
     val records: Int,
     val record: FinishRecord?,
     val recordList: List<FinishRecord> = emptyList(),
+    val milestones: List<com.example.kpkn.data.models.SessionMilestone> = emptyList(),
     val cardio: FinishCardio?,
     val muscles: List<FinishMuscle>,
     val lifts: List<FinishLiftChip>,
@@ -304,6 +309,13 @@ internal fun buildFinishModel(
     val previousSessionVolumes = previousSessions.map { sessionTonnage(it.completedExercises.filter { ex -> ex.cardioDetails == null }) }
     val previous = previousSessions.lastOrNull()?.let { previousSessions.lastIndex to previousSessionVolumes.last() }
     val trend = (previousSessionVolumes.takeLast(7) + volume).takeIf { sets > 0 && it.size >= 2 } ?: emptyList()
+    val trendPoints = if (sets > 0 && previousSessions.isNotEmpty()) {
+        previousSessions.zip(previousSessionVolumes).takeLast(5).map { (log, vol) ->
+            val date = runCatching { LocalDate.parse(log.date.take(10)) }.getOrNull()
+            FinishTrendPoint(date?.let(::finishDateLabel) ?: log.date.take(10), vol)
+        } + FinishTrendPoint("Hoy", volume)
+    } else emptyList()
+    val volumeAvg4wDelta = previousSessionVolumes.takeLast(4).takeIf { sets > 0 && it.isNotEmpty() }?.let { volume - it.average() }
     val direct = MuscleVolumeAccounting.sessionDirectSets(strength)
     val muscles = MuscleVolumeAccounting.sessionSets(strength).entries.sortedByDescending { it.value }
         .map { FinishMuscle(it.key, it.value, direct[it.key] ?: 0.0) }
@@ -359,11 +371,14 @@ internal fun buildFinishModel(
         volume = volume,
         volumeDelta = previous?.let { volume - it.second }.takeIf { sets > 0 },
         trend = trend,
+        trendPoints = trendPoints,
+        volumeAvg4wDelta = volumeAvg4wDelta,
         effort = effort,
         recordedEffort = recordedEffort,
         records = recordList.count { !it.isInitialReference },
         record = record,
         recordList = recordList,
+        milestones = presentation.milestones,
         cardio = cardio,
         muscles = if (strength.isEmpty()) emptyList() else muscles,
         lifts = chips,

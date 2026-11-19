@@ -67,19 +67,15 @@ class RedesignFinishSheetTest {
                 }
             }
         }
-        // Sin pestañas: todo el resumen a la vista y las anotaciones en un panel que se abre con «Notas».
-        rule.onNodeWithText("Progreso").assertDoesNotExist()
-        rule.onNodeWithText("HITOS").assertDoesNotExist()
+        // Ecualizador de esfuerzo inline pre-cargado y notas en panel independiente (sin botón duplicado «Valorar»).
         rule.onNodeWithText("Compartir al guardar").assertIsDisplayed()
-        rule.onNodeWithTag("finish-notes-open").performClick()
-        rule.onNodeWithTag("finish-effort-scale").assertDoesNotExist()
+        rule.onNodeWithTag("finish-rate-open").assertDoesNotExist()
+        rule.onNodeWithTag("finish-effort-scale").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithContentDescription("Esfuerzo 7").performClick()
+        rule.onNodeWithTag("finish-notes-open").performScrollTo().performClick()
         rule.onNodeWithTag("finish-notes").performTextInput("QA observacion original")
         rule.onNodeWithTag("finish-notes-done").performClick()
-        rule.onNodeWithTag("finish-rate-open").performClick()
-        rule.onNodeWithTag("finish-effort-scale").assertIsDisplayed()
-        rule.onNodeWithContentDescription("Esfuerzo 7").performClick()
-        rule.onNodeWithTag("finish-notes-done").performClick()
-        rule.onNodeWithTag("finish-save").assertIsDisplayed().performClick()
+        rule.onNodeWithTag("finish-save").performScrollTo().assertIsDisplayed().performClick()
         rule.runOnIdle { assertEquals("QA observacion original" to 7.0, saved) }
     }
 
@@ -263,12 +259,63 @@ class RedesignFinishSheetTest {
                 }
             }
         }
-        rule.onNodeWithText("−5 kg", substring = true).assertIsDisplayed()
-        rule.onNodeWithTag("finish-week-comparison").assertIsDisplayed()
-        rule.onNodeWithTag("finish-share-switch").performClick()
-        rule.onNodeWithTag("finish-save").performClick()
+        rule.onNodeWithText("−5 kg", substring = true).performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("finish-week-comparison").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithTag("finish-share-switch").performScrollTo().performClick()
+        rule.onNodeWithTag("finish-save").performScrollTo().performClick()
         rule.runOnIdle { assertTrue(shareArmed) }
-        rule.onNodeWithTag("finish-share-switch").performClick()
+        rule.onNodeWithTag("finish-share-switch").performScrollTo().performClick()
         rule.runOnIdle { assertTrue(cancelled) }
+    }
+
+    @Test fun inlineEffortPreloadsLiveAverageSupportsResetAndDeckSwitchesTabs() {
+        var confirmedEffort: Double? = -1.0
+        val exercises = listOf(
+            CompletedExercise(
+                "bp",
+                "Press Banca",
+                effectiveMuscles = listOf(com.example.kpkn.data.models.InvolvedMuscle("Pecho")),
+                sets = listOf(
+                    CompletedSet("s1", weight = 80.0, reps = 6, rir = 2),
+                    CompletedSet("s2", weight = 85.0, reps = 5, rir = 1),
+                ),
+            ),
+        )
+        val milestone = SessionMilestone(
+            id = "m1",
+            exerciseId = "bp",
+            exerciseName = "Press Banca",
+            kind = "star_goal_reached",
+            label = "Meta 100 kg",
+            value = 100.0,
+            detail = "Objetivo cumplido",
+        )
+        rule.setContent {
+            CompositionLocalProvider(LocalWizardReducedMotion provides true) {
+                KPKNTheme {
+                    RecordedSessionFinishSheet(
+                        name = "Empuje",
+                        completedExercises = exercises,
+                        durationMinutes = 45,
+                        initialNotes = "",
+                        saving = false,
+                        presentation = FinishPresentationContext(milestones = listOf(milestone), today = java.time.LocalDate.of(2026, 11, 18)),
+                        onNotes = {},
+                        onAlbum = {},
+                        onConfirm = { _, effort -> confirmedEffort = effort },
+                        onDismiss = {},
+                    )
+                }
+            }
+        }
+        rule.onNodeWithTag("finish-deck").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithText("Meta 100 kg", substring = true).assertIsDisplayed()
+        rule.onNodeWithTag("finish-deck-tab-musculos").performClick()
+        rule.onNodeWithTag("finish-muscles").assertIsDisplayed()
+        rule.onNodeWithTag("finish-effort-scale").performScrollTo().assertIsDisplayed()
+        rule.onNodeWithContentDescription("Esfuerzo 6").performClick()
+        rule.onNodeWithTag("finish-effort-reset").assertIsDisplayed().performClick()
+        rule.onNodeWithTag("finish-save").performScrollTo().performClick()
+        rule.runOnIdle { assertEquals(null, confirmedEffort) }
     }
 }

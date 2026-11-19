@@ -126,8 +126,8 @@ class WorkoutStoryModelTest {
             ejercicio("d", "Dominadas lastradas", mejorPeso = 75.0, pesoAnterior = 70.0),
         )
         val con = workoutStoryFrom(datos(lifts = lifts), WorkoutStoryOptions(exerciseList = true))
-        assertEquals(listOf("Remo con barra" to "3 series", "Dominadas lastradas" to "3 series"), con.exerciseLines.map { it.name to it.detail })
-        assertTrue(workoutStoryFrom(datos(lifts = lifts), WorkoutStoryOptions()).exerciseLines.isEmpty())
+        assertEquals(listOf("Remo con barra" to "3× 62,5 kg", "Dominadas lastradas" to "3× 75 kg"), con.exerciseLines.map { it.name to it.detail })
+        assertTrue(workoutStoryFrom(datos(lifts = lifts), WorkoutStoryOptions(exerciseList = false)).exerciseLines.isEmpty())
     }
 
     @Test
@@ -379,8 +379,8 @@ class WorkoutStoryModelTest {
         assertEquals(
             listOf(
                 "Cinta continua" to "2,5 km · 20 min",
-                "Press banca" to "1 serie",
-                "Remo" to "3 series",
+                "Press banca" to "1× 100 kg",
+                "Remo" to "3× 80 kg",
             ),
             story.exerciseLines.map { it.name to it.detail },
         )
@@ -417,5 +417,47 @@ class WorkoutStoryModelTest {
         assertEquals(7, seven.flatMap { it.exerciseLines }.size)
         assertEquals(quince.map { it.name }, fifteenLong.flatMap { page -> page.exerciseLines.map { it.name } })
         assertTrue(fifteenLong.size >= 3)
+    }
+
+    @Test
+    fun historiaHeredaPaletaDelProgramaSoportaHitosYReferenciaPrevia() {
+        val program = Program(
+            id = "p-noche",
+            name = "Bloque Fuerza",
+            coverImage = "kpkn-lines://ONDAS/NOCHE",
+        )
+        val bench = ejercicio(
+            "bp",
+            "Press Banca",
+            mejorPeso = 92.5,
+            pesoAnterior = 90.0,
+            historial = listOf(punto("2026-11-11", 104.0), punto("2026-11-18", 107.5)),
+        )
+        val record = FinishRecord(
+            exerciseId = "bp",
+            exerciseName = "Press Banca",
+            metric = "e1RM",
+            value = 107.5,
+            previousValue = 104.0,
+            improvement = 3.5,
+            unit = "kg",
+            currentLabel = "107,5 kg e1RM",
+            previousLabel = "104,0 kg e1RM",
+            isInitialReference = false,
+        )
+        val data = datos(lifts = listOf(bench), program = program, finishRecords = listOf(record))
+        val inherited = workoutStoryFrom(data, WorkoutStoryOptions())
+        assertEquals(com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground.NOCHE, inherited.themeBackground)
+        assertEquals(1, inherited.milestoneItems.size)
+        assertEquals(104.0, inherited.previousExerciseRef ?: 0.0, 0.001)
+
+        val overrideCrema = workoutStoryFrom(
+            data,
+            WorkoutStoryOptions(
+                template = com.example.kpkn.screens.workout.WorkoutStoryTemplate.MILESTONES,
+                backgroundId = "CREMA",
+            ),
+        )
+        assertEquals(com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverBackground.CREMA, overrideCrema.themeBackground)
     }
 }

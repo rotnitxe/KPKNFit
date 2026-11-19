@@ -269,10 +269,12 @@ class FinishStoryAndLoadSemanticsDeviceTest {
         // Esfuerzo derivado 8,5 y >5 músculos, gráfico semanal visible (incluye cardio <60 s "45 s" y "Sin dato comparable la semana anterior")
         rule.onNodeWithTag("finish-sheet").assertIsDisplayed()
         rule.onNodeWithText("8,5", substring = true).assertIsDisplayed()
-        rule.onNodeWithText("Esfuerzo", substring = true).assertIsDisplayed()
+        rule.onNodeWithText("ESFUERZO (sRPE)", substring = true).assertIsDisplayed()
+        rule.onNodeWithTag("finish-deck-tab-comparativa").performScrollTo().performClick()
         rule.onNodeWithTag("finish-week-comparison").performScrollTo().assertIsDisplayed()
-        rule.onNodeWithTag("finish-muscles").performScrollTo().assertIsDisplayed()
         rule.onAllNodesWithText("Sin dato comparable la semana anterior", substring = true).onFirst().assertExists()
+        rule.onNodeWithTag("finish-deck-tab-musculos").performScrollTo().performClick()
+        rule.onNodeWithTag("finish-muscles").performScrollTo().assertIsDisplayed()
 
         // Notas + Valoración manual 4 + scroll + toggle Compartir al guardar
         rule.onNodeWithTag("finish-notes-open").performScrollTo().performClick()
