@@ -3414,89 +3414,38 @@ internal fun SetInputCardV2(
                 onDispose { recordActionHolder.clearIfOwner(recordActionInstanceOwner) }
             }
             }
-            AnimatedVisibility(
-                visible = legacyModeLayout && !showAmrapResult,
-                modifier = Modifier.align(Alignment.BottomCenter),
-                enter = liveFadeIn(reducedMotion),
-                exit = liveFadeOut(reducedMotion),
-            ) {
-                // `.v2-card-footer`: 58 de alto (52 en compacto) con las acciones de 40 tras un filete.
-                Box(Modifier.fillMaxWidth().height(if (tightCard) 52.dp else 58.dp).background(Color(0xFF111111))
-                    // Acciones de 40 en el dibujo y 44 de zona táctil: el pie reparte el resto arriba y abajo.
-                    .padding(start = cardInset, end = cardInset, top = if (tightCard) 2.dp else 4.dp, bottom = if (tightCard) 6.dp else 10.dp)) {
-                    LiveSetCardActions(onAdvanced = { cardFace = SetCardFace.Technique },
-                        onVisual = { cardFace = SetCardFace.ExerciseMedia }, onHistory = onShowHistory)
-                }
-            }
-            // El resultado del AMRAP se funde por encima de la tarjeta en lugar de saltar.
-            AnimatedVisibility(
-                visible = showAmrapResult,
+            SetInputCardGuidedOverlays(
                 modifier = Modifier.matchParentSize(),
-                enter = liveFadeIn(reducedMotion),
-                exit = liveFadeOut(reducedMotion),
-            ) {
-                Box(Modifier.matchParentSize()) {
-                    amrapResultPanel?.invoke { editingAmrapResult = true }
-                }
-            }
-            // Ley 1 (LV8): la tarjeta no cambia de tamaño en ningún estado. El panel guiado de drop-set y rest-pause y el aviso del peso
-            // corporal del asistido ya no se insertan arriba (la alargaban): van ENCIMA de la parte de abajo, con la carga a la vista.
-            AnimatedVisibility(
-                visible = scheduledMainCapture != null && !isRecordSubmissionPending && !showAmrapResult,
-                modifier = Modifier.align(Alignment.BottomCenter),
-                enter = liveFadeIn(reducedMotion),
-                exit = liveFadeOut(reducedMotion),
-            ) {
-                androidx.compose.material3.TextButton(
-                    onClick = { guidedSkipAction[0]?.invoke() },
-                ) { Text("Terminar técnica con lo realizado") }
-            }
-            val guidedPhaseNow = guidedPhase
-            // Programmed editor techniques are VOLUME_REPLACED and use the existing top band/timeline.  The guided surface belongs
-            // to manual techniques, including those selected on an originally normal set; rendering it for a scheduled plan cuts the live card (the bug shown in the
-            // beta capture).
-            // El panel guiado sube con un fundido y se recuerda su última fase para poder fundirlo al salir.
-            var heldGuidedPhase by remember { mutableStateOf(guidedPhaseNow) }
-            if (guidedPhaseNow != null) heldGuidedPhase = guidedPhaseNow
-            AnimatedVisibility(
-                visible = !showAmrapResult && guidedPhaseNow != null && !currentSet.isInlineEditorScheduledTechnique(),
-                modifier = Modifier.matchParentSize(),
-                enter = if (reducedMotion) androidx.compose.animation.EnterTransition.None
-                else fadeIn(tween(220, easing = FastOutSlowInEasing)) + slideInVertically(tween(280, easing = FastOutSlowInEasing)) { it / 6 },
-                exit = if (reducedMotion) androidx.compose.animation.ExitTransition.None
-                else fadeOut(tween(160, easing = FastOutSlowInEasing)) + slideOutVertically(tween(220, easing = FastOutSlowInEasing)) { it / 6 },
-            ) {
-              heldGuidedPhase?.let { shownPhase ->
-                BoxWithConstraints(modifier = Modifier.matchParentSize()) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                            .heightIn(max = (maxHeight - GuidedPanelTopReserve).coerceAtLeast(160.dp)),
-                    ) {
-                        GuidedTechniquePanel(
-                            phase = shownPhase,
-                            loadMode = loadMode,
-                            restPauseStyle = if(currentSet.isMyoReps()) "myo" else null,
-                            pauseSeconds = activeRestPauseSeconds,
-                            targetRestReps = activeRestReps,
-                            accentColor = sessionAccentColor,
-                            dropWeightText = guidedDropWeightText,
-                            dropRepsText = guidedDropRepsText,
-                            restPauseRepsText = guidedRestPauseRepsText,
-                            onDropWeightChange = { guidedDropWeightText = it },
-                            onDropRepsChange = { guidedDropRepsText = it },
-                            onRestPauseRepsChange = { guidedRestPauseRepsText = it },
-                            onSkipTechnique = { guidedSkipAction[0]?.invoke() },
-                            principal = buildString {
-                                append("${reportWeightText.ifBlank { plannedWeightGhost ?: "—" }} kg × ${reportValueText.ifBlank { "—" }}")
-                                chosenEffortItem?.let { append(" · ${effortValueLabel(it)}") }
-                            },
-                        )
-                    }
-                }
-              }
-            }
+                legacyModeLayout = legacyModeLayout,
+                showAmrapResult = showAmrapResult,
+                tightCard = tightCard,
+                cardInset = cardInset,
+                reducedMotion = reducedMotion,
+                amrapResultPanel = amrapResultPanel,
+                onEditAmrapResult = { editingAmrapResult = true },
+                showScheduledFinish = scheduledMainCapture != null && !isRecordSubmissionPending && !showAmrapResult,
+                onSkipGuided = { guidedSkipAction[0]?.invoke() },
+                guidedPhaseNow = guidedPhase,
+                isInlineEditorScheduledTechnique = currentSet.isInlineEditorScheduledTechnique(),
+                loadMode = loadMode,
+                isMyoReps = currentSet.isMyoReps(),
+                activeRestPauseSeconds = activeRestPauseSeconds,
+                activeRestReps = activeRestReps,
+                sessionAccentColor = sessionAccentColor,
+                guidedDropWeightText = guidedDropWeightText,
+                guidedDropRepsText = guidedDropRepsText,
+                guidedRestPauseRepsText = guidedRestPauseRepsText,
+                onDropWeightChange = { guidedDropWeightText = it },
+                onDropRepsChange = { guidedDropRepsText = it },
+                onRestPauseRepsChange = { guidedRestPauseRepsText = it },
+                principalSummary = buildString {
+                    append("${reportWeightText.ifBlank { plannedWeightGhost ?: "—" }} kg × ${reportValueText.ifBlank { "—" }}")
+                    chosenEffortItem?.let { append(" · ${effortValueLabel(it)}") }
+                },
+                onOpenAdvanced = { cardFace = SetCardFace.Technique },
+                onOpenVisual = { cardFace = SetCardFace.ExerciseMedia },
+                onShowHistory = onShowHistory,
+            )
             // El peso corporal de la carga asistida se pide en la hoja «Modo de carga» (prototipo 02), no encima de la tarjeta.
             }
             }
@@ -3512,53 +3461,37 @@ internal fun SetInputCardV2(
                 modifier = Modifier.matchParentSize(),
             )
             if (flipRotation > 90f) {
-            Box(
-                modifier = Modifier
-                    .matchParentSize()
-                    .graphicsLayer { rotationY = 180f },
-            ) {
-                // Técnica ↔ Modo visual (las dos caras traseras): se funden entre sí; el giro de la tarjeta ya anima Frontal ↔ trasera.
-                val backFace = if (cardFace == SetCardFace.ExerciseMedia) SetCardFace.ExerciseMedia else SetCardFace.Technique
-                AnimatedContent(targetState = backFace, transitionSpec = { liveContentSwap(reducedMotion) }, label = "set-card-back-face") { shownBack ->
-                when (shownBack) {
-                    SetCardFace.ExerciseMedia -> SetCardExerciseMediaBack(
-                        exercise = exercise,
-                        onFlipBack = { cardFace = SetCardFace.Front },
-                        isSettledPage = isSettledPage,
-                        setIndex = setIndex,
-                        side = activeSide ?: selectedSide,
-                        // Lo que muestra la tarjeta es lo que se guarda con el medio (LV8): lo escrito o, si no, la carga y las reps previstas.
-                        weightKg = reportWeightText.replace(',', '.').toDoubleOrNull()
-                            ?: plannedWeightGhost?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it > 0.0 }
-                            ?: sessionCompletedSet?.weight?.takeIf { it > 0.0 },
-                        reps = liveQuantityNumber(reportValueText, resolvedPlannedUnitMode)?.roundToInt()
-                            ?: (if (supportsIndependentSides) { if (selectedSide == "left") leftValueGhost else rightValueGhost } else plannedValueGhost)
-                                .toIntOrNull()?.takeIf { it > 0 }
-                            ?: sessionCompletedSet?.reps?.takeIf { it > 0 },
-                        isPr = isPrSeries,
-                        mediaCapture = mediaCapture,
-                        onRetryPendingCaptures = onRetryPendingCaptures,
-                        effortLabel = chosenEffortItem?.let { effortValueLabel(it) }?.takeIf { it != "—" },
-                        onShowHistory = onShowHistory,
-                        onOpenAnalysis = onOpenAnalysis,
-                        videoThumbBadges = videoThumbBadges,
-                        videoAnalysis = videoAnalysis,
-                        onRetryAnalysis = onRetryAnalysis,
-                        techniqueVideoSettings = techniqueVideoSettings,
-                    )
-                    else -> SetCardTechniqueBack(
+                SetInputCardBackFace(
+                    modifier = Modifier.matchParentSize(),
+                    cardFace = cardFace,
+                    reducedMotion = reducedMotion,
+                    exercise = exercise,
+                    setIndex = setIndex,
+                    activeSide = activeSide ?: selectedSide,
+                    isSettledPage = isSettledPage,
+                    reportWeightText = reportWeightText,
+                    plannedWeightGhost = plannedWeightGhost,
+                    reportValueText = reportValueText,
+                    resolvedPlannedUnitMode = resolvedPlannedUnitMode,
+                    supportsIndependentSides = supportsIndependentSides,
+                    selectedSide = selectedSide,
+                    leftValueGhost = leftValueGhost,
+                    rightValueGhost = rightValueGhost,
+                    plannedValueGhost = plannedValueGhost,
+                    sessionCompletedSet = sessionCompletedSet,
+                    isPrSeries = isPrSeries,
+                    mediaCapture = mediaCapture,
+                    onRetryPendingCaptures = onRetryPendingCaptures,
+                    effortLabel = chosenEffortItem?.let { effortValueLabel(it) }?.takeIf { it != "—" },
+                    onShowHistory = onShowHistory,
+                    onOpenAnalysis = onOpenAnalysis,
+                    videoThumbBadges = videoThumbBadges,
+                    videoAnalysis = videoAnalysis,
+                    onRetryAnalysis = onRetryAnalysis,
+                    techniqueVideoSettings = techniqueVideoSettings,
                     loadMode = loadMode,
                     currentSet = currentSet,
-                    coverWeightLabel = if (reportWeightText.isBlank()) "—" else "${reportWeightText} kg",
-                    coverValueLabel = if (reportValueText.isBlank()) "—" else when (resolvedPlannedUnitMode) {
-                        UnitModeV2.TIME -> parseLiveDurationSeconds(reportValueText)?.let(::formatLiveDuration) ?: reportValueText
-                        UnitModeV2.DISTANCE -> "$reportValueText m"
-                        UnitModeV2.CUSTOM -> "$reportValueText ${exercise.customUnit.orEmpty()}"
-                        UnitModeV2.REPS -> "$reportValueText reps"
-                    },
-                    coverIntensityLabel = intensityText.takeIf { it.isNotBlank() }?.let { "Int. $it" },
-                    mainWeight = reportWeightText.replace(',', '.').toDoubleOrNull() ?: 0.0,
-                    mainReps = liveQuantityNumber(reportValueText, resolvedPlannedUnitMode)?.roundToInt() ?: 0,
+                    intensityText = intensityText,
                     sessionAccentColor = sessionAccentColor,
                     isFailedSet = isFailedSet,
                     onFailedSetChange = { failed ->
@@ -3572,8 +3505,8 @@ internal fun SetInputCardV2(
                     onFlipBack = { cardFace = SetCardFace.Front },
                     noteText = setNoteText,
                     onNoteChange = { setNoteText = it },
-                    initialDropEnabled = dropSetEnabled,
-                    initialRestPauseEnabled = restPauseEnabled,
+                    dropSetEnabled = dropSetEnabled,
+                    restPauseEnabled = restPauseEnabled,
                     onDropEnabledChange = { enabled ->
                         dropSetEnabled = enabled
                         if (enabled) restPauseEnabled = false
@@ -3582,95 +3515,331 @@ internal fun SetInputCardV2(
                         restPauseEnabled = enabled
                         if (enabled) dropSetEnabled = false
                     },
-                    showPrMediaShortcut = LiveSetPrPolicy.shouldShowMediaShortcut(isPrSeries),
+                    activeRestPauseSeconds = activeRestPauseSeconds,
                     onOpenPrMedia = { cardFace = SetCardFace.ExerciseMedia },
-                    setNumber = setIndex + 1,
-                    loadStepKg = quickLoadIncrementFor(exercise, currentSet),
                     onCompleteTechniques = { drops, pauses ->
                         dropSetEnabled = drops.isNotEmpty() || dropSetEnabled
                         dropSets = drops.map { DropSetEntry(weight = it.weight, reps = it.reps) }.ifEmpty {
                             listOf(DropSetEntry(0.0, 0))
                         }
                         restPauseEnabled = pauses.isNotEmpty() || restPauseEnabled
-                        restPauseSets = pauses.ifEmpty { listOf(RestPauseData(restTime = activeRestPauseSeconds, reps = 0, style = if(currentSet.isMyoReps()) "myo" else null)) }
+                        restPauseSets = pauses.ifEmpty { listOf(RestPauseData(restTime = activeRestPauseSeconds, reps = 0, style = if (currentSet.isMyoReps()) "myo" else null)) }
                         cardFace = SetCardFace.Front
                     },
                 )
-                }
+            }
+        }
+            SetInputCardFailedOverlay(
+                modifier = Modifier.matchParentSize(),
+                visible = isFailedSet,
+                setIndex = setIndex,
+                tightCard = tightCard,
+                cardInset = cardInset,
+                reportWeightText = reportWeightText,
+                plannedWeightGhost = plannedWeightGhost,
+                reportValueText = reportValueText,
+                failedSetReason = failedSetReason,
+                onFailedSetReasonChange = { failedSetReason = it },
+                onRevert = {
+                    isFailedSet = false
+                    failedSetReason = ""
+                    onRevertExecutionError?.invoke()
+                },
+                onOpenAdvanced = { cardFace = SetCardFace.Technique },
+                onOpenVisual = { cardFace = SetCardFace.ExerciseMedia },
+                onShowHistory = onShowHistory,
+            )
+    }
+}
+
+@Composable
+private fun BoxScope.SetInputCardGuidedOverlays(
+    modifier: Modifier,
+    legacyModeLayout: Boolean,
+    showAmrapResult: Boolean,
+    tightCard: Boolean,
+    cardInset: Dp,
+    reducedMotion: Boolean,
+    amrapResultPanel: (@Composable (onEdit: () -> Unit) -> Unit)?,
+    onEditAmrapResult: () -> Unit,
+    showScheduledFinish: Boolean,
+    onSkipGuided: () -> Unit,
+    guidedPhaseNow: GuidedTechniquePhase?,
+    isInlineEditorScheduledTechnique: Boolean,
+    loadMode: LoadModeV2,
+    isMyoReps: Boolean,
+    activeRestPauseSeconds: Int,
+    activeRestReps: Int,
+    sessionAccentColor: Color,
+    guidedDropWeightText: String,
+    guidedDropRepsText: String,
+    guidedRestPauseRepsText: String,
+    onDropWeightChange: (String) -> Unit,
+    onDropRepsChange: (String) -> Unit,
+    onRestPauseRepsChange: (String) -> Unit,
+    principalSummary: String,
+    onOpenAdvanced: () -> Unit,
+    onOpenVisual: () -> Unit,
+    onShowHistory: () -> Unit,
+) {
+    AnimatedVisibility(
+        visible = legacyModeLayout && !showAmrapResult,
+        modifier = Modifier.align(Alignment.BottomCenter),
+        enter = liveFadeIn(reducedMotion),
+        exit = liveFadeOut(reducedMotion),
+    ) {
+        Box(
+            Modifier.fillMaxWidth().height(if (tightCard) 52.dp else 58.dp).background(Color(0xFF111111))
+                .padding(start = cardInset, end = cardInset, top = if (tightCard) 2.dp else 4.dp, bottom = if (tightCard) 6.dp else 10.dp),
+        ) {
+            LiveSetCardActions(onAdvanced = onOpenAdvanced, onVisual = onOpenVisual, onHistory = onShowHistory)
+        }
+    }
+    AnimatedVisibility(
+        visible = showAmrapResult,
+        modifier = modifier,
+        enter = liveFadeIn(reducedMotion),
+        exit = liveFadeOut(reducedMotion),
+    ) {
+        Box(Modifier.matchParentSize()) {
+            amrapResultPanel?.invoke(onEditAmrapResult)
+        }
+    }
+    AnimatedVisibility(
+        visible = showScheduledFinish,
+        modifier = Modifier.align(Alignment.BottomCenter),
+        enter = liveFadeIn(reducedMotion),
+        exit = liveFadeOut(reducedMotion),
+    ) {
+        androidx.compose.material3.TextButton(onClick = onSkipGuided) {
+            Text("Terminar técnica con lo realizado")
+        }
+    }
+    var heldGuidedPhase by remember { mutableStateOf(guidedPhaseNow) }
+    if (guidedPhaseNow != null) heldGuidedPhase = guidedPhaseNow
+    AnimatedVisibility(
+        visible = !showAmrapResult && guidedPhaseNow != null && !isInlineEditorScheduledTechnique,
+        modifier = modifier,
+        enter = if (reducedMotion) androidx.compose.animation.EnterTransition.None
+        else fadeIn(tween(220, easing = FastOutSlowInEasing)) + slideInVertically(tween(280, easing = FastOutSlowInEasing)) { it / 6 },
+        exit = if (reducedMotion) androidx.compose.animation.ExitTransition.None
+        else fadeOut(tween(160, easing = FastOutSlowInEasing)) + slideOutVertically(tween(220, easing = FastOutSlowInEasing)) { it / 6 },
+    ) {
+        heldGuidedPhase?.let { shownPhase ->
+            BoxWithConstraints(modifier = Modifier.matchParentSize()) {
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .fillMaxWidth()
+                        .heightIn(max = (maxHeight - GuidedPanelTopReserve).coerceAtLeast(160.dp)),
+                ) {
+                    GuidedTechniquePanel(
+                        phase = shownPhase,
+                        loadMode = loadMode,
+                        restPauseStyle = if (isMyoReps) "myo" else null,
+                        pauseSeconds = activeRestPauseSeconds,
+                        targetRestReps = activeRestReps,
+                        accentColor = sessionAccentColor,
+                        dropWeightText = guidedDropWeightText,
+                        dropRepsText = guidedDropRepsText,
+                        restPauseRepsText = guidedRestPauseRepsText,
+                        onDropWeightChange = onDropWeightChange,
+                        onDropRepsChange = onDropRepsChange,
+                        onRestPauseRepsChange = onRestPauseRepsChange,
+                        onSkipTechnique = onSkipGuided,
+                        principal = principalSummary,
+                    )
                 }
             }
         }
     }
-            androidx.compose.animation.AnimatedVisibility(
-                visible = isFailedSet,
-                enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(250)),
-                exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
-                modifier = Modifier.matchParentSize(),
-            ) {
-                // «Serie con incidencia» del prototipo 02: la misma tarjeta, con «!», «Error de ejecución», la carga y las repeticiones,
-                // «Revisar motivo» (hoja con los motivos) y «Recuperar serie»; abajo, las acciones de siempre.
-                var reasonSheet by remember { mutableStateOf(false) }
-                Column(
-                    Modifier.fillMaxSize().clip(RoundedCornerShape(25.dp)).background(Color(0xFF111111))
-                        .border(1.dp, Color(0x0BFFFFFF), RoundedCornerShape(25.dp))
-                        .pointerInput(Unit) { detectTapGestures { } }
-                        .testTag("live-card-failed"),
-                ) {
-                    Column(Modifier.weight(1f).fillMaxWidth().padding(start = cardInset, end = cardInset, top = if (tightCard) 9.dp else 13.dp)) {
-                        Row(Modifier.fillMaxWidth().height(if (tightCard) 27.dp else 29.dp), verticalAlignment = Alignment.CenterVertically) {
-                            Text("SERIE ${setIndex + 1}", style = TextStyle(fontFamily = WizardFonts.body, fontSize = 9.sp, letterSpacing = 0.65.sp),
-                                color = Ref02CardMuted)
-                        }
-                        Column(
-                            Modifier.fillMaxWidth().padding(top = 20.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            Box(Modifier.size(49.dp).border(1.dp, Color(0x55FFB5AD), CircleShape), contentAlignment = Alignment.Center) {
-                                Text("!", style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 28.sp),
-                                    color = Color(0xFFFFB5AD))
-                            }
-                            Text("Error de ejecución", style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 23.sp),
-                                color = WizardColors.text)
-                            Text(
-                                "${reportWeightText.ifBlank { plannedWeightGhost ?: "—" }} kg × ${reportValueText.ifBlank { "—" }}\n" +
-                                    "El fallo muscular se registra en esfuerzo.",
-                                style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp, lineHeight = 19.sp),
-                                color = Ref02CardMuted, textAlign = TextAlign.Center,
-                            )
-                            if (failedSetReason.isNotBlank()) {
-                                Text(failedSetReason, style = TextStyle(fontFamily = WizardFonts.body, fontSize = 11.sp), color = Ref02CardFaint)
-                            }
-                            LiveSheetSecondary("Revisar motivo", { reasonSheet = true }, tag = "live-card-failed-reason")
-                            LiveSheetPrimary("Recuperar serie", {
-                                isFailedSet = false
-                                failedSetReason = ""
-                                onRevertExecutionError?.invoke()
-                            }, tag = "live-card-failed-revert")
-                        }
-                    }
-                    Box(
-                        Modifier.fillMaxWidth().height(if (tightCard) 52.dp else 58.dp)
-                            .padding(start = cardInset, end = cardInset, top = if (tightCard) 4.dp else 6.dp, bottom = if (tightCard) 9.dp else 12.dp),
-                    ) {
-                        LiveSetCardActions(onAdvanced = { cardFace = SetCardFace.Technique },
-                            onVisual = { cardFace = SetCardFace.ExerciseMedia }, onHistory = onShowHistory)
-                    }
+}
+
+@Composable
+private fun SetInputCardBackFace(
+    modifier: Modifier,
+    cardFace: SetCardFace,
+    reducedMotion: Boolean,
+    exercise: Exercise,
+    setIndex: Int,
+    activeSide: String?,
+    isSettledPage: Boolean,
+    reportWeightText: String,
+    plannedWeightGhost: String?,
+    reportValueText: String,
+    resolvedPlannedUnitMode: UnitModeV2,
+    supportsIndependentSides: Boolean,
+    selectedSide: String,
+    leftValueGhost: String,
+    rightValueGhost: String,
+    plannedValueGhost: String,
+    sessionCompletedSet: CompletedSet?,
+    isPrSeries: Boolean,
+    mediaCapture: WorkoutMediaCaptureController?,
+    onRetryPendingCaptures: () -> Unit,
+    effortLabel: String?,
+    onShowHistory: () -> Unit,
+    onOpenAnalysis: (String) -> Unit,
+    videoThumbBadges: Map<String, com.example.kpkn.screens.workout.design.VideoThumbBadge>,
+    videoAnalysis: com.example.kpkn.screens.workout.SetVideoAnalysisUi?,
+    onRetryAnalysis: ((String) -> Unit)?,
+    techniqueVideoSettings: com.example.kpkn.data.models.TechniqueVideoSettings,
+    loadMode: LoadModeV2,
+    currentSet: ExerciseSet,
+    intensityText: String,
+    sessionAccentColor: Color,
+    isFailedSet: Boolean,
+    onFailedSetChange: (Boolean) -> Unit,
+    onFlipBack: () -> Unit,
+    noteText: String,
+    onNoteChange: (String) -> Unit,
+    dropSetEnabled: Boolean,
+    restPauseEnabled: Boolean,
+    onDropEnabledChange: (Boolean) -> Unit,
+    onRestPauseEnabledChange: (Boolean) -> Unit,
+    activeRestPauseSeconds: Int,
+    onOpenPrMedia: () -> Unit,
+    onCompleteTechniques: (List<DropSetData>, List<RestPauseData>) -> Unit,
+) {
+    Box(modifier = modifier.graphicsLayer { rotationY = 180f }) {
+        val backFace = if (cardFace == SetCardFace.ExerciseMedia) SetCardFace.ExerciseMedia else SetCardFace.Technique
+        AnimatedContent(targetState = backFace, transitionSpec = { liveContentSwap(reducedMotion) }, label = "set-card-back-face") { shownBack ->
+            when (shownBack) {
+                SetCardFace.ExerciseMedia -> SetCardExerciseMediaBack(
+                    exercise = exercise,
+                    onFlipBack = onFlipBack,
+                    isSettledPage = isSettledPage,
+                    setIndex = setIndex,
+                    side = activeSide,
+                    weightKg = reportWeightText.replace(',', '.').toDoubleOrNull()
+                        ?: plannedWeightGhost?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it > 0.0 }
+                        ?: sessionCompletedSet?.weight?.takeIf { it > 0.0 },
+                    reps = liveQuantityNumber(reportValueText, resolvedPlannedUnitMode)?.roundToInt()
+                        ?: (if (supportsIndependentSides) { if (selectedSide == "left") leftValueGhost else rightValueGhost } else plannedValueGhost)
+                            .toIntOrNull()?.takeIf { it > 0 }
+                        ?: sessionCompletedSet?.reps?.takeIf { it > 0 },
+                    isPr = isPrSeries,
+                    mediaCapture = mediaCapture,
+                    onRetryPendingCaptures = onRetryPendingCaptures,
+                    effortLabel = effortLabel,
+                    onShowHistory = onShowHistory,
+                    onOpenAnalysis = onOpenAnalysis,
+                    videoThumbBadges = videoThumbBadges,
+                    videoAnalysis = videoAnalysis,
+                    onRetryAnalysis = onRetryAnalysis,
+                    techniqueVideoSettings = techniqueVideoSettings,
+                )
+                else -> SetCardTechniqueBack(
+                    loadMode = loadMode,
+                    currentSet = currentSet,
+                    coverWeightLabel = if (reportWeightText.isBlank()) "—" else "$reportWeightText kg",
+                    coverValueLabel = if (reportValueText.isBlank()) "—" else when (resolvedPlannedUnitMode) {
+                        UnitModeV2.TIME -> parseLiveDurationSeconds(reportValueText)?.let(::formatLiveDuration) ?: reportValueText
+                        UnitModeV2.DISTANCE -> "$reportValueText m"
+                        UnitModeV2.CUSTOM -> "$reportValueText ${exercise.customUnit.orEmpty()}"
+                        UnitModeV2.REPS -> "$reportValueText reps"
+                    },
+                    coverIntensityLabel = intensityText.takeIf { it.isNotBlank() }?.let { "Int. $it" },
+                    mainWeight = reportWeightText.replace(',', '.').toDoubleOrNull() ?: 0.0,
+                    mainReps = liveQuantityNumber(reportValueText, resolvedPlannedUnitMode)?.roundToInt() ?: 0,
+                    sessionAccentColor = sessionAccentColor,
+                    isFailedSet = isFailedSet,
+                    onFailedSetChange = onFailedSetChange,
+                    onFlipBack = onFlipBack,
+                    noteText = noteText,
+                    onNoteChange = onNoteChange,
+                    initialDropEnabled = dropSetEnabled,
+                    initialRestPauseEnabled = restPauseEnabled,
+                    onDropEnabledChange = onDropEnabledChange,
+                    onRestPauseEnabledChange = onRestPauseEnabledChange,
+                    showPrMediaShortcut = LiveSetPrPolicy.shouldShowMediaShortcut(isPrSeries),
+                    onOpenPrMedia = onOpenPrMedia,
+                    setNumber = setIndex + 1,
+                    loadStepKg = quickLoadIncrementFor(exercise, currentSet),
+                    onCompleteTechniques = onCompleteTechniques,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SetInputCardFailedOverlay(
+    modifier: Modifier,
+    visible: Boolean,
+    setIndex: Int,
+    tightCard: Boolean,
+    cardInset: Dp,
+    reportWeightText: String,
+    plannedWeightGhost: String?,
+    reportValueText: String,
+    failedSetReason: String,
+    onFailedSetReasonChange: (String) -> Unit,
+    onRevert: () -> Unit,
+    onOpenAdvanced: () -> Unit,
+    onOpenVisual: () -> Unit,
+    onShowHistory: () -> Unit,
+) {
+    androidx.compose.animation.AnimatedVisibility(
+        visible = visible,
+        enter = androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(250)),
+        exit = androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(200)),
+        modifier = modifier,
+    ) {
+        var reasonSheet by remember { mutableStateOf(false) }
+        Column(
+            Modifier.fillMaxSize().clip(RoundedCornerShape(25.dp)).background(Color(0xFF111111))
+                .border(1.dp, Color(0x0BFFFFFF), RoundedCornerShape(25.dp))
+                .pointerInput(Unit) { detectTapGestures { } }
+                .testTag("live-card-failed"),
+        ) {
+            Column(Modifier.weight(1f).fillMaxWidth().padding(start = cardInset, end = cardInset, top = if (tightCard) 9.dp else 13.dp)) {
+                Row(Modifier.fillMaxWidth().height(if (tightCard) 27.dp else 29.dp), verticalAlignment = Alignment.CenterVertically) {
+                    Text("SERIE ${setIndex + 1}", style = TextStyle(fontFamily = WizardFonts.body, fontSize = 9.sp, letterSpacing = 0.65.sp),
+                        color = Ref02CardMuted)
                 }
-                if (reasonSheet) {
-                    LiveSheet(title = "Error de ejecución", onDismiss = { reasonSheet = false }, tag = "live-card-failed-sheet") {
-                        LiveSheetSubtitle("Señala una incidencia de ejecución. Llegar al fallo muscular se informa en esfuerzo.")
-                        LiveSheetChoiceRow(
-                            options = listOf("Molestia articular", "Fallo técnico", "Carga excesiva").map { it to it },
-                            selected = { it == failedSetReason },
-                            onSelect = { failedSetReason = if (failedSetReason == it) "" else it },
-                        )
+                Column(
+                    Modifier.fillMaxWidth().padding(top = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Box(Modifier.size(49.dp).border(1.dp, Color(0x55FFB5AD), CircleShape), contentAlignment = Alignment.Center) {
+                        Text("!", style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 28.sp),
+                            color = Color(0xFFFFB5AD))
                     }
+                    Text("Error de ejecución", style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.Bold, fontSize = 23.sp),
+                        color = WizardColors.text)
+                    Text(
+                        "${reportWeightText.ifBlank { plannedWeightGhost ?: "—" }} kg × ${reportValueText.ifBlank { "—" }}\n" +
+                            "El fallo muscular se registra en esfuerzo.",
+                        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp, lineHeight = 19.sp),
+                        color = Ref02CardMuted, textAlign = TextAlign.Center,
+                    )
+                    if (failedSetReason.isNotBlank()) {
+                        Text(failedSetReason, style = TextStyle(fontFamily = WizardFonts.body, fontSize = 11.sp), color = Ref02CardFaint)
+                    }
+                    LiveSheetSecondary("Revisar motivo", { reasonSheet = true }, tag = "live-card-failed-reason")
+                    LiveSheetPrimary("Recuperar serie", onRevert, tag = "live-card-failed-revert")
                 }
             }
+            Box(
+                Modifier.fillMaxWidth().height(if (tightCard) 52.dp else 58.dp)
+                    .padding(start = cardInset, end = cardInset, top = if (tightCard) 4.dp else 6.dp, bottom = if (tightCard) 9.dp else 12.dp),
+            ) {
+                LiveSetCardActions(onAdvanced = onOpenAdvanced, onVisual = onOpenVisual, onHistory = onShowHistory)
+            }
+        }
+        if (reasonSheet) {
+            LiveSheet(title = "Error de ejecución", onDismiss = { reasonSheet = false }, tag = "live-card-failed-sheet") {
+                LiveSheetSubtitle("Señala una incidencia de ejecución. Llegar al fallo muscular se informa en esfuerzo.")
+                LiveSheetChoiceRow(
+                    options = listOf("Molestia articular", "Fallo técnico", "Carga excesiva").map { it to it },
+                    selected = { it == failedSetReason },
+                    onSelect = { onFailedSetReasonChange(if (failedSetReason == it) "" else it) },
+                )
+            }
+        }
     }
-
-
 }
 
 private val Ref02CardMuted = Color(0xFFB9B5AE)
