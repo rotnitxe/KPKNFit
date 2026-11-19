@@ -1344,20 +1344,33 @@ private fun SetListRow(
                 fontFeatureSettings = "'tnum' 1, 'lnum' 1",
                 platformStyle = PlatformTextStyle(includeFontPadding = false),
             )
-            @Composable fun LoadValue() {
-                Text(shownLoad ?: "—", Modifier.testTag("live-list-set-load-${row.key}")
+            @Composable fun LoadValue(modifier: Modifier = Modifier) {
+                Text(shownLoad ?: "—", modifier.testTag("live-list-set-load-${row.key}")
                     .clickable(role = Role.Button, onClick = onEditWeight)
                     .semantics { contentDescription = "Editar carga de ${row.exercise.name}" },
                     style = valueStyle, color = if (done) WizardColors.textMuted else WizardColors.text, maxLines = 1, softWrap = false)
             }
-            @Composable fun QuantityValue() {
-                Row(Modifier.clickable(role = Role.Button, onClick = onEditValue)
+            @Composable fun QuantityValue(modifier: Modifier = Modifier) {
+                Row(modifier.clickable(role = Role.Button, onClick = onEditValue)
                     .semantics { contentDescription = "Editar ${if (shownUnit == null) "repeticiones" else shownUnit} de ${row.exercise.name}" },
-                    verticalAlignment = Alignment.CenterVertically) {
-                    Text(shownQuantity, Modifier.testTag("live-list-set-value-${row.key}"),
+                    verticalAlignment = Alignment.Bottom) {
+                    Text(shownQuantity, Modifier.alignByBaseline().testTag("live-list-set-value-${row.key}"),
                         style = valueStyle, color = if (done) WizardColors.textMuted else WizardColors.text,
                         maxLines = 1, softWrap = false)
-                    shownUnit?.let { Text(" $it", style = Body.copy(fontSize = 10.sp), color = WizardColors.textFaint, maxLines = 1, softWrap = false) }
+                    shownUnit?.let {
+                        Text(
+                            " $it",
+                            Modifier.alignByBaseline(),
+                            style = Body.copy(
+                                fontSize = 10.sp,
+                                fontFeatureSettings = "'tnum' 1, 'lnum' 1",
+                                platformStyle = PlatformTextStyle(includeFontPadding = false),
+                            ),
+                            color = WizardColors.textFaint,
+                            maxLines = 1,
+                            softWrap = false,
+                        )
+                    }
                 }
             }
             Column(Modifier.widthIn(min = valueWidth), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1367,18 +1380,20 @@ private fun SetListRow(
                         QuantityValue()
                     }
                 } else {
-                    Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically) {
-                        LoadValue()
+                    Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
+                        LoadValue(Modifier.alignByBaseline())
                         Text(
                             text = " kg × ",
+                            modifier = Modifier.alignByBaseline(),
                             style = Body.copy(
                                 fontSize = 11.sp,
+                                fontFeatureSettings = "'tnum' 1, 'lnum' 1",
                                 platformStyle = PlatformTextStyle(includeFontPadding = false),
                             ),
                             color = WizardColors.textFaint,
                             maxLines = 1,
                         )
-                        QuantityValue()
+                        QuantityValue(Modifier.alignByBaseline())
                     }
                 }
                 // Pulido v1 (15): una sola línea bajo la cifra, con el ROM registrado en la serie («+ 2 parciales · ROM 80 %»), como en el historial.
@@ -1780,22 +1795,47 @@ private fun InlineSetEditor(
                 }
             }
             BoxWithConstraints(Modifier.fillMaxWidth()) {
+                val settings by viewModel.settings.collectAsState()
                 val fontScale = LocalDensity.current.fontScale
                 val split = maxWidth < 340.dp || fontScale >= 1.35f
                 val qtyLabel = if (unit == UnitModeV2.REPS) "REPS" else unitLabel(unit).uppercase()
+                val loadStepKey = exerciseLoadIncrementKey(row.exercise)
+                val exerciseLoadStep = calibrationIncrement(
+                    exercise = row.exercise,
+                    set = row.planned,
+                    inventory = settings.resolvedEquipmentInventory(),
+                    customIncrementsKg = settings.exerciseLoadIncrementsKg,
+                )
                 val editorFields = listOf(
-                    WorkoutKeyboardField("KG", "Carga en kg", weightText, allowDecimal = true),
+                    WorkoutKeyboardField(
+                        label = "KG",
+                        title = "Carga en kg",
+                        initialValue = weightText,
+                        allowDecimal = true,
+                        stepDelta = exerciseLoadStep,
+                        kind = LiveInputFieldKind.WEIGHT,
+                        previousValue = row.planned.weight?.takeIf { it > 0.0 }?.let(::listNumber),
+                    ),
                     WorkoutKeyboardField(
                         label = qtyLabel,
-                        title = "Cantidad realizada",
+                        title = "Cantidad realizada · ${unitLabel(unit)}",
                         initialValue = valueText,
                         allowDecimal = unit != UnitModeV2.REPS,
                         allowColon = unit == UnitModeV2.TIME,
+                        kind = when (unit) {
+                            UnitModeV2.TIME -> LiveInputFieldKind.TIME_MM_SS
+                            UnitModeV2.REPS -> LiveInputFieldKind.REPS
+                            else -> LiveInputFieldKind.QUANTITY
+                        },
+                        previousValue = listRowQuantity(row).first.takeIf { it != "—" && it.isNotBlank() },
                     ),
                 )
                 val applyEditorFields: (List<String>) -> Unit = { values ->
                     weightText = values.getOrElse(0) { weightText }
                     updateTimedValue(values.getOrElse(1) { valueText })
+                }
+                val onStepChange: (Double) -> Unit = { step ->
+                    viewModel.setExerciseLoadIncrementKg(loadStepKey, step)
                 }
                 if (split) {
                     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -1803,22 +1843,26 @@ private fun InlineSetEditor(
                             Row(verticalAlignment = Alignment.Bottom) {
                                 ListMetricField(weightText, { weightText = it; persist() }, metric.copy(fontSize = 28.sp, lineHeight = 34.sp),
                                     Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-weight-${row.key}", "Carga en kg", !busy, placeholder = "—",
-                                    fields = editorFields, activeContextIndex = 0, onApplyFields = applyEditorFields)
-                                Text("kg", Modifier.padding(start = 4.dp, bottom = 6.dp), style = Body.copy(fontSize = 13.sp), color = WizardColors.textFaint,
-                                    maxLines = 1, softWrap = false)
+                                    fields = editorFields, activeContextIndex = 0, onApplyFields = applyEditorFields,
+                                    allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange)
+                                Text("kg", Modifier.padding(start = 4.dp, bottom = 6.dp), style = Body.copy(fontSize = 13.sp,
+                                    fontFeatureSettings = "'tnum' 1, 'lnum' 1", platformStyle = PlatformTextStyle(includeFontPadding = false)),
+                                    color = WizardColors.textFaint, maxLines = 1, softWrap = false)
                             }
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                                MiniStep(KpknLineIcons.Minus, "Reducir carga", !busy, "live-list-weight-minus-${row.key}") { stepWeight(-2.5) }
-                                MiniStep(KpknLineIcons.Plus, "Aumentar carga", !busy, "live-list-weight-plus-${row.key}") { stepWeight(2.5) }
+                                MiniStep(KpknLineIcons.Minus, "Reducir carga", !busy, "live-list-weight-minus-${row.key}") { stepWeight(-exerciseLoadStep) }
+                                MiniStep(KpknLineIcons.Plus, "Aumentar carga", !busy, "live-list-weight-plus-${row.key}") { stepWeight(exerciseLoadStep) }
                             }
                         }
                         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.Bottom) {
                             ListMetricField(valueText, ::updateTimedValue, metric.copy(fontSize = 24.sp, lineHeight = 30.sp, textAlign = TextAlign.End),
                                 Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-value-${row.key}", "Cantidad realizada", !busy && !timedClockRunning,
                                 decimal = unit != UnitModeV2.REPS, allowColon = unit == UnitModeV2.TIME,
-                                fields = editorFields, activeContextIndex = 1, onApplyFields = applyEditorFields)
+                                fields = editorFields, activeContextIndex = 1, onApplyFields = applyEditorFields,
+                                allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange)
                             Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "km"; else -> "reps" }, Modifier.padding(start = 4.dp, bottom = 5.dp),
-                                style = Body.copy(fontSize = 13.sp), color = WizardColors.textFaint, maxLines = 1, softWrap = false)
+                                style = Body.copy(fontSize = 13.sp, fontFeatureSettings = "'tnum' 1, 'lnum' 1", platformStyle = PlatformTextStyle(includeFontPadding = false)),
+                                color = WizardColors.textFaint, maxLines = 1, softWrap = false)
                         }
                     }
                 } else {
@@ -1827,21 +1871,25 @@ private fun InlineSetEditor(
                         Row(Modifier.weight(1.15f), verticalAlignment = Alignment.Bottom) {
                             ListMetricField(weightText, { weightText = it; persist() }, metric.copy(fontSize = 28.sp, lineHeight = 34.sp),
                                 Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-weight-${row.key}", "Carga en kg", !busy, placeholder = "—",
-                                fields = editorFields, activeContextIndex = 0, onApplyFields = applyEditorFields)
-                            Text("kg", Modifier.padding(start = 4.dp, bottom = 6.dp), style = Body.copy(fontSize = 13.sp), color = WizardColors.textFaint,
-                                maxLines = 1, softWrap = false)
+                                fields = editorFields, activeContextIndex = 0, onApplyFields = applyEditorFields,
+                                allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange)
+                            Text("kg", Modifier.padding(start = 4.dp, bottom = 6.dp), style = Body.copy(fontSize = 13.sp,
+                                fontFeatureSettings = "'tnum' 1, 'lnum' 1", platformStyle = PlatformTextStyle(includeFontPadding = false)),
+                                color = WizardColors.textFaint, maxLines = 1, softWrap = false)
                         }
                         Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                            MiniStep(KpknLineIcons.Minus, "Reducir carga", !busy, "live-list-weight-minus-${row.key}") { stepWeight(-2.5) }
-                            MiniStep(KpknLineIcons.Plus, "Aumentar carga", !busy, "live-list-weight-plus-${row.key}") { stepWeight(2.5) }
+                            MiniStep(KpknLineIcons.Minus, "Reducir carga", !busy, "live-list-weight-minus-${row.key}") { stepWeight(-exerciseLoadStep) }
+                            MiniStep(KpknLineIcons.Plus, "Aumentar carga", !busy, "live-list-weight-plus-${row.key}") { stepWeight(exerciseLoadStep) }
                         }
                         Row(Modifier.weight(.85f), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.Bottom) {
                             ListMetricField(valueText, ::updateTimedValue, metric.copy(fontSize = 24.sp, lineHeight = 30.sp, textAlign = TextAlign.End),
                                 Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-value-${row.key}", "Cantidad realizada", !busy && !timedClockRunning,
                                 decimal = unit != UnitModeV2.REPS, allowColon = unit == UnitModeV2.TIME,
-                                fields = editorFields, activeContextIndex = 1, onApplyFields = applyEditorFields)
+                                fields = editorFields, activeContextIndex = 1, onApplyFields = applyEditorFields,
+                                allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange)
                             Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "km"; else -> "reps" }, Modifier.padding(start = 2.dp, bottom = 5.dp),
-                                style = Body.copy(fontSize = 13.sp), color = WizardColors.textFaint, maxLines = 1, softWrap = false)
+                                style = Body.copy(fontSize = 13.sp, fontFeatureSettings = "'tnum' 1, 'lnum' 1", platformStyle = PlatformTextStyle(includeFontPadding = false)),
+                                color = WizardColors.textFaint, maxLines = 1, softWrap = false)
                         }
                     }
                 }
@@ -2027,6 +2075,9 @@ private fun ListMetricField(
     activeContextIndex: Int? = null,
     fields: List<WorkoutKeyboardField> = emptyList(),
     onApplyFields: ((List<String>) -> Unit)? = null,
+    allowCustomLoadStep: Boolean = false,
+    loadStepKg: Double = 2.5,
+    onLoadStepKgChange: ((Double) -> Unit)? = null,
 ) {
     var keyboardOpen by remember(tag) { mutableStateOf(false) }
     WorkoutNumericTriggerBox(
@@ -2065,6 +2116,9 @@ private fun ListMetricField(
         fields = fields,
         initialFieldIndex = activeContextIndex ?: 0,
         showFieldTabs = fields.size > 1,
+        allowCustomLoadStep = allowCustomLoadStep,
+        loadStepKg = loadStepKg,
+        onLoadStepKgChange = onLoadStepKgChange,
         onApplyFields = onApplyFields,
         onDismiss = { keyboardOpen = false },
         onApply = onChange,

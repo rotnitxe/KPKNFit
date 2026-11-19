@@ -253,10 +253,11 @@ class SetExecutionCardFacesTest {
         mostrar()
         val base = alturaDeLaTarjeta()
 
-        // El campo de carga abre el teclado numérico compartido; al escribir una cifra larga la tarjeta no cambia de tamaño.
+        // El campo de carga abre el dock adaptativo; al cambiar a «Teclado» y escribir una cifra larga la tarjeta no cambia de tamaño.
         rule.onNodeWithContentDescription("Editar carga en kg").performClick()
         rule.waitForIdle()
-        rule.onNodeWithText("Limpiar").performClick()
+        rule.onNodeWithText("Teclado").performClick()
+        rule.waitForIdle()
         listOf("1", "0", "2", ",", "5").forEach { key ->
             rule.onNode(
                 hasContentDescription(key) and hasAnyAncestor(hasTestTag("workout-numeric-keyboard")),

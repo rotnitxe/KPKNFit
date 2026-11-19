@@ -24,16 +24,20 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -55,6 +59,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -164,6 +169,7 @@ internal data class WorkoutKeyboardField(
  * Dock inferior compacto, adaptativo y nativo de KPKN Fit para sesión en vivo.
  * Soporta doble modo instantáneo (Deslizar ↔ Teclado) y personalización de pasos.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 internal fun WorkoutNumericKeyboardDialog(
     title: String,
@@ -201,15 +207,22 @@ internal fun WorkoutNumericKeyboardDialog(
         )
     }
 
-    var activeFieldIndex by remember(effectiveFields, initialFieldIndex) {
+    var activeFieldIndex by remember(initialFieldIndex) {
         mutableIntStateOf(initialFieldIndex.coerceIn(0, effectiveFields.lastIndex))
     }
 
-    val stagedDrafts = remember(effectiveFields) {
+    // No invalidar los borradores si el padre recompone (p. ej. al cambiar `loadStepKg` en Settings).
+    val stagedDrafts = remember {
         mutableStateListOf<LiveKeypadDraft>().apply {
             effectiveFields.forEach {
                 add(LiveKeypadDraft(text = it.initialValue.replace('.', ','), pendingReplace = true))
             }
+        }
+    }
+    LaunchedEffect(effectiveFields.size) {
+        while (stagedDrafts.size < effectiveFields.size) {
+            val f = effectiveFields[stagedDrafts.size]
+            stagedDrafts.add(LiveKeypadDraft(text = f.initialValue.replace('.', ','), pendingReplace = true))
         }
     }
 
@@ -278,13 +291,14 @@ internal fun WorkoutNumericKeyboardDialog(
                         .align(Alignment.CenterHorizontally),
                 )
 
-                // Dock Header Row
-                Row(
+                // Dock Header Row (FlowRow evita solapamiento/recorte en teléfonos de 320–360 dp)
+                FlowRow(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(30.dp),
-                    verticalAlignment = Alignment.CenterVertically,
+                        .heightIn(min = 28.dp),
+                    verticalArrangement = Arrangement.spacedBy(5.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
+                    itemVerticalAlignment = Alignment.CenterVertically,
                 ) {
                     // Left Group: Tabs or Kicker + Step Selector
                     Row(
@@ -312,6 +326,7 @@ internal fun WorkoutNumericKeyboardDialog(
                                             .background(if (isSelected) Color.White.copy(alpha = 0.12f) else Color.Transparent)
                                             .clickable(role = Role.Tab) {
                                                 activeFieldIndex = index
+                                                stepDrawerOpen = false
                                             }
                                             .semantics { contentDescription = "Editar ${field.label}" }
                                             .testTag("workout-numeric-keyboard-tab-$index")
@@ -321,6 +336,8 @@ internal fun WorkoutNumericKeyboardDialog(
                                     ) {
                                         Text(
                                             text = field.label,
+                                            maxLines = 1,
+                                            softWrap = false,
                                             style = dockInlineTextStyle(
                                                 sizeSp = 11f,
                                                 weight = if (isSelected) FontWeight.Bold else FontWeight.SemiBold,
@@ -329,6 +346,8 @@ internal fun WorkoutNumericKeyboardDialog(
                                         )
                                         Text(
                                             text = valText,
+                                            maxLines = 1,
+                                            softWrap = false,
                                             style = dockInlineTextStyle(
                                                 sizeSp = 11f,
                                                 weight = FontWeight.Bold,
@@ -342,6 +361,10 @@ internal fun WorkoutNumericKeyboardDialog(
                             // Single Field Kicker
                             Text(
                                 text = activeTitle.uppercase(),
+                                maxLines = 1,
+                                softWrap = false,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.widthIn(max = 150.dp),
                                 style = dockInlineTextStyle(
                                     sizeSp = 10.5f,
                                     weight = FontWeight.Bold,
@@ -375,6 +398,8 @@ internal fun WorkoutNumericKeyboardDialog(
                             ) {
                                 Text(
                                     text = "± $formattedStep",
+                                    maxLines = 1,
+                                    softWrap = false,
                                     style = dockInlineTextStyle(
                                         sizeSp = 10.5f,
                                         weight = FontWeight.SemiBold,
@@ -421,6 +446,10 @@ internal fun WorkoutNumericKeyboardDialog(
                                 )
                                 Text(
                                     text = "Ant. ${activeField.previousValue}",
+                                    maxLines = 1,
+                                    softWrap = false,
+                                    overflow = TextOverflow.Ellipsis,
+                                    modifier = Modifier.widthIn(max = 78.dp),
                                     style = dockInlineTextStyle(
                                         sizeSp = 10.5f,
                                         weight = FontWeight.SemiBold,
@@ -454,6 +483,8 @@ internal fun WorkoutNumericKeyboardDialog(
                             ) {
                                 Text(
                                     text = "Deslizar",
+                                    maxLines = 1,
+                                    softWrap = false,
                                     style = dockInlineTextStyle(
                                         sizeSp = 10.5f,
                                         weight = FontWeight.SemiBold,
@@ -475,6 +506,8 @@ internal fun WorkoutNumericKeyboardDialog(
                             ) {
                                 Text(
                                     text = "Teclado",
+                                    maxLines = 1,
+                                    softWrap = false,
                                     style = dockInlineTextStyle(
                                         sizeSp = 10.5f,
                                         weight = FontWeight.SemiBold,
@@ -497,17 +530,17 @@ internal fun WorkoutNumericKeyboardDialog(
                             .padding(horizontal = 8.dp, vertical = 7.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
-                        Row(
+                        FlowRow(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(4.dp),
+                            horizontalArrangement = Arrangement.spacedBy(5.dp),
+                            verticalArrangement = Arrangement.spacedBy(5.dp),
                         ) {
                             LiveInputDockEngine.PRESET_LOAD_STEPS_KG.forEach { preset ->
-                                val isSelected = !showingCustomInput && currentLoadStepKg == preset
+                                val isSelected = !showingCustomInput && abs(currentLoadStepKg - preset) < 1e-4
                                 val label = if (preset % 1.0 == 0.0) "${preset.toInt()}" else preset.toString().replace('.', ',')
                                 Box(
                                     modifier = Modifier
-                                        .weight(1f)
-                                        .height(26.dp)
+                                        .height(27.dp)
                                         .clip(CircleShape)
                                         .background(if (isSelected) DockInk else Color.White.copy(alpha = 0.05f))
                                         .clickable(role = Role.Button) {
@@ -515,11 +548,14 @@ internal fun WorkoutNumericKeyboardDialog(
                                             showingCustomInput = false
                                             stepDrawerOpen = false
                                             onLoadStepKgChange?.invoke(preset)
-                                        },
+                                        }
+                                        .padding(horizontal = 10.dp),
                                     contentAlignment = Alignment.Center,
                                 ) {
                                     Text(
                                         text = "$label kg",
+                                        maxLines = 1,
+                                        softWrap = false,
                                         style = dockInlineTextStyle(
                                             sizeSp = 11f,
                                             weight = FontWeight.SemiBold,
@@ -530,17 +566,19 @@ internal fun WorkoutNumericKeyboardDialog(
                             }
                             Box(
                                 modifier = Modifier
-                                    .weight(1f)
-                                    .height(26.dp)
+                                    .height(27.dp)
                                     .clip(CircleShape)
                                     .background(if (showingCustomInput) DockInk else Color.White.copy(alpha = 0.05f))
                                     .clickable(role = Role.Button) {
                                         showingCustomInput = !showingCustomInput
-                                    },
+                                    }
+                                    .padding(horizontal = 10.dp),
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
                                     text = "Otro",
+                                    maxLines = 1,
+                                    softWrap = false,
                                     style = dockInlineTextStyle(
                                         sizeSp = 11f,
                                         weight = FontWeight.SemiBold,
@@ -803,7 +841,9 @@ internal fun WorkoutNumericKeyboardDialog(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
-                                    text = "−${if (step % 1.0 == 0.0) step.toInt().toString() else step.toString().replace('.', ',')}",
+                                    text = LiveInputDockEngine.formatQuickDeltaPill(-step, activeKind),
+                                    maxLines = 1,
+                                    softWrap = false,
                                     style = dockInlineTextStyle(
                                         sizeSp = 11f,
                                         weight = FontWeight.SemiBold,
@@ -833,7 +873,9 @@ internal fun WorkoutNumericKeyboardDialog(
                                 contentAlignment = Alignment.Center,
                             ) {
                                 Text(
-                                    text = "+${if (step % 1.0 == 0.0) step.toInt().toString() else step.toString().replace('.', ',')}",
+                                    text = LiveInputDockEngine.formatQuickDeltaPill(step, activeKind),
+                                    maxLines = 1,
+                                    softWrap = false,
                                     style = dockInlineTextStyle(
                                         sizeSp = 11f,
                                         weight = FontWeight.SemiBold,
@@ -958,11 +1000,14 @@ internal fun WorkoutNumericKeyboardDialog(
                                 .background(Color.White.copy(alpha = 0.10f))
                                 .clickable(role = Role.Button) {
                                     activeFieldIndex++
+                                    stepDrawerOpen = false
                                 },
                             contentAlignment = Alignment.Center,
                         ) {
                             Text(
                                 text = "Siguiente →",
+                                maxLines = 1,
+                                softWrap = false,
                                 style = dockInlineTextStyle(
                                     sizeSp = 12f,
                                     weight = FontWeight.SemiBold,
@@ -992,6 +1037,8 @@ internal fun WorkoutNumericKeyboardDialog(
                     ) {
                         Text(
                             text = "Aplicar",
+                            maxLines = 1,
+                            softWrap = false,
                             style = dockInlineTextStyle(
                                 sizeSp = 12.5f,
                                 weight = FontWeight.Bold,
@@ -1032,16 +1079,21 @@ private fun LiveLensCarousel(
 
     val posAnim = remember { Animatable(targetTick) }
     val scope = rememberCoroutineScope()
+    val latestOnValueChange by rememberUpdatedState(onValueChange)
+    val latestStep by rememberUpdatedState(step)
+    val latestMin by rememberUpdatedState(min)
+    val latestMax by rememberUpdatedState(max)
+    var isUserControlling by remember { mutableStateOf(false) }
 
-    LaunchedEffect(targetTick) {
-        if (abs(posAnim.value - targetTick) > 0.01f && !posAnim.isRunning) {
+    LaunchedEffect(targetTick, totalTicks) {
+        if (!isUserControlling && abs(posAnim.value - targetTick) > 0.01f) {
             posAnim.snapTo(targetTick)
         }
     }
 
     val cellDp = when {
         allowColon -> 64f
-        allowDecimal && step < 1.0 -> 58f
+        allowDecimal && step % 1.0 != 0.0 -> 60f
         else -> 54f
     }
     val cellPx = with(density) { cellDp.dp.toPx() }
@@ -1065,8 +1117,10 @@ private fun LiveLensCarousel(
                     val tracker = VelocityTracker()
                     tracker.addPosition(down.uptimeMillis, down.position)
                     val startPos = posAnim.value
+                    var lastEmittedTick = startPos.roundToInt().coerceIn(0, totalTicks)
                     val slop = awaitHorizontalTouchSlopOrCancellation(down.id) { change, _ -> change.consume() }
                     if (slop != null) {
+                        isUserControlling = true
                         horizontalDrag(slop.id) { change ->
                             change.consume()
                             tracker.addPosition(change.uptimeMillis, change.position)
@@ -1076,20 +1130,40 @@ private fun LiveLensCarousel(
                                 raw > totalTicks -> totalTicks + (raw - totalTicks) * 0.35f
                                 else -> raw
                             }
+                            val snappedTick = clamped.roundToInt().coerceIn(0, totalTicks)
+                            if (snappedTick != lastEmittedTick) {
+                                lastEmittedTick = snappedTick
+                                val liveVal = LiveInputDockEngine.snapValueToStep(
+                                    latestMin + snappedTick * latestStep,
+                                    latestStep,
+                                    latestMin,
+                                    latestMax,
+                                )
+                                latestOnValueChange(liveVal)
+                            }
                             scope.launch { posAnim.snapTo(clamped) }
                         }
                         val velocity = -tracker.calculateVelocity().x / cellPx
                         val projected = (posAnim.value + (velocity * 0.22f).coerceIn(-6f, 6f)).roundToInt().coerceIn(0, totalTicks)
+                        val projectedVal = LiveInputDockEngine.snapValueToStep(
+                            latestMin + projected * latestStep,
+                            latestStep,
+                            latestMin,
+                            latestMax,
+                        )
+                        latestOnValueChange(projectedVal)
                         scope.launch {
-                            posAnim.animateTo(
-                                targetValue = projected.toFloat(),
-                                animationSpec = tween(
-                                    durationMillis = (180 + 80 * abs(projected - posAnim.value)).roundToInt().coerceIn(200, 480),
-                                    easing = CarouselEasing,
-                                ),
-                            )
-                            val finalVal = LiveInputDockEngine.snapValueToStep(min + projected * step, step, min, max)
-                            onValueChange(finalVal)
+                            try {
+                                posAnim.animateTo(
+                                    targetValue = projected.toFloat(),
+                                    animationSpec = tween(
+                                        durationMillis = (180 + 80 * abs(projected - posAnim.value)).roundToInt().coerceIn(200, 480),
+                                        easing = CarouselEasing,
+                                    ),
+                                )
+                            } finally {
+                                isUserControlling = false
+                            }
                         }
                     }
                 }
@@ -1099,13 +1173,23 @@ private fun LiveLensCarousel(
                     val c = size.width / 2f
                     val deltaTicks = (offset.x - c) / cellPx
                     val tappedTick = (posAnim.value + deltaTicks).roundToInt().coerceIn(0, totalTicks)
+                    val finalVal = LiveInputDockEngine.snapValueToStep(
+                        latestMin + tappedTick * latestStep,
+                        latestStep,
+                        latestMin,
+                        latestMax,
+                    )
+                    isUserControlling = true
+                    latestOnValueChange(finalVal)
                     scope.launch {
-                        posAnim.animateTo(
-                            targetValue = tappedTick.toFloat(),
-                            animationSpec = tween(durationMillis = 220, easing = CarouselEasing),
-                        )
-                        val finalVal = LiveInputDockEngine.snapValueToStep(min + tappedTick * step, step, min, max)
-                        onValueChange(finalVal)
+                        try {
+                            posAnim.animateTo(
+                                targetValue = tappedTick.toFloat(),
+                                animationSpec = tween(durationMillis = 220, easing = CarouselEasing),
+                            )
+                        } finally {
+                            isUserControlling = false
+                        }
                     }
                 }
             }
@@ -1117,8 +1201,19 @@ private fun LiveLensCarousel(
                 )
             },
     ) {
+        val snappedAtPos = LiveInputDockEngine.snapValueToStep(
+            min + posAnim.value.roundToInt() * step,
+            step,
+            min,
+            max,
+        )
+        val isSettledOffGrid = !isUserControlling &&
+            !posAnim.isRunning &&
+            abs(posAnim.value - targetTick) < 0.02f &&
+            abs(value.coerceIn(min, max) - snappedAtPos) > 1e-3
+
         val currentCenterValue = LiveInputDockEngine.formatDockNumber(
-            LiveInputDockEngine.snapValueToStep(min + posAnim.value.roundToInt() * step, step, min, max),
+            if (isSettledOffGrid) value.coerceIn(min, max) else snappedAtPos,
             allowDecimal,
             allowColon,
         )
@@ -1152,7 +1247,7 @@ private fun LiveLensCarousel(
 
             // Lente central blanca sólida (#F4F4F6) con esquinas redondeadas 13 dp
             val measuredCenter = measurer.measure(currentCenterValue, digitStyle)
-            val lensW = (measuredCenter.size.width + 28.dp.toPx()).coerceIn(54.dp.toPx(), 92.dp.toPx())
+            val lensW = (measuredCenter.size.width + 28.dp.toPx()).coerceIn(54.dp.toPx(), 112.dp.toPx())
             val lensH = 40.dp.toPx()
             val lensTopLeft = Offset(c - lensW / 2f, (size.height - lensH) / 2f)
             val lensRadius = CornerRadius(13.dp.toPx())
@@ -1173,6 +1268,7 @@ private fun LiveLensCarousel(
                 val distance = i - currentPos
                 val ad = abs(distance)
                 if (ad > 3.2f) continue
+                if (isSettledOffGrid && ad < 0.72f) continue
 
                 val tickNum = LiveInputDockEngine.snapValueToStep(min + i * step, step, min, max)
                 val text = LiveInputDockEngine.formatDockNumber(tickNum, allowDecimal, allowColon)
@@ -1205,6 +1301,15 @@ private fun LiveLensCarousel(
                         alpha = alpha.coerceIn(0f, 1f),
                     )
                 }
+            }
+
+            // Si el valor actual viene de teclado libre o cambio de paso fuera de la grilla actual, pintarlo exacto dentro de la lente.
+            if (isSettledOffGrid) {
+                drawText(
+                    textLayoutResult = measuredCenter,
+                    color = DockInkDark,
+                    topLeft = Offset(c - measuredCenter.size.width / 2f, cy - measuredCenter.size.height / 2f),
+                )
             }
         }
 

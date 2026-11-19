@@ -1944,14 +1944,30 @@ internal fun SetInputCardV2(
         UnitModeV2.CUSTOM -> "Cantidad registrada · ${exercise.customUnit?.takeIf { it.isNotBlank() } ?: "u"}"
         UnitModeV2.REPS -> "Repeticiones"
     }
+    val cardKeyboardStepKg = quickLoadIncrementFor(exercise, currentSet, equipmentInventory, customLoadStepKg)
+    val cardQtyKind = when {
+        isTimeMode -> com.example.kpkn.domain.workout.LiveInputFieldKind.TIME_MM_SS
+        resolvedPlannedUnitMode == UnitModeV2.REPS -> com.example.kpkn.domain.workout.LiveInputFieldKind.REPS
+        else -> com.example.kpkn.domain.workout.LiveInputFieldKind.QUANTITY
+    }
     val cardKeyboardFields = listOf(
-        WorkoutKeyboardField("KG", "Carga · kg", reportWeightText, allowDecimal = true),
+        WorkoutKeyboardField(
+            label = "KG",
+            title = "Carga · kg",
+            initialValue = reportWeightText.ifBlank { plannedWeightGhost.orEmpty() },
+            allowDecimal = true,
+            stepDelta = cardKeyboardStepKg,
+            kind = com.example.kpkn.domain.workout.LiveInputFieldKind.WEIGHT,
+            previousValue = ghostSet?.weight?.takeIf { it > 0 }?.toTrimmedNumberString(),
+        ),
         WorkoutKeyboardField(
             label = cardQtyUnitLabel,
             title = cardQtyTitle,
             initialValue = reportValueText,
             allowDecimal = resolvedPlannedUnitMode != UnitModeV2.REPS,
             allowColon = isTimeMode,
+            kind = cardQtyKind,
+            previousValue = ghostSet?.reps?.takeIf { it > 0 }?.toString(),
         ),
     )
     fun applyCardKeyboardFields(values: List<String>) {
@@ -3982,7 +3998,7 @@ private fun LegacyLoadHero(
                         value = reportWeightText,
                         onValueChange = {},
                         readOnly = true,
-                        modifier = Modifier.width(IntrinsicSize.Max).alignByBaseline(),
+                        modifier = Modifier.width(IntrinsicSize.Max),
                         singleLine = true,
                         textStyle = heroStyle.copy(
                             color = WizardColors.text,
@@ -4007,7 +4023,7 @@ private fun LegacyLoadHero(
                 }
                 Text(
                     text = "kg",
-                    modifier = Modifier.alignByBaseline().padding(start = 4.dp),
+                    modifier = Modifier.padding(start = 5.dp, bottom = if (tightCard) 7.dp else 9.dp),
                     style = TextStyle(
                         fontFamily = WizardFonts.body,
                         fontSize = 12.sp,
@@ -4032,10 +4048,11 @@ private fun LegacyLoadHero(
             }
         }
         if (numericKeyboardTarget == "weight") {
+            val initialDockWeight = reportWeightText.ifBlank { plannedWeightGhost.orEmpty() }
             val weightOnlyField = WorkoutKeyboardField(
                 label = "KG",
                 title = "Carga · kg",
-                initialValue = reportWeightText,
+                initialValue = initialDockWeight,
                 allowDecimal = true,
                 kind = com.example.kpkn.domain.workout.LiveInputFieldKind.WEIGHT,
                 previousValue = ghostSet?.weight?.takeIf { it > 0 }?.toTrimmedNumberString(),
@@ -4043,7 +4060,7 @@ private fun LegacyLoadHero(
             )
             WorkoutNumericKeyboardDialog(
                 title = "Carga · kg",
-                initialValue = reportWeightText,
+                initialValue = initialDockWeight,
                 allowDecimal = true,
                 fields = listOf(weightOnlyField),
                 initialFieldIndex = 0,
@@ -4629,36 +4646,57 @@ private fun Ref02QuantityInput(
     activeContextIndex: Int? = null,
 ) {
     var keyboardOpen by remember(unit, allowColon) { mutableStateOf(false) }
-    val style = TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = 36.sp, letterSpacing = (-1.5).sp,
-        fontFeatureSettings = "'tnum' 1")
+    val style = TextStyle(
+        fontFamily = WizardFonts.display,
+        fontWeight = FontWeight.ExtraBold,
+        fontSize = 36.sp,
+        letterSpacing = (-1.5).sp,
+        fontFeatureSettings = "'lnum' 1, 'tnum' 1",
+        platformStyle = PlatformTextStyle(includeFontPadding = false),
+    )
     Row(Modifier.fillMaxWidth().height(49.dp).testTag("live-card-quantity-input"), verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-        WorkoutNumericTriggerBox(
-            value = value,
-            enabled = enabled,
-            description = "Cantidad registrada",
-            onOpen = { keyboardOpen = true },
-            modifier = Modifier.width(130.dp),
-            onSetText = onValueChange,
-        ) {
-            BasicTextField(
+        Row(verticalAlignment = Alignment.Bottom) {
+            WorkoutNumericTriggerBox(
                 value = value,
-                onValueChange = {},
                 enabled = enabled,
-                readOnly = true,
-                singleLine = true,
-                textStyle = style.copy(color = WizardColors.text),
-                keyboardOptions = KeyboardOptions(keyboardType = if (decimal || allowColon) KeyboardType.Text else KeyboardType.Number),
-                modifier = Modifier.fillMaxWidth(),
-                decorationBox = { inner ->
-                    Box {
-                        if (value.isBlank()) Text(placeholder ?: "—", style = style, color = if (placeholder != null) WizardColors.text else Ref02CardFaint)
-                        inner()
-                    }
-                },
+                description = "Cantidad registrada",
+                onOpen = { keyboardOpen = true },
+                modifier = Modifier.width(IntrinsicSize.Max).widthIn(max = 130.dp),
+                onSetText = onValueChange,
+            ) {
+                BasicTextField(
+                    value = value,
+                    onValueChange = {},
+                    enabled = enabled,
+                    readOnly = true,
+                    singleLine = true,
+                    textStyle = style.copy(color = WizardColors.text),
+                    keyboardOptions = KeyboardOptions(keyboardType = if (decimal || allowColon) KeyboardType.Text else KeyboardType.Number),
+                    modifier = Modifier.width(IntrinsicSize.Max),
+                    decorationBox = { inner ->
+                        Box {
+                            if (value.isBlank()) Text(placeholder ?: "—", style = style, color = if (placeholder != null) WizardColors.text else Ref02CardFaint)
+                            inner()
+                        }
+                    },
+                )
+            }
+            Text(
+                text = unit,
+                modifier = Modifier.padding(start = 6.dp, bottom = 6.dp),
+                style = TextStyle(
+                    fontFamily = WizardFonts.body,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    fontFeatureSettings = "'lnum' 1, 'tnum' 1",
+                    platformStyle = PlatformTextStyle(includeFontPadding = false),
+                ),
+                color = Ref02CardFaint,
+                maxLines = 1,
+                softWrap = false,
             )
         }
-        Text(unit, style = TextStyle(fontFamily = WizardFonts.body, fontSize = 12.sp), color = Ref02CardFaint)
         Spacer(Modifier.weight(1f))
         Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             Ref02StepButton(KpknLineIcons.Minus, "Reducir cantidad", 41.dp, 40.dp, enabled) { onStep(-1) }
@@ -4666,28 +4704,34 @@ private fun Ref02QuantityInput(
         }
     }
     if (keyboardOpen) {
-        val effectiveFieldList = if (fields.isNotEmpty()) fields else listOf(
-            WorkoutKeyboardField(
-                label = unit.uppercase(),
-                title = "Cantidad registrada · $unit",
-                initialValue = value,
-                allowDecimal = decimal,
-                allowColon = allowColon,
-                kind = if (allowColon) com.example.kpkn.domain.workout.LiveInputFieldKind.TIME_MM_SS
-                       else com.example.kpkn.domain.workout.LiveInputFieldKind.QUANTITY,
-            ),
-        )
-        WorkoutNumericKeyboardDialog(
+        val initialDockQty = value.ifBlank { placeholder.orEmpty() }
+        val qtyKind = if (allowColon) com.example.kpkn.domain.workout.LiveInputFieldKind.TIME_MM_SS
+        else com.example.kpkn.domain.workout.LiveInputFieldKind.QUANTITY
+        val selectedFromFields = fields.getOrNull(initialFieldIndex)
+        val qtyOnlyField = (selectedFromFields ?: WorkoutKeyboardField(
+            label = unit.uppercase(),
             title = "Cantidad registrada · $unit",
-            initialValue = value,
+            initialValue = initialDockQty,
             allowDecimal = decimal,
             allowColon = allowColon,
-            fields = effectiveFieldList,
-            initialFieldIndex = initialFieldIndex,
+            kind = qtyKind,
+        )).let { base ->
+            if (base.kind != qtyKind || base.allowColon != allowColon) {
+                base.copy(kind = qtyKind, allowColon = allowColon, initialValue = initialDockQty)
+            } else {
+                base.copy(initialValue = initialDockQty)
+            }
+        }
+        WorkoutNumericKeyboardDialog(
+            title = qtyOnlyField.title,
+            initialValue = initialDockQty,
+            allowDecimal = decimal,
+            allowColon = allowColon,
+            fields = listOf(qtyOnlyField),
+            initialFieldIndex = 0,
             showFieldTabs = false,
             initialMode = com.example.kpkn.domain.workout.LiveInputDockMode.LENS,
             allowCustomLoadStep = false,
-            onApplyFields = onApplyFields,
             contextValues = contextValues,
             activeContextIndex = activeContextIndex,
             onDismiss = { keyboardOpen = false },

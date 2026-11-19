@@ -3,6 +3,10 @@ package com.example.kpkn.screens.workout.components
 import android.app.Application
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.example.kpkn.domain.workout.LiveInputDockMode
@@ -248,5 +252,105 @@ class WorkoutNumericKeyboardTest {
 
         rule.onNodeWithTag("workout-numeric-keyboard-apply").performClick()
         assertEquals("8", applied)
+    }
+
+    @Test
+    fun changingLoadStepDoesNotResetEditedValueOnParentRecomposition() {
+        var applied: String? = null
+        rule.setContent {
+            CompositionLocalProvider(LocalWizardReducedMotion provides true) {
+                KPKNTheme {
+                    MaterialTheme {
+                        var parentStep by remember { mutableDoubleStateOf(2.5) }
+                        WorkoutNumericKeyboardDialog(
+                            title = "Carga · kg",
+                            initialValue = "80",
+                            allowDecimal = true,
+                            fields = listOf(
+                                WorkoutKeyboardField(
+                                    label = "KG",
+                                    title = "Carga · kg",
+                                    initialValue = "80",
+                                    allowDecimal = true,
+                                    stepDelta = parentStep,
+                                    kind = LiveInputFieldKind.WEIGHT,
+                                ),
+                            ),
+                            allowCustomLoadStep = true,
+                            loadStepKg = parentStep,
+                            onLoadStepKgChange = { parentStep = it },
+                            onDismiss = {},
+                            onApply = { applied = it },
+                        )
+                    }
+                }
+            }
+        }
+
+        // First adjust value to 82,5
+        rule.onNodeWithTag("workout-numeric-quick-plus").performClick()
+        rule.onNodeWithTag("workout-numeric-keyboard-value").assertTextEquals("82,5")
+
+        // Change load step (triggers parent recomposition with updated stepDelta on fields)
+        rule.onNodeWithText("± 2,5").performClick()
+        rule.onNodeWithText("2 kg").performClick()
+
+        // Value MUST remain "82,5", then +2 gives "84,5"
+        rule.onNodeWithTag("workout-numeric-keyboard-value").assertTextEquals("82,5")
+        rule.onNodeWithTag("workout-numeric-quick-plus").performClick()
+        rule.onNodeWithTag("workout-numeric-keyboard-value").assertTextEquals("84,5")
+
+        rule.onNodeWithTag("workout-numeric-keyboard-apply").performClick()
+        assertEquals("84,5", applied)
+    }
+
+    @Test
+    fun timeModeShowsSecondsUnitInBothLensAndKeypadAndHidesWeightStepPicker() {
+        var applied: String? = null
+        rule.setContent {
+            CompositionLocalProvider(LocalWizardReducedMotion provides true) {
+                KPKNTheme {
+                    MaterialTheme {
+                        WorkoutNumericKeyboardDialog(
+                            title = "Cantidad registrada · s",
+                            initialValue = "0:45",
+                            allowDecimal = false,
+                            allowColon = true,
+                            fields = listOf(
+                                WorkoutKeyboardField(
+                                    label = "TIEMPO",
+                                    title = "Cantidad registrada · s",
+                                    initialValue = "0:45",
+                                    allowDecimal = false,
+                                    allowColon = true,
+                                    kind = LiveInputFieldKind.TIME_MM_SS,
+                                ),
+                            ),
+                            allowCustomLoadStep = false,
+                            onDismiss = {},
+                            onApply = { applied = it },
+                        )
+                    }
+                }
+            }
+        }
+
+        rule.onNodeWithText("−5s").assertExists()
+        rule.onNodeWithText("+5s").assertExists()
+        rule.onNodeWithText("± 2,5").assertDoesNotExist()
+
+        rule.onNodeWithTag("workout-numeric-quick-plus").performClick()
+        rule.onNodeWithTag("workout-numeric-keyboard-value").assertTextEquals("0:50")
+
+        // Switch to Teclado: "-5s" / "+5s" must stay consistent
+        rule.onNodeWithText("Teclado").performClick()
+        rule.onNodeWithText("−5s").assertExists()
+        rule.onNodeWithText("+5s").assertExists()
+
+        rule.onNodeWithTag("workout-numeric-quick-plus").performClick()
+        rule.onNodeWithTag("workout-numeric-keyboard-value").assertTextEquals("0:55")
+
+        rule.onNodeWithTag("workout-numeric-keyboard-apply").performClick()
+        assertEquals("0:55", applied)
     }
 }

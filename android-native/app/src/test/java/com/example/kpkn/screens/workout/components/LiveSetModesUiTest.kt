@@ -108,11 +108,18 @@ class LiveSetModesUiTest {
     private fun enterKeyboardValue(node: SemanticsNodeInteraction, value: String) {
         node.scrollToIfScrollable().performClick()
         rule.waitForIdle()
-        rule.onNodeWithText("Limpiar").performClick()
-        value.replace('.', ',').forEach { ch ->
-            rule.onNode(
-                hasContentDescription(ch.toString()) and hasAnyAncestor(hasTestTag("workout-numeric-keyboard")),
-            ).performClick()
+        if (rule.onAllNodes(hasText("Teclado") and hasAnyAncestor(hasTestTag("workout-numeric-keyboard"))).fetchSemanticsNodes().isNotEmpty()) {
+            rule.onNode(hasText("Teclado") and hasAnyAncestor(hasTestTag("workout-numeric-keyboard"))).performClick()
+            rule.waitForIdle()
+        }
+        if (value.isEmpty()) {
+            rule.onNodeWithTag("workout-numeric-key-3-2").performTouchInput { longClick() }
+        } else {
+            value.replace('.', ',').forEach { ch ->
+                rule.onNode(
+                    hasContentDescription(ch.toString()) and hasAnyAncestor(hasTestTag("workout-numeric-keyboard")),
+                ).performClick()
+            }
         }
         rule.onNodeWithTag("workout-numeric-keyboard-apply").performClick()
         rule.waitForIdle()
