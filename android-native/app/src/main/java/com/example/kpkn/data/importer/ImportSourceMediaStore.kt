@@ -5,8 +5,11 @@ import android.net.Uri
 import com.example.kpkn.domain.training.importer.ImportDocumentType
 import java.io.File
 import java.io.FileOutputStream
-import java.io.ByteArrayInputStream
 import java.util.UUID
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
@@ -14,66 +17,66 @@ import kotlinx.coroutines.withContext
 internal class ImportSourceMediaStore(filesDir: File) {
     private val directory = File(filesDir, "import-source-evidence")
 
-    suspend fun retain(contentResolver: ContentResolver, uri: Uri, type: ImportDocumentType): String? = withContext(Dispatchers.IO) {
-        val maxBytes = when (type) {
-            ImportDocumentType.PDF, ImportDocumentType.URL_PDF -> ImportLimits.MAX_PDF_BYTES
-            ImportDocumentType.IMAGE, ImportDocumentType.URL_IMAGE -> ImportLimits.MAX_IMAGE_BYTES
-            else -> return@withContext null
-        }
-        val extension = if (type == ImportDocumentType.PDF || type == ImportDocumentType.URL_PDF) "pdf" else "image"
-        directory.mkdirs()
-        val id = UUID.randomUUID().toString()
-        val target = File(directory, "$id.$extension")
-        val temporary = File(directory, "$id.tmp")
-        try {
-            val input = contentResolver.openInputStream(uri) ?: return@withContext null
+    suspend fun retain(contentResolver: ContentResolver, uri: Uri, type: ImportDocumentType): String? =
+        retainSource(type) { output, maxBytes ->
+            val input = contentResolver.openInputStream(uri) ?: return@retainSource false
             input.use { source ->
-                FileOutputStream(temporary).use { output ->
-                    val buffer = ByteArray(16 * 1024)
-                    var total = 0L
-                    while (true) {
-                        val count = source.read(buffer)
-                        if (count < 0) break
-                        total += count
-                        require(total <= maxBytes) { "El documento original supera el límite permitido." }
-                        output.write(buffer, 0, count)
-                    }
-                    output.fd.sync()
+                val buffer = ByteArray(16 * 1024)
+                var total = 0L
+                while (true) {
+                    currentCoroutineContext().ensureActive()
+                    val count = source.read(buffer)
+                    if (count < 0) break
+                    total += count
+                    if (total > maxBytes) return@retainSource false
+                    output.write(buffer, 0, count)
                 }
             }
-            check(temporary.isFile && temporary.length() in 1..maxBytes) { "No se pudo conservar el original." }
-            check(temporary.renameTo(target)) { "No se pudo conservar el original." }
-            id
-        } catch (_: Exception) {
-            temporary.delete()
-            target.delete()
-            null
+            true
         }
-    }
 
-    suspend fun retainBytes(bytes: ByteArray?, type: ImportDocumentType): String? = withContext(Dispatchers.IO) {
+    suspend fun retainBytes(bytes: ByteArray?, type: ImportDocumentType): String? =
+        retainSource(type) { output, maxBytes ->
+            if (bytes == null || bytes.isEmpty() || bytes.size > maxBytes) return@retainSource false
+            output.write(bytes)
+            true
+        }
+
+    private suspend fun retainSource(
+        type: ImportDocumentType,
+        write: suspend (FileOutputStream, Long) -> Boolean,
+    ): String? {
         val maxBytes = when (type) {
             ImportDocumentType.PDF, ImportDocumentType.URL_PDF -> ImportLimits.MAX_PDF_BYTES
             ImportDocumentType.IMAGE, ImportDocumentType.URL_IMAGE -> ImportLimits.MAX_IMAGE_BYTES
-            else -> return@withContext null
+            else -> return null
         }
-        if (bytes == null || bytes.isEmpty() || bytes.size.toLong() > maxBytes) return@withContext null
         val extension = if (type == ImportDocumentType.PDF || type == ImportDocumentType.URL_PDF) "pdf" else "image"
-        directory.mkdirs()
         val id = UUID.randomUUID().toString()
         val target = File(directory, "$id.$extension")
         val temporary = File(directory, "$id.tmp")
-        try {
-            FileOutputStream(temporary).use { output ->
-                ByteArrayInputStream(bytes).use { it.copyTo(output) }
-                output.fd.sync()
+        return try {
+            withContext(Dispatchers.IO) {
+                directory.mkdirs()
+                try {
+                    FileOutputStream(temporary).use { output ->
+                        if (!write(output, maxBytes)) return@withContext null
+                        output.fd.sync()
+                    }
+                    currentCoroutineContext().ensureActive()
+                    if (temporary.length() !in 1..maxBytes || !temporary.renameTo(target)) {
+                        return@withContext null
+                    }
+                    id
+                } finally {
+                    temporary.delete()
+                }
             }
-            check(temporary.isFile && temporary.length() in 1..maxBytes) { "No se pudo conservar el original." }
-            check(temporary.renameTo(target)) { "No se pudo conservar el original." }
-            id
+        } catch (cancel: CancellationException) {
+            withContext(NonCancellable + Dispatchers.IO) { target.delete() }
+            throw cancel
         } catch (_: Exception) {
-            temporary.delete()
-            target.delete()
+            withContext(NonCancellable + Dispatchers.IO) { target.delete() }
             null
         }
     }

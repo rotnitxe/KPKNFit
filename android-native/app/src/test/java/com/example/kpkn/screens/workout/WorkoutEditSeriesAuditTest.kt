@@ -40,7 +40,9 @@ class WorkoutEditSeriesAuditTest {
         Exercise(id = "exercise", name = "Prueba", sets = listOf(ExerciseSet(id = "set", targetReps = 8))),
     )))
 
-    private fun mount(): StateRestorationTester {
+    private fun mount(
+        onSaveWithResult: ((String, Exercise, (Boolean) -> Unit) -> Unit)? = null,
+    ): StateRestorationTester {
         val restoration = StateRestorationTester(rule)
         val overlays = KpknOverlayHostController(tourSeen = object : TourSeenStore {
             override fun seenIds(): Set<String> = emptySet()
@@ -49,7 +51,11 @@ class WorkoutEditSeriesAuditTest {
         restoration.setContent {
             val state = rememberWorkoutStructureSheetsState().also { sheetState = it }
             CompositionLocalProvider(LocalKpknOverlayHost provides overlays) {
-                WorkoutEditSeriesSheet(state, session, Color.Cyan, remember { HazeState() }) { _, draft -> saved = draft }
+                WorkoutEditSeriesSheet(
+                    state, session, Color.Cyan, remember { HazeState() },
+                    onSaveDefinition = { _, draft -> saved = draft },
+                    onSaveDefinitionWithResult = onSaveWithResult,
+                )
                 KpknOverlayHostContent(overlays)
             }
         }
@@ -101,6 +107,20 @@ class WorkoutEditSeriesAuditTest {
         rule.waitForIdle()
         confirm()
         assertEquals(TrainingMode.TIME, saved!!.trainingMode)
+    }
+
+    @Test fun rejectedSaveKeepsTheSameDraftForRetry() {
+        val attempts = mutableListOf<Exercise>()
+        mount { _, draft, done ->
+            attempts.add(draft)
+            done(attempts.size == 2)
+        }
+        changeToTime()
+        confirm()
+        assertEquals("exercise", sheetState.editSheetExerciseId)
+        confirm()
+        assertNull(sheetState.editSheetExerciseId)
+        assertEquals(listOf(TrainingMode.TIME, TrainingMode.TIME), attempts.map { it.trainingMode })
     }
 
     @Test fun addingADistanceSetPreservesItsPlannedValue() {

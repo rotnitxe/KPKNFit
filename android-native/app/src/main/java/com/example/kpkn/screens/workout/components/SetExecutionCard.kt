@@ -550,8 +550,8 @@ private fun IntegratedLoadInput(
             else -> option.label
         }
         val valueText = if (!hasKnownLoad) "—" else when (option.targetLoadMode) {
-            LoadModeV2.BODYWEIGHT -> if (option.weight <= 0.0) "0" else option.weight.toTrimmedNumberString()
-            else -> option.weight.toTrimmedNumberString()
+            LoadModeV2.BODYWEIGHT -> if (option.weight <= 0.0) "0" else option.weight.toLiveNumberString()
+            else -> option.weight.toLiveNumberString()
         }
         Surface(
             onClick = { onChipSelected(option) },
@@ -964,6 +964,7 @@ internal fun SetInputCardV2(
     onTrackRomChange: ((Boolean, Boolean) -> Unit)? = null,
 ) {
     val context = LocalContext.current
+    val liveBootCount = liveClockBootCount(context)
     var editingAmrapResult by remember(exercise.id, setIndex, activeSide, sessionCompletedSet) { mutableStateOf(false) }
     val showAmrapResult = amrapResultPanel != null && !editingAmrapResult &&
         sessionCompletedSet?.techniqueStatus != com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN
@@ -977,7 +978,7 @@ internal fun SetInputCardV2(
     val apreSetNumber = liveApreBlock?.setIds?.indexOf(currentSet.id)?.takeIf { it >= 0 }?.plus(1)
     val resolvedWeightSuggestion = weightSuggestion.takeUnless { exercise.trainingMode == TrainingMode.SOLO_RPE }
     val suggestedWeightText: String? = resolvedWeightSuggestion?.let { suggestion ->
-        suggestion.suggestedWeight.toTrimmedNumberString()
+        suggestion.suggestedWeight.toLiveNumberString()
     }
     val completedWeightText = sessionCompletedSet
         ?.let { it.originalLoad ?: it.weight }
@@ -996,8 +997,8 @@ internal fun SetInputCardV2(
             baseText.orEmpty()
         }
         else -> {
-            val baseText = ghostSet?.weight?.takeIf { it > 0 }?.toTrimmedNumberString()
-                ?: currentSet.weight?.takeIf { it > 0 }?.toTrimmedNumberString()
+            val baseText = ghostSet?.weight?.takeIf { it > 0 }?.toLiveNumberString()
+                ?: currentSet.weight?.takeIf { it > 0 }?.toLiveNumberString()
             baseText.orEmpty()
         }
     }
@@ -1081,7 +1082,7 @@ internal fun SetInputCardV2(
     val draftValueText = restoredDraft?.takeIf { it.isDirty && it.valueText != null }?.valueText
     val volumeReplacedTechnique = currentSet.techniqueScope() == SetTechniqueScope.VOLUME_REPLACED
     val initialTechniqueWeight = if (volumeReplacedTechnique) {
-        (currentSet.weight?.takeIf { it > 0 } ?: suggestedWeightText?.toDoubleOrNull()?.takeIf { it > 0 })?.toTrimmedNumberString()
+        (currentSet.weight?.takeIf { it > 0 } ?: suggestedWeightText?.toDoubleOrNull()?.takeIf { it > 0 })?.toLiveNumberString()
     } else null
     // Marked chains already store one three-rep follow-up per set.  An inline
     // editor plan still needs the original main-set target; its three-rep
@@ -1102,15 +1103,15 @@ internal fun SetInputCardV2(
     var valueText by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) {
         mutableStateOf(draftValueText ?: initialTechniqueValue ?: defaultValue.ifBlank { initialValueGhost })
     }
-    val targetLeftWeight = currentSet.leftTarget?.weight?.toTrimmedNumberString().orEmpty()
-    val targetRightWeight = currentSet.rightTarget?.weight?.toTrimmedNumberString().orEmpty()
+    val targetLeftWeight = currentSet.leftTarget?.weight?.toLiveNumberString().orEmpty()
+    val targetRightWeight = currentSet.rightTarget?.weight?.toLiveNumberString().orEmpty()
     val initialLeftWeight = if (initialSelectedSide == "left") (draftWeightText ?: completedWeightText ?: initialTechniqueWeight).orEmpty() else ""
     val initialRightWeight = if (initialSelectedSide == "right") (draftWeightText ?: completedWeightText ?: initialTechniqueWeight).orEmpty() else ""
     fun sideTargetValueText(target: UnilateralTarget?): String = when {
         target == null -> plannedValueGhost
         isTimeMode -> target.targetDuration?.toString() ?: plannedValueGhost
         currentSet.unitModeV2 == UnitModeV2.DISTANCE || currentSet.unitModeV2 == UnitModeV2.CUSTOM ->
-            target.targetValue?.toTrimmedNumberString() ?: target.targetReps?.toString() ?: plannedValueGhost
+            target.targetValue?.toLiveNumberString() ?: target.targetReps?.toString() ?: plannedValueGhost
         else -> target.targetRepsRange?.max?.toString() ?: target.targetReps?.toString() ?: plannedValueGhost
     }
     val initialLeftValue = ""
@@ -1148,16 +1149,16 @@ internal fun SetInputCardV2(
         basePlannedTarget
     }
     val plannedIntensityGhost = (
-        activeSideTarget?.targetRPE?.toTrimmedNumberString()
+        activeSideTarget?.targetRPE?.toLiveNumberString()
             ?: activeSideTarget?.targetRIR?.toString()
-            ?: currentSet.targetRPE?.toTrimmedNumberString()
+            ?: currentSet.targetRPE?.toLiveNumberString()
             ?: currentSet.targetRIR?.toString()
     ).orEmpty()
     var intensityText by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) {
         mutableStateOf(
             restoredDraft?.intensityText
-                ?: sessionCompletedSet?.actualIntensityValue?.toTrimmedNumberString()
-                ?: sessionCompletedSet?.rpe?.toTrimmedNumberString()
+                ?: sessionCompletedSet?.actualIntensityValue?.toLiveNumberString()
+                ?: sessionCompletedSet?.rpe?.toLiveNumberString()
                 ?: ""
         )
     }
@@ -1169,7 +1170,7 @@ internal fun SetInputCardV2(
                 ?: (restoredDraft?.let { !it.intensityText.isNullOrBlank() || it.reachedFailure == true } == true)
         )
     }
-    var bodyWeightText by remember(exercise.id) { mutableStateOf(initialBodyWeight?.toTrimmedNumberString().orEmpty()) }
+    var bodyWeightText by remember(exercise.id) { mutableStateOf(initialBodyWeight?.toLiveNumberString().orEmpty()) }
     var showBodyWeightPrompt by remember(exercise.id) { mutableStateOf(false) }
     // Pulido v1 (15) · ROM de punta a punta. El plan decide el valor de partida: si el ejercicio registra ROM (`Exercise.trackRom`, el
     // interruptor del editor) cada serie nace con el slider al 100 %; si no, nace sin ROM (un 100 oculto se enviaría como una medición falsa).
@@ -1288,8 +1289,8 @@ internal fun SetInputCardV2(
     } else if (liveMode == LiveSetCardMode.RM) {
         rmValues.weight?.toLiveNumberString() ?: sidePlanWeight?.takeIf { it > 0 }?.toLiveNumberString()
     } else {
-        sidePlanWeight?.takeIf { it > 0.0 }?.toTrimmedNumberString()
-            ?: ghostSet?.weight?.takeIf { it > 0.0 }?.toTrimmedNumberString()
+        sidePlanWeight?.takeIf { it > 0.0 }?.toLiveNumberString()
+            ?: ghostSet?.weight?.takeIf { it > 0.0 }?.toLiveNumberString()
     }
     LaunchedEffect(loadMode) {
         if (loadMode != LoadModeV2.ASSISTED) showBodyWeightPrompt = false
@@ -1321,7 +1322,7 @@ internal fun SetInputCardV2(
         val techniqueWeight = (
             currentSet.weight?.takeIf { it > 0.0 }
                 ?: suggestedWeightText?.toDoubleOrNull()?.takeIf { it > 0.0 }
-        )?.toTrimmedNumberString()
+        )?.toLiveNumberString()
         if (techniqueWeight != null) {
             updateActiveWeightText(techniqueWeight, markManual = false)
         }
@@ -1476,6 +1477,11 @@ internal fun SetInputCardV2(
     var scheduledRestRemainingSeconds by remember(exercise.id, setIndex, sideKey) {
         mutableIntStateOf(savedTechniqueProgress?.restRemainingSeconds ?: 0)
     }
+    var techniqueRestDeadline by remember(exercise.id, setIndex, sideKey) {
+        mutableStateOf(savedTechniqueProgress?.restDeadlineElapsedMs?.takeIf {
+            liveBootCount != null && savedTechniqueProgress?.restDeadlineBootCount == liveBootCount
+        })
+    }
     var isRecordSubmissionPending by remember(exercise.id, setIndex, sideKey) { mutableStateOf(false) }
     LaunchedEffect(
         currentSet?.id,
@@ -1576,14 +1582,14 @@ internal fun SetInputCardV2(
             }
         }
     }
-    LaunchedEffect(guidedPhase, isSettledPage) {
+    LaunchedEffect(guidedPhase, isSettledPage, techniqueRestDeadline) {
         if (!isSettledPage) return@LaunchedEffect
         val phase = guidedPhase
         if (phase is GuidedTechniquePhase.RestPauseCountdown) {
-            var left = phase.secondsLeft
+            var left = techniqueRestDeadline?.let { ((it - clockNowMillis() + 999L) / 1000L).coerceAtLeast(0L).toInt() } ?: 0
             while (left > 0) {
                 delay(1_000)
-                left -= 1
+                left = techniqueRestDeadline?.let { ((it - clockNowMillis() + 999L) / 1000L).coerceAtLeast(0L).toInt() } ?: 0
                 val still = guidedPhase
                 if (still !is GuidedTechniquePhase.RestPauseCountdown || still.index != phase.index) {
                     return@LaunchedEffect
@@ -1593,15 +1599,19 @@ internal fun SetInputCardV2(
             val after = guidedPhase
             if (after is GuidedTechniquePhase.RestPauseCountdown && after.index == phase.index) {
                 guidedPhase = GuidedTechniquePhase.RestPauseReps(after.index, after.total)
+                techniqueRestDeadline = null
                 guidedRestPauseRepsText = activeRestReps.toString()
             }
         }
     }
-    LaunchedEffect(scheduledRestRemainingSeconds, isSettledPage) {
+    LaunchedEffect(scheduledRestRemainingSeconds, isSettledPage, techniqueRestDeadline) {
         if (!isSettledPage) return@LaunchedEffect
         if (scheduledRestRemainingSeconds <= 0) return@LaunchedEffect
-        delay(1_000)
-        scheduledRestRemainingSeconds = (scheduledRestRemainingSeconds - 1).coerceAtLeast(0)
+        while (scheduledRestRemainingSeconds > 0) {
+            val remaining = techniqueRestDeadline?.let { ((it - clockNowMillis() + 999L) / 1000L).coerceAtLeast(0L).toInt() } ?: 0
+            scheduledRestRemainingSeconds = remaining
+            if (remaining > 0) delay(1_000)
+        }
     }
     fun resolveDefaultReportedIntensityMode(): IntensityMode? = when {
         sessionCompletedSet?.actualIntensityMode == IntensityMode.RIR -> IntensityMode.RIR
@@ -1617,15 +1627,15 @@ internal fun SetInputCardV2(
         isRmLoadPrescription -> null
         else -> plannedIntensityMode
     }
-    var reportedIntensityMode by remember(exercise.id, setIndex, sessionCompletedSet) {
-        mutableStateOf(resolveDefaultReportedIntensityMode())
+    var reportedIntensityMode by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) {
+        mutableStateOf(restoredDraft?.effortMode ?: resolveDefaultReportedIntensityMode())
     }
     var timerState by remember(
         exercise.id, setIndex, sideKey, plannedTarget,
         restoredDraft?.timedSetAccumulatedMs, restoredDraft?.timedSetStartedAtElapsedMs,
     ) {
         val now = clockNowMillis()
-        val restoredStart = restoredDraft?.timedSetStartedAtElapsedMs?.takeIf { it > 0L && it <= now }
+        val restoredStart = restoredLiveClockStart(restoredDraft?.timedSetStartedAtElapsedMs, restoredDraft?.timedSetBootCount, liveBootCount, now)
         mutableStateOf(
             LiveSetClockState(
                 startedAtMs = restoredStart,
@@ -1866,9 +1876,9 @@ internal fun SetInputCardV2(
         isAmrap -> "AMRAP"
         plannedIntensityMode == IntensityMode.FAILURE -> "F"
         plannedIntensityMode == IntensityMode.RIR -> activePlannedRir?.toString() ?: "-"
-        plannedIntensityMode == IntensityMode.RPE -> activePlannedRpe?.toTrimmedNumberString() ?: "-"
-        isRmLoadPrescription -> currentSet.targetPercentageRM?.toTrimmedNumberString() ?: "-"
-        else -> activePlannedRpe?.toTrimmedNumberString() ?: "-"
+        plannedIntensityMode == IntensityMode.RPE -> activePlannedRpe?.toLiveNumberString() ?: "-"
+        isRmLoadPrescription -> currentSet.targetPercentageRM?.toLiveNumberString() ?: "-"
+        else -> activePlannedRpe?.toLiveNumberString() ?: "-"
     }
     val plannedIntensityDisplayLabel = if (plannedIntensityMode == IntensityMode.FAILURE && !reachedFailure) {
         when (reportedIntensityMode) {
@@ -1958,7 +1968,7 @@ internal fun SetInputCardV2(
             allowDecimal = true,
             stepDelta = cardKeyboardStepKg,
             kind = com.example.kpkn.domain.workout.LiveInputFieldKind.WEIGHT,
-            previousValue = ghostSet?.weight?.takeIf { it > 0 }?.toTrimmedNumberString(),
+            previousValue = ghostSet?.weight?.takeIf { it > 0 }?.toLiveNumberString(),
         ),
         WorkoutKeyboardField(
             label = cardQtyUnitLabel,
@@ -2558,7 +2568,7 @@ internal fun SetInputCardV2(
             }
             // LV8: la serie empieza sin esfuerzo marcado; solo una serie ya registrada trae el suyo.
             val initialIntensityForDraft = sessionCompletedSet?.let {
-                it.actualIntensityValue?.toTrimmedNumberString() ?: it.rpe?.toTrimmedNumberString()
+                it.actualIntensityValue?.toLiveNumberString() ?: it.rpe?.toLiveNumberString()
             }.orEmpty()
             val plannedDropCountForDraft = currentSet.plannedIntensityTechniques
                 .firstOrNull { it.type == TechniqueType.DROP_SET }
@@ -2597,6 +2607,8 @@ internal fun SetInputCardV2(
                     dropRepsText = reportValueText.takeIf { scheduledAwaitingCommit },
                     restPauseRepsText = reportValueText.takeIf { scheduledAwaitingCommit },
                     restRemainingSeconds = scheduledRestRemainingSeconds.takeIf { it > 0 },
+                    restDeadlineElapsedMs = techniqueRestDeadline,
+                    restDeadlineBootCount = liveBootCount,
                     awaitingCommit = scheduledAwaitingCommit,
                 )
                 guidedProgressCoordinates != null && guidedMainCapture != null -> WorkoutTechniqueProgressDraft(
@@ -2610,6 +2622,8 @@ internal fun SetInputCardV2(
                     dropRepsText = guidedDropRepsText,
                     restPauseRepsText = guidedRestPauseRepsText,
                     restRemainingSeconds = (guidedPhase as? GuidedTechniquePhase.RestPauseCountdown)?.secondsLeft,
+                    restDeadlineElapsedMs = techniqueRestDeadline,
+                    restDeadlineBootCount = liveBootCount,
                     awaitingCommit = guidedAwaitingCommit,
                     commitDropRows = guidedCommitDropOverride?.map { DropSetData(weight = it.weight, reps = it.reps) },
                     commitRestPauseRows = guidedCommitRestPauseOverride,
@@ -2642,6 +2656,8 @@ internal fun SetInputCardV2(
                         rmPercent = rmPercent.takeIf { liveMode == LiveSetCardMode.RM },
                         timedSetAccumulatedMs = timerState.accumulatedMs,
                         timedSetStartedAtElapsedMs = timerState.startedAtMs,
+                        timedSetBootCount = liveBootCount,
+                        effortMode = reportedIntensityMode,
                         voiceFields = base.voiceFields,
                         techniqueProgress = progress,
                         isDirty = true,
@@ -2660,6 +2676,7 @@ internal fun SetInputCardV2(
                 hasManualWeightOverride,
                 reportValueText,
                 intensityText,
+                reportedIntensityMode,
                 loadMode,
                 selectedSide,
                 reachedFailure,
@@ -2722,6 +2739,7 @@ internal fun SetInputCardV2(
                             weightManuallyFixed = hasManualWeightOverride,
                             valueText = reportValueText,
                             intensityText = intensityText,
+                            effortMode = reportedIntensityMode,
                             loadMode = loadMode,
                             selectedSide = if (supportsIndependentSides) selectedSide else null,
                             partialReps = partialRepsTotal.takeIf { it > 0 },
@@ -2741,6 +2759,7 @@ internal fun SetInputCardV2(
                             rmPercent = rmPercent.takeIf { liveMode == LiveSetCardMode.RM },
                             timedSetAccumulatedMs = timerState.accumulatedMs,
                             timedSetStartedAtElapsedMs = timerState.startedAtMs,
+                            timedSetBootCount = liveBootCount,
                         ),
                         if (supportsIndependentSides) selectedSide else null,
                     )
@@ -3011,7 +3030,7 @@ internal fun SetInputCardV2(
                 rows: List<DropSetEntry> = emptyList()): WorkoutTechniqueProgressDraft = WorkoutTechniqueProgressDraft(
                 kind = WorkoutTechniqueDraftKind.GUIDED_DROP, phaseIndex = index, phaseCount = total,
                 dropRows = rows.map { DropSetData(it.weight, it.reps) },
-                dropWeightText = suggestDropWeightForThreeReps(capture.weight, capture.value.roundToInt(), index, guide.dropPcts, capture.loadMode).toTrimmedNumberString(),
+                dropWeightText = suggestDropWeightForThreeReps(capture.weight, capture.value.roundToInt(), index, guide.dropPcts, capture.loadMode).toLiveNumberString(),
                 dropRepsText = RestPausePlanDefaults.Reps.toString())
 
             fun beginDropPhase(index: Int, total: Int, capture: GuidedMainCapture, guide: PlannedTechniqueGuide) {
@@ -3022,7 +3041,7 @@ internal fun SetInputCardV2(
                     dropPcts = guide.dropPcts,
                     loadMode = capture.loadMode,
                 )
-                guidedDropWeightText = suggested.toTrimmedNumberString()
+                guidedDropWeightText = suggested.toLiveNumberString()
                 guidedDropRepsText = RestPausePlanDefaults.Reps.toString()
                 guidedPhase = GuidedTechniquePhase.DropSet(
                     index = index,
@@ -3032,6 +3051,7 @@ internal fun SetInputCardV2(
             }
 
             fun beginRestPauseCountdown(index: Int, total: Int) {
+                techniqueRestDeadline = clockNowMillis() + activeRestPauseSeconds * 1_000L
                 guidedPhase = GuidedTechniquePhase.RestPauseCountdown(
                     index = index,
                     total = total,
@@ -3303,14 +3323,16 @@ internal fun SetInputCardV2(
                                     side = reportingSide,
                                     mainFeedback = advanced,
                                 )
+                                val restDeadline = if (scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE) clockNowMillis() + scheduledPlan.pauseSeconds * 1_000L else null
                                 val progress = WorkoutTechniqueProgressDraft(
                                     kind = if (scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET)
                                         WorkoutTechniqueDraftKind.SCHEDULED_DROP else WorkoutTechniqueDraftKind.SCHEDULED_REST_PAUSE,
                                     phaseIndex = 1, phaseCount = scheduledPlan.phaseCount,
                                     dropWeightText = (if (scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET)
-                                        com.example.kpkn.domain.workout.nextDropInputLoad(weight, scheduledPlan.dropKg, loadMode) else weight).toTrimmedNumberString(),
+                                        com.example.kpkn.domain.workout.nextDropInputLoad(weight, scheduledPlan.dropKg, loadMode) else weight).toLiveNumberString(),
                                     dropRepsText = scheduledPlan.followUpReps.toString(),
-                                    restRemainingSeconds = scheduledPlan.pauseSeconds.takeIf { scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE })
+                                    restRemainingSeconds = scheduledPlan.pauseSeconds.takeIf { scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE },
+                                    restDeadlineElapsedMs = restDeadline, restDeadlineBootCount = liveBootCount)
                                 submitOpenTechnique(main, progress) {
                                     scheduledMainCapture = main
                                     scheduledPhaseIndex = 1
@@ -3320,7 +3342,7 @@ internal fun SetInputCardV2(
                                         com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE -> weight
                                     }
                                     if (loadMode != LoadModeV2.BODYWEIGHT && nextLoad > 0.0) {
-                                        updateActiveWeightText(nextLoad.toTrimmedNumberString(), markManual = false)
+                                        updateActiveWeightText(nextLoad.toLiveNumberString(), markManual = false)
                                     }
                                     updateActiveValueText(scheduledPlan.followUpReps.toString())
                                     scheduledRestRemainingSeconds = if (
@@ -3330,6 +3352,7 @@ internal fun SetInputCardV2(
                                     } else {
                                         0
                                     }
+                                    techniqueRestDeadline = restDeadline
                                 }
                                 return@label
                             }
@@ -3355,15 +3378,17 @@ internal fun SetInputCardV2(
                             }
                             val nextPhase = phase + 1
                             if (nextPhase < scheduledPlan.phaseCount) {
+                                val restDeadline = if (scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE) clockNowMillis() + scheduledPlan.pauseSeconds * 1_000L else null
                                 val progress = WorkoutTechniqueProgressDraft(
                                     kind = if (scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET)
                                         WorkoutTechniqueDraftKind.SCHEDULED_DROP else WorkoutTechniqueDraftKind.SCHEDULED_REST_PAUSE,
                                     phaseIndex = nextPhase, phaseCount = scheduledPlan.phaseCount,
                                     dropWeightText = (if (scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.DROP_SET)
-                                        com.example.kpkn.domain.workout.nextDropInputLoad(weight, scheduledPlan.dropKg, loadMode) else weight).toTrimmedNumberString(),
+                                        com.example.kpkn.domain.workout.nextDropInputLoad(weight, scheduledPlan.dropKg, loadMode) else weight).toLiveNumberString(),
                                     dropRepsText = scheduledPlan.followUpReps.toString(),
                                     dropRows = nextDropRows.map { DropSetData(it.weight, it.reps) }, restPauseRows = nextRestRows,
-                                    restRemainingSeconds = scheduledPlan.pauseSeconds.takeIf { scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE })
+                                    restRemainingSeconds = scheduledPlan.pauseSeconds.takeIf { scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE },
+                                    restDeadlineElapsedMs = restDeadline, restDeadlineBootCount = liveBootCount)
                                 submitOpenTechnique(capture, progress) {
                                     scheduledDropDrafts = nextDropRows
                                     scheduledRestPauseDrafts = nextRestRows
@@ -3374,12 +3399,13 @@ internal fun SetInputCardV2(
                                         com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE -> weight
                                     }
                                     if (loadMode != LoadModeV2.BODYWEIGHT && nextLoad > 0.0) {
-                                        updateActiveWeightText(nextLoad.toTrimmedNumberString(), markManual = false)
+                                        updateActiveWeightText(nextLoad.toLiveNumberString(), markManual = false)
                                     }
                                     updateActiveValueText(scheduledPlan.followUpReps.toString())
                                     scheduledRestRemainingSeconds = if (
                                         scheduledPlan.kind == com.example.kpkn.domain.workout.ScheduledTechniqueKind.REST_PAUSE
                                     ) scheduledPlan.pauseSeconds else 0
+                                    techniqueRestDeadline = restDeadline
                                 }
                                 return@label
                             }
@@ -4055,7 +4081,7 @@ private fun LegacyLoadHero(
                 initialValue = initialDockWeight,
                 allowDecimal = true,
                 kind = com.example.kpkn.domain.workout.LiveInputFieldKind.WEIGHT,
-                previousValue = ghostSet?.weight?.takeIf { it > 0 }?.toTrimmedNumberString(),
+                previousValue = ghostSet?.weight?.takeIf { it > 0 }?.toLiveNumberString(),
                 stepDelta = increment,
             )
             WorkoutNumericKeyboardDialog(
@@ -4092,7 +4118,7 @@ private fun LegacyLoadHero(
                     else -> ghostSet?.let { previous ->
                         buildString {
                             append("Anterior · ")
-                            append(previous.weight.toTrimmedNumberString())
+                            append(previous.weight.toLiveNumberString())
                             append(" × ")
                             append(previous.reps)
                             previous.rir?.let { append(" · RIR $it") }
@@ -4509,7 +4535,7 @@ private fun ValueStepperBlock(
             Ref02QuantityInput(
                 value = if (isFailedSet) "0" else if (timeNotStarted && reportValueText == "0") "" else reportValueText,
                 placeholder = quantityGhost.takeIf { it.isNotBlank() && it != "0" }
-                    ?: plannedTarget?.takeIf { isTimeMode && it.toDouble() > 0.0 }?.let { it.toDouble().toTrimmedNumberString() },
+                    ?: plannedTarget?.takeIf { isTimeMode && it.toDouble() > 0.0 }?.let { it.toDouble().toLiveNumberString() },
                 unit = when (resolvedPlannedUnitMode) {
                     UnitModeV2.TIME -> "s"
                     UnitModeV2.DISTANCE -> "m"

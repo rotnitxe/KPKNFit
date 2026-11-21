@@ -30,6 +30,7 @@ object LocaleManager {
 
     private const val PREFS_NAME = "kpkn_locale_prefs"
     private const val KEY_LANGUAGE = "app_language"
+    private const val KEY_SYSTEM_MANAGED = "system_locale_managed"
 
     private val _recreateEvent = MutableSharedFlow<Unit>(extraBufferCapacity = 1)
 
@@ -46,6 +47,9 @@ object LocaleManager {
      */
     @Volatile
     private var cachedLanguage: String? = null
+
+    @Volatile
+    private var cachedSystemManaged: Boolean? = null
 
     /**
      * Emite un evento cuando la Activity debe recrearse (solo API ≤ 32).
@@ -73,11 +77,36 @@ object LocaleManager {
                 android.os.LocaleList.forLanguageTags(language)
             }
             sysLocMgr?.applicationLocales = localeList
+            markSystemManaged(context)
             // El sistema recrea la Activity automáticamente → no emitir recreateEvent aquí.
         } else {
             // API ≤ 32: la recreación debe ser disparada manualmente desde MainActivity.
             _recreateEvent.tryEmit(Unit)
         }
+    }
+
+    /**
+     * Sincroniza el idioma persistido en Room al arrancar, sin pisar la preferencia
+     * por-app administrada desde los Ajustes del sistema en Android 13+.
+     */
+    internal fun syncFromSavedSettings(context: Context, roomLanguage: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val sysLocMgr = runCatching {
+                @Suppress("NewApi")
+                context.getSystemService(android.app.LocaleManager::class.java)
+            }.getOrNull()
+            val hasSystemLocale = runCatching { sysLocMgr?.applicationLocales?.isEmpty == false }.getOrDefault(false)
+            if (hasSystemLocale || isSystemManaged(context)) {
+                return
+            }
+            if (roomLanguage != LANGUAGE_SYSTEM) {
+                applyAndPersist(context, roomLanguage)
+            } else {
+                persist(context, roomLanguage)
+            }
+            return
+        }
+        persist(context, roomLanguage)
     }
 
     /**
@@ -95,30 +124,34 @@ object LocaleManager {
 
     /**
      * Devuelve el código de idioma guardado ("system", "es", "en", …).
-     * Seguro de called desde [attachBaseContext] antes de que Room esté listo.
+     * Seguro de llamar desde [attachBaseContext] antes de que Room esté listo.
      */
     fun getSavedLanguage(context: Context): String {
         cachedLanguage?.let { return it }
-        val saved = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            .getString(KEY_LANGUAGE, LANGUAGE_SYSTEM) ?: LANGUAGE_SYSTEM
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val saved = prefs.getString(KEY_LANGUAGE, LANGUAGE_SYSTEM) ?: LANGUAGE_SYSTEM
         cachedLanguage = saved
+        if (cachedSystemManaged == null) {
+            cachedSystemManaged = prefs.getBoolean(KEY_SYSTEM_MANAGED, false)
+        }
         return saved
     }
 
     /** Solo para tests: simula un proceso nuevo (sin idioma en memoria). */
     internal fun clearCachedLanguageForTests() {
         cachedLanguage = null
+        cachedSystemManaged = null
     }
 
     /**
      * Envuelve un [Context] con el locale persistido.
      * Llamar desde [Application.attachBaseContext] y [Activity.attachBaseContext].
      *
-     * En API 33+ el sistema ya gestiona el locale de la Activity; aplicamos igualmente
-     * el wrapper para que el contexto de Application tenga el locale correcto.
+     * En API 33+ respeta los [android.app.LocaleManager.getApplicationLocales] gestionados por
+     * el sistema si el usuario configuró el idioma desde la app o desde Ajustes de Android.
      */
     fun wrapContext(context: Context): Context {
-        val language = getSavedLanguage(context)
+        val language = resolveEffectiveLanguage(context)
         if (language == LANGUAGE_SYSTEM) return context
         return applyLocaleToContext(context, language)
     }
@@ -128,12 +161,52 @@ object LocaleManager {
      * Reemplaza todos los usos hardcodeados de Locale.forLanguageTag("es").
      */
     fun getEffectiveLocale(context: Context): Locale {
-        val language = getSavedLanguage(context)
+        val language = resolveEffectiveLanguage(context)
         return if (language == LANGUAGE_SYSTEM) Locale.getDefault()
         else Locale.forLanguageTag(language)
     }
 
     // ─── Interno ─────────────────────────────────────────────────────────────
+
+    private fun resolveEffectiveLanguage(context: Context): String {
+        val saved = getSavedLanguage(context)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val sysLocMgr = runCatching {
+                @Suppress("NewApi")
+                context.getSystemService(android.app.LocaleManager::class.java)
+            }.getOrNull()
+            val appLocales = runCatching { sysLocMgr?.applicationLocales }.getOrNull()
+            if (appLocales != null) {
+                if (!appLocales.isEmpty) {
+                    val tag = appLocales.get(0)?.toLanguageTag()?.takeIf { it.isNotBlank() }
+                    if (tag != null) {
+                        cachedLanguage = tag
+                        return tag
+                    }
+                } else if (isSystemManaged(context)) {
+                    return LANGUAGE_SYSTEM
+                }
+            }
+        }
+        return saved
+    }
+
+    private fun isSystemManaged(context: Context): Boolean {
+        cachedSystemManaged?.let { return it }
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val managed = prefs.getBoolean(KEY_SYSTEM_MANAGED, false)
+        cachedSystemManaged = managed
+        return managed
+    }
+
+    private fun markSystemManaged(context: Context) {
+        context.applicationContext
+            .getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+            .edit()
+            .putBoolean(KEY_SYSTEM_MANAGED, true)
+            .apply()
+        cachedSystemManaged = true
+    }
 
     private fun applyLocaleToContext(context: Context, language: String): Context {
         val locale = Locale.forLanguageTag(language)

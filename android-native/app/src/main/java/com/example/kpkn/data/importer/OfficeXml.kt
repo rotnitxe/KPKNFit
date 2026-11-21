@@ -31,13 +31,18 @@ internal object OfficeXml {
     fun archive(bytes: ByteArray, tooLarge: String, keep: (String) -> Boolean): Archive? {
         val names = HashSet<String>()
         val entries = HashMap<String, ByteArray>()
+        var entryCount = 0
         var kept = ImportLimits.MAX_UNCOMPRESSED_BYTES
         var discarded = ImportLimits.MAX_DISCARDED_BYTES
         try {
             ZipInputStream(ByteArrayInputStream(bytes)).use { zip ->
                 while (true) {
                     val entry = zip.nextEntry ?: break
-                    if (entry.isDirectory) continue
+                    if (++entryCount > ImportLimits.MAX_ZIP_ENTRIES) throw ImportFileException(tooLarge)
+                    if (entry.isDirectory) {
+                        discarded = discard(zip, discarded, tooLarge)
+                        continue
+                    }
                     names += entry.name
                     if (keep(entry.name)) {
                         val content = readBoundedBytes(zip, kept, tooLarge)
@@ -104,10 +109,10 @@ internal object OfficeXml {
     }
 
     /** Hijos que son elementos, en orden. */
-    fun childElements(parent: Node): List<Element> {
-        val children = parent.childNodes
-        return (0 until children.length).mapNotNull { children.item(it) as? Element }
-    }
+    fun elementChildren(parent: Node): Sequence<Element> =
+        generateSequence(parent.firstChild) { it.nextSibling }.filterIsInstance<Element>()
+
+    fun childElements(parent: Node): List<Element> = elementChildren(parent).toList()
 
     /** Nombre local de un elemento, sin prefijo. */
     fun name(element: Element): String = element.localName ?: element.nodeName.substringAfter(':')

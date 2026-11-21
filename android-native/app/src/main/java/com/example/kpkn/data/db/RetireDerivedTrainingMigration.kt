@@ -28,7 +28,8 @@ val RETIRE_DERIVED_TRAINING_31_32 = object : Migration(31, 32) {
         }
         db.query("SELECT rowId,data FROM ongoing_workout").use { cursor ->
             while(cursor.moveToNext()) {
-                val raw = cursor.getString(1)
+                val raw = if (cursor.isNull(1)) null else cursor.getString(1)
+                if (raw.isNullOrBlank()) continue
                 val obj = LegacyTrainingImport.parseObject(raw)
                 val original = LegacyTrainingImport.ongoingOriginals(raw)
                 preserve("ongoing:${cursor.getLong(0)}:${obj["startTime"]}","historical_session_context",original)

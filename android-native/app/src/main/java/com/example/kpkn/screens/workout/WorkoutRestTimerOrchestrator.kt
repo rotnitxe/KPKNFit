@@ -177,6 +177,7 @@ class WorkoutRestTimerOrchestrator(
                 restOverrun = null,
             )
         }
+        updateState { state -> state.copy(restModalState = state.restModalState?.let { restTimer.stampDeadline(it, now) }) }
         ports.persistOngoingState()
         KpknDiagnosticLogger.event(
             namespace = "workout",
@@ -213,15 +214,42 @@ class WorkoutRestTimerOrchestrator(
         restTimer.scheduleAndTick(
             seconds = seconds,
             endMs = endMs,
-            restStartMs = restStartMs,
+            restStartMs = startedAtMs,
             sessionName = sessionName,
             exerciseName = nextExerciseName,
             preserveElapsed = preserveElapsed,
-            onNaturalFinish = { handleNaturalFinish(advanceOnFinish) },
+            onNaturalFinish = { handleNaturalFinish(resumeAdvanceOnFinish) },
         )
     }
 
+    fun restore(saved: WorkoutRestModalState) {
+        val now = System.currentTimeMillis()
+        val rest = restTimer.projectWallDeadline(saved, now)
+        val paused = rest.pausedRemainingSeconds
+        val remaining = paused ?: ((rest.endsAtMs - now + 999L) / 1_000L).toInt().coerceAtLeast(0)
+        resumeAdvanceOnFinish = rest.continuation == WorkoutRestContinuation.ADVANCE_SET
+        updateState { state -> state.copy(
+            restTimerTotal = rest.totalRestSeconds(),
+            isRestTimerRunning = true,
+            restModalState = rest,
+        ) }
+        when {
+            paused != null -> restTimer.setPausedRemaining(paused)
+            remaining == 0 -> {
+                restTimer.abortHard()
+                handleNaturalFinish(resumeAdvanceOnFinish, announce = false)
+            }
+            else -> {
+                val state = getState()
+                val lastSet = rest.originStepKey?.let { state.completedSets[it] }
+                restTimer.setReferences(lastSet, null)
+                reschedule(rest, remaining, rest.endsAtMs, rest.restEventStartedAtMs(now))
+            }
+        }
+    }
+
     fun addTime(seconds: Int) {
+        if (!getState().isRestTimerRunning || getState().restModalState == null) return
         val pausedState = getState()
         val pausedRest = pausedState.restModalState
         val pausedRemaining = pausedRest?.pausedRemainingSeconds
@@ -261,7 +289,8 @@ class WorkoutRestTimerOrchestrator(
             return
         }
         val now = System.currentTimeMillis()
-        val currentEndsAtMs = getState().restModalState?.endsAtMs?.takeIf { it > now }
+        val currentRest = getState().restModalState?.let { restTimer.projectWallDeadline(it, now) } ?: return
+        val currentEndsAtMs = restTimer.wallDeadline(now)?.takeIf { it > now }
         val newEndsAtMs = if (currentEndsAtMs != null) {
             currentEndsAtMs + (seconds * 1000L)
         } else {
@@ -269,7 +298,7 @@ class WorkoutRestTimerOrchestrator(
         }
         updateState {
             it.copy(
-                restModalState = it.restModalState?.withRestEventIdentity()?.copy(
+                restModalState = currentRest.withRestEventIdentity().copy(
                     activeSeconds = newTotal,
                     endsAtMs = newEndsAtMs,
                     isManualOverride = true,
@@ -314,7 +343,7 @@ class WorkoutRestTimerOrchestrator(
         if (remaining <= 0) {
             updateState { it.copy(restModalState = it.restModalState?.copy(pausedRemainingSeconds = null)) }
             restTimer.setPausedRemaining(0)
-            restTimer.fireNaturalFinishIfIdleAtZero()
+            handleNaturalFinish(resumeAdvanceOnFinish)
             return
         }
         val total = rest.totalRestSeconds()
@@ -354,10 +383,10 @@ class WorkoutRestTimerOrchestrator(
         val rest = state.restModalState ?: return
         val now = System.currentTimeMillis()
         val pausedRemaining = rest.pausedRemainingSeconds
-        val elapsed = (rest.totalRestSeconds() - (pausedRemaining ?: restTimer.remainingAt(now))).coerceAtLeast(0)
+        val elapsed = (rest.totalRestSeconds() - (pausedRemaining ?: restTimer.remainingAt())).coerceAtLeast(0)
         val newRemaining = RestClockMath.remainingAfterSuggestion(
             totalSeconds = rest.totalRestSeconds(),
-            remainingSeconds = pausedRemaining ?: restTimer.remainingAt(now),
+            remainingSeconds = pausedRemaining ?: restTimer.remainingAt(),
             suggestedSeconds = suggestedSeconds,
         )
         val newStartedAt = now - elapsed * 1000L
@@ -382,7 +411,7 @@ class WorkoutRestTimerOrchestrator(
             pausedRemaining != null -> restTimer.setPausedRemaining(newRemaining)
             newRemaining <= 0 -> {
                 restTimer.setPausedRemaining(0)
-                restTimer.fireNaturalFinishIfIdleAtZero()
+                handleNaturalFinish(resumeAdvanceOnFinish)
             }
             else -> reschedule(rest, newRemaining, newEndsAt, newStartedAt)
         }
@@ -395,6 +424,10 @@ class WorkoutRestTimerOrchestrator(
         restStartMs: Long,
     ) {
         val sessionName = getState().session?.name ?: "Entrenamiento"
+        updateState { state -> state.copy(restModalState = state.restModalState?.let {
+            restTimer.stampDeadline(it, System.currentTimeMillis())
+        }) }
+        ports.persistOngoingState()
         restTimer.scheduleAndTick(
             seconds = remaining,
             endMs = endMs,
@@ -414,6 +447,7 @@ class WorkoutRestTimerOrchestrator(
         val pending = getState().pendingPostExerciseIdx
         val currentExIdx = getState().currentExerciseIdx
         val skipExercise = getState().restModalState?.skipCurrentExerciseOnFinish == true
+        val skipExerciseId = getState().restModalState?.skipExerciseIdOnFinish ?: getState().restModalState?.exerciseId
         restTimer.clearActiveTimerId()
         restTimer.clearReferences()
         when {
@@ -426,8 +460,8 @@ class WorkoutRestTimerOrchestrator(
                         continuityTransitionTarget = null,
                     )
                 }
-                val exercise = ports.visibleExercises(getState()).getOrNull(currentExIdx)
-                if (exercise != null) ports.skipExercise(exercise.id) else ports.openFinishSheet()
+                val exercise = skipExerciseId?.let { id -> ports.visibleExercises(getState()).firstOrNull { it.id == id } }
+                if (exercise != null) ports.skipExercise(exercise.id)
                 ports.persistOngoingState()
             }
             pending >= 0 -> {
@@ -467,8 +501,6 @@ class WorkoutRestTimerOrchestrator(
                         )
                     }
                     ports.persistOngoingState()
-                } else {
-                    ports.openFinishSheet()
                 }
             }
             !skipExercise && ports.nextIncompleteStepAfter(getState(), includeCurrent = true) == null -> {
@@ -489,8 +521,10 @@ class WorkoutRestTimerOrchestrator(
         restTimer.zeroRemaining()
     }
 
-    private suspend fun handleNaturalFinish(advanceOnFinish: Boolean) {
+    private fun handleNaturalFinish(advanceOnFinish: Boolean, announce: Boolean = true) {
         if (!getState().isRestTimerRunning) return
+        val now = System.currentTimeMillis()
+        updateState { state -> state.copy(restModalState = state.restModalState?.let { restTimer.projectWallDeadline(it, now) }) }
         val stateBeforeFinish = getState()
         val exercise = ports.visibleExercises(stateBeforeFinish).getOrNull(stateBeforeFinish.currentExerciseIdx)
         // Si hay un sheet de feedback post-ejercicio pendiente (última serie ya
@@ -500,7 +534,7 @@ class WorkoutRestTimerOrchestrator(
         val feedbackPending = stateBeforeFinish.pendingPostExerciseIdx >= 0 ||
             stateBeforeFinish.showPostExerciseSheet ||
             stateBeforeFinish.showFinishSheet
-        if (!feedbackPending) {
+        if (announce && !feedbackPending) {
             stateBeforeFinish.restModalState?.exerciseName?.let { nextExerciseName ->
                 if (exercise != null) {
                     voiceController.onRestTimerFinishedWithStep(
@@ -521,10 +555,12 @@ class WorkoutRestTimerOrchestrator(
         restTimer.clearReferences()
         restTimer.zeroRemaining()
         if (advanceOnFinish) {
+            updateState { it.copy(isRestTimerRunning = false, restModalState = null, pendingRestSuggestion = null) }
             ports.nextSet(stopRest = false)
         } else {
             val shouldSkipCurrentExercise = getState().restModalState?.skipCurrentExerciseOnFinish == true
             if (shouldSkipCurrentExercise) {
+                val skipExerciseId = getState().restModalState?.skipExerciseIdOnFinish ?: getState().restModalState?.exerciseId
                 updateState {
                     it.copy(
                         isRestTimerRunning = false,
@@ -533,7 +569,7 @@ class WorkoutRestTimerOrchestrator(
                     )
                 }
                 val stateAfterClear = getState()
-                val currentExercise = ports.visibleExercises(stateAfterClear).getOrNull(stateAfterClear.currentExerciseIdx)
+                val currentExercise = skipExerciseId?.let { id -> ports.visibleExercises(stateAfterClear).firstOrNull { it.id == id } }
                 if (currentExercise != null) {
                     ports.skipExercise(currentExercise.id)
                 } else {
@@ -542,7 +578,11 @@ class WorkoutRestTimerOrchestrator(
             } else {
                 val currentAfterRest = getState()
                 val pending = currentAfterRest.pendingPostExerciseIdx
-                if (pending == -1 && ports.nextIncompleteStepAfter(currentAfterRest, includeCurrent = true) == null) {
+                if (pending == -1 && (
+                    currentAfterRest.restModalState?.continuation == WorkoutRestContinuation.FINISH_SESSION ||
+                        ports.nextIncompleteStepAfter(currentAfterRest, includeCurrent = true) == null
+                    )
+                ) {
                     finishFinalSessionAfterRest(currentAfterRest.currentExerciseIdx)
                     return
                 }

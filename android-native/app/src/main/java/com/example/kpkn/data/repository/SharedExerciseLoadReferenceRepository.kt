@@ -7,31 +7,57 @@ import com.example.kpkn.data.models.ComparableCapacityObservation
 import com.example.kpkn.data.models.SharedExerciseLoadReference
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import java.util.concurrent.ConcurrentHashMap
 
 /** Cross-program load references. Every lookup uses the complete stable identity. */
 class SharedExerciseLoadReferenceRepository private constructor(context: Context) {
     private val db = KpknDatabase.getInstance(context.applicationContext)
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
+    private val pendingWriteJobs = ConcurrentHashMap.newKeySet<Job>()
     private val _references = MutableStateFlow<List<SharedExerciseLoadReference>>(emptyList())
     val references: StateFlow<List<SharedExerciseLoadReference>> = _references.asStateFlow()
 
-    init { scope.launch { refresh() } }
+    private val initialLoadJob: Job = scope.launch { refresh() }
+
+    suspend fun awaitPendingWrites() {
+        initialLoadJob.join()
+        while (true) {
+            val pending = pendingWriteJobs.toList()
+            if (pending.isEmpty()) return
+            pending.joinAll()
+        }
+    }
 
     suspend fun refresh() {
         val persisted = db.sharedExerciseLoadReferenceDao().getAll().mapNotNull(::decode)
         synchronized(referenceWriteLock) {
             val localWrites = _references.value.filter { writeVersions.containsKey(it.id) }
             _references.value = (persisted + localWrites).distinctBy { it.id }
+        }
+    }
+
+    suspend fun resetFromStorage() = withContext(Dispatchers.IO) {
+        awaitPendingWrites()
+        daoWriteMutex.withLock {
+            val persisted = db.sharedExerciseLoadReferenceDao().getAll().mapNotNull(::decode)
+            synchronized(referenceWriteLock) {
+                writeVersions.clear()
+                _references.value = persisted
+            }
         }
     }
 
@@ -128,16 +154,24 @@ class SharedExerciseLoadReferenceRepository private constructor(context: Context
             writeVersions[reference.id] = next
             next
         }
-        scope.launch {
+        val job = scope.launch {
             daoWriteMutex.lock()
             try {
-                if (writeVersions[reference.id] == version) {
+                val isCurrent = synchronized(referenceWriteLock) { writeVersions[reference.id] == version }
+                if (isCurrent) {
                     db.sharedExerciseLoadReferenceDao().upsert(reference.toEntity())
+                    synchronized(referenceWriteLock) {
+                        if (writeVersions[reference.id] == version) {
+                            writeVersions.remove(reference.id)
+                        }
+                    }
                 }
             } finally {
                 daoWriteMutex.unlock()
             }
         }
+        pendingWriteJobs += job
+        job.invokeOnCompletion { pendingWriteJobs -= job }
     }
 
     private fun SharedExerciseLoadReference.toEntity() = SharedExerciseLoadReferenceEntity(
@@ -168,5 +202,11 @@ class SharedExerciseLoadReferenceRepository private constructor(context: Context
             ?: synchronized(this) {
                 instance ?: SharedExerciseLoadReferenceRepository(context).also { instance = it }
             }
+
+        internal fun closeInstance() {
+            synchronized(this) {
+                instance = null
+            }
+        }
     }
 }

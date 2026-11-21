@@ -4,6 +4,15 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.Paint
 import android.net.Uri
+import android.media.ExifInterface
+import com.example.kpkn.data.importer.ImportFileException
+import com.example.kpkn.data.importer.ImportLimits
+import com.example.kpkn.data.importer.ImportSourceMediaStore
+import com.example.kpkn.domain.training.importer.ImportDocumentType
+import java.io.InputStream
+import kotlinx.coroutines.CancellationException
+import org.junit.Assert.assertThrows
+import org.robolectric.Shadows
 import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.importer.ImportKind
 import com.example.kpkn.data.importer.importKindOf
@@ -58,6 +67,81 @@ class OcrImportSourceTest {
 
     private val context: Context = ApplicationProvider.getApplicationContext()
     private val resolver get() = context.contentResolver
+
+    @Test
+    fun `PDF fallback limits the copy and deletes the temporary file`() {
+        val uri = Uri.parse("content://test.import/large-pdf")
+        val source = ByteArrayInputStream(pdfOfSize((ImportLimits.MAX_PDF_BYTES + 1).toInt()))
+        Shadows.shadowOf(resolver).registerInputStream(uri, source)
+        val cache = context.cacheDir.resolve("pdf-fallback").apply { mkdirs() }
+        val error = assertThrows(ImportFileException::class.java) {
+            runBlocking { PdfRendererPages.open(resolver, uri, cache) }
+        }
+        assertEquals(OcrImportSource.PDF_TOO_LARGE_MESSAGE, error.message)
+        assertTrue(cache.listFiles().orEmpty().isEmpty())
+    }
+
+    @Test
+    fun `cancelled evidence retention propagates and cleans partial copies`() {
+        val uri = Uri.parse("content://test.import/cancel-copy")
+        val source = object : InputStream() {
+            private var started = false
+            override fun read(): Int = throw UnsupportedOperationException()
+            override fun read(buffer: ByteArray, offset: Int, length: Int): Int {
+                if (started) throw CancellationException("Cancelled during copy")
+                started = true
+                buffer[offset] = 1
+                return 1
+            }
+        }
+        Shadows.shadowOf(resolver).registerInputStream(uri, source)
+        val files = context.filesDir.resolve("retention-test")
+        val store = ImportSourceMediaStore(files)
+        assertThrows(CancellationException::class.java) {
+            runBlocking { store.retain(resolver, uri, ImportDocumentType.PDF) }
+        }
+        assertTrue(files.resolve("import-source-evidence").listFiles().orEmpty().isEmpty())
+    }
+
+    @Test
+    fun `corrupt EXIF falls back to original orientation and releases the decoded bitmap`() {
+        val decoded = Bitmap.createBitmap(64, 32, Bitmap.Config.ARGB_8888)
+        val scaled = OcrImportSource.orientAndScale(decoded, 32) {
+            ExifInterface(ByteArrayInputStream(byteArrayOf(0)))
+        }
+        try {
+            assertEquals(32, scaled.width)
+            assertEquals(16, scaled.height)
+            assertTrue(decoded.isRecycled)
+        } finally {
+            scaled.recycle()
+        }
+    }
+
+    @Test
+    fun `orientAndScale preserves positive axes when scaling thin bitmaps rotated 90 degrees`() {
+        val temp = File(context.cacheDir, "exif-rot90.jpg")
+        val tiny = Bitmap.createBitmap(2, 2, Bitmap.Config.ARGB_8888)
+        temp.outputStream().use { out -> tiny.compress(Bitmap.CompressFormat.JPEG, 90, out) }
+        tiny.recycle()
+        ExifInterface(temp.absolutePath).apply {
+            setAttribute(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_ROTATE_90.toString())
+            saveAttributes()
+        }
+        val decoded = Bitmap.createBitmap(4_000, 1, Bitmap.Config.ARGB_8888)
+        val scaled = try {
+            OcrImportSource.orientAndScale(decoded, 2_000) { ExifInterface(temp.absolutePath) }
+        } finally {
+            temp.delete()
+        }
+        try {
+            assertEquals(1, scaled.width)
+            assertEquals(2_000, scaled.height)
+            assertTrue(decoded.isRecycled)
+        } finally {
+            scaled.recycle()
+        }
+    }
 
     private fun word(text: String, left: Int, top: Int, confidence: Float? = null) =
         OcrWord(text, left, top, left + text.length * 20, top + 30, confidence)

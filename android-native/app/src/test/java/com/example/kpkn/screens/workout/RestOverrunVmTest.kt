@@ -23,6 +23,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.shadows.ShadowSystemClock
+import java.time.Duration
 
 /**
  * El descanso con los RINGS y «Descanso cumplido» (LV6) contra el ViewModel REAL de una sesión (Room en memoria y el controlador del
@@ -65,9 +67,9 @@ class RestOverrunVmTest {
         return fx.open()
     }
 
-    /** Deja que el descanso de [seconds] segundos llegue a 0 por su cuenta: el reloj del controlador mira el reloj real. */
+    /** El descanso usa el reloj monótono de Android además del scheduler de corrutinas. */
     private fun letTheRestEndOnItsOwn(seconds: Int) {
-        Thread.sleep(seconds * 1000L + 400L)
+        ShadowSystemClock.advanceBy(Duration.ofMillis(seconds * 1_000L + 400L))
         dispatcher.scheduler.advanceTimeBy(1_500L)
         dispatcher.scheduler.runCurrent()
     }

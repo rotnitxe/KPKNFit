@@ -211,7 +211,7 @@ internal fun LiveEffortRange(
                 }
             }
             // Pista: top 17, 10 dp, blanco al 5 %.
-            Box(Modifier.align(Alignment.TopStart).offset(y = 17.dp).fillMaxWidth().height(10.dp).clip(RoundedCornerShape(6.dp))
+            Box(Modifier.align(Alignment.TopStart).offset(y = 17.dp).fillMaxWidth().height(10.dp).testTag("live-effort-track").clip(RoundedCornerShape(6.dp))
                 .background(Color(0x0CFFFFFF)))
             // El tramo hecho (hasta el centro del pulgar): crema y, con calor, degradado crema, tono medio y extremo caliente con su resplandor
             // (`fill.style.background` y `fill.style.boxShadow` del lienzo). pulido:lv-J08 lv-J09 lv-J10

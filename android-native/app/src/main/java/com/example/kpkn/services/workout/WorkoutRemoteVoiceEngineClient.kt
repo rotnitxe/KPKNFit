@@ -289,11 +289,9 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
         if (!activeRequested || failedTerminal) return false
         val requestedGeneration = generation
         val endpoint = remote ?: return false
-        val paused = withContext(Dispatchers.IO) {
-            if (!ownsCapture(requestedGeneration, endpoint)) return@withContext false
-            runCatching { endpoint.pause(requestedGeneration, releaseMic) }
-                .onFailure { if (ownsCapture(requestedGeneration, endpoint)) handleBinderDeath() }
-                .getOrDefault(false)
+        val paused = boundedBinderCall(timeoutMs) {
+            if (!ownsCapture(requestedGeneration, endpoint)) false
+            else runCatching { endpoint.pause(requestedGeneration, releaseMic) }.getOrDefault(false)
         }
         // An ACK for an old capture cannot confirm a replacement, including while returning to Main.
         return paused && ownsCapture(requestedGeneration, endpoint)
@@ -322,21 +320,24 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
         stopUnconfirmed = false
         generation = generationCounter.incrementAndGet()
         unbind()
+        WorkoutVoiceForegroundService.stop(appContext)
         publishStopped()
     }
 
     override fun stop() {
-        // A bind alone never owns capture: sendStart is the only place that dispatches it.
-        if (!captureDispatched) { finishConfirmedStop(); return }
-        val previous = generation
+        // Do not block the UI on a remote Binder. Invalidate the intent immediately.
+        val requestedGeneration = generation
         val endpoint = remote
         activeRequested = false
+        if (!captureDispatched) { finishConfirmedStop(); return }
         stopUnconfirmed = true
-        val stopped = runCatching { endpoint?.stop(previous) == true }.getOrDefault(false)
-        if (stopped) finishConfirmedStop() else {
-            // Keep uncertainty, but discard a rejected/dead endpoint so retry can bind and register afresh.
-            unbind()
-            publishStopped()
+        unbind()
+        publishStopped()
+        clientScope.launch {
+            val stopped = if (endpoint != null) boundedBinderCall(1_500L) {
+                runCatching { endpoint.stop(requestedGeneration) }.getOrDefault(false)
+            } else false
+            if (generation == requestedGeneration && !activeRequested && stopped) finishConfirmedStop()
         }
     }
 
@@ -346,11 +347,13 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
         activeRequested = false
         stopUnconfirmed = true
         // Reconnect for STOP only: onServiceConnected registers the generation but activeRequested=false forbids START.
+        val startedAt = SystemClock.elapsedRealtime()
         val endpoint = remote ?: awaitStopEndpoint(timeoutMs)
         fun confirmedIdle() = !activeRequested && !binding && remote == null && !captureDispatched && !stopUnconfirmed
         if (generation != previous || activeRequested) return confirmedIdle()
         if (endpoint == null) return false
-        val stopped = withContext(Dispatchers.IO) {
+        val remainingMs = (timeoutMs - (SystemClock.elapsedRealtime() - startedAt)).coerceAtLeast(0L)
+        val stopped = boundedBinderCall(remainingMs) {
             runCatching { endpoint.stop(previous) }.getOrDefault(false)
         }
         // A newer start/stop may have run while IPC suspended. Never unbind a replacement capture.
@@ -360,6 +363,16 @@ internal class WorkoutRemoteVoiceEngineClient(context: Context) : WorkoutVoiceEn
             publishStopped()
         }
         return stopped
+    }
+
+    /** Binder calls cannot be interrupted: wait separately so a stalled remote never blocks Main. */
+    private suspend fun boundedBinderCall(timeoutMs: Long, call: () -> Boolean): Boolean {
+        if (timeoutMs <= 0L) return false
+        val result = CompletableDeferred<Boolean>()
+        clientScope.launch(Dispatchers.IO) {
+            result.complete(runCatching { call() }.getOrDefault(false))
+        }
+        return withTimeoutOrNull(timeoutMs) { result.await() } ?: false
     }
 
     private suspend fun awaitStopEndpoint(timeoutMs: Long): IWorkoutVoiceEngineService? {

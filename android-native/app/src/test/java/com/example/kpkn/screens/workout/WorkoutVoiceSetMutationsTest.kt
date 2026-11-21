@@ -231,6 +231,51 @@ class WorkoutVoiceSetMutationsTest {
     }
 
     @Test
+    fun completedSetPatchWithRirKindUpdatesRirOrMarksFailureOnNegativeSentinel() {
+        val base = loadSet(weight = 80.0, reps = 8)
+
+        val withRir = applyCompletedSetPatch(
+            base,
+            CompletedSetPatch(
+                edit = VoiceSetEditPatch(
+                    weightKg = 82.5,
+                    metricValue = 7,
+                    intensityValue = 2.0,
+                    intensityKind = WorkoutVoiceIntensityKind.RIR,
+                ),
+                reachedFailure = false,
+                allowNonRepMetric = true,
+            ),
+        )
+        assertEquals(82.5, withRir.weight, 0.0)
+        assertEquals(7, withRir.reps)
+        assertEquals(2, withRir.rir)
+        assertNull(withRir.rpe)
+        assertEquals(IntensityMode.RIR, withRir.actualIntensityMode)
+        assertEquals(2.0, withRir.actualIntensityValue!!, 0.0)
+        assertFalse(withRir.isFailure)
+
+        val withFailure = applyCompletedSetPatch(
+            withRir,
+            CompletedSetPatch(
+                edit = VoiceSetEditPatch(
+                    weightKg = 82.5,
+                    metricValue = 7,
+                    intensityValue = null,
+                    intensityKind = null,
+                ),
+                reachedFailure = true,
+                allowNonRepMetric = true,
+            ),
+        )
+        assertTrue(withFailure.isFailure)
+        assertEquals(IntensityMode.FAILURE, withFailure.actualIntensityMode)
+        assertNull(withFailure.actualIntensityValue)
+        assertNull(withFailure.rir)
+        assertNull(withFailure.rpe)
+    }
+
+    @Test
     fun loadLinkedFieldsOfTheHomologatedResultAndOutcomeFollowTheEdit() {
         val base = loadSet(weight = 20.0, reps = 6).copy(
             homologatedResultV3 = homologated(load = 20.0, reps = 6),

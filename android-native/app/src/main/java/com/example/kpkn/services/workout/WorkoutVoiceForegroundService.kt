@@ -17,6 +17,7 @@ import com.example.kpkn.data.models.VoiceCaptureMode
 import com.example.kpkn.data.models.VoiceNoiseProfile
 import com.example.kpkn.navigation.KpknDeepLinks
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CoroutineStart
@@ -33,34 +34,38 @@ class WorkoutVoiceForegroundService : Service() {
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
     private lateinit var engine: WorkoutContinuousVoiceEngine
-    private var callback: IWorkoutVoiceEngineCallback? = null
-    private var callbackBinder: IBinder? = null
-    private var callbackDeathRecipient: IBinder.DeathRecipient? = null
-    private var clientGeneration = 0L
+    private val callbackLock = Any()
+    private val wakeLockMutex = Any()
+    @Volatile private var callback: IWorkoutVoiceEngineCallback? = null
+    @Volatile private var callbackBinder: IBinder? = null
+    @Volatile private var callbackDeathRecipient: IBinder.DeathRecipient? = null
+    @Volatile private var clientGeneration = 0L
     private val promptCounter = AtomicLong(0L)
     private val pendingPrompts = ConcurrentHashMap<Long, PromptSpeakRequest>()
-    private var collectorsStarted = false
-    private var wakeLock: PowerManager.WakeLock? = null
-    private var stopping = false
+    private val collectorsStarted = AtomicBoolean(false)
+    @Volatile private var wakeLock: PowerManager.WakeLock? = null
+    private val stopping = AtomicBoolean(false)
     /** True while the UI client has an active voice session, even during a mic pause/reconnect. */
-    private var sessionRequested = false
+    @Volatile private var sessionRequested = false
 
     private val binder = object : IWorkoutVoiceEngineService.Stub() {
         override fun registerCallback(cb: IWorkoutVoiceEngineCallback?, generation: Long) {
-            unlinkCallbackDeathRecipient()
-            callback = cb
-            cb?.asBinder()?.let { registeredBinder ->
-                val deathRecipient = IBinder.DeathRecipient {
-                    serviceScope.launch {
-                        onCallbackBinderDied(registeredBinder, "system_death_recipient")
+            synchronized(callbackLock) {
+                unlinkCallbackDeathRecipient()
+                callback = cb
+                cb?.asBinder()?.let { registeredBinder ->
+                    val deathRecipient = IBinder.DeathRecipient {
+                        serviceScope.launch {
+                            onCallbackBinderDied(registeredBinder, "system_death_recipient")
+                        }
                     }
+                    callbackBinder = registeredBinder
+                    callbackDeathRecipient = deathRecipient
+                    runCatching { registeredBinder.linkToDeath(deathRecipient, 0) }
+                        .onFailure { onCallbackBinderDied(registeredBinder, "callback_link_failure") }
                 }
-                callbackBinder = registeredBinder
-                callbackDeathRecipient = deathRecipient
-                runCatching { registeredBinder.linkToDeath(deathRecipient, 0) }
-                    .onFailure { onCallbackBinderDied(registeredBinder, "callback_link_failure") }
+                clientGeneration = generation
             }
-            clientGeneration = generation
             startCollectorsOnce()
             publishSnapshot(generation)
         }
@@ -110,9 +115,9 @@ class WorkoutVoiceForegroundService : Service() {
 
         override fun pause(generation: Long, releaseMic: Boolean): Boolean {
             if (generation != clientGeneration) return false
-            engine.pause(releaseMic)
-            if (releaseMic) releaseWakeLock()
-            return true
+            val paused = kotlinx.coroutines.runBlocking { engine.pauseAndAwait(releaseMic, 1_500L) }
+            if (paused && generation == clientGeneration && releaseMic) releaseWakeLock()
+            return paused && generation == clientGeneration
         }
 
         override fun resume(generation: Long, delayMs: Long) {
@@ -136,8 +141,9 @@ class WorkoutVoiceForegroundService : Service() {
                 mapOf("origin" to "binder_stop") +
                     WorkoutVoiceDiagnosticLogger.runtimeStateFields(this@WorkoutVoiceForegroundService),
             )
-            engine.stop()
-            return true
+            val stopped = kotlinx.coroutines.runBlocking { engine.stopAndAwait(1_500L) }
+            if (stopped && generation == clientGeneration) releaseWakeLock()
+            return stopped && generation == clientGeneration
         }
 
         override fun requestNativeFallback(generation: Long, transcript: String?): Boolean =
@@ -164,6 +170,13 @@ class WorkoutVoiceForegroundService : Service() {
     }
 
     override fun onBind(intent: Intent?): IBinder = binder
+
+    override fun onUnbind(intent: Intent?): Boolean {
+        if (!sessionRequested && !engine.isActive) {
+            stopCaptureAndSelf(reason = "client_unbound", origin = "on_unbind")
+        }
+        return super.onUnbind(intent)
+    }
 
     @Suppress("DEPRECATION")
     override fun onTrimMemory(level: Int) {
@@ -203,8 +216,7 @@ class WorkoutVoiceForegroundService : Service() {
     }
 
     private fun startCollectorsOnce() {
-        if (collectorsStarted) return
-        collectorsStarted = true
+        if (!collectorsStarted.compareAndSet(false, true)) return
         serviceScope.launch(start = CoroutineStart.UNDISPATCHED) { engine.partialResults.collect { send { onPartial(clientGeneration, it) } } }
         serviceScope.launch(start = CoroutineStart.UNDISPATCHED) {
             engine.finalResults.collect { hypotheses ->
@@ -267,7 +279,7 @@ class WorkoutVoiceForegroundService : Service() {
             .onFailure { onCallbackBinderDied(target.asBinder(), "send_failure") }
     }
 
-    private fun unlinkCallbackDeathRecipient() {
+    private fun unlinkCallbackDeathRecipient() = synchronized(callbackLock) {
         val binder = callbackBinder
         val deathRecipient = callbackDeathRecipient
         if (binder != null && deathRecipient != null) {
@@ -277,9 +289,11 @@ class WorkoutVoiceForegroundService : Service() {
         callbackDeathRecipient = null
     }
     private fun onCallbackBinderDied(deadBinder: IBinder, origin: String) {
-        if (callbackBinder !== deadBinder) return
-        callback = null
-        unlinkCallbackDeathRecipient()
+        synchronized(callbackLock) {
+            if (callbackBinder !== deadBinder) return
+            callback = null
+            unlinkCallbackDeathRecipient()
+        }
         WorkoutVoiceDiagnosticLogger.event(
             "voice_callback_died",
             WorkoutVoiceDiagnosticLogger.runtimeStateFields(this) +
@@ -291,8 +305,7 @@ class WorkoutVoiceForegroundService : Service() {
         reason: String = "voice_process_stopped",
         origin: String = "self_destroy",
     ) {
-        if (stopping) return
-        stopping = true
+        if (!stopping.compareAndSet(false, true)) return
         sessionRequested = false
         WorkoutVoiceDiagnosticLogger.event(
             "voice_stop_requested",
@@ -305,8 +318,10 @@ class WorkoutVoiceForegroundService : Service() {
             // send() ya retorna si callback == null (p. ej. binder muerto que
             // disparó esta parada): nunca se envía a un binder caído.
             send { onStopped(clientGeneration, true) }
-            callback = null
-            unlinkCallbackDeathRecipient()
+            synchronized(callbackLock) {
+                callback = null
+                unlinkCallbackDeathRecipient()
+            }
             pendingPrompts.values.forEach(PromptSpeakRequest::complete)
             pendingPrompts.clear()
             releaseWakeLock()
@@ -364,7 +379,7 @@ class WorkoutVoiceForegroundService : Service() {
         }
     }
 
-    private fun acquireWakeLock() {
+    private fun acquireWakeLock() = synchronized(wakeLockMutex) {
         if (wakeLock?.isHeld == true) return
         val powerManager = getSystemService(Context.POWER_SERVICE) as? PowerManager ?: return
         wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "kpkn:workout_voice").apply {
@@ -373,7 +388,7 @@ class WorkoutVoiceForegroundService : Service() {
         }
     }
 
-    private fun releaseWakeLock() {
+    private fun releaseWakeLock() = synchronized(wakeLockMutex) {
         runCatching { if (wakeLock?.isHeld == true) wakeLock?.release() }
         wakeLock = null
     }

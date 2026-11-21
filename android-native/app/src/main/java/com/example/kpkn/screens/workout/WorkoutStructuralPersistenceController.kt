@@ -846,9 +846,11 @@ class WorkoutStructuralPersistenceController(
                 currentSetIdx = parsed?.setIdx ?: resolvedSetIdx, editingState = null)
         }
         val candidate = candidateTransform(transform(state))
-        if (!ports.commitStructuralState(state, candidate)) updateState { candidateTransform(transform(it)) }
-        ports.refreshLoadSuggestions(getState())
-        ports.persistOngoingState()
+        if (!ports.commitStructuralState(state, candidate)) {
+            updateState { candidateTransform(transform(it)) }
+            ports.refreshLoadSuggestions(getState())
+            ports.persistOngoingState()
+        }
     }
 
     fun persistSessionToProgram(updatedSession: Session) {

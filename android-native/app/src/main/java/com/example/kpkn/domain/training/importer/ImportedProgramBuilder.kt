@@ -49,6 +49,16 @@ object ImportedProgramBuilder {
         .map { it.lowercase() }
         .toSet()
 
+    private fun identifiedWeeks(draft: ImportedProgramDraft, programId: String): List<Pair<ImportedWeek, String>> {
+        val occurrences = mutableMapOf<Int, Int>()
+        return draft.weeks.sortedBy { it.index }.map { week ->
+            val count = occurrences.getOrDefault(week.index, 0) + 1
+            occurrences[week.index] = count
+            val baseId = "$programId-w${week.index}"
+            week to if (count == 1) baseId else "$baseId-copy$count"
+        }
+    }
+
     /** Maps each stable source row/day to the IDs produced by [build], including grouped prescriptions. */
     fun sourceMap(
         draft: ImportedProgramDraft,
@@ -58,9 +68,9 @@ object ImportedProgramBuilder {
         val normalized = ImportDraftEditor.withIds(draft)
         val sessions = linkedMapOf<String, String>()
         val exercises = linkedMapOf<String, String>()
-        normalized.weeks.sortedBy { it.index }.forEach { week ->
+        identifiedWeeks(normalized, programId).forEach { (week, weekId) ->
             week.days.forEachIndexed { dayIndex, day ->
-                val sessionId = "${programId}-w${week.index}-d${dayIndex + 1}"
+                val sessionId = "$weekId-d${dayIndex + 1}"
                 sessions[day.id] = sessionId
                 groupConsecutive(day.exercises, resolved).forEachIndexed { exerciseIndex, members ->
                     val programExerciseId = "$sessionId-e${exerciseIndex + 1}"
@@ -134,20 +144,19 @@ object ImportedProgramBuilder {
         val customIndex = customExercises.filter { it.isCustom && it.id.startsWith("custom:", ignoreCase = true) }
             .associateBy { it.id.lowercase() }
         val alternatives = catalog?.let { alternativeNotes(draft, resolved, it) }.orEmpty()
-        val weeks = draft.weeks.sortedBy { it.index }.map { week ->
+        val weeks = identifiedWeeks(draft, programId).map { (week, weekId) ->
             val weekdayPerSession = assignWeekdays(week.days.count { !it.isRestDay }, trainingDays)
             var trainingSessionIndex = 0
             val fallbackWeekdays = week.days.map { day ->
                 if (day.isRestDay) null else weekdayPerSession[trainingSessionIndex++]
             }
             ProgramWeek(
-                id = "$programId-w${week.index}",
+                id = weekId,
                 name = "Semana ${week.index}",
                 executionKind = week.executionKind,
                 sessions = week.days.mapIndexed { dayIndex, day ->
                     buildSession(
-                        programId = programId,
-                        weekIndex = week.index,
+                        weekId = weekId,
                         dayIndex = dayIndex,
                         day = day,
                         weekday = day.dayOfWeek?.takeIf { it in 1..7 } ?: fallbackWeekdays[dayIndex],
@@ -208,8 +217,7 @@ object ImportedProgramBuilder {
     }
 
     private fun buildSession(
-        programId: String,
-        weekIndex: Int,
+        weekId: String,
         dayIndex: Int,
         day: ImportedDay,
         weekday: Int?,
@@ -221,7 +229,7 @@ object ImportedProgramBuilder {
         customExercises: Map<String, ExerciseMuscleInfo>,
         catalogConfigurationInfo: Map<String, ExerciseMuscleInfo>,
     ): Session {
-        val sessionId = "$programId-w$weekIndex-d${dayIndex + 1}"
+        val sessionId = "$weekId-d${dayIndex + 1}"
         val exerciseGroups = groupConsecutive(day.exercises, resolved)
         val builtExercises = exerciseGroups.mapIndexed { exerciseIndex, members ->
             buildExercise(
@@ -339,15 +347,16 @@ object ImportedProgramBuilder {
     private fun setsOf(exercise: ImportedExercise, loadUnit: ImportLoadUnit): List<ExerciseSet> {
         val low = exercise.repsMin.coerceAtLeast(1)
         val high = exercise.repsMax.coerceAtLeast(low)
-        val percent = exercise.percent1Rm
+        val percent = exercise.percent1Rm?.takeIf { it.isFinite() }
+        val rpe = exercise.rpe?.takeIf { it.isFinite() }
+        val weight = exercise.loadKg?.takeIf { it.isFinite() }?.let { kilograms(it, loadUnit) }
         val intensity = when {
-            exercise.rpe != null -> IntensityMode.RPE
+            rpe != null -> IntensityMode.RPE
             exercise.rir != null -> IntensityMode.RIR
             percent != null -> IntensityMode.SOLO_RM
-            exercise.loadKg != null -> IntensityMode.LOAD
+            weight != null -> IntensityMode.LOAD
             else -> null
         }
-        val weight = exercise.loadKg?.let { kilograms(it, loadUnit) }
         return List(exercise.sets.coerceAtLeast(0)) { index ->
             val purpose = if (exercise.purpose.isAmrap &&
                 (index == exercise.sets - 1 || exercise.amrapMinimumReps == null)) exercise.purpose
@@ -359,7 +368,7 @@ object ImportedProgramBuilder {
                 targetDuration = exercise.durationSeconds,
                 purpose = purpose,
                 amrapMinimumReps = if (purpose.isAmrap) exercise.amrapMinimumReps else null,
-                targetRPE = exercise.rpe,
+                targetRPE = rpe,
                 targetRIR = exercise.rir,
                 intensityMode = intensity,
                 targetPercentageRM = percent,
@@ -372,7 +381,7 @@ object ImportedProgramBuilder {
 
     /** Carga en kilos: con libras, al 0,5 kg más cercano (135 lb → 61 kg). */
     internal fun kilograms(value: Double, unit: ImportLoadUnit): Double =
-        if (unit == ImportLoadUnit.LB) (value * LB_TO_KG * 2).roundToInt() / 2.0 else value
+        if (value.isFinite() && unit == ImportLoadUnit.LB) (value * LB_TO_KG * 2).roundToInt() / 2.0 else value
 
     /** Agrupa los ejercicios seguidos con el mismo nombre; si el nombre vuelve más abajo, separado por otro, es otro grupo. */
     internal fun groupConsecutive(exercises: List<ImportedExercise>, resolved: Map<String, String?> = emptyMap()): List<List<ImportedExercise>> {
@@ -380,6 +389,7 @@ object ImportedProgramBuilder {
         for (exercise in exercises) {
             val last = groups.lastOrNull()
             if (last != null && last.first().rawName == exercise.rawName &&
+                last.first().supersetGroup == exercise.supersetGroup &&
                 (last.first().durationSeconds != null) == (exercise.durationSeconds != null) &&
                 (last.first().catalogSelectionId ?: resolved[last.first().rawName]) ==
                     (exercise.catalogSelectionId ?: resolved[exercise.rawName])) {

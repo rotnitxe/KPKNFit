@@ -186,7 +186,7 @@ class ProgramUrlReaderTest {
     }
 
     @Test
-    fun `read follows a redirect and parses the fetched page`() = runTest {
+    fun `read follows a redirect with unescaped spaces and parses the fetched page`() = runTest {
         val validated = mutableListOf<URI>()
         val opened = mutableListOf<URI>()
         val html = """
@@ -198,10 +198,10 @@ class ProgramUrlReaderTest {
             FakeHttpConnection(
                 url = URL("https://training.example/inicio"),
                 status = 302,
-                headers = mapOf("Location" to "/programa"),
+                headers = mapOf("Location" to " /mi programa "),
             ),
             FakeHttpConnection(
-                url = URL("https://training.example/programa"),
+                url = URL("https://training.example/mi%20programa"),
                 status = 200,
                 body = html,
                 contentType = "text/html; charset=utf-8",
@@ -215,10 +215,10 @@ class ProgramUrlReaderTest {
         )
         val draft = ProgramImportParser.parseSheets(document.sheets, document.title)
 
-        assertEquals(listOf("/inicio", "/programa"), validated.map { it.path })
-        assertEquals(listOf("/inicio", "/programa"), opened.map { it.path })
+        assertEquals(listOf("/inicio", "/mi programa"), validated.map { it.path })
+        assertEquals(listOf("/inicio", "/mi programa"), opened.map { it.path })
         assertEquals("Plan de fuerza", document.title)
-        assertEquals("https://training.example/programa", document.sourceUrl)
+        assertEquals("https://training.example/mi%20programa", document.sourceUrl)
         assertEquals("Press banca", draft.weeks.single().days.single().exercises.single().rawName)
         assertEquals(3, draft.weeks.single().days.single().exercises.single().sets)
     }

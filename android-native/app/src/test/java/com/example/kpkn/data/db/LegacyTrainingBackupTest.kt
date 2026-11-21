@@ -27,4 +27,24 @@ class LegacyTrainingBackupTest {
     @Test(expected=IllegalArgumentException::class) fun `conflicting identities abort instead of losing originals`() {
         LegacyTrainingBackup.normalize("""{"schemaVersion":6,"sleepLogs":[{"id":"same","date":"2026-10-01","duration":7},{"id":"same","date":"2026-10-01","duration":8}]}""")
     }
+
+    @Test fun `schema v8 and v9 export and normalize accept null optional containers`() {
+        for (version in listOf(8, BackupTableManifest.JSON_BACKUP_SCHEMA_VERSION)) {
+            val raw = """{
+                "schemaVersion":$version,
+                "exportedAt":"2026-11-19T12:00:00",
+                "settings":{"name":"Usuario"},
+                "programs":[{"id":"p1","name":"Rutina"}],
+                "workoutLogs":[{"id":"l1","completedExercises":[{"id":"sq","sets":[{"reps":5,"weight":100.0}]}]}],
+                "ongoingWorkout":null,
+                "customExercises":null,
+                "setupDrafts":[{"draftId":"setup-1","updatedAtEpochMs":1,"payloadJson":"{\"stepProgress\":null,\"wizChat\":null}"}]
+            }"""
+            val exported = LegacyTrainingBackup.export(raw)
+            val normalized = LegacyTrainingBackup.normalize(exported)
+            val root = Json.parseToJsonElement(normalized).jsonObject
+            assertEquals(version, root.getValue("schemaVersion").jsonPrimitive.int)
+            assertEquals(JsonNull, root["ongoingWorkout"])
+        }
+    }
 }

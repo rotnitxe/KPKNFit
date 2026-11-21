@@ -93,7 +93,8 @@ object SetupDraftCompatibility {
                         it.source == WizChatAnswerSource.SUGGESTED_ACCEPTED) &&
                     it.numberValue?.isFinite() == true
             }
-            .associate { it.questionId to it.numberValue!! }
+            .mapNotNull { answer -> answer.numberValue?.let { answer.questionId to it } }
+            .toMap()
 
     fun pendingMandatoryVitals(draft: SetupWizardDraft): List<WizChatQuestionId> =
         if (!collectsProfileVitals(draft.draftScope)) emptyList()

@@ -143,6 +143,9 @@ private fun medalOf(record: CompetitionRecord): StoryMedal? {
 private fun placeText(record: CompetitionRecord): String? =
     record.placement?.trim()?.toIntOrNull()?.takeIf { it >= 1 }?.let { "${thousands(it.toLong())}.º puesto" }
 
+private fun resultSummaryForStory(record: CompetitionRecord, options: CompetitionStoryOptions): String =
+    record.resultSummary.orEmpty().takeIf { options.medal || medalOf(record) == null }.orEmpty()
+
 private fun liftName(block: CompetitionTechnicalBlock): String = when (block.movementType) {
     CompetitionMovementType.SQUAT -> "Sentadilla"
     CompetitionMovementType.BENCH -> "Press banca"
@@ -199,11 +202,21 @@ internal fun nextCompetition(record: CompetitionRecord, history: List<Competitio
 }
 
 /** El mejor tiempo del día en una carrera y su distancia. */
-private fun raceBest(record: CompetitionRecord): Pair<Double, Double?>? = record.technicalBlocks
+private fun raceBest(record: CompetitionRecord): Triple<Double, Double?, String?>? = record.technicalBlocks
     .flatMap { block -> block.attempts.map { it to block } }
-    .filter { (attempt, _) -> attempt.timeSeconds != null && attempt.resultType != CompetitionAttemptResult.NO_LIFT }
+    .filter { (attempt, _) -> attempt.timeSeconds?.let { it.isFinite() && it > 0.0 } == true && attempt.resultType == CompetitionAttemptResult.GOOD_LIFT }
     .minByOrNull { it.first.timeSeconds ?: Double.MAX_VALUE }
-    ?.let { (attempt, _) -> (attempt.timeSeconds ?: 0.0) to attempt.distance }
+    ?.let { (attempt, block) -> Triple(attempt.timeSeconds!!, attempt.distance, block.resultUnit) }
+
+private fun raceDistanceMeters(distance: Double?, unit: String?): Double? {
+    val value = distance?.takeIf { it.isFinite() && it > 0.0 } ?: return null
+    return when (unit?.trim()?.lowercase()) {
+        "km", "kilometro", "kilómetro", "kilometros", "kilómetros" -> value * 1000.0
+        "m", "metro", "metros" -> value
+        "mi", "mile", "miles" -> value * 1609.344
+        else -> null
+    }
+}
 
 /** Lo que hay para compartir en [record] ([history] da la próxima competencia y las comparaciones). */
 internal fun competitionStoryAvailability(
@@ -250,6 +263,7 @@ internal fun competitionStoryPage(
     val scored = CompetitionScoring.recalculate(record)
     val medal = medalOf(record)
     val shownMedal = medal?.takeIf { options.medal }
+    val resultSummary = resultSummaryForStory(record, options)
     val date = record.date()
     val total = competitionTotalKg(record)
     val points = CompetitionScoring.displayedPoints(scored)?.takeIf { options.points && record.sportType == CompetitionTemplateType.POWERLIFTING }
@@ -261,7 +275,7 @@ internal fun competitionStoryPage(
                 .joinToString(" ").ifBlank { record.category?.takeIf { it.isNotBlank() } }
             CompetitionStoryPage(
                 eyebrow = listOfNotNull(record.title, date?.let(::storyDayMonth)).joinToString(" · "),
-                title = total?.let { "${storyKg(it)} kg" } ?: record.resultSummary.orEmpty(),
+                title = total?.let { "${storyKg(it)} kg" } ?: resultSummary,
                 sub = listOfNotNull(
                     shownMedal?.label,
                     category,
@@ -312,7 +326,7 @@ internal fun competitionStoryPage(
             } + listOfNotNull(bodyweight?.let { StoryInlineItem(storyKg(it), "kg corporal") })
             CompetitionStoryPage(
                 eyebrow = record.title,
-                title = medal?.label ?: placeText(record) ?: total?.let { "${storyKg(it)} kg" } ?: record.resultSummary.orEmpty(),
+                title = shownMedal?.label ?: placeText(record) ?: total?.let { "${storyKg(it)} kg" } ?: resultSummary,
                 sub = null,
                 foot = FOOT_MEET,
                 inline = inline,
@@ -322,7 +336,7 @@ internal fun competitionStoryPage(
         CompetitionStoryTemplate.TIEMPO -> raceStoryPage(record, history, options)
         CompetitionStoryTemplate.TARIMA -> CompetitionStoryPage(
             eyebrow = listOfNotNull(record.title, (record.bodybuildingDetails?.division ?: record.category)?.takeIf { it.isNotBlank() }).joinToString(" · "),
-            title = placeText(record) ?: medal?.label ?: record.resultSummary.orEmpty(),
+            title = placeText(record) ?: shownMedal?.label ?: resultSummary,
             sub = null,
             foot = FOOT_MEET,
             inline = record.customMetrics
@@ -349,8 +363,8 @@ internal fun competitionStoryPage(
                 ?.let { list -> "${list.count { it.third > 0 }}–${list.count { it.third < 0 }}" }
             CompetitionStoryPage(
                 eyebrow = listOfNotNull(record.title, weightClass).joinToString(" · "),
-                title = listOfNotNull(medal?.label ?: placeText(record), balance).joinToString(" · ")
-                    .ifBlank { record.resultSummary.orEmpty() },
+                title = listOfNotNull(shownMedal?.label ?: placeText(record), balance).joinToString(" · ")
+                    .ifBlank { resultSummary },
                 sub = record.category?.takeIf { it.isNotBlank() },
                 foot = FOOT_MEET,
                 rows = bouts.map { StoryPair(it.first, it.second) },
@@ -379,17 +393,18 @@ internal fun bestTotalBadge(record: CompetitionRecord, total: Double?, history: 
 /** Tiempo: el tiempo como título, distancia, ritmo y puesto; la marca personal frente a carreras anteriores de la misma distancia. */
 private fun raceStoryPage(record: CompetitionRecord, history: List<CompetitionRecord>, options: CompetitionStoryOptions): CompetitionStoryPage {
     val best = raceBest(record)
-    val unit = record.technicalBlocks.firstNotNullOfOrNull { it.resultUnit?.takeIf { u -> u.isNotBlank() } } ?: "km"
+    val unit = best?.third?.takeIf { it.isNotBlank() }.orEmpty()
     val distance = best?.second?.takeIf { it > 0.0 }
     val pace = if (best != null && distance != null && unit.equals("km", ignoreCase = true)) "${storyClock(best.first / distance)} /km" else null
     val place = record.placement?.trim()?.toIntOrNull()?.takeIf { it >= 1 }?.let { "puesto ${thousands(it.toLong())}" }
     val date = record.date()
-    val personal = if (best != null && distance != null && date != null) {
+    val distanceMeters = raceDistanceMeters(distance, unit)
+    val personal = if (best != null && distanceMeters != null && date != null) {
         history
-            .filter { it.id != record.id && it.isDone() && it.sportType == CompetitionTemplateType.RUNNING }
+            .filter { it.id != record.id && it.isDone() && it.status != CompetitionRecordStatus.ARCHIVED && it.sportType == CompetitionTemplateType.RUNNING }
             .filter { other -> other.date()?.let { it < date } == true }
             .mapNotNull { raceBest(it) }
-            .filter { (_, d) -> d != null && abs(d - distance) < 0.05 }
+            .filter { (_, d, u) -> raceDistanceMeters(d, u)?.let { abs(it - distanceMeters) < 50.0 } == true }
             .minOfOrNull { it.first }
             ?.takeIf { it - best.first >= 1.0 }
             ?.let { StoryPair("Marca personal", WIZARD_MINUS + storyClock(it - best.first)) }
@@ -399,7 +414,7 @@ private fun raceStoryPage(record: CompetitionRecord, history: List<CompetitionRe
     val metrics = record.customMetrics.map { StoryPair(it.label, listOfNotNull(it.value, it.unit).joinToString(" ")) }
     return CompetitionStoryPage(
         eyebrow = record.title,
-        title = best?.let { storyClock(it.first) } ?: record.resultSummary.orEmpty(),
+        title = best?.let { storyClock(it.first) } ?: resultSummaryForStory(record, options),
         sub = listOfNotNull(
             distance?.let { "${storyKg(it)} $unit" },
             pace,

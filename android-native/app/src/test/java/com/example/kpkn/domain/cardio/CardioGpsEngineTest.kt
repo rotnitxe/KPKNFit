@@ -62,6 +62,31 @@ class CardioGpsEngineTest {
         assertTrue(splits[1] in 300..340)
     }
 
+    @Test
+    fun splitsInterpolateBetweenSparseFixesIncludingMultipleKilometres() {
+        val points = listOf(
+            point(timestamp = 0L, latitude = 0.0, longitude = 0.0),
+            point(timestamp = 600_000L, latitude = 0.018, longitude = 0.0),
+        )
+        val splits = CardioGpsEngine.kmSplitPaces(points)
+        assertEquals(2, splits.size)
+        assertTrue(splits[0] in 298..301)
+        assertTrue(splits[1] in 298..301)
+    }
+
+    @Test
+    fun splitsIgnorePausedRelocationAndKeepActiveTime() {
+        val points = listOf(
+            point(timestamp = 0L, latitude = 0.0, longitude = 0.0).copy(activeSegmentStartedAtEpochMs = 0L, elapsedActiveSeconds = 0),
+            point(timestamp = 150_000L, latitude = 0.0045, longitude = 0.0).copy(activeSegmentStartedAtEpochMs = 0L, elapsedActiveSeconds = 150),
+            point(timestamp = 750_000L, latitude = 1.0, longitude = 0.0).copy(activeSegmentStartedAtEpochMs = 750_000L, elapsedActiveSeconds = 150),
+            point(timestamp = 900_000L, latitude = 1.0045, longitude = 0.0).copy(activeSegmentStartedAtEpochMs = 750_000L, elapsedActiveSeconds = 300),
+        )
+        val splits = CardioGpsEngine.kmSplitPaces(points)
+        assertEquals(1, splits.size)
+        assertTrue(splits.single() in 298..301)
+    }
+
     private fun point(
         timestamp: Long = 1_000L,
         latitude: Double,

@@ -73,6 +73,7 @@ object LaunchIntentResolver {
         val explicitAction = intent.getStringExtra(EXTRA_NUTRITION_ACTION)
             ?.trim()
             ?.takeIf { it.isNotBlank() }
+            ?.take(MAX_ACTION_LENGTH)
         if (explicitAction != null) {
             return KpknRoute.NutritionAction.create(explicitAction)
         }
@@ -82,12 +83,17 @@ object LaunchIntentResolver {
 
         val data = intent.data
         if (data != null && data.scheme.equals("kpkn", ignoreCase = true)) {
-            val action = data.getQueryParameter("action")
-                ?: data.pathSegments.lastOrNull()
-            if (!action.isNullOrBlank()) {
+            val action = (data.getQueryParameter("action")
+                ?: data.pathSegments.lastOrNull())
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
+                ?.take(MAX_ACTION_LENGTH)
+            if (action != null) {
                 return KpknRoute.NutritionAction.create(action)
             }
         }
         return null
     }
+
+    private const val MAX_ACTION_LENGTH = 120
 }

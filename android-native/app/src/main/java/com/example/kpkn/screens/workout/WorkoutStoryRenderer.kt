@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import com.example.kpkn.data.programs.ProgramCoverRepository
 import com.example.kpkn.data.programs.programCoverEntryIdOf
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.time.LocalDate
@@ -88,17 +89,36 @@ internal data class WorkoutStoryData(
 internal suspend fun renderWorkoutStoryPages(context: Context, data: WorkoutStoryData, options: WorkoutStoryOptions): List<Bitmap> = withContext(Dispatchers.Default) {
     val stories = com.example.kpkn.screens.stories.workoutStoryPagesFrom(data, options)
     val photo = if (options.template == WorkoutStoryTemplate.PHOTOS) stories.firstOrNull()?.photoPath?.let { loadStoryImage(context, it, 1080) } else null
+    val rendered = mutableListOf<Bitmap>()
     try {
-        stories.map { story ->
-            renderWorkoutStoryBitmap(context, story, options.template, photo?.asImageBitmap())
+        stories.forEach { story ->
+            kotlinx.coroutines.currentCoroutineContext().ensureActive()
+            rendered += renderWorkoutStoryBitmap(context, story, options.template, photo?.asImageBitmap())
         }
+        rendered
+    } catch (failure: Throwable) {
+        rendered.forEach { it.recycle() }
+        throw failure
     } finally {
         photo?.recycle()
     }
 }
 
-internal suspend fun renderWorkoutStory(context: Context, data: WorkoutStoryData, options: WorkoutStoryOptions): Bitmap =
-    renderWorkoutStoryPages(context, data, options).first()
+internal suspend fun renderWorkoutStory(
+    context: Context,
+    data: WorkoutStoryData,
+    options: WorkoutStoryOptions,
+    width: Int = 1080,
+    height: Int = 1920,
+): Bitmap = withContext(Dispatchers.Default) {
+    val story = com.example.kpkn.screens.stories.workoutStoryPagesFrom(data, options).first()
+    val photo = if (options.template == WorkoutStoryTemplate.PHOTOS) story.photoPath?.let { loadStoryImage(context, it, width) } else null
+    try {
+        renderWorkoutStoryBitmap(context, story, options.template, photo?.asImageBitmap(), width, height)
+    } finally {
+        photo?.recycle()
+    }
+}
 
 /** Composición nativa 360×640 a 3× (la de antes del lienzo v6). Se conserva como alternativa; la hoja usa [renderWorkoutStory]. */
 internal suspend fun renderWorkoutStoryClassic(context: Context, data: WorkoutStoryData, options: WorkoutStoryOptions): Bitmap = withContext(Dispatchers.Default) {
@@ -464,7 +484,7 @@ private suspend fun storyBackground(context: Context, data: WorkoutStoryData, te
     return bitmap
 }
 
-private suspend fun loadStoryImage(context: Context, path: String, width: Int): Bitmap? = withContext(Dispatchers.IO) {
+internal suspend fun loadStoryImage(context: Context, path: String, width: Int): Bitmap? = withContext(Dispatchers.IO) {
     runCatching {
         val uri = if (path.startsWith("content:") || path.startsWith("file:")) Uri.parse(path) else Uri.fromFile(File(path))
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }

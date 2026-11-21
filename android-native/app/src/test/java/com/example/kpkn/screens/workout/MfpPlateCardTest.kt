@@ -31,7 +31,7 @@ class MfpPlateCardTest {
         rule.setContent { KPKNTheme { MfpTrainingPreview.Myo("plates_unreachable") } }
         rule.waitUntil(20_000) { rule.onAllNodesWithTag("load-plate-label",useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty() }
         rule.onNodeWithTag("load-plate-label",useUnmergedTree=true).assertContentDescriptionEquals("60 kg · más cercana montable · por lado: 20")
-        rule.onNodeWithText("59.0").assertExists()
+        rule.onNodeWithText("59", useUnmergedTree = true).assertExists()
     }
     @Test fun reversoIdentificaMyoSinConfundirLaExplicacionConRestPauseNormal() {
         rule.setContent { KPKNTheme { MfpTrainingPreview.Myo("myo_back") } }

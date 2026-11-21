@@ -31,10 +31,6 @@ android {
         create("base") {
             dimension = "healthConnect"
         }
-        create("health") {
-            dimension = "healthConnect"
-            minSdk = 26
-        }
     }
 
     val releaseSigningProperties = Properties().apply {
@@ -254,6 +250,7 @@ tasks.named("check").configure {
 }
 
 dependencies {
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     coreLibraryDesugaring(libs.desugar.jdk.libs)
     implementation(libs.androidx.core.ktx)
     // SplashScreen API (Theme.KPKN.Starting + installSplashScreen()): splash de marca en todas las versiones de Android.
@@ -306,8 +303,6 @@ dependencies {
     testImplementation(libs.androidx.room.testing)
     testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.androidx.work.testing)
-    // Health Connect dependency - only for health flavor
-    "healthImplementation"(libs.androidx.health.connect.client)
     
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

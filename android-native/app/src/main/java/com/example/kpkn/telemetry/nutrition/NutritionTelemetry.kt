@@ -285,6 +285,8 @@ object NutritionTelemetry {
             "thread" to threadName,
             "stack" to NutritionTelemetrySanitizer.appStack(throwable),
             "inFlight" to inFlight,
+            "appVersion" to com.example.kpkn.BuildConfig.VERSION_NAME,
+            "appVersionCode" to com.example.kpkn.BuildConfig.VERSION_CODE,
         )
         runCatching {
             // Crash events use the same v2 bus as every other nutrition event.

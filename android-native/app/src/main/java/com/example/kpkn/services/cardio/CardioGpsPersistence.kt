@@ -77,17 +77,17 @@ internal class CardioGpsSnapshotFileStore(
     }
 
     fun delete(file: File, legacyFile: File? = null) {
-        pendingFile(file).delete()
-        file.delete()
+        runCatching { pendingFile(file).delete() }
+        runCatching { file.delete() }
         if (legacyFile != null && legacyFile != file) {
-            pendingFile(legacyFile).delete()
-            legacyFile.delete()
+            runCatching { pendingFile(legacyFile).delete() }
+            runCatching { legacyFile.delete() }
         }
     }
 
     fun deleteLegacy(legacyFile: File) {
-        pendingFile(legacyFile).delete()
-        legacyFile.delete()
+        runCatching { pendingFile(legacyFile).delete() }
+        runCatching { legacyFile.delete() }
     }
 
     private fun readRecoveringPending(file: File, expectedSessionKey: String): GpsTrackSnapshot? {

@@ -15,14 +15,21 @@ class WorkoutReminderBootReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action ?: return
-        if (action != Intent.ACTION_BOOT_COMPLETED && action != Intent.ACTION_MY_PACKAGE_REPLACED) {
+        if (action !in HANDLED_ACTIONS) {
             return
         }
 
-        val pendingResult = goAsync()
+        val pendingResult: BroadcastReceiver.PendingResult? = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val appContext = context.applicationContext
+                if (action == Intent.ACTION_BOOT_COMPLETED) {
+                    try {
+                        restoreFreeClock(appContext)
+                    } catch (error: Exception) {
+                        Log.e("WorkoutReminderBoot", "Failed to restore the free timer after boot", error)
+                    }
+                }
                 val settings = KpknDatabase.getInstance(appContext)
                     .settingsDao()
                     .get()
@@ -44,10 +51,22 @@ class WorkoutReminderBootReceiver : BroadcastReceiver() {
                     reminderManager.cancelSleepReminder()
                 }
             } catch (t: Throwable) {
-                Log.e("WorkoutReminderBoot", "Failed to restore reminders after boot", t)
+                Log.e("WorkoutReminderBoot", "Failed to restore reminders after $action", t)
             } finally {
-                pendingResult.finish()
+                pendingResult?.finish()
             }
         }
+    }
+
+    companion object {
+        internal fun restoreFreeClock(context: Context) {
+            FreeClockHub.controller(context)
+        }
+
+        val HANDLED_ACTIONS = setOf(
+            Intent.ACTION_BOOT_COMPLETED,
+            Intent.ACTION_MY_PACKAGE_REPLACED,
+            Intent.ACTION_TIMEZONE_CHANGED,
+        )
     }
 }

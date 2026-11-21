@@ -7,6 +7,7 @@ import com.example.kpkn.domain.calibration.AcceptedCalibrationReference
 import com.example.kpkn.domain.calibration.CalibrationPolicy
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -36,18 +37,22 @@ class CalibrationDecisionRepository(private val dao: CalibrationDecisionDao) {
     }
 
     suspend fun forSession(sessionLogId: String): List<CalibrationDecisionRecord> = withContext(Dispatchers.IO) {
-        dao.forSession(sessionLogId).map { json.decodeFromString<CalibrationDecisionRecord>(it.data) }
+        dao.forSession(sessionLogId).mapNotNull { row ->
+            runCatching { json.decodeFromString<CalibrationDecisionRecord>(row.data) }.getOrNull()
+        }
     }
 
     suspend fun all(): List<CalibrationDecisionRecord> = withContext(Dispatchers.IO) {
-        dao.getAll().map { json.decodeFromString<CalibrationDecisionRecord>(it.data) }
+        dao.getAll().mapNotNull { row ->
+            runCatching { json.decodeFromString<CalibrationDecisionRecord>(row.data) }.getOrNull()
+        }
     }
 
     suspend fun accepted(now: Long, excludingSourceSetId: String? = null,
         excludingSessionLogId: String? = null): List<AcceptedCalibrationReference> = withContext(Dispatchers.IO) {
         val since = (now - CalibrationPolicy.defaults.referenceValidityDays * 86_400_000L).coerceAtLeast(0L)
         dao.accepted(since, now).filter { it.sourceSetId != excludingSourceSetId && it.sessionLogId != excludingSessionLogId }
-            .map { json.decodeFromString<CalibrationDecisionRecord>(it.data) }
+            .mapNotNull { row -> runCatching { json.decodeFromString<CalibrationDecisionRecord>(row.data) }.getOrNull() }
             .mapNotNull { r -> r.decision.capacityKg?.let {
                 AcceptedCalibrationReference(r.decision.context, it, r.resolvedAt ?: r.createdAt, r.decision.estimatorVersion)
             } }

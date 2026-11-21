@@ -87,6 +87,13 @@ import java.util.UUID
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.NonCancellable
+import java.util.concurrent.ConcurrentHashMap
+import com.example.kpkn.screens.programs.importer.materializeImportExercises
+import com.example.kpkn.screens.programs.importer.findOrCreateImportedExercise
+import com.example.kpkn.screens.programs.importer.previewOwnImportExercise
+import com.example.kpkn.screens.programs.importer.publicSourceOrigin
+import com.example.kpkn.screens.programs.importer.withPasteLimitNote
+import com.example.kpkn.data.importer.ImportLimits
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -722,7 +729,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 n.copy(weightUnit = unit, targetWeightText = targetText ?: n.targetWeightText,
                     targetValueText = if (n.goalMetric == GoalMetric.WEIGHT) targetText ?: n.targetValueText else n.targetValueText)
             }
+            val targetText = nutrition?.targetWeightText?.takeIf { it.isNotBlank() }
+            val targetStep = SetupStepId.NUTRITION_TARGET.name
             draft.copy(weightUnit = unit, weightUnitChanged = true, nutritionDraft = nutrition,
+                inputTexts = if (targetText != null && targetStep in draft.inputTexts) draft.inputTexts + (targetStep to targetText) else draft.inputTexts,
                 wizChat = draft.wizChat.copy(revision = draft.wizChat.revision + 1))
         }
     }
@@ -1152,7 +1162,10 @@ class SetupWizardViewModel @JvmOverloads constructor(
         }
     }) }
     fun changeSets(weekday: Int, id: String, count: Int) = mutateDraft { draft -> draft.copy(sessions = draft.sessions.map { session -> if (session.weekday != weekday) session else session.copy(exercises = session.exercises.map { item -> if (item.id != id && item.exercise.exerciseDbId != id) item else item.copy(exercise = item.exercise.copy(sets = (1..count.coerceIn(1, 30)).map { n -> item.exercise.sets.getOrNull(n - 1)?.copy(id = "${item.exercise.id}-set-$n") ?: ExerciseSet("${item.exercise.id}-set-$n", targetReps = 10) })) }) }) }
-    fun changeReps(weekday: Int, id: String, reps: String) = mutateDraft { draft -> draft.copy(sessions = draft.sessions.map { session -> if (session.weekday != weekday) session else session.copy(exercises = session.exercises.map { item -> if (item.id != id && item.exercise.exerciseDbId != id) item else item.copy(exercise = item.exercise.copy(sets = item.exercise.sets.map { it.copy(targetReps = reps.toIntOrNull()) })) }) }) }
+    fun changeReps(weekday: Int, id: String, reps: String) {
+        val parsedReps = reps.toIntOrNull() ?: return
+        mutateDraft { draft -> draft.copy(sessions = draft.sessions.map { session -> if (session.weekday != weekday) session else session.copy(exercises = session.exercises.map { item -> if (item.id != id && item.exercise.exerciseDbId != id) item else item.copy(exercise = item.exercise.copy(sets = item.exercise.sets.map { it.copy(targetReps = parsedReps) })) }) }) }
+    }
 
     fun canContinue(): Boolean = _state.value.machineState == WizChatMachineState.AwaitingAnswer
 
@@ -1289,7 +1302,16 @@ class SetupWizardViewModel @JvmOverloads constructor(
             }
             val draft = _state.value.draft
             // C4c: con fecha de competición, el programa que se guarda lleva la fecha clave y su calendario (hasta la semana de la competición).
-            val program = (if (draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER) _state.value.programPreview ?: error("La vista previa del programa no es ejecutable") else null)
+            val activationSource = when {
+                !draft.includeTraining || draft.programRoute == SetupProgramRoute.LATER -> null
+                importRouteActive(draft) && draft.importedProgramEditor == null -> withContext(Dispatchers.Default) {
+                    val source = if (_state.value.planAdaptedToBodyweight) bodyweightAdapted(draft) else draft
+                    materialize(source, persistOwnExercises = true).preview.program
+                        ?: error("La vista previa del programa no es ejecutable")
+                }
+                else -> _state.value.programPreview ?: error("La vista previa del programa no es ejecutable")
+            }
+            val program = activationSource
                 ?.let { source -> withContext(kotlinx.coroutines.Dispatchers.Default) {
                     SetupActivationPayload.programForActivation(source, draft, LocalDate.now())
                 } }
@@ -1336,7 +1358,6 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     draft.includeTraining && draft.programRoute != SetupProgramRoute.LATER && draft.activateProgram,
                 activateNutrition = draft.includeNutrition && draft.activateNutrition && !trackingOnly,
                 derivedBodyGoals = bodyGoals,
-                initialWellbeing = null,
                 settingsPatch = buildSettingsPatch(base, draft, program, nutrition, trackingOnly),
                 dailyGoalSnapshot = snapshot,
                 pendingNutritionDraft = pendingNutritionDraft,
@@ -1346,8 +1367,17 @@ class SetupWizardViewModel @JvmOverloads constructor(
             // «Listo para empezar»: empezar ahora (pausa el actual), ponerlo en cola o guardarlo sin activar.
             val savedProgramId = result.programId ?: program?.id
             if (draft.newProgramInstance && savedProgramId != null) {
-                val choice = draft.readyChoice ?: ProgramReadyCopy.defaultChoice(environment.readyCurrentProgram())
-                environment.applyReadyChoice(savedProgramId, choice)
+                try {
+                    val choice = draft.readyChoice ?: ProgramReadyCopy.defaultChoice(environment.readyCurrentProgram())
+                    environment.applyReadyChoice(savedProgramId, choice)
+                } catch (cancel: CancellationException) {
+                    throw cancel
+                } catch (error: Exception) {
+                    _state.value = _state.value.copy(isCommitting = false, machineState = stateForCurrentStep(),
+                        errors = mapOf("commit" to "La configuración se guardó, pero no se pudo aplicar la opción de inicio del programa. Inténtalo de nuevo."),
+                        lastFailure = error.message)
+                    return@withLock null
+                }
             }
             _state.value = _state.value.copy(committedProgramId = savedProgramId, draft = draft.copy(
                 wizChat = draft.wizChat.copy(terminal = true, currentQuestionId = WizChatQuestionId.REVIEW, stage = WizChatStage.REVIEW),
@@ -1847,8 +1877,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * ([placeFitFor]), con o sin sesiones movidas: así el programa que se previsualiza y se activa nunca trae una sesión
      * que no se pueda hacer en su día sin que la semana lo avise ([LayoutOutcome.placeConflicts]).
      */
-    private suspend fun materialize(draft: SetupWizardDraft): PreparedPreview {
-        val base = materializeBase(draft)
+    private suspend fun materialize(draft: SetupWizardDraft, persistOwnExercises: Boolean = false): PreparedPreview {
+        val base = materializeBase(draft, persistOwnExercises)
         val program = base.program ?: return PreparedPreview(base, null, null)
         suspend fun finish(outcome: LayoutOutcome): PreparedPreview {
             val composed = withContext(kotlinx.coroutines.Dispatchers.Default) {
@@ -1936,7 +1966,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
      * El programa importado del borrador, armado con los días de entreno del alta y el título editable. Las decisiones
      * con configuración del catálogo llevan su identidad; las de «ejercicio propio», su nombre libre. Carga el catálogo.
      */
-    private suspend fun importedProgramOf(draft: SetupWizardDraft): Program {
+    private suspend fun importedProgramOf(draft: SetupWizardDraft, persistOwnExercises: Boolean): Program {
         val imported = draft.importedProgram ?: error("Importa un programa para continuar.")
         ensureCatalogLoaded()
         val catalog = (catalogRepository.state.value as? ExerciseCatalogStateV2.Ready)?.catalog
@@ -1951,17 +1981,22 @@ class SetupWizardViewModel @JvmOverloads constructor(
             }
             return editor.program
         }
-        val unavailable = ImportedProgramBuilder.unavailableNames(imported, draft.importResolutions, catalog, customExercises)
+        val materialized = materializeImportExercises(
+            imported,
+            draft.importResolutions,
+            if (persistOwnExercises) ::findOrCreateImportedExercise else ::previewOwnImportExercise,
+        )
+        val unavailable = ImportedProgramBuilder.unavailableNames(materialized.draft, draft.importResolutions, catalog, materialized.exercises)
         if (unavailable.isNotEmpty()) error(importedExerciseCatalogChoiceMessage(unavailable.first()))
         return ImportedProgramBuilder.build(
-            draft = imported.copy(title = draft.importTitle),
+            draft = materialized.draft.copy(title = draft.importTitle),
             resolved = draft.importResolutions,
             weekdays = draft.selectedWeekdays.sorted(),
             programId = "import-${draft.commitId}",
             catalog = catalog,
-            customExercises = customExercises,
+            customExercises = materialized.exercises,
             catalogConfigurationInfo = catalog.toLegacyConfigurationLookup(
-                ImportedProgramBuilder.catalogConfigurationIds(imported, draft.importResolutions),
+                ImportedProgramBuilder.catalogConfigurationIds(materialized.draft, draft.importResolutions),
             ),
         )
     }
@@ -1985,9 +2020,17 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 _state.update { it.copy(importError = IMPORT_CATALOG_UNAVAILABLE) }
                 return null
             }
-            val customExercises = com.example.kpkn.data.repository.CustomExerciseRepository.customExercises.value
+            val materialized = try {
+                materializeImportExercises(source, initialDraft.importResolutions)
+            } catch (cancel: CancellationException) {
+                throw cancel
+            } catch (error: Exception) {
+                _state.update { it.copy(importError = error.message ?: "No pudimos guardar los ejercicios propios.") }
+                return null
+            }
+            val customExercises = materialized.exercises
             val unavailable = ImportedProgramBuilder.unavailableNames(
-                source,
+                materialized.draft,
                 initialDraft.importResolutions,
                 loaded,
                 customExercises,
@@ -1998,21 +2041,21 @@ class SetupWizardViewModel @JvmOverloads constructor(
             }
             val programId = "import-${initialDraft.commitId}"
             val program = ImportedProgramBuilder.build(
-                draft = source.copy(title = initialDraft.importTitle),
+                draft = materialized.draft.copy(title = initialDraft.importTitle),
                 resolved = initialDraft.importResolutions,
                 weekdays = initialDraft.selectedWeekdays.sorted(),
                 programId = programId,
                 catalog = loaded,
                 customExercises = customExercises,
                 catalogConfigurationInfo = loaded.toLegacyConfigurationLookup(
-                    ImportedProgramBuilder.catalogConfigurationIds(source, initialDraft.importResolutions),
+                    ImportedProgramBuilder.catalogConfigurationIds(materialized.draft, initialDraft.importResolutions),
                 ),
             )
             val candidate = SetupImportedProgramEditorDraft(
                 id = UUID.randomUUID().toString(),
                 revision = 0L,
                 program = program,
-                sourceMap = ImportedProgramBuilder.sourceMap(source, initialDraft.importResolutions, programId),
+                sourceMap = ImportedProgramBuilder.sourceMap(materialized.draft, initialDraft.importResolutions, programId),
             )
             val committed = withContext(Dispatchers.Main.immediate) {
                 commandMutex.withLock {
@@ -2190,8 +2233,8 @@ class SetupWizardViewModel @JvmOverloads constructor(
             }
         }
 
-    private suspend fun materializeBase(draft: SetupWizardDraft): SetupPreview {
-        if (importRouteActive(draft)) return SetupPreview(importedProgramOf(draft), null)
+    private suspend fun materializeBase(draft: SetupWizardDraft, persistOwnExercises: Boolean = false): SetupPreview {
+        if (importRouteActive(draft)) return SetupPreview(importedProgramOf(draft, persistOwnExercises), null)
         cachedReadyPreview(draft)?.let { return it }
         val override = materializeOverride
         if (override != null) return override.materialize(draft)
@@ -3125,7 +3168,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     }
                 }
             } catch (cancel: CancellationException) { throw cancel }
-            catch (error: Exception) {
+            catch (error: Throwable) {
                 if (ownsCandidateGeneration(generation) && isCurrentCandidateKey(draft)) {
                     // Paquete A · D3 (B-06): un catálogo que no quedó listo se explica en llano y con su
                     // motivo cerrado; cualquier otro fallo global conserva su aviso genérico y su causa
@@ -4057,20 +4100,23 @@ class SetupWizardViewModel @JvmOverloads constructor(
     fun importFromText(text: String) =
         startImport(IMPORT_READING_TEXT) {
             withContext(Dispatchers.Default) {
-                ProgramImportParser.parsePreparedText(
-                    com.example.kpkn.data.importer.TextProgramReader.read(text, "Texto pegado"),
-                    ImportedProgramBuilder.DEFAULT_TITLE,
-                ) to
-                    KnownProgramRecognizer.recognizeText(text)
+                val boundedText = text.take(ImportLimits.MAX_PASTED_TEXT_CHARS)
+                val sheet = com.example.kpkn.data.importer.TextProgramReader.read(boundedText, "Texto pegado")
+                    .withPasteLimitNote(text.length > boundedText.length)
+                ProgramImportParser.parsePreparedText(sheet, ImportedProgramBuilder.DEFAULT_TITLE) to
+                    KnownProgramRecognizer.recognizeText(boundedText)
             }
         }
 
     /** Lee una página pública o un archivo compartido por HTTPS dentro del mismo borrador del alta. */
     fun importFromUrl(url: String) =
         startImport(com.example.kpkn.screens.programs.importer.IMPORT_READING_URL_TEXT) {
-            val document = ProgramUrlReader.read(url)
+            val document = ProgramUrlReader.read(url, cacheDir = getApplication<Application>().cacheDir, onProgress = ::reportImportPage)
             withContext(Dispatchers.Default) {
-                ProgramImportParser.parseSheets(document.sheets, document.title) to
+                ProgramImportParser.parseSheets(document.sheets, document.title).copy(
+                    sourceTitle = document.title,
+                    sourceUrl = publicSourceOrigin(document.sourceUrl),
+                ) to
                     KnownProgramRecognizer.recognizeSheets(document.title, document.sheets)
             }
         }
@@ -4090,7 +4136,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                         KnownProgramRecognizer.recognizeSheets(title, sheets)
                 }
             } finally {
-                takenFile?.delete()
+                withContext(NonCancellable + Dispatchers.IO) { takenFile?.delete() }
             }
         }
 
@@ -4111,7 +4157,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
     private val importUndo = ImportUndoStack()
 
     /** Nombre que se muestra por configuración del catálogo, para los textos de deshacer. */
-    private val importNames = mutableMapOf<String, String>()
+    private val importNames = ConcurrentHashMap<String, String>()
 
     /** Decide un ejercicio importado: [configId] es su configuración del catálogo, o null = dejarlo como ejercicio propio. */
     fun resolveImportedExercise(rawName: String, configId: String?) =

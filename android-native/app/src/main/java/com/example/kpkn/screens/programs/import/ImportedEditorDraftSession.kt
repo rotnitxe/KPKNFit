@@ -50,9 +50,11 @@ internal class ImportedEditorDraftSession private constructor(
                 source = source,
                 resolutions = resolutions,
             )
-            if (persistence.write(next, before.revision).isFailure) return@withLock false
-            _document.value = next
-            true
+            withContext(NonCancellable) {
+                if (persistence.write(next, before.revision).isFailure) return@withContext false
+                _document.value = next
+                true
+            }
         }
     }
 
@@ -84,9 +86,11 @@ internal class ImportedEditorDraftSession private constructor(
             program = retainedLegacyProgram,
         )
         if (next == before.copy(revision = next.revision)) return@withLock true
-        if (persistence.write(next, before.revision).isFailure) return@withLock false
-        _document.value = next
-        true
+        withContext(NonCancellable) {
+            if (persistence.write(next, before.revision).isFailure) return@withContext false
+            _document.value = next
+            true
+        }
     }
 
     /** Persists navigation and source-evidence changes without rewriting the canonical program. */
@@ -106,9 +110,11 @@ internal class ImportedEditorDraftSession private constructor(
         if (next.wizardPage == before.wizardPage && next.wizardSheet == before.wizardSheet && next.sourceEvidence == before.sourceEvidence) {
             return@withLock true
         }
-        if (persistence.write(next, before.revision).isFailure) return@withLock false
-        _document.value = next
-        true
+        withContext(NonCancellable) {
+            if (persistence.write(next, before.revision).isFailure) return@withContext false
+            _document.value = next
+            true
+        }
     }
 
     /** Keeps the weekly schedule and its source-day assignments in the same durable revision. */
@@ -127,9 +133,11 @@ internal class ImportedEditorDraftSession private constructor(
                 .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
                 .toSet()
             val next = before.copy(revision = before.revision + 1, source = updatedSource, weekdays = weekdays)
-            if (persistence.write(next, before.revision).isFailure) return@withLock false
-            _document.value = next
-            true
+            withContext(NonCancellable) {
+                if (persistence.write(next, before.revision).isFailure) return@withContext false
+                _document.value = next
+                true
+            }
         }
         return store.mutateThrough(
             transform = { program ->
@@ -183,9 +191,11 @@ internal class ImportedEditorDraftSession private constructor(
                     weekdays = weekdays,
                     program = nextProgram,
                 )
-                if (persistence.write(next, before.revision).isFailure) return@withLock false
-                _document.value = next
-                true
+                withContext(NonCancellable) {
+                    if (persistence.write(next, before.revision).isFailure) return@withContext false
+                    _document.value = next
+                    true
+                }
             }
         }
     }

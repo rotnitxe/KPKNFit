@@ -297,7 +297,7 @@ private fun DrawScope.drawCssMedal(medal: StoryMedal, center: Offset, size: Floa
  * la app (carpeta del FileProvider) y devuelve el archivo. Cada cuadro se pinta con el mismo código que la vista previa.
  */
 internal suspend fun encodeCompetitionVideo(context: Context, celebration: CompetitionCelebration): File = withContext(Dispatchers.Default) {
-    val dir = File(context.cacheDir, "shares").apply { check(isDirectory || mkdirs()) }
+    val dir = com.example.kpkn.screens.workout.storyShareDirectory(context)
     val file = File.createTempFile("competition-story-", ".mp4", dir)
     val format = MediaFormat.createVideoFormat(MediaFormat.MIMETYPE_VIDEO_AVC, StoryCanvas.WIDTH, StoryCanvas.HEIGHT).apply {
         setInteger(MediaFormat.KEY_COLOR_FORMAT, MediaCodecInfo.CodecCapabilities.COLOR_FormatSurface)
@@ -305,12 +305,13 @@ internal suspend fun encodeCompetitionVideo(context: Context, celebration: Compe
         setInteger(MediaFormat.KEY_FRAME_RATE, STORY_VIDEO_FPS)
         setInteger(MediaFormat.KEY_I_FRAME_INTERVAL, 1)
     }
-    val codec = MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_VIDEO_AVC)
+    val codec = try { MediaCodec.createEncoderByType(MediaFormat.MIMETYPE_VIDEO_AVC) } catch (error: Throwable) { file.delete(); throw error }
+    var inputSurface: android.view.Surface? = null
     var muxer: MediaMuxer? = null
     var muxerStarted = false
     try {
         codec.configure(format, null, null, MediaCodec.CONFIGURE_FLAG_ENCODE)
-        val surface = codec.createInputSurface()
+        val surface = codec.createInputSurface().also { inputSurface = it }
         codec.start()
         val mux = MediaMuxer(file.path, MediaMuxer.OutputFormat.MUXER_OUTPUT_MPEG_4).also { muxer = it }
         val measurer = TextMeasurer(createFontFamilyResolver(context), StoryCanvas.Density1, LayoutDirection.Ltr)
@@ -367,6 +368,7 @@ internal suspend fun encodeCompetitionVideo(context: Context, celebration: Compe
             drain(end = true)
         } finally {
             surface.release()
+            inputSurface = null
         }
         check(written > 0) { "El vídeo no tiene cuadros" }
         file
@@ -374,6 +376,7 @@ internal suspend fun encodeCompetitionVideo(context: Context, celebration: Compe
         file.delete()
         throw error
     } finally {
+        inputSurface?.release()
         runCatching { codec.stop() }
         codec.release()
         if (muxerStarted) runCatching { muxer?.stop() }

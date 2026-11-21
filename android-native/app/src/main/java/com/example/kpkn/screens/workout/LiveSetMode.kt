@@ -113,3 +113,10 @@ internal data class LiveSetClockState(val startedAtMs: Long? = null, val accumul
     fun stop(nowMs: Long, target: Int?): LiveSetClockState = copy(startedAtMs = null,
         accumulatedMs = elapsedMs(nowMs).let { if (target != null && target > 0) it.coerceAtMost(target * 1000L) else it })
 }
+
+internal fun liveClockBootCount(context: android.content.Context): Int? = runCatching {
+    android.provider.Settings.Global.getInt(context.contentResolver, android.provider.Settings.Global.BOOT_COUNT)
+}.getOrNull()
+
+internal fun restoredLiveClockStart(start: Long?, savedBoot: Int?, currentBoot: Int?, now: Long): Long? =
+    start?.takeIf { savedBoot != null && currentBoot != null && savedBoot == currentBoot && it > 0L && it <= now }

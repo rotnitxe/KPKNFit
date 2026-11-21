@@ -162,7 +162,7 @@ internal fun WorkoutStorySheet(
     val thumbs by produceState(emptyMap<WorkoutStoryTemplate, androidx.compose.ui.graphics.ImageBitmap>(), data, templates, safeOptions.backgroundId) {
         templates.forEach { template ->
             val small = try {
-                val full = renderStoryPages(
+                renderWorkoutStory(
                     context.applicationContext,
                     data,
                     WorkoutStoryOptions(
@@ -171,8 +171,9 @@ internal fun WorkoutStorySheet(
                         exerciseList = safeOptions.exerciseList,
                         backgroundId = safeOptions.backgroundId,
                     ),
-                ).first()
-                Bitmap.createScaledBitmap(full, 96, 171, true).also { if (it !== full) full.recycle() }
+                    width = 96,
+                    height = 171,
+                )
             } catch (error: CancellationException) { throw error } catch (_: Exception) { null }
             if (small != null) value = value + (template to small.asImageBitmap())
         }
@@ -304,8 +305,8 @@ internal fun WorkoutStorySheet(
             Column(verticalArrangement=Arrangement.spacedBy(8.dp)){
                 Text("INCLUIR",style=com.example.kpkn.screens.workout.components.Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp),color=FinishMuted)
                 FlowRow(horizontalArrangement=Arrangement.spacedBy(6.dp),verticalArrangement=Arrangement.spacedBy(6.dp)){
-                    if(safeOptions.template!=WorkoutStoryTemplate.PHOTOS)StoryPill("Progreso",safeOptions.improvements,!busy){onOptionsChange(safeOptions.copy(improvements=!safeOptions.improvements))}
-                    if(safeOptions.template==WorkoutStoryTemplate.GENERAL||safeOptions.template==WorkoutStoryTemplate.PHOTOS)StoryPill("Hitos",safeOptions.milestones,!busy){onOptionsChange(safeOptions.copy(milestones=!safeOptions.milestones))}
+                    if(safeOptions.template==WorkoutStoryTemplate.GENERAL||safeOptions.template==WorkoutStoryTemplate.EXERCISE)StoryPill("Progreso",safeOptions.improvements,!busy){onOptionsChange(safeOptions.copy(improvements=!safeOptions.improvements))}
+                    if(safeOptions.template==WorkoutStoryTemplate.GENERAL)StoryPill("Hitos",safeOptions.milestones,!busy){onOptionsChange(safeOptions.copy(milestones=!safeOptions.milestones))}
                     if(safeOptions.template!=WorkoutStoryTemplate.EXERCISE)StoryPill("Duración",safeOptions.duration,!busy){onOptionsChange(safeOptions.copy(duration=!safeOptions.duration))}
                     if(safeOptions.template==WorkoutStoryTemplate.GENERAL)StoryPill("sRPE",safeOptions.intensity,!busy){onOptionsChange(safeOptions.copy(intensity=!safeOptions.intensity))}
                     if(safeOptions.template==WorkoutStoryTemplate.GENERAL)StoryPill("Ejercicios",safeOptions.exerciseList,!busy){onOptionsChange(safeOptions.copy(exerciseList=!safeOptions.exerciseList))}

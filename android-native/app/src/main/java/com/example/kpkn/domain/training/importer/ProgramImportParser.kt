@@ -4,6 +4,9 @@ import com.example.kpkn.domain.exercises.ExerciseMatchLexicon
 import com.example.kpkn.data.models.WeekExecutionKind
 import kotlin.math.roundToInt
 
+internal const val MAX_IMPORT_TEXT_CHARS = 250_000
+private const val MAX_IMPORT_TEXT_ROWS = 2_000
+
 /**
  * Analizador puro de programas importados (hojas de cálculo o texto pegado). Convierte las filas en semanas, días
  * y ejercicios: reconoce semanas y días por nombre de hoja o por fila de encabezado («Semana 2», «Día 1 — Pierna»,
@@ -81,7 +84,9 @@ object ProgramImportParser {
      * (texto copiado de una hoja de cálculo), cada línea es una fila de tabla.
      */
     fun parseText(text: String, title: String): ImportedProgramDraft {
-        val lines = text.replace("\r\n", "\n").replace('\r', '\n').split('\n')
+        val bounded = text.take(MAX_IMPORT_TEXT_CHARS)
+        val sampled = bounded.lineSequence().take(MAX_IMPORT_TEXT_ROWS + 1).toList()
+        val lines = sampled.take(MAX_IMPORT_TEXT_ROWS)
         val tabbed = lines.count { it.contains('\t') }
         val filled = lines.count { it.isNotBlank() }
         val rows = if (tabbed >= 2 && tabbed * 2 >= filled) {
@@ -90,7 +95,11 @@ object ProgramImportParser {
             lines.map { line -> listOf(line) }
         }
         val builder = DraftBuilder()
-        builder.beginSheet(ImportRowOrigin(documentType = ImportDocumentType.PASTED_TEXT))
+        val source = ImportRowOrigin(documentType = ImportDocumentType.PASTED_TEXT)
+        if (text.length > bounded.length || sampled.size > lines.size) {
+            builder.noteReaderTrim(PASTED_TEXT, "El texto pegado se recortó al límite de caracteres o filas.", source)
+        }
+        builder.beginSheet(source)
         processRows(
             builder,
             rows,
@@ -1080,8 +1089,8 @@ object ProgramImportParser {
             row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» sin series; se omite")
             return null
         }
-        val amrapMinimum = Regex("AMRAP: última serie, (\\d+)").find(notes.orEmpty())?.groupValues?.get(1)?.toIntOrNull()
-        val isAmrap = amrapMinimum != null || Regex("(?i)\\bAMRAP\\b").containsMatchIn(row.source)
+        val amrapMinimum = AMRAP_MINIMUM.find(notes.orEmpty())?.groupValues?.get(1)?.toIntOrNull()
+        val isAmrap = amrapMinimum != null || AMRAP_WORD.containsMatchIn(row.source)
         if (repsMin == null && !isAmrap && duration == null) {
             row.warn(ImportWarningKind.SKIPPED_ROW, "«$name» sin repeticiones; se omite")
             return null
@@ -1680,10 +1689,10 @@ object ProgramImportParser {
             }
         }
         scan(SETS_ONLY) { m -> if (sets == null) sets = m.groupValues[1].toIntOrNull() }
-        scan(Regex("(?i)\\b(\\d+)\\s*[x×]\\s*AMRAP\\b")) { m ->
+        scan(AMRAP_SET_COUNT) { m ->
             if (sets == null) sets = m.groupValues[1].toIntOrNull()
         }
-        scan(Regex("(?<![\\w.])(\\d+)\\s*\\+")) { m ->
+        scan(REPS_PLUS) { m ->
             if (sets == null) sets = 1
             if (repsMin == null) {
                 repsMin = m.groupValues[1].toIntOrNull()
@@ -1691,7 +1700,7 @@ object ProgramImportParser {
                 amrap = repsMin
             }
         }
-        scan(Regex("(?i)\\bAMRAP\\b")) { if (sets == null) sets = 1 }
+        scan(AMRAP_WORD) { if (sets == null) sets = 1 }
         // Pirámide sin series («15-12-10-8»): tres cifras o más, y las series son esas cifras.
         scan(PYRAMID_LIST, accept = { m -> pyramidListFits(m.groupValues[1], atEnd = m.range.last == text.length - 1) }) { m ->
             if (repsMin == null) {
@@ -1895,8 +1904,13 @@ object ProgramImportParser {
     private val RANGE_CELL = Regex("""^\s*(\d{1,3})\s*(?:-|–|—|a|hasta)\s*(\d{1,3})\b""", RegexOption.IGNORE_CASE)
     private val CLOCK = Regex("""^\s*(\d{1,2}):([0-5]\d)\s*$""")
 
+    private val AMRAP_MINIMUM = Regex("AMRAP: última serie, (\\d+)")
+    private val AMRAP_WORD = Regex("(?i)\\bAMRAP\\b")
+    private val AMRAP_SET_COUNT = Regex("(?i)\\b(\\d+)\\s*[x×]\\s*AMRAP\\b")
+    private val REPS_PLUS = Regex("(?<![\\w.])(\\d+)\\s*\\+")
+
     private fun firstNumber(text: String): Double? =
-        NUMBER.find(text)?.value?.replace(',', '.')?.toDoubleOrNull()
+        NUMBER.find(text)?.value?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() }
 
     private fun leadingInt(text: String): Int? = LEADING_INT.find(text)?.groupValues?.get(1)?.toIntOrNull()
 

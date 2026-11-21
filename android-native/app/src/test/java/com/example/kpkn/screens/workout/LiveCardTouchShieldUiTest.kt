@@ -161,11 +161,19 @@ class LiveCardTouchShieldUiTest {
         rule.waitForIdle()
     }
 
-    @Test fun withoutTheShieldATapOnAnEmptyZoneReachesTheCardBelow() {
-        // Reproduce el defecto: sin la protección, el toque en la zona vacía enfoca el campo de la tarjeta apilada debajo.
+    private fun exposedEdgeOfTheField(): Offset {
+        val front = rule.onNodeWithTag(PrepLiveCardTag, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        val field = rule.onNodeWithTag("under-field", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
+        assertTrue("El campo de la segunda tarjeta sobresale bajo el frente", field.bottom > front.bottom)
+        val point = Offset(field.center.x, (maxOf(front.bottom, field.top) + field.bottom) / 2f)
+        assertTrue("El punto corresponde al campo visible de la segunda tarjeta", field.contains(point))
+        return point
+    }
+
+    @Test fun withoutTheShieldTheExposedFieldReceivesATap() {
         carousel(shielded = false)
-        tap(emptyZoneOfTheWarmupCard())
-        assertTrue("Sin protección el toque atraviesa la tarjeta (causa del defecto)", underFocusCount > 0)
+        tap(exposedEdgeOfTheField())
+        assertTrue("El campo expuesto recibe toques cuando no lleva protección", underFocusCount > 0)
     }
 
     @Test fun aTapOnAnEmptyZoneOfTheCurrentCardDoesNotFocusTheCardBelow() {
@@ -191,9 +199,7 @@ class LiveCardTouchShieldUiTest {
 
     @Test fun theVisibleEdgeOfAStackedCardDoesNotReceiveTaps() {
         carousel(shielded = true)
-        val frame = rule.onNodeWithTag(PrepLiveCardTag, useUnmergedTree = true).fetchSemanticsNode().boundsInRoot
-        // La tarjeta de debajo asoma 26 dp bajo la actual: su borde no es la tarjeta actual y su contenido no recibe toques.
-        tap(Offset(frame.center.x, frame.bottom + 12f * density))
+        tap(exposedEdgeOfTheField())
         assertEquals(0, underFocusCount)
         rule.onNodeWithTag("under-field").assertIsNotFocused()
     }

@@ -80,7 +80,7 @@ object TrainingHistoryProjection {
                     }
                     if (payload?.intensityAdjusted == true) set.rpe?.let { setFact("RPE de serie declarado", it, "puntos") }
                     set.timeSeconds?.let { setFact("Tiempo registrado", it.toDouble(), "s") }
-                    set.distanceKm?.let { setFact("Distancia registrada", it, "km") }
+                    set.resolvedDistanceKm?.let { setFact("Distancia registrada", it, "km") }
                 }
             }
             val documents = log.sportDocuments.groupBy { it.id }.values.mapNotNull { it.distinct().singleOrNull() }

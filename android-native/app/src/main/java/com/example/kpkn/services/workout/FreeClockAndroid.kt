@@ -14,6 +14,7 @@ import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.PowerManager
+import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -38,20 +39,35 @@ object RestEndSignal {
 object FreeClockHub {
     @Volatile private var instance: FreeClockController? = null
 
-    fun controller(context: Context): FreeClockController = instance ?: synchronized(this) {
-        instance ?: FreeClockController(AndroidFreeClockPlatform(context.applicationContext)).also { instance = it }
+    fun controller(context: Context, restoreForAlarm: Boolean = false): FreeClockController = instance ?: synchronized(this) {
+        instance ?: FreeClockController(
+            AndroidFreeClockPlatform(context.applicationContext),
+            clock = SystemClock::elapsedRealtime,
+            restoreForAlarm = restoreForAlarm,
+        ).also { instance = it }
     }
 }
+
+internal fun workoutClockBootCount(context: Context): Int =
+    android.provider.Settings.Global.getInt(context.contentResolver, android.provider.Settings.Global.BOOT_COUNT, -1)
 
 internal class AndroidFreeClockPlatform(private val context: Context) : FreeClockPlatform {
     private val prefs = context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
+    private val bootCount by lazy { workoutClockBootCount(context) }
+
     override fun load(): FreeClockState = runCatching {
+        val sameBoot = bootCount >= 0 && prefs.getInt("clock_boot", -1) == bootCount
+        val offset = System.currentTimeMillis() - SystemClock.elapsedRealtime()
+        fun restoreTime(key: String): Long =
+            if (sameBoot) prefs.getLong(key, 0L)
+            else prefs.getLong("${key}_wall", prefs.getLong(key, 0L)).takeIf { it != 0L }?.minus(offset) ?: 0L
+
         FreeClockState(
             stopwatch = StopwatchState(
                 running = prefs.getBoolean("sw_running", false),
-                startedAtMs = prefs.getLong("sw_started", 0L),
+                startedAtMs = restoreTime("sw_started"),
                 accumulatedMs = prefs.getLong("sw_acc", 0L),
                 lapTotalsMs = prefs.getString("sw_laps", "").orEmpty().split(',').mapNotNull { it.toLongOrNull() },
             ),
@@ -59,7 +75,7 @@ internal class AndroidFreeClockPlatform(private val context: Context) : FreeCloc
                 phase = FreeTimerPhase.valueOf(prefs.getString("tm_phase", FreeTimerPhase.CONFIG.name) ?: FreeTimerPhase.CONFIG.name),
                 digits = prefs.getString("tm_digits", "").orEmpty(),
                 totalMs = prefs.getLong("tm_total", 0L),
-                endAtMs = prefs.getLong("tm_end", 0L),
+                endAtMs = restoreTime("tm_end"),
                 remainingMs = prefs.getLong("tm_left", 0L),
                 sound = prefs.getBoolean("tm_sound", true),
                 vibrate = prefs.getBoolean("tm_vib", true),
@@ -69,7 +85,11 @@ internal class AndroidFreeClockPlatform(private val context: Context) : FreeCloc
     }.getOrDefault(FreeClockState())
 
     override fun save(state: FreeClockState) {
+        val offset = System.currentTimeMillis() - SystemClock.elapsedRealtime()
         prefs.edit()
+            .putInt("clock_boot", bootCount)
+            .putLong("sw_started_wall", if (state.stopwatch.running) state.stopwatch.startedAtMs + offset else 0L)
+            .putLong("tm_end_wall", if (state.timer.phase == FreeTimerPhase.RUNNING) state.timer.endAtMs + offset else 0L)
             .putBoolean("sw_running", state.stopwatch.running)
             .putLong("sw_started", state.stopwatch.startedAtMs)
             .putLong("sw_acc", state.stopwatch.accumulatedMs)
@@ -94,15 +114,19 @@ internal class AndroidFreeClockPlatform(private val context: Context) : FreeCloc
         try {
             val exact = Build.VERSION.SDK_INT < Build.VERSION_CODES.S || alarmManager.canScheduleExactAlarms()
             when {
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && exact -> alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, endAtMs, pending)
-                // `setAlarmClock` no pide el permiso de alarma exacta y despierta el teléfono igual.
-                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> alarmManager.setAlarmClock(
-                    AlarmManager.AlarmClockInfo(endAtMs, launchIntent()), pending,
-                )
-                else -> alarmManager.set(AlarmManager.RTC_WAKEUP, endAtMs, pending)
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && exact ->
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, endAtMs, pending)
+                // API 31+ without SCHEDULE_EXACT_ALARM: setAlarmClock() throws SecurityException too.
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M ->
+                    alarmManager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, endAtMs, pending)
+                else -> alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, endAtMs, pending)
             }
         } catch (_: SecurityException) {
-            alarmManager.set(AlarmManager.RTC_WAKEUP, endAtMs, pending)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, endAtMs, pending)
+            } else {
+                alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, endAtMs, pending)
+            }
         }
     }
 
@@ -118,7 +142,7 @@ internal class AndroidFreeClockPlatform(private val context: Context) : FreeCloc
     override fun playEndCue(sound: Boolean, vibrate: Boolean) {
         // Descanso y reloj libre a la vez: suena primero el descanso y este 1,5 s después.
         val restEnd = RestEndSignal.endsAtMs
-        val now = System.currentTimeMillis()
+        val now = SystemClock.elapsedRealtime()
         val delayMs = if (restEnd > 0L && kotlin.math.abs(restEnd - now) <= CUE_CLASH_WINDOW_MS) CUE_STAGGER_MS else 0L
         val fire = { deliver(sound, vibrate) }
         if (delayMs == 0L) fire() else Handler(Looper.getMainLooper()).postDelayed(fire, delayMs)
@@ -157,6 +181,7 @@ internal class AndroidFreeClockPlatform(private val context: Context) : FreeCloc
             .setContentText("Se acabó el tiempo")
             .setCategory(NotificationCompat.CATEGORY_ALARM)
             .setAutoCancel(true)
+            .setSilent(true)
             .setContentIntent(launchIntent())
             .build()
         runCatching { nm.notify(NOTIFICATION_ID, notification) }
@@ -179,7 +204,7 @@ class FreeClockTimerReceiver : BroadcastReceiver() {
             ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "kpkn:freeClockTimer")
         runCatching { wakeLock?.acquire(10_000L) }
         try {
-            FreeClockHub.controller(context).onAlarm()
+            FreeClockHub.controller(context, restoreForAlarm = true).onAlarm()
         } finally {
             if (wakeLock?.isHeld == true) wakeLock.release()
         }

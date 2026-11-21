@@ -98,13 +98,15 @@ object OdsReader {
     }
 
     /** Filas de una tabla en orden, también dentro de grupos o de cabeceras de filas. */
-    private fun tableRows(parent: Element): List<Element> = OfficeXml.childElements(parent).flatMap { child ->
-        when (OfficeXml.name(child)) {
-            "table-row" -> listOf(child)
-            "table-row-group", "table-header-rows", "table-rows" -> tableRows(child)
-            else -> emptyList()
+    private fun tableRows(parent: Element, depth: Int = 0): Sequence<Element> =
+        if (depth >= ImportLimits.MAX_DOM_DEPTH) emptySequence()
+        else OfficeXml.elementChildren(parent).flatMap { child ->
+            when (OfficeXml.name(child)) {
+                "table-row" -> sequenceOf(child)
+                "table-row-group", "table-header-rows", "table-rows" -> tableRows(child, depth + 1)
+                else -> emptySequence()
+            }
         }
-    }
 
     /** Celdas de una fila; una celda cubierta por una combinación ocupa su columna. */
     private fun rowCells(row: Element): List<Element> = OfficeXml.childElements(row).filter {
@@ -129,20 +131,23 @@ object OdsReader {
     }
 
     /** Número sin ceros sobrantes («80.50» → «80.5»). */
-    private fun plainDecimal(value: String): String? = value.trim().toBigDecimalOrNull()?.stripTrailingZeros()?.toPlainString()
+    private fun plainDecimal(value: String): String? = value.boundedImportDecimal()?.stripTrailingZeros()?.toPlainString()
 
     /** Porcentaje: el valor por cien con «%» («0.25» → «25%»). */
     private fun percent(value: String): String? =
-        value.trim().toBigDecimalOrNull()?.movePointRight(2)?.stripTrailingZeros()?.toPlainString()?.plus("%")
+        value.boundedImportDecimal()?.movePointRight(2)?.stripTrailingZeros()?.toPlainString()?.plus("%")
 
     /** Duración ISO («PT0H2M0S») como «m:ss» o «h:mm:ss»; null si no es una duración positiva. */
     private fun duration(value: String): String? {
         val match = DURATION.matchEntire(value.trim()) ?: return null
         if (match.groupValues[1].isNotEmpty()) return null
-        val days = match.groupValues[2].toLongOrNull() ?: 0L
-        val hours = match.groupValues[3].toLongOrNull() ?: 0L
-        val minutes = match.groupValues[4].toLongOrNull() ?: 0L
-        val seconds = match.groupValues[5].toDoubleOrNull() ?: 0.0
+        val days = match.groupValues[2].ifEmpty { "0" }.toLongOrNull() ?: return null
+        val hours = match.groupValues[3].ifEmpty { "0" }.toLongOrNull() ?: return null
+        val minutes = match.groupValues[4].ifEmpty { "0" }.toLongOrNull() ?: return null
+        val seconds = match.groupValues[5].ifEmpty { "0" }.toDoubleOrNull() ?: return null
+        if (days > 36_500L || hours > 876_000L || minutes > 52_560_000L ||
+            !seconds.isFinite() || seconds !in 0.0..3_153_600_000.0
+        ) return null
         val total = days * 86_400 + hours * 3_600 + minutes * 60 + Math.round(seconds)
         val ss = (total % 60).toString().padStart(2, '0')
         return if (total < 3_600) {
@@ -157,16 +162,19 @@ object OdsReader {
         textBlocks(cell).map { it.trim() }.filter { it.isNotEmpty() }.joinToString(" ")
 
     /** Párrafos y encabezados de un nodo (también dentro de listas), en orden. */
-    private fun textBlocks(parent: Element): List<String> = OfficeXml.childElements(parent).flatMap { child ->
-        when (OfficeXml.name(child)) {
-            "p", "h" -> listOf(spanText(child))
-            "list", "list-item" -> textBlocks(child)
-            else -> emptyList()
+    private fun textBlocks(parent: Element, depth: Int = 0): Sequence<String> =
+        if (depth >= ImportLimits.MAX_DOM_DEPTH) emptySequence()
+        else OfficeXml.elementChildren(parent).flatMap { child ->
+            when (OfficeXml.name(child)) {
+                "p", "h" -> sequenceOf(spanText(child))
+                "list", "list-item" -> textBlocks(child, depth + 1)
+                else -> emptySequence()
+            }
         }
-    }
 
     /** Texto de un nodo: sus nodos de texto, con `text:s` como espacios y tabulaciones o saltos como un espacio. */
-    private fun spanText(node: Element): String {
+    private fun spanText(node: Element, depth: Int = 0): String {
+        if (depth >= ImportLimits.MAX_DOM_DEPTH) return ""
         val out = StringBuilder()
         val children = node.childNodes
         for (index in 0 until children.length) {
@@ -177,7 +185,7 @@ object OdsReader {
                     "tab", "line-break" -> out.append(' ')
                     // Comentarios y notas al pie no son el contenido de la celda.
                     "annotation", "annotation-end", "note" -> Unit
-                    else -> out.append(spanText(child))
+                    else -> out.append(spanText(child, depth + 1))
                 }
             } else if (child.nodeType == Node.TEXT_NODE || child.nodeType == Node.CDATA_SECTION_NODE) {
                 out.append(child.nodeValue.orEmpty())

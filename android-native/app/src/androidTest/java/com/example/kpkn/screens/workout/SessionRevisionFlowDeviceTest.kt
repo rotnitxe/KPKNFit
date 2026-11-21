@@ -653,21 +653,25 @@ class SessionRevisionFlowDeviceTest {
         compose.runOnUiThread { vm.stopRestTimer() }
         compose.waitUntil(15_000) { !vm.uiState.value.isRestTimerRunning }
         assertQuickRecordLineAdvanced(vm)
+        compose.runOnUiThread {
+            vm.startRestTimer(120)
+            vm.minimizeRestOverlay()
+        }
+        compose.waitUntil(10_000) { vm.uiState.value.isRestTimerRunning && vm.uiState.value.isRestMinimized }
+        val restDeadline = checkNotNull(vm.uiState.value.restModalState).endsAtMs
         val historyBefore = repository.history.value.map { it.id }
         compose.onNodeWithTag("workout-more-header").performClick()
         waitForTag("live-session-sheet-menu")
         // Story keeps a loading spinner while the background preview is rendered.
         compose.mainClock.autoAdvance = false
         compose.onNodeWithTag("workout-story-header", true).assertIsDisplayed().performClick()
-        // Let the click state compose before advancing the sheet entrance.
-        compose.mainClock.advanceTimeByFrame()
-        // The deferred open runs from a frame callback; one more frame applies the destination removal.
-        compose.mainClock.advanceTimeByFrame()
-        compose.waitUntil(10_000) {
+        compose.waitUntil(15_000) {
+            compose.mainClock.advanceTimeByFrame()
             compose.onAllNodesWithTag("live-session-sheet-menu", true)
-                .fetchSemanticsNodes(atLeastOneRootRequired = false).isEmpty()
+                .fetchSemanticsNodes(atLeastOneRootRequired = false).isEmpty() &&
+                compose.onAllNodesWithTag("story-sheet", true)
+                    .fetchSemanticsNodes(atLeastOneRootRequired = false).isNotEmpty()
         }
-        waitForTag("story-sheet")
         compose.mainClock.advanceTimeBy(1_000)
         compose.waitUntil(15_000) {
             compose.onNodeWithTag("story-sheet", true).isDisplayed() &&
@@ -676,7 +680,10 @@ class SessionRevisionFlowDeviceTest {
         capture("21-story-from-live-header-loading")
         compose.onNodeWithTag("story-sheet", true).assertIsDisplayed()
         compose.onNodeWithTag("story-templates", true).assertIsDisplayed()
-        compose.waitUntil(30_000) { compose.onNodeWithTag("story-preview", true).isDisplayed() }
+        compose.waitUntil(30_000) {
+            compose.mainClock.advanceTimeByFrame()
+            compose.onNodeWithTag("story-preview", true).isDisplayed()
+        }
         val sheet = compose.onNodeWithTag("story-sheet", true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         listOf("story-templates", "story-save-image", "story-share").forEach { tag ->
             val bounds = compose.onNodeWithTag(tag, true).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
@@ -689,15 +696,17 @@ class SessionRevisionFlowDeviceTest {
         assertEquals(sessionId, repository.ongoingWorkout.value?.session?.id)
         assertEquals(historyBefore, repository.history.value.map { it.id })
         assertEquals(1, vm.uiState.value.completedSets.size)
+        assertRealRestTick(vm, restDeadline)
         capture("21-story-from-live-header")
         compose.onNodeWithContentDescription("Volver al resumen").performClick()
         compose.mainClock.advanceTimeByFrame()
         compose.mainClock.advanceTimeBy(1_000)
         compose.waitUntil(5_000) {
-            runCatching { compose.onNodeWithTag("finish-sheet", true).isDisplayed() }.getOrDefault(false)
+            runCatching { compose.onNodeWithTag("live-session-line", true).isDisplayed() }.getOrDefault(false)
         }
-        compose.onNodeWithTag("finish-sheet", true).assertIsDisplayed()
+        compose.onNodeWithTag("finish-sheet", true).assertDoesNotExist()
         compose.onNodeWithTag("story-sheet", true).assertDoesNotExist()
+        assertRealRestTick(vm, restDeadline)
         assertFalse(vm.uiState.value.isComplete)
         assertEquals(historyBefore, repository.history.value.map { it.id })
     }

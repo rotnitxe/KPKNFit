@@ -69,6 +69,55 @@ class ProgramRepositoryFinalizeWorkoutTest {
     }
 
     @Test
+    fun volumeDiscountAndOngoingResolutionCommitTogetherAndCannotBeRepeated() = runBlocking {
+        val repository = ProgramRepository.initForTests(ApplicationProvider.getApplicationContext<Context>())
+        withTimeout(10_000) { repository.isReady.first { it } }
+        repository.resetAllStateSync()
+        val source = executableSession("volume-source", "Sentadilla")
+        val target = Session(
+            id = "volume-target",
+            name = "Banca",
+            exercises = listOf(Exercise(id = "volume-exercise", name = "Banca",
+                sets = List(3) { ExerciseSet(id = "volume-set-$it") })),
+        )
+        val week = ProgramWeek(id = "volume-week", name = "Semana", sessions = listOf(source, target))
+        val meso = Mesocycle(id = "volume-meso", name = "Meso", weeks = listOf(week))
+        val block = Block(id = "volume-block", name = "Bloque", mesocycles = listOf(meso))
+        val macro = Macrocycle(id = "volume-macro", name = "Macro", blocks = listOf(block))
+        val program = Program(id = "volume-program", name = "Volumen", structure = ProgramStructure.COMPLEX, macrocycles = listOf(macro))
+        repository.addProgram(program)
+        repository.updateProgramNow(program)
+        val ongoing = OngoingWorkoutState(
+            programId = program.id, session = source, startTime = 100L, weekId = week.id,
+            macroIndex = 0, mesoIndex = 0, logAlreadyWrittenId = "volume-log",
+        )
+        assertEquals(StartWorkoutResult.Started, repository.startWorkout(ongoing))
+        val owner = Any()
+        val expected = repository.claimOngoingWorkoutWriter(ongoing, owner)
+        val discounts = mapOf(target.id to mapOf(target.exercises.single().id to 1))
+        val db = repository.databaseForTests()
+
+        suspend fun storedSetCount() = db.programDao().getById(program.id)!!.toProgram()
+            .macrocycles.single().blocks.single().mesocycles.single().weeks.single()
+            .sessions.first { it.id == target.id }.exercises.single().sets.size
+
+        repository.durableCommitBeforeWriteForTests = { error("injected write failure") }
+        try {
+            assertTrue(runCatching { repository.resolveWorkoutVolumeAdvance(expected, owner, discounts) }.isFailure)
+            assertEquals(3, storedSetCount())
+            assertEquals("volume-log", db.stateDao().getOngoingWorkout()?.toOngoingWorkoutState()?.logAlreadyWrittenId)
+        } finally {
+            repository.durableCommitBeforeWriteForTests = null
+        }
+
+        assertTrue(repository.resolveWorkoutVolumeAdvance(expected, owner, discounts))
+        assertEquals(2, storedSetCount())
+        assertNull(db.stateDao().getOngoingWorkout())
+        assertFalse(repository.resolveWorkoutVolumeAdvance(expected, owner, discounts))
+        assertEquals(2, storedSetCount())
+    }
+
+    @Test
     fun complexFinalizeRequiresAllWeekSessions_thenCompletesAndPersists() = runBlocking {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val repository = ProgramRepository.initForTests(context)

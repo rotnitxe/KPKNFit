@@ -51,11 +51,29 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
 
     init {
         scope.launch {
-            val persisted = db.competitionRecordDao().getAll().map { it.toCompetitionRecord() }
-            synchronized(mutationLock) {
-                _records.value = (persisted.filterNot { it.id in newestWrite } + _records.value).sortedWith(recordSorter)
+            try {
+                val persisted = db.competitionRecordDao().getAll().mapNotNull { row ->
+                    runCatching { row.toCompetitionRecord() }
+                        .onFailure { error ->
+                            android.util.Log.w(
+                                "CompetitionRepository",
+                                "Skipped corrupt competition row id=${row.id}",
+                                error,
+                            )
+                        }
+                        .getOrNull()
+                }
+                synchronized(mutationLock) {
+                    _records.value = (persisted.filterNot { it.id in newestWrite } + _records.value)
+                        .sortedWith(recordSorter)
+                }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                throw cancelled
+            } catch (error: Throwable) {
+                android.util.Log.e("CompetitionRepository", "Initial competition load failed", error)
+            } finally {
+                _isReady.value = true
             }
-            _isReady.value = true
         }
     }
 
@@ -104,12 +122,36 @@ class CompetitionRepository private constructor(context: Context, databaseOverri
         job.invokeOnCompletion { pendingWriteJobs -= job }
     }
 
-    private suspend fun awaitPendingWrites() {
+    suspend fun awaitPendingWrites() {
         while (true) {
             val pending = pendingWriteJobs.toList()
             if (pending.isEmpty()) return
             pending.joinAll()
         }
+    }
+
+    suspend fun refreshFromStorage() = withContext(Dispatchers.IO) {
+        awaitPendingWrites()
+        val persisted = db.competitionRecordDao().getAll().mapNotNull { row ->
+            runCatching { row.toCompetitionRecord() }
+                .onFailure { error ->
+                    android.util.Log.w(
+                        "CompetitionRepository",
+                        "Skipped corrupt competition row id=${row.id}",
+                        error,
+                    )
+                }
+                .getOrNull()
+        }
+        synchronized(mutationLock) {
+            newestWrite.clear()
+            _records.value = persisted.sortedWith(recordSorter)
+        }
+        _isReady.value = true
+    }
+
+    fun cancelAllReminders() {
+        _records.value.forEach { reminderManager.cancel(it.id) }
     }
 
     internal data class RecordWriteReservation(val record: CompetitionRecord,val version: Long)

@@ -191,14 +191,21 @@ internal fun CardioLiveCard(
     val scope = rememberCoroutineScope()
     val cardioHaze = remember { HazeState() }
 
+    val gpsWarningContext = androidx.compose.ui.platform.LocalContext.current
+    LaunchedEffect(gpsState?.persistenceFailed) {
+        if (gpsState?.persistenceFailed == true) android.widget.Toast.makeText(gpsWarningContext,
+            "No se pudo guardar la ruta GPS. La app seguirá intentando; evita cerrar el entrenamiento.",
+            android.widget.Toast.LENGTH_LONG).show()
+    }
     val status = executionState?.status ?: CardioExecutionStatus.READY
     val isLibre = !details.hasIntervals() && details.targetDurationSeconds == null
     val plannedDurationSeconds = if (isLibre) 20 * 60 else details.effectiveDurationSeconds().coerceAtLeast(1)
     val elapsed = executionState?.elapsedSeconds ?: 0
     val gpsMode = details.requiresGps
     val gpsHasData = gpsMode && gpsState?.let { it.pointCount > 0 || it.distanceMeters >= 10.0 } == true
-    val durationSeconds = cardioRecordedDurationSeconds(gpsMode, gpsState?.elapsedActiveSeconds, elapsed)
-    val distanceKm = distanceText.replace(',', '.').toDoubleOrNull()
+    val liveDurationSeconds = cardioRecordedDurationSeconds(gpsMode, gpsState?.elapsedActiveSeconds, elapsed)
+    val durationSeconds = if (liveDurationSeconds > 0) liveDurationSeconds else (completedSet?.timeSeconds ?: 0)
+    val distanceKm = distanceText.replace(',', '.').toDoubleOrNull() ?: completedSet?.distanceKm
     val recordedDistanceKm = if (gpsHasData) gpsState?.distanceMeters?.div(1_000.0) else distanceKm
     val guide = remember(details.type, details.intensity, details.intensityLevel, details.hiit) { CardioGuideEngine.guide(details) }
     val plannedRpe = guide.rpeTargetExact.roundToInt().coerceIn(1, 10)
@@ -299,30 +306,29 @@ internal fun CardioLiveCard(
     val manualAvgHr = if (measures.manualCount > 0) (measures.manualSum / measures.manualCount).toInt() else null
     val avgHr = watchAvgHr ?: manualAvgHr
     // Al terminar: lo medido por el reloj manda; si no, lo que se corrija en «FC media» y, si no, la media de los pulsos manuales.
-    val finishHr = watchAvgHr ?: heartRateText.toIntOrNull() ?: manualAvgHr
+    val finishHr = watchAvgHr ?: heartRateText.toIntOrNull() ?: manualAvgHr ?: completedSet?.avgHeartRate
     val manualHrAgeSeconds = (durationSeconds - manualHrAtSeconds).coerceAtLeast(0)
-    val estimatedKm = remember(details, elapsed) {
+    val estimatedKm = remember(details, durationSeconds) {
         if (details.hasIntervals()) {
             var acc = 0; var km = 0.0
             CardioIntervalEngine.expandedBlocks(details).forEach { block ->
-                val inBlock = (elapsed - acc).coerceIn(0, block.durationSeconds)
+                val inBlock = (durationSeconds - acc).coerceIn(0, block.durationSeconds)
                 block.speedKmh?.let { km += it * inBlock / 3600.0 }
                 acc += block.durationSeconds
             }
             km.takeIf { it > 0.0 }
         } else null
     }
-    val kcal = remember(details, elapsed, bodyWeightKg) {
+    val kcal = remember(details, durationSeconds, bodyWeightKg, finishHr) {
         val kg = bodyWeightKg?.takeIf { it > 0 } ?: return@remember null
-        if (details.hasIntervals()) {
-            var acc = 0; var total = 0.0
-            CardioIntervalEngine.expandedBlocks(details).forEach { block ->
-                val inBlock = (elapsed - acc).coerceIn(0, block.durationSeconds)
-                total += CardioIntervalEngine.metForBlock(block, details.type, details.resolvedIntensityLevel()) * kg * inBlock / 3600.0
-                acc += block.durationSeconds
-            }
-            total
-        } else details.metBase.takeIf { it > 0 }?.let { it * kg * elapsed / 3600.0 }
+        com.example.kpkn.domain.calculations.CardioCalorieEngine.estimate(
+            com.example.kpkn.domain.calculations.CardioCalorieInput(
+                details = details,
+                weightKg = kg,
+                durationSeconds = durationSeconds,
+                averageHeartRate = finishHr?.takeIf { it in 30..240 },
+            ),
+        ).toDouble()
     }
     val reduced = wizardReducedMotion()
     var toastMessage by remember { mutableStateOf<String?>(null) }
@@ -400,7 +406,18 @@ internal fun CardioLiveCard(
             )
             CardioScreenKind.RECORDED -> CardioRecordedView(
                 exerciseName = exerciseName, durationSeconds = durationSeconds, distanceKm = recordedDistanceKm, avgHr = completedSet?.avgHeartRate ?: avgHr,
-                rpe = completedSet?.rpe, onUpdate = { finishing = true },
+                rpe = completedSet?.rpe, onUpdate = {
+                    if (distanceText.isBlank() && completedSet?.distanceKm != null) {
+                        distanceText = completedSet.distanceKm.toString()
+                    }
+                    if (heartRateText.isBlank() && completedSet?.avgHeartRate != null) {
+                        heartRateText = completedSet.avgHeartRate.toString()
+                    }
+                    if (rpe == null && completedSet?.rpe != null) {
+                        rpe = completedSet.rpe.roundToInt()
+                    }
+                    finishing = true
+                },
             )
             CardioScreenKind.FINISH -> CardioFinishView(
                 exerciseName = exerciseName,
@@ -430,8 +447,11 @@ internal fun CardioLiveCard(
                         isSavingRecord = true; recordSaveFailed = false
                         try {
                             val heart = finishHr
-                            val saved = onRecordWithRpe?.invoke(durationSeconds, recordedDistanceKm ?: estimatedKm, heart, chosen.toDouble())
-                                ?: onRecord(durationSeconds, recordedDistanceKm ?: estimatedKm, heart)
+                            val dur = durationSeconds.takeIf { it > 0 }
+                                ?: completedSet?.timeSeconds?.takeIf { it > 0 }
+                                ?: details.effectiveDurationSeconds().coerceAtLeast(1)
+                            val saved = onRecordWithRpe?.invoke(dur, recordedDistanceKm ?: estimatedKm, heart, chosen.toDouble())
+                                ?: onRecord(dur, recordedDistanceKm ?: estimatedKm, heart)
                             if (saved) finishing = false else recordSaveFailed = true
                         } catch (cancelled: CancellationException) {
                             throw cancelled
@@ -671,6 +691,15 @@ internal fun CardioLiveCard(
                 onFinish = { beginFinish() },
                 hazeState = cardioHaze,
                 bottomClearance = if (compact) 116.dp else 134.dp,
+            )
+        }
+        if (gpsMode && gpsState?.persistenceFailed == true) {
+            Text(
+                text = "No se pudo guardar la ruta GPS. Reintentando…",
+                modifier = Modifier.align(Alignment.TopCenter).padding(12.dp)
+                    .background(Color(0xFF5B1F1F), RoundedCornerShape(8.dp)).padding(10.dp)
+                    .testTag("cardio-gps-save-warning"),
+                color = Color.White,
             )
         }
         if (countdownRemaining > 0) {

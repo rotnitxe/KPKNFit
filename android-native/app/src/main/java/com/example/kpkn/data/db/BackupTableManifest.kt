@@ -71,6 +71,8 @@ object BackupTableManifest {
     val coreJsonBackedTables: List<String> = listOf(
         "programs",
         "workout_logs",
+        // Ephemeral 30-day session-scoped transcripts; cleared on full JSON restore so stale voice rows do not leak.
+        "workout_voice_history",
         "settings",
         "active_program",
         "ongoing_workout",
@@ -89,6 +91,21 @@ object BackupTableManifest {
         "setup_drafts",
         "setup_commit_receipts",
     )
+
+    fun nonRegenerableTablesInDeleteOrder(): List<String> {
+        val candidates = tableCategory
+            .filterValues { it != Category.REGENERABLE }
+            .keys
+            .toMutableList()
+        // Delete child FK tables before their parents in case foreign_keys enforcement is active.
+        val fkChildrenFirst = listOf("video_analysis", "workout_media_session_associations")
+        val ordered = mutableListOf<String>()
+        fkChildrenFirst.forEach { child ->
+            if (candidates.remove(child)) ordered += child
+        }
+        ordered += candidates
+        return ordered
+    }
 
     fun tablesToClearForImport(
         schemaVersion: Int,

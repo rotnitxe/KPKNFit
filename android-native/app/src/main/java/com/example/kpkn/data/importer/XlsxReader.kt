@@ -61,8 +61,11 @@ object XlsxReader {
     private enum class NumberKind { PLAIN, PERCENT, TIME }
 
     /** Hojas visibles del libro en su orden, con sus notas de recorte. Lanza [ImportFileException] si no es un libro. */
-    fun read(input: InputStream): List<ImportSheet> {
-        val bytes = readBoundedBytes(input, ImportLimits.MAX_FILE_BYTES, "El archivo supera 5 MB")
+    fun read(input: InputStream): List<ImportSheet> =
+        read(readBoundedBytes(input, ImportLimits.MAX_FILE_BYTES, "El archivo supera 5 MB"))
+
+    fun read(bytes: ByteArray): List<ImportSheet> {
+        if (bytes.size > ImportLimits.MAX_FILE_BYTES) throw ImportFileException("El archivo supera 5 MB")
         // Primera pasada: el libro, sus relaciones, las cadenas y los estilos, que son pequeños.
         val parts = OfficeXml.entries(bytes, TOO_LARGE) { it in PARTS } ?: throw notExcel()
         val workbookXml = parts[WORKBOOK] ?: throw notExcel()
@@ -87,7 +90,7 @@ object XlsxReader {
         parseXml(xml).getElementsByTagNameNS("*", "sheet").elements().mapIndexed { index, sheet ->
             val name = sheet.getAttribute("name").ifBlank { "Hoja ${index + 1}" }
             val target = attributeNamed(sheet, "id")?.let { targets[it] }
-            val path = target?.let { resolvePath(it) } ?: "xl/worksheets/sheet${index + 1}.xml"
+            val path = if (target != null) resolvePath(target).orEmpty() else "xl/worksheets/sheet${index + 1}.xml"
             SheetRef(name, path, hidden = sheet.getAttribute("state") in HIDDEN_STATES)
         }
 
@@ -97,8 +100,19 @@ object XlsxReader {
             .associate { it.getAttribute("Id") to it.getAttribute("Target") }
     }
 
-    private fun resolvePath(target: String): String =
-        if (target.startsWith("/")) target.removePrefix("/") else "xl/$target"
+    private fun resolvePath(target: String): String? {
+        val normalized = target.replace('\\', '/')
+        val path = if (normalized.startsWith('/')) normalized else "xl/$normalized"
+        val segments = ArrayDeque<String>()
+        for (segment in path.split('/')) {
+            when (segment) {
+                "", "." -> Unit
+                ".." -> if (segments.removeLastOrNull() == null) return null
+                else -> segments.addLast(segment)
+            }
+        }
+        return segments.joinToString("/")
+    }
 
     /** Cadenas compartidas, en orden; el texto enriquecido se une y la fonética no cuenta. */
     private fun sharedStrings(xml: ByteArray?): List<String> {
@@ -195,7 +209,7 @@ object XlsxReader {
     }
 
     /** Porcentaje: el valor por cien con «%», sin ceros sobrantes («0.725» → «72.5%»). */
-    private fun percentText(raw: String): String? = raw.trim().toBigDecimalOrNull()
+    private fun percentText(raw: String): String? = raw.boundedImportDecimal()
         ?.movePointRight(2)
         ?.round(MathContext(15))
         ?.stripTrailingZeros()
@@ -219,7 +233,7 @@ object XlsxReader {
         var column = 0
         var letters = 0
         for (char in reference) {
-            if (!char.isLetter()) break
+            if (char !in 'A'..'Z' && char !in 'a'..'z') break
             column = minOf(column * 26 + (char.uppercaseChar() - 'A' + 1), MAX_COLUMN_SCAN)
             letters++
         }

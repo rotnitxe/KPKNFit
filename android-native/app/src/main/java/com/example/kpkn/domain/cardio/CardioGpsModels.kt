@@ -111,23 +111,26 @@ object CardioGpsEngine {
         val useActiveClock = points.all { it.elapsedActiveSeconds != null }
         fun clockMs(point: GpsTrackPoint): Long = if (useActiveClock) point.elapsedActiveSeconds!! * 1_000L else point.timestampEpochMs
         var accumulated = 0.0
-        var kmStartMs = clockMs(points.first())
+        var kmStartMs = clockMs(points.first()).toDouble()
         var previous = points.first()
         for (index in 1 until points.size) {
             val point = points[index]
-            val append = append(previous, point)
-            if (!append.accepted) {
-                previous = point
-                continue
+            val result = append(previous, point)
+            if (result.accepted && result.distanceDeltaMeters > 0.0) {
+                val distance = result.distanceDeltaMeters
+                val before = accumulated
+                val startMs = clockMs(previous).toDouble()
+                val endMs = clockMs(point).toDouble()
+                var boundary = 1_000.0 - before
+                while (boundary <= distance) {
+                    val crossingMs = startMs + (endMs - startMs) * (boundary / distance)
+                    splits += ((crossingMs - kmStartMs) / 1_000.0).toInt().coerceAtLeast(1)
+                    kmStartMs = crossingMs
+                    boundary += 1_000.0
+                }
+                accumulated = (before + distance) % 1_000.0
             }
-            accumulated += append.distanceDeltaMeters
             previous = point
-            while (accumulated >= 1_000.0) {
-                val elapsedSeconds = ((clockMs(point) - kmStartMs) / 1_000L).toInt().coerceAtLeast(1)
-                splits += elapsedSeconds
-                accumulated -= 1_000.0
-                kmStartMs = clockMs(point)
-            }
         }
         return splits
     }

@@ -7,6 +7,8 @@ import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.nodes.Node
 import org.jsoup.nodes.TextNode
+import org.jsoup.select.NodeFilter
+import org.jsoup.select.NodeTraversor
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.InputStream
@@ -15,7 +17,12 @@ import java.net.Inet4Address
 import java.net.Inet6Address
 import java.net.InetAddress
 import java.net.URI
-import java.net.URL
+import java.net.Proxy
+import java.util.concurrent.TimeUnit
+import okhttp3.Dns
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import java.net.URLDecoder
 import java.text.Normalizer
 import java.nio.charset.Charset
@@ -76,11 +83,8 @@ object ProgramUrlReader {
         onProgress: (page: Int, pages: Int) -> Unit = { _, _ -> },
     ): ProgramUrlDocument = readWithTransport(
         rawUrl = rawUrl,
-        validateHost = ::validatePublicHost,
-        openConnection = { uri ->
-            (uri.toURL().openConnection() as? HttpURLConnection)
-                ?: throw ImportFileException(URL_UNREADABLE)
-        },
+        validateHost = { it },
+        openConnection = { uri -> ValidatedUrlConnection(uri, resolvePublicAddresses(uri)) },
         cacheDir = cacheDir,
         onProgress = onProgress,
         ocr = DeviceProgramUrlOcr,
@@ -114,7 +118,7 @@ object ProgramUrlReader {
                         if (redirects >= MAX_REDIRECTS) throw ImportFileException(URL_UNREADABLE)
                         val location = connection.getHeaderField("Location")
                             ?: throw ImportFileException(URL_UNREADABLE)
-                        current = parseHttpsUrl(current.resolve(location).toString())
+                        current = parseHttpsUrl(current.resolve(location.trim().replace(" ", "%20")).toString())
                         redirects += 1
                         continue
                     }
@@ -160,7 +164,7 @@ object ProgramUrlReader {
     }
 
     /** Valida también que el host no sea local antes de abrir la conexión. */
-    internal fun validatePublicHttpsUrl(rawUrl: String): URI = validatePublicHost(parseHttpsUrl(rawUrl))
+    internal fun validatePublicHttpsUrl(rawUrl: String): URI = parseHttpsUrl(rawUrl).also { resolvePublicAddresses(it) }
 
     /** Extrae HTML con DOM, conserva tablas como filas tabuladas y lo pasa por el mismo lector que texto pegado. */
     internal fun parsePayload(bytes: ByteArray, contentType: String, fileName: String, source: URI): ProgramUrlDocument {
@@ -284,10 +288,11 @@ object ProgramUrlReader {
         return output.toByteArray()
     }
 
-    private fun readHeader(input: InputStream, count: Int): ByteArray {
+    private suspend fun readHeader(input: InputStream, count: Int): ByteArray {
         val buffer = ByteArray(count)
         var total = 0
         while (total < count) {
+            currentCoroutineContext().ensureActive()
             val read = input.read(buffer, total, count - total)
             if (read < 0) break
             if (read == 0) {
@@ -301,7 +306,7 @@ object ProgramUrlReader {
         return buffer.copyOf(total)
     }
 
-    private fun validatePublicHost(uri: URI): URI {
+    private fun resolvePublicAddresses(uri: URI): List<InetAddress> {
         val host = uri.host.removeSurrounding("[", "]").removeSuffix(".").lowercase()
         if (host == "localhost" || host.endsWith(".localhost") || host.endsWith(".local")) {
             throw ImportFileException(URL_UNREADABLE)
@@ -312,7 +317,7 @@ object ProgramUrlReader {
             throw ImportFileException(URL_UNREADABLE)
         }
         if (addresses.isEmpty() || addresses.any { !isPublicAddress(it) }) throw ImportFileException(URL_UNREADABLE)
-        return uri
+        return addresses.toList()
     }
 
     private fun isPublicAddress(address: InetAddress): Boolean {
@@ -331,10 +336,73 @@ object ProgramUrlReader {
                     (a == 198 && b == 51 && bytes[2] == 100) ||
                     (a == 203 && b == 0 && bytes[2] == 113))
             }
-            is Inet6Address -> (bytes[0] and 0xfe) != 0xfc && !(bytes[0] == 0xfe && (bytes[1] and 0xc0) == 0x80)
+            is Inet6Address -> {
+                val embedded = bytes.take(10).all { it == 0 } &&
+                    ((bytes[10] == 0xff && bytes[11] == 0xff) || (bytes[10] == 0 && bytes[11] == 0))
+                if (embedded) {
+                    isPublicAddress(InetAddress.getByAddress(address.address.copyOfRange(12, 16)))
+                } else {
+                    // Only global unicast, excluding transition and special-purpose prefixes.
+                    bytes[0] in 0x20..0x3f &&
+                        !bytes.startsWithPrefix(0x20, 0x01, 0x00, 0x00) &&
+                        !bytes.startsWithPrefix(0x20, 0x01, 0x0d, 0xb8) &&
+                        !bytes.startsWithPrefix(0x20, 0x01, 0x00, 0x02, 0x00, 0x00) &&
+                        !bytes.startsWithPrefix(0x20, 0x02)
+                }
+            }
             else -> false
         }
     }
+
+    private fun List<Int>.startsWithPrefix(vararg prefix: Int): Boolean =
+        prefix.indices.all { this[it] == prefix[it] }
+
+    // HTTPS keeps the original hostname for SNI, certificate checks and Host. DNS returns only
+    // the addresses already validated for this request, and automatic redirects are disabled.
+    private class ValidatedUrlConnection(uri: URI, addresses: List<InetAddress>) : HttpURLConnection(uri.toURL()) {
+        private val hostname = uri.host.removeSurrounding("[", "]")
+        private val client = httpsClient.newBuilder().dns(object : Dns {
+            override fun lookup(hostname: String): List<InetAddress> {
+                if (!hostname.equals(this@ValidatedUrlConnection.hostname, ignoreCase = true)) {
+                    throw java.net.UnknownHostException(hostname)
+                }
+                return addresses
+            }
+        }).build()
+        private var response: Response? = null
+
+        override fun connect() {
+            if (response != null) return
+            val request = Request.Builder().url(url.toString()).get()
+            requestProperties.forEach { (name, values) -> values.forEach { request.addHeader(name, it) } }
+            response = client.newCall(request.build()).execute()
+            connected = true
+        }
+
+        private fun received(): Response {
+            connect()
+            return checkNotNull(response)
+        }
+
+        override fun getResponseCode(): Int = received().code
+        override fun getHeaderField(name: String): String? = received().header(name)
+        override fun getContentLengthLong(): Long = received().body?.contentLength() ?: -1L
+        override fun getInputStream(): InputStream = checkNotNull(received().body).byteStream()
+        override fun usingProxy(): Boolean = false
+        override fun disconnect() {
+            response?.close()
+            response = null
+        }
+    }
+
+    private val httpsClient = OkHttpClient.Builder()
+        .proxy(Proxy.NO_PROXY)
+        .followRedirects(false)
+        .followSslRedirects(false)
+        .connectTimeout(CONNECT_TIMEOUT_MS.toLong(), TimeUnit.MILLISECONDS)
+        .readTimeout(READ_TIMEOUT_MS.toLong(), TimeUnit.MILLISECONDS)
+        .callTimeout(60, TimeUnit.SECONDS)
+        .build()
 
     private fun contentDispositionName(header: String?): String? {
         if (header.isNullOrBlank()) return null
@@ -437,29 +505,32 @@ object ProgramUrlReader {
             }
             newline()
         }
-        fun appendNode(node: Node) {
-            when (node) {
-                is TextNode -> output.append(node.wholeText)
-                is Element -> when (node.normalName()) {
-                    "br" -> newline()
-                    "table" -> appendTable(node)
-                    "li" -> {
-                        newline()
-                        output.append("• ")
-                        node.childNodes().forEach(::appendNode)
-                        newline()
+        NodeTraversor.filter(object : NodeFilter {
+            override fun head(node: Node, depth: Int): NodeFilter.FilterResult {
+                if (depth >= ImportLimits.MAX_DOM_DEPTH) return NodeFilter.FilterResult.SKIP_ENTIRELY
+                if (node is TextNode) output.append(node.wholeText)
+                if (node is Element) {
+                    when (node.normalName()) {
+                        "br" -> newline()
+                        "table" -> {
+                            appendTable(node)
+                            return NodeFilter.FilterResult.SKIP_ENTIRELY
+                        }
+                        "li" -> {
+                            newline()
+                            output.append("• ")
+                        }
+                        in BLOCK_TAGS -> newline()
                     }
-                    in BLOCK_TAGS -> {
-                        newline()
-                        node.childNodes().forEach(::appendNode)
-                        newline()
-                    }
-                    else -> node.childNodes().forEach(::appendNode)
                 }
-                else -> node.childNodes().forEach(::appendNode)
+                return NodeFilter.FilterResult.CONTINUE
             }
-        }
-        appendNode(root)
+
+            override fun tail(node: Node, depth: Int): NodeFilter.FilterResult {
+                if (node is Element && (node.normalName() == "li" || node.normalName() in BLOCK_TAGS)) newline()
+                return NodeFilter.FilterResult.CONTINUE
+            }
+        }, root)
         return output.toString().replace('\u00a0', ' ').replace('\r', '\n')
             .split('\n')
             .map { line -> line.split('\t').joinToString("\t") { cell -> SPACE_RUN.replace(cell.replace(WHITESPACE, " "), " ").trim() } }

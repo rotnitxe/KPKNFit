@@ -77,6 +77,8 @@ internal fun RecordedSessionFinishSheet(
     openStoryOnStart: Boolean = false,
     /** Await the note draft write when the user leaves the notes panel or finish sheet. */
     onNotesCommitted: (String) -> Unit = onNotes,
+    pendingSeriesNotice: PendingSeriesNotice? = null,
+    onContinuePending: () -> Unit = {},
 ) {
     var notes by rememberSaveable { mutableStateOf(initialNotes) }
     var effort by rememberSaveable { mutableStateOf<Double?>(null) }
@@ -103,7 +105,7 @@ internal fun RecordedSessionFinishSheet(
     val recordedEffort = remember(completedExercises) { RpeConversion.recordedEffort(completedExercises) }
     val story = remember(name, completedExercises, presentation, durationMinutes, sessionRpe, recordedEffort, lifts, finishRecords) {
         WorkoutStoryData(
-            name, presentation, durationMinutes, sessionTonnage(completedExercises), logicalSetCountFromCompleted(completedExercises),
+            name, presentation.copy(currentExercises = completedExercises), durationMinutes, sessionTonnage(completedExercises), logicalSetCountFromCompleted(completedExercises),
             finishAverageRir(completedExercises), "Sin registro", lifts, sessionRpe = sessionRpe ?: recordedEffort.value,
             finishRecords = finishRecords,
         )
@@ -125,10 +127,10 @@ internal fun RecordedSessionFinishSheet(
     val context = LocalContext.current
     // Miniatura de la historia (la propia imagen a baja resolución), en segundo plano.
     val thumb by produceState<androidx.compose.ui.graphics.ImageBitmap?>(null, story, storyOptions, model.empty) {
+        value = null
         if (model.empty) return@produceState
         value = try {
-            val full = renderWorkoutStory(context.applicationContext, story, storyOptions)
-            android.graphics.Bitmap.createScaledBitmap(full, 114, 203, true).also { if (it !== full) full.recycle() }.asImageBitmap()
+            renderWorkoutStory(context.applicationContext, story, storyOptions, width = 114, height = 203).asImageBitmap()
         } catch (error: CancellationException) { throw error } catch (_: Exception) { null }
     }
     val ridges = remember(completedExercises) { finishRidges(completedExercises) }
@@ -143,6 +145,7 @@ internal fun RecordedSessionFinishSheet(
         photoCount = presentation.photos.size, shareAfterSave = shareAfterSave, panelOpen = panelOpen, panelKind = panelKind, checklist = checklist,
         effortSelected = effort, storyThumb = thumb, ridges = ridges, ridgeRecordIndex = ridgeRecord,
         storyTemplateSummary = "${storyOptions.template.label} · $activeStoryBg",
+        pendingSeriesNotice = pendingSeriesNotice,
     )
     var lastCommittedNotes by rememberSaveable { mutableStateOf(initialNotes) }
     fun commitNotesIfChanged() {
@@ -175,7 +178,7 @@ internal fun RecordedSessionFinishSheet(
         },
         onDiscard = { if (!saving && model.empty) showEmptyDiscardConfirmation = true },
         onNotes = { notes = it; onNotes(it) }, onEffort = { effort = it },
-        onAddTask = onAddTask, onToggleTask = onToggleTask, onRemoveTask = onRemoveTask,
+        onAddTask = onAddTask, onToggleTask = onToggleTask, onRemoveTask = onRemoveTask, onContinuePending = onContinuePending,
     )
 
     // La hoja del lienzo: 94 % del alto (a lo que mida el contenido si no hay series), fondo #1B1B1D, radio 28 y asa de 40 × 4 a 8 dp del borde.

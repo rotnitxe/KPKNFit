@@ -64,7 +64,9 @@ object ImportDraftValidation {
         for (week in draft.weeks) {
             for (day in week.days) {
                 for (exercise in day.exercises) {
-                    if (exercise.sets !in 1..ProgramImportParser.MAX_SETS ||
+                    if (exercise.rawName.isBlank() || exercise.loadKg?.isFinite() == false ||
+                        exercise.percent1Rm?.isFinite() == false || exercise.rpe?.isFinite() == false ||
+                        exercise.sets !in 1..ProgramImportParser.MAX_SETS ||
                         (exercise.durationSeconds != null && exercise.durationSeconds !in 1..ProgramImportParser.MAX_DURATION_SECONDS) ||
                         (exercise.durationSeconds == null &&
                             (exercise.repsMin !in 1..ProgramImportParser.MAX_REPS || exercise.repsMax !in 1..ProgramImportParser.MAX_REPS || exercise.repsMin > exercise.repsMax))

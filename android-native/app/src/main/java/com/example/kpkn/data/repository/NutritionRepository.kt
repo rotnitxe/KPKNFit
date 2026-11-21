@@ -1439,8 +1439,11 @@ class NutritionRepository private constructor(
     private suspend fun publishUserState(context: Context) {
         try {
             // Lo costoso queda fuera del candado: alimentos propios + catálogo estático y de marcas.
-            val customFoods = db.nutritionDao().getAllCustomFoods()
-                .map { it.toFoodItem() }
+            val customFoods = decodeUserRows(
+                db.nutritionDao().getAllCustomFoods(),
+                "nutrition_custom_foods",
+                { it.id },
+            ) { it.toFoodItem() }
                 .filterNot { custom ->
                     // Drop stale AI-inferred duplicates when a curated static entry exists.
                     custom.isAiInferred && findFoodByNormalized(custom.name) != null
@@ -1733,6 +1736,11 @@ class NutritionRepository private constructor(
         // marcar al publicar el estado nuevo.
         bumpCatalogGeneration()
         loadFromDb(context)
+    }
+
+    suspend fun refreshDataAndAwait(context: Context) {
+        bumpCatalogGeneration()
+        loadFromDb(context).await()
     }
 
     companion object {

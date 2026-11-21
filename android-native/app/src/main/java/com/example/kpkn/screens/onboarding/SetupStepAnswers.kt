@@ -1175,7 +1175,7 @@ private fun SetupWizardDraft.typedSelections(step: SetupStepId): Set<String> = w
 
     SetupStepId.SPLIT -> when {
         selectedSplitId == "custom" || customSplitPattern.isNotEmpty() -> setOf("custom")
-        selectedSplitId != null -> setOf(selectedSplitId!!)
+        selectedSplitId != null -> setOfNotNull(selectedSplitId)
         isAnsweredForSelection(step) -> setOf("recommended")
         else -> emptySet()
     }

@@ -74,9 +74,30 @@ class DeepLinkRouterTest {
             DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/nutrition/calibration"))?.route,
         )
         assertEquals(
-            KpknRoute.HealthConnect.route,
+            KpknRoute.Settings.route,
             DeepLinkRouter.resolve(Uri.parse("kpkn://settings/health-connect"))?.route,
         )
+        assertEquals(
+            KpknRoute.Settings.route,
+            DeepLinkRouter.resolve(Uri.parse("kpkn://settings/salud"))?.route,
+        )
+    }
+
+    @Test
+    fun encodesSpecialCharactersInParameterizedRoutesToPreventRouteInjection() {
+        val program = DeepLinkRouter.resolve(Uri.parse("https://kpkn.fit/program/a%2Fb%3Fx%3D1"))
+        val workout = DeepLinkRouter.resolve(Uri.parse("kpkn://workout/p%2F1/s%232"))
+        val competition = DeepLinkRouter.resolve(Uri.parse("kpkn://competition/c%2F9"))
+        val action = DeepLinkRouter.resolve(Uri.parse("kpkn://nutrition/action/a%2Fb"))
+
+        assertEquals(KpknRoute.ProgramDetail.create("a/b?x=1"), program?.route)
+        assertEquals("program/a%2Fb%3Fx%3D1", program?.route)
+        assertEquals(KpknRoute.Workout.create("p/1", "s#2"), workout?.route)
+        assertEquals("workout/p%2F1/s%232", workout?.route)
+        assertEquals(KpknRoute.CompetitionDetail.create("c/9"), competition?.route)
+        assertEquals("competition/c%2F9", competition?.route)
+        assertEquals(KpknRoute.NutritionAction.create("a/b"), action?.route)
+        assertEquals("nutrition/action/a%2Fb", action?.route)
     }
 
     @Test

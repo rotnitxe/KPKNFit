@@ -106,7 +106,6 @@ class WorkoutFinishController(
         onFailure: (Exception) -> Unit = {},
     ) {
         val initialState = getState()
-        if (!canStartWorkoutRecording(initialState) || initialState.session == null) return
         if (!initialState.logAlreadyWrittenId.isNullOrBlank()) {
             if (initialState.showVolumeAdvanceModal && initialState.pendingVolumeAdvances.isNotEmpty()) {
                 updateState { it.copy(isFinishingWorkout = false, showFinishSheet = false) }
@@ -115,6 +114,7 @@ class WorkoutFinishController(
             }
             return
         }
+        if (!canStartWorkoutRecording(initialState) || initialState.session == null) return
         updateState { it.copy(isFinishingWorkout = true, finishWarning = null) }
 
         scope.launch {
@@ -153,8 +153,6 @@ class WorkoutFinishController(
                     updateState { it.copy(isFinishingWorkout = false) }
                     return@launch
                 }
-                val durationMs = System.currentTimeMillis() - state.startTimeMs
-                val durationMinutes = (durationMs / 60000).toInt().coerceAtLeast(1)
                 val activeSession = sessionForActiveMode(session, state.activeMode)
                 val allExercises = activeSession.allExercises()
                 val currentExerciseIndex = exerciseIndex()
@@ -224,6 +222,10 @@ class WorkoutFinishController(
                 val completionInstantIso = closingFeedback.completionInstantIso
                     ?: finishSnapshot?.completionInstantIso
                     ?: Instant.now().toString()
+                val completionMs = runCatching { Instant.parse(completionInstantIso).toEpochMilli() }
+                    .getOrElse { System.currentTimeMillis() }
+                val durationMs = (completionMs - state.startTimeMs).coerceAtLeast(0L)
+                val durationMinutes = (durationMs / 60000).toInt().coerceAtLeast(1)
                 val finishOperationId = closingFeedback.finishOperationId
                     ?: finishSnapshot?.finishOperationId
                     ?: "finish-$logId"

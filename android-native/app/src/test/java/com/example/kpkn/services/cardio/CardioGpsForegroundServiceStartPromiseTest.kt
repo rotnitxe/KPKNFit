@@ -178,7 +178,10 @@ class CardioGpsForegroundServiceStartPromiseTest {
 
             val result = service.onStartCommand(commandIntent(action, FOREIGN_KEY), 0, 1)
 
-            assertEquals("action=$action", 0, shadowOf(service).lastForegroundNotificationId)
+            val shadow = shadowOf(service)
+            assertEquals("action=$action", 0, shadow.lastForegroundNotificationId)
+            assertTrue("action=$action should stop a fresh service instance that owns no session", shadow.isStoppedBySelf)
+            assertEquals("action=$action", 1, shadow.stopSelfId)
             assertEquals("action=$action", Service.START_NOT_STICKY, result)
         }
     }

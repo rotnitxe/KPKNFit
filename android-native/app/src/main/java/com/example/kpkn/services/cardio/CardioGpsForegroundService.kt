@@ -83,6 +83,8 @@ class CardioGpsForegroundService : Service() {
                             if (activeServiceSessionKey == null) stopSelf(startId)
                         }
                     }
+                } else if (activeServiceSessionKey == null) {
+                    stopSelf(startId)
                 }
                 return if (activeServiceSessionKey != null) START_REDELIVER_INTENT else START_NOT_STICKY
             }
@@ -108,7 +110,10 @@ class CardioGpsForegroundService : Service() {
             }
             ACTION_STOP -> {
                 val sessionKey = intent.getStringExtra(EXTRA_SESSION_KEY)
-                if (sessionKey.isNullOrBlank()) return if (activeServiceSessionKey != null) START_REDELIVER_INTENT else START_NOT_STICKY
+                if (sessionKey.isNullOrBlank()) {
+                    if (activeServiceSessionKey == null) stopSelf(startId)
+                    return if (activeServiceSessionKey != null) START_REDELIVER_INTENT else START_NOT_STICKY
+                }
                 if (ownsSessionKey(sessionKey)) {
                     gpsCommands.launch {
                         CardioGpsTracker.stop(sessionKey)
@@ -121,6 +126,9 @@ class CardioGpsForegroundService : Service() {
                             }
                         }
                     }
+                } else if (activeServiceSessionKey == null) {
+                    stopForeground(STOP_FOREGROUND_REMOVE)
+                    stopSelf(startId)
                 }
                 return if (activeServiceSessionKey != null && activeServiceSessionKey != sessionKey) {
                     START_REDELIVER_INTENT

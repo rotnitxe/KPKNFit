@@ -91,6 +91,14 @@ class FreeClockControllerTest {
         assertTrue(p.cues.isEmpty())
     }
 
+    @Test fun bootRestoreSchedulesPendingTimerAndDoesNotSound() {
+        val p = FakePlatform(FreeClockState(timer = FreeTimerState(phase = FreeTimerPhase.RUNNING, endAtMs = 11_000L, totalMs = 10_000L)))
+        val restored = controller(p)
+        assertEquals(listOf(11_000L), p.scheduled)
+        assertEquals(FreeTimerPhase.RUNNING, restored.state.value.timer.phase)
+        assertTrue(p.cues.isEmpty())
+    }
+
     @Test fun cancelReturnsToTheKeypadKeepingTheDigits() {
         val p = FakePlatform()
         val c = controller(p)
@@ -100,6 +108,36 @@ class FreeClockControllerTest {
         assertEquals(FreeTimerPhase.CONFIG, c.state.value.timer.phase)
         assertEquals("100", c.state.value.timer.digits)
         assertEquals(1, p.cancels)
+    }
+
+    @Test fun coldAlarmUsesDeliveryWindowInsteadOfManualReopenWindow() {
+        val p = FakePlatform()
+        val c = controller(p)
+        c.timerPreset(10)
+        c.timerStart()
+        now = 21_000L
+
+        val restored = FreeClockController(p, restoreForAlarm = true) { now }
+        assertEquals(FreeTimerPhase.RUNNING, restored.state.value.timer.phase)
+        restored.onAlarm()
+        restored.onAlarm()
+
+        assertEquals(FreeTimerPhase.FINISHED, restored.state.value.timer.phase)
+        assertEquals(listOf(true to true), p.cues)
+    }
+
+    @Test fun staleColdAlarmLeavesTheBannerWithoutAnAudibleCue() {
+        val p = FakePlatform()
+        val c = controller(p)
+        c.timerPreset(10)
+        c.timerStart()
+        now = 11_000L + FreeClockController.ALARM_CUE_WINDOW_MS + 1L
+
+        val restored = FreeClockController(p, restoreForAlarm = true) { now }
+        restored.onAlarm()
+
+        assertTrue(restored.state.value.bannerPending)
+        assertTrue(p.cues.isEmpty())
     }
 
     @Test fun soundAndVibrationFlagsTravelWithTheCue() {

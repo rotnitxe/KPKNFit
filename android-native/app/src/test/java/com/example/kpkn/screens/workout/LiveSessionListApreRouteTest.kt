@@ -9,6 +9,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertTextEquals
@@ -19,16 +20,22 @@ import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performSemanticsAction
 import androidx.compose.ui.test.performScrollToNode
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.models.ApreBlockReference
 import com.example.kpkn.data.models.CalibrationStatus
+import com.example.kpkn.data.models.DropSetData
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.Settings
+import com.example.kpkn.data.models.SupersetGroup
+import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.data.models.UnilateralMode
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.WorkoutFeatureFlags
@@ -70,6 +77,7 @@ class LiveSessionListApreRouteTest {
     @get:Rule val chain: RuleChain = RuleChain.outerRule(room).around(compose)
     private var fixture: LiveSessionVmFixture? = null
     private val displayedViewModel = mutableStateOf<WorkoutViewModel?>(null)
+    private val stepperHolder = LiveSetStepperHolder()
     private var listContentInstalled = false
 
     @Before fun setup() {
@@ -193,6 +201,115 @@ class LiveSessionListApreRouteTest {
         }
     }
 
+    @Test fun thirdSupersetRoundContainsOnlyAInListAndCardRoadmap() = runBlocking {
+        val group = SupersetGroup("grupo", exerciseOrder = listOf("a", "b"), rounds = 3)
+        val first = liveExercise("a", sets = 3, group = group.id)
+        val second = liveExercise("b", sets = 2, group = group.id).let { exercise ->
+            exercise.copy(sets = exercise.sets + ExerciseSet("b-empty", isEmptySlot = true))
+        }
+        val session = Session("asymmetric", "Superserie", exercises = listOf(first, second), supersetGroups = listOf(group))
+        val vm = LiveSessionVmFixture(session).prepare().also { fixture = it }.open()
+
+        selectView(vm, LiveSessionView.LIST)
+        showHost(vm)
+        compose.onNodeWithTag("live-list").performScrollToNode(hasTestTag("live-list-row-a_2"))
+        compose.onNodeWithTag("live-list-row-a_2").assertIsDisplayed()
+        compose.onNodeWithTag("live-list-row-b_2").assertDoesNotExist()
+
+        selectView(vm, LiveSessionView.CARDS)
+        showHost(vm)
+        compose.runOnIdle {
+            val roadmap = checkNotNull(stepperHolder.snapshot)
+            val thirdRound = roadmap.elements.filterIsInstance<TimelineElement.BilateralSet>()
+                .filter { it.roundIndex == 2 }
+            assertEquals(5, roadmap.totalCount)
+            assertEquals(4, thirdRound.single().pageIndex)
+        }
+    }
+
+    @Test fun listRecordsFractionalMetersFromALegacyDistancePrescription() = runBlocking {
+        val exercise = Exercise(
+            "distance", "Paseo del granjero",
+            trainingMode = TrainingMode.DISTANCE,
+            restTime = 0,
+            sets = List(2) { index ->
+                ExerciseSet("distance-set-$index", weight = 40.0, plannedTargetV2 = 20.25, targetRIR = 2, intensityMode = IntensityMode.RIR)
+            },
+        )
+        val vm = LiveSessionVmFixture(Session("distance-session", "Distancia", exercises = listOf(exercise)))
+            .prepare().also { fixture = it }.open()
+        selectView(vm, LiveSessionView.LIST)
+        showHost(vm)
+
+        clickListControl("live-list-effort-distance_0-2")
+        val quantity = compose.onNodeWithTag("live-list-value-distance_0")
+        quantity.performSemanticsAction(SemanticsActions.SetText) { it(AnnotatedString("20,25")) }
+        quantity.assertTextEquals("20,25")
+        compose.onNodeWithTag("live-list-register-distance_0").performSemanticsAction(SemanticsActions.OnClick) { it() }
+        compose.waitUntil(20_000) { vm.uiState.value.completedSets["distance_0"] != null }
+        val recorded = vm.uiState.value.completedSets.getValue("distance_0")
+        assertEquals(UnitModeV2.DISTANCE, recorded.recordedPayloadV3?.unitMode)
+        assertEquals(20.25, checkNotNull(recorded.recordedPayloadV3?.actualValue), 1e-8)
+        assertEquals(0.02025, checkNotNull(recorded.distanceKm), 1e-8)
+    }
+
+    @Test fun editingOnlyWeightInListPreservesRecordedEffortAndTechnique() = runBlocking {
+        val base = liveExercise("strength").let { exercise ->
+            exercise.copy(restTime = 0, sets = exercise.sets.map { it.copy(targetRIR = 2, intensityMode = IntensityMode.RIR) })
+        }
+        val vm = LiveSessionVmFixture(Session("edit-session", "Editar", exercises = listOf(base)))
+            .prepare().also { fixture = it }.open()
+        val key = "strength_0"
+        val technique = listOf(DropSetData(weight = 25.0, reps = 4))
+        assertTrue(vm.recordSetV2(
+            weight = 40.0, value = 8.0, intensity = 8.0,
+            advanced = SetAdvancedFeedback(
+                actualIntensityMode = IntensityMode.RPE, actualIntensityValue = 8.0, intensityAdjusted = true,
+                dropSets = technique, notes = "Nota previa", assistedReps = 1,
+            ),
+            loadMode = LoadModeV2.LOAD, unitMode = UnitModeV2.REPS, bodyWeight = 75.0,
+        ).succeeded)
+        val original = vm.uiState.value.completedSets.getValue(key)
+        selectView(vm, LiveSessionView.LIST)
+        showHost(vm)
+
+        clickListControl("live-list-row-$key")
+        clickListControl("live-list-weight-plus-$key")
+        clickListControl("live-list-register-$key")
+        compose.waitUntil(20_000) { (vm.uiState.value.completedSets[key]?.weight ?: 0.0) > original.weight }
+        val updated = vm.uiState.value.completedSets.getValue(key)
+        assertEquals(original.id, updated.id)
+        assertEquals(IntensityMode.RPE, updated.actualIntensityMode)
+        assertEquals(8.0, checkNotNull(updated.rpe), 1e-8)
+        assertEquals(technique, updated.dropSets)
+        assertEquals("Nota previa", updated.notes)
+        assertEquals(1, updated.assistedReps)
+    }
+
+    @Test fun changingTagWithListEditorOpenDoesNotReuseThePreviousLoad() = runBlocking {
+        val exercise = liveExercise("context")
+        val vm = LiveSessionVmFixture(Session("context-session", "Etiquetas", exercises = listOf(exercise)))
+            .prepare().also { fixture = it }.open()
+        val tagA = (vm.createTag(exercise.id, "Banca A") as CreateTagResult.Created).tag.id
+        val tagB = (vm.createTag(exercise.id, "Banca B") as CreateTagResult.Created).tag.id
+        vm.selectMainTag(exercise.id, tagA)
+        selectView(vm, LiveSessionView.LIST)
+        showHost(vm)
+
+        val plus = "live-list-weight-plus-context_0"
+        clickListControl(plus)
+        val oneStep = checkNotNull(vm.getSetDraft(exercise.id, 0)?.weightText)
+        clickListControl(plus)
+        val twoSteps = checkNotNull(vm.getSetDraft(exercise.id, 0)?.weightText)
+        assertTrue(oneStep != twoSteps)
+
+        compose.runOnIdle { vm.selectMainTag(exercise.id, tagB) }
+        clickListControl(plus)
+        val newDraft = checkNotNull(vm.getSetDraft(exercise.id, 0))
+        assertEquals(tagB, newDraft.tagId)
+        assertEquals(oneStep, newDraft.weightText)
+    }
+
     @Test fun listRouteSupportsApre3ProposalAndPreservesAcrossHostSwitch(): Unit = runBlocking {
         val baseState = apreDurableStateFor(ApreVariant.APRE_3, 100.0)
         val f = LiveSessionVmFixture(baseState.session!!).prepare().also { fixture = it }
@@ -300,6 +417,11 @@ class LiveSessionListApreRouteTest {
         compose.onNodeWithTag(tag).assertIsDisplayed()
     }
 
+    private fun clickListControl(tag: String) {
+        compose.onNodeWithTag("live-list").performScrollToNode(hasTestTag(tag))
+        compose.onNodeWithTag(tag).assertIsDisplayed().performClick()
+    }
+
     private suspend fun selectView(vm: WorkoutViewModel, view: LiveSessionView) {
         vm.setLiveSessionViewPreference(view.name)
         withTimeout(20_000) { ProgramRepository.getInstance().settings.first { it.liveSessionView == view.name } }
@@ -316,7 +438,7 @@ class LiveSessionListApreRouteTest {
                     val settings by ProgramRepository.getInstance().settings.collectAsState(initial = Settings())
                     val session = state.session
                     val exercises = session?.allExercises().orEmpty()
-                    val exercise = exercises.firstOrNull { it.id == "apre" }
+                    val exercise = exercises.getOrNull(state.currentExerciseIdx)
                     val liveView = effectiveLiveSessionView(session, settings.liveSessionView)
                     CompositionLocalProvider(
                         LocalWizardReducedMotion provides true,
@@ -332,7 +454,7 @@ class LiveSessionListApreRouteTest {
                                     viewModel = currentViewModel,
                                     currentExercise = exercise,
                                     visibleExercises = exercises,
-                                    currentSet = exercise?.sets?.getOrNull(2),
+                                    currentSet = exercise?.sets?.getOrNull(state.currentSetIdx),
                                     selectedContextTab = null,
                                     onSelectedContextTabChange = {},
                                     sessionAccentColor = Color(0xFFF49A6E),
@@ -349,6 +471,7 @@ class LiveSessionListApreRouteTest {
                                     onExpandReplace = {},
                                     onExpandEdit = {},
                                     liveSessionView = liveView,
+                                    liveSetStepperHolder = stepperHolder,
                                 )
                             }
                         }

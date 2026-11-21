@@ -347,13 +347,16 @@ class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
         val ranked = mutableListOf<Ranked>()
         if (alias != null) {
             val definition = definitionsById.getValue(alias.definitionId)
-            addCandidates(ranked, definition, aliasConfiguration(definition, alias), equipment, ALIAS_CONFIDENCE, -1)
+            aliasConfiguration(definition, alias)?.let { configuration ->
+                addCandidates(ranked, definition, configuration, equipment, ALIAS_CONFIDENCE, -1)
+            }
             // La frase curada indica barra libre, pero no la altura de la barra: mostrar la variante baja
             // como alternativa explícita, incluso si la búsqueda textual del catálogo no la devuelve.
             if (ImportExerciseAliases.fullKey(name) == ImportExerciseAliases.fullKey("sentadilla libre con barra olimpica")) {
                 definitionsById["low_bar_back_squat"]?.let { lowBar ->
-                    addCandidates(ranked, lowBar, aliasConfiguration(lowBar, ImportExerciseAlias(lowBar.id, equipmentId = "barbell")),
-                        equipment, RIVAL_CEILING, -1)
+                    aliasConfiguration(lowBar, ImportExerciseAlias(lowBar.id, equipmentId = "barbell"))?.let { configuration ->
+                        addCandidates(ranked, lowBar, configuration, equipment, RIVAL_CEILING, -1)
+                    }
                 }
             }
         }
@@ -483,8 +486,9 @@ class ExerciseNameMatcher(catalog: ExerciseCatalogV2) {
      * Configuración de un alias: la exacta si la tiene; si no, la de su material por defecto; si no, la por defecto del
      * ejercicio.
      */
-    private fun aliasConfiguration(definition: ExerciseDefinitionV2, alias: ImportExerciseAlias): ExerciseConfigurationV2 {
-        val defaultConfig = definition.configurations.first { it.id == definition.defaultConfigurationId }
+    private fun aliasConfiguration(definition: ExerciseDefinitionV2, alias: ImportExerciseAlias): ExerciseConfigurationV2? {
+        val defaultConfig = definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+            ?: definition.configurations.firstOrNull() ?: return null
         val exact = alias.configurationId?.let { id -> definition.configurations.firstOrNull { it.id == id } }
         if (exact != null) return exact
         val equipment = alias.equipmentId ?: return defaultConfig

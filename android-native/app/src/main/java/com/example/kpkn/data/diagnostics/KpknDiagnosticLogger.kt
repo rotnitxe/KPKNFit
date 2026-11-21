@@ -30,6 +30,7 @@ import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.TimeUnit
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 
 /** Durabilidad solicitada para un evento de telemetría. */
@@ -106,6 +107,7 @@ object KpknDiagnosticLogger {
     private const val FLUSH_BATCH_SIZE = 32
     private const val DURABLE_SYNC_INTERVAL_MS = 1_000L
     private const val MAX_QUEUE_DEPTH = 16_384
+    private const val MAX_INIT_RETRIES = 5
 
     private val migrationJson = KotlinJson { isLenient = true; ignoreUnknownKeys = true }
     private val RESERVED_FIELDS = setOf(
@@ -129,13 +131,17 @@ object KpknDiagnosticLogger {
     )
 
     private val lock = Any()
+    private val queueOverflowLock = Any()
     private val queue = LinkedBlockingQueue<PendingEvent>()
     private val writer = Executors.newSingleThreadScheduledExecutor { runnable ->
         Thread(runnable, "kpkn-jsonl-writer").apply { isDaemon = true }
     }
     private val sequence = AtomicLong(0L)
+    private val droppedEventsCount = AtomicLong(0L)
+    private val flushScheduled = AtomicBoolean(false)
     private val initializeGeneration = AtomicLong(0L)
     private val readyGenerations = mutableSetOf<Long>()
+    private val failedGenerations = mutableSetOf<Long>()
     private val activeFiles = mutableMapOf<String, File>()
     private val liveSessionVoice = mutableMapOf<String, LiveSessionVoiceState>()
 
@@ -146,22 +152,11 @@ object KpknDiagnosticLogger {
     private var processStartedElapsedMs: Long = SystemClock.elapsedRealtime()
     private var initializedRoot: String? = null
     private var bootstrapRecorded = false
-    private var lastFlushElapsed = SystemClock.elapsedRealtime()
     private var lastDurableSyncElapsed = 0L
     private var writesSincePrune = 0
     @Volatile private var lastFlushAt: Long? = null
     @Volatile private var lastDurableSyncAt: Long? = null
     @Volatile private var lastWriteError: String? = null
-    @Volatile private var backpressureMarkerRecorded = false
-
-    init {
-        writer.scheduleWithFixedDelay(
-            { drainIfDue() },
-            50L,
-            50L,
-            TimeUnit.MILLISECONDS,
-        )
-    }
 
     /**
      * Publishes the application context immediately so startup events can be
@@ -174,10 +169,10 @@ object KpknDiagnosticLogger {
             processStartedElapsedMs = SystemClock.elapsedRealtime()
             initializeGeneration.incrementAndGet()
         }
-        writer.execute { initializeStorage(app, generation) }
+        writer.execute { initializeStorage(app, generation, attempt = 0) }
     }
 
-    private fun initializeStorage(app: Context, generation: Long) {
+    private fun initializeStorage(app: Context, generation: Long, attempt: Int = 0) {
         try {
             val root = File(app.filesDir, LOG_ROOT)
             val rootPath = root.absolutePath
@@ -206,7 +201,7 @@ object KpknDiagnosticLogger {
                         writesSincePrune = 0
                     }
                     initializedRoot = rootPath
-                    val shouldBootstrap = if (!bootstrapRecorded) {
+                    val shouldBootstrap = if (!bootstrapRecorded && processKind(app) == "main") {
                         bootstrapRecorded = true
                         true
                     } else {
@@ -215,7 +210,10 @@ object KpknDiagnosticLogger {
                     true to shouldBootstrap
                 }
             }
-            if (!initializationState.first) return
+            if (!initializationState.first) {
+                if (queue.isNotEmpty()) flushAsync()
+                return
+            }
 
             if (initializationState.second) {
                 officialAreas.forEach { area ->
@@ -228,6 +226,8 @@ object KpknDiagnosticLogger {
                         priority = TelemetryPriority.CRITICAL,
                     )
                 }
+            } else if (queue.isNotEmpty()) {
+                flushAsync()
             }
             // Migration may walk large legacy trees; it remains serialized off
             // Main and runs after the canonical directories are ready.
@@ -235,12 +235,16 @@ object KpknDiagnosticLogger {
                 if (generation == initializeGeneration.get()) migrateLegacyRoots(app)
             }
         } catch (error: Exception) {
-            Log.e(TAG, "Unable to initialize diagnostic storage", error)
-            val shouldRetry = synchronized(lock) {
+            Log.e(TAG, "Unable to initialize diagnostic storage (attempt=${attempt + 1})", error)
+            val canRetry = attempt + 1 < MAX_INIT_RETRIES && synchronized(lock) {
                 generation == initializeGeneration.get() || queue.any { it.generation == generation }
             }
-            if (shouldRetry) {
-                writer.schedule({ initializeStorage(app, generation) }, 1L, TimeUnit.SECONDS)
+            if (canRetry) {
+                val delaySec = 1L shl attempt
+                writer.schedule({ initializeStorage(app, generation, attempt + 1) }, delaySec, TimeUnit.SECONDS)
+            } else {
+                synchronized(lock) { failedGenerations += generation }
+                flushAsync()
             }
         }
     }
@@ -411,15 +415,47 @@ object KpknDiagnosticLogger {
             null
         } ?: return null
 
-        queue.offer(pending)
-        if (queue.size > MAX_QUEUE_DEPTH && !backpressureMarkerRecorded) {
-            backpressureMarkerRecorded = true
-            Log.w(TAG, "Diagnostic writer queue depth is ${queue.size}")
-        } else if (queue.size < MAX_QUEUE_DEPTH / 2) {
-            backpressureMarkerRecorded = false
+        val accepted = synchronized(queueOverflowLock) {
+            if (queue.size >= MAX_QUEUE_DEPTH) {
+                if (pending.priority == TelemetryPriority.CRITICAL) {
+                    queue.poll()
+                    droppedEventsCount.incrementAndGet()
+                    queue.offer(pending)
+                } else {
+                    val dropped = droppedEventsCount.incrementAndGet()
+                    if (dropped == 1L || dropped % 100L == 0L) {
+                        Log.w(TAG, "Diagnostic writer queue full ($MAX_QUEUE_DEPTH); dropped $dropped events")
+                    }
+                    false
+                }
+            } else {
+                queue.offer(pending)
+            }
         }
-        if (pending.priority == TelemetryPriority.CRITICAL) flushAsync()
+        if (!accepted) return null
+        if (pending.priority == TelemetryPriority.CRITICAL || queue.size >= FLUSH_BATCH_SIZE) {
+            flushAsync()
+        } else {
+            scheduleDelayedFlush()
+        }
         return pending.eventId
+    }
+
+    private fun scheduleDelayedFlush() {
+        if (!flushScheduled.compareAndSet(false, true)) return
+        runCatching {
+            writer.schedule(
+                {
+                    flushScheduled.set(false)
+                    drainAll(forceSync = false)
+                },
+                FLUSH_INTERVAL_MS,
+                TimeUnit.MILLISECONDS,
+            )
+        }.onFailure { error ->
+            flushScheduled.set(false)
+            Log.e(TAG, "Unable to schedule delayed diagnostic flush", error)
+        }
     }
 
     fun exception(
@@ -476,20 +512,22 @@ object KpknDiagnosticLogger {
         lastError = lastWriteError,
     )
 
-    private fun drainIfDue() {
-        val age = SystemClock.elapsedRealtime() - lastFlushElapsed
-        if (queue.isNotEmpty() && (queue.size >= FLUSH_BATCH_SIZE || age >= FLUSH_INTERVAL_MS)) {
-            drainAll(forceSync = false)
-        }
-    }
-
     private fun drainAll(forceSync: Boolean) {
         var drained = 0
         while (true) {
             val next = queue.peek() ?: break
-            val isReady = synchronized(lock) { next.generation in readyGenerations }
-            if (!isReady) return
+            val state = synchronized(lock) {
+                when {
+                    next.generation in readyGenerations -> 0
+                    next.generation in failedGenerations -> 1
+                    next.generation < initializeGeneration.get() &&
+                        initializeGeneration.get() in readyGenerations -> 1
+                    else -> 2
+                }
+            }
+            if (state == 2) return
             val pending = queue.poll() ?: continue
+            if (state == 1) continue
             runCatching { writePending(pending, forceSync || pending.priority == TelemetryPriority.CRITICAL) }
                 .onFailure { error ->
                     lastWriteError = error.message ?: error.javaClass.simpleName
@@ -498,7 +536,6 @@ object KpknDiagnosticLogger {
             drained++
         }
         if (drained > 0 || forceSync) {
-            lastFlushElapsed = SystemClock.elapsedRealtime()
             lastFlushAt = System.currentTimeMillis()
             if (forceSync || SystemClock.elapsedRealtime() - lastDurableSyncElapsed >= DURABLE_SYNC_INTERVAL_MS) {
                 lastDurableSyncElapsed = SystemClock.elapsedRealtime()
@@ -515,7 +552,7 @@ object KpknDiagnosticLogger {
             writesSincePrune = 0
             pruneArea(context, pending.area)
         }
-        val file = activeFileFor(directory, pending.area, pending.sessionId)
+        val file = activeFileFor(directory, pending.area, pending.sessionId, processKind(context))
         FileOutputStream(file, true).use { output ->
             output.write(pending.line.toByteArray(Charsets.UTF_8))
             output.write('\n'.code)
@@ -589,7 +626,14 @@ object KpknDiagnosticLogger {
         return "kpkn-full-diagnostics-$timestamp.zip"
     }
 
-    fun exportAllTo(context: Context, uri: Uri): Boolean {
+    fun exportAllTo(context: Context, uri: Uri): Boolean =
+        exportAllTo(context, uri) { target -> context.contentResolver.openOutputStream(target) }
+
+    internal fun exportAllTo(
+        context: Context,
+        uri: Uri,
+        openOutputStream: (Uri) -> java.io.OutputStream?,
+    ): Boolean {
         flushSync()
         val root = File(context.filesDir, LOG_ROOT)
         val filesToExport = buildList {
@@ -605,8 +649,9 @@ object KpknDiagnosticLogger {
         }.distinctBy(File::getAbsolutePath)
         if (filesToExport.isEmpty()) return false
         return runCatching {
-            context.contentResolver.openOutputStream(uri)?.use { rawOutput ->
-                java.util.zip.ZipOutputStream(rawOutput).use { zip ->
+            val rawOutput = openOutputStream(uri) ?: return false
+            rawOutput.use { stream ->
+                java.util.zip.ZipOutputStream(stream).use { zip ->
                     filesToExport.forEach { file ->
                         val relativePath = file.relativeTo(context.filesDir).path.replace('\\', '/')
                         zip.putNextEntry(java.util.zip.ZipEntry(relativePath))
@@ -659,7 +704,9 @@ object KpknDiagnosticLogger {
 
     /** Emits one bounded health snapshot per official area at app startup. */
     fun recordHealthChecks(context: Context) {
-        initialize(context)
+        if (synchronized(lock) { appContext == null }) {
+            initialize(context)
+        }
         val app = context.applicationContext
         val today = DAY_FORMAT.format(Instant.now())
         val safConfigured = KpknDiagnosticStorage.isConfigured(app)
@@ -696,15 +743,33 @@ object KpknDiagnosticLogger {
     private fun filesForAreaRoot(root: File): List<File> =
         root.walkTopDown().filter { it.isFile && it.extension == "jsonl" }.sortedBy(File::lastModified).toList()
 
-    private fun activeFileFor(directory: File, area: String, sessionId: String?): File {
+    private fun activeFileFor(
+        directory: File,
+        area: String,
+        sessionId: String?,
+        processKind: String = "main",
+    ): File {
         val safeSession = sessionId.orEmpty().replace(Regex("[^a-zA-Z0-9_-]"), "_").take(40)
         val perSession = area == "voice" || area == "workout"
+        val processSuffix = if (processKind == "main") {
+            ""
+        } else {
+            "-${processKind.replace(Regex("[^a-zA-Z0-9_-]"), "_").take(20)}"
+        }
         val rootKey = directory.parentFile?.parentFile?.absolutePath.orEmpty()
-        val key = if (perSession && safeSession.isNotBlank()) "$rootKey|$area:$safeSession" else "$rootKey|$area"
+        val key = if (perSession && safeSession.isNotBlank()) {
+            "$rootKey|$area:$safeSession$processSuffix"
+        } else {
+            "$rootKey|$area$processSuffix"
+        }
         val active = activeFiles[key]
         val isCurrentDay = active?.parentFile?.name == directory.name
         if (active?.exists() == true && isCurrentDay && active.length() < MAX_FILE_BYTES) return active
-        val prefix = if (perSession && safeSession.isNotBlank()) "$area-$safeSession" else area
+        val prefix = if (perSession && safeSession.isNotBlank()) {
+            "$area-$safeSession$processSuffix"
+        } else {
+            "$area$processSuffix"
+        }
         val suffix = if (active == null) "" else "-part${sequence.incrementAndGet().toString().takeLast(4)}"
         return File(directory, "$prefix$suffix-${FILE_TIME_FORMAT.format(Instant.now())}.jsonl")
             .also { activeFiles[key] = it }
@@ -867,7 +932,15 @@ object KpknDiagnosticLogger {
     }
 
     private fun processKind(context: Context): String = runCatching {
-        val name = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) Application.getProcessName() else context.packageName
+        val name = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            Application.getProcessName()
+        } else {
+            File("/proc/self/cmdline").readText(Charsets.US_ASCII)
+                .substringBefore('\u0000')
+                .trim()
+                .takeIf { it.isNotEmpty() }
+                ?: context.packageName
+        }
         if (name == context.packageName) "main" else name.substringAfter(context.packageName).ifBlank { "main" }
     }.getOrDefault("main")
 

@@ -162,7 +162,7 @@ internal fun bodyStoryPage(
             )
         }
         BodyStoryTemplate.MEDIDAS -> {
-            val lead = measured.firstOrNull { it.first.label == "Cintura" } ?: measured.maxByOrNull { abs(it.second) }
+            val lead = if (options.measures) measured.firstOrNull { it.first.label == "Cintura" } ?: measured.maxByOrNull { abs(it.second) } else null
             BodyStoryPage(
                 eyebrow = "Medidas · ${weeksText(weeks)}",
                 title = lead?.let { signed(it.second, "cm") } ?: weeksText(weeks),

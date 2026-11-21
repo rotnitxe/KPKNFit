@@ -31,6 +31,10 @@ import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknType
 import java.io.File
+import java.util.concurrent.atomic.AtomicReference
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /** Lo que la persona eligió en la hoja «Importar un programa» de Programas y la pantalla de lectura recoge al abrirse. */
 internal sealed interface ImportRequest {
@@ -52,11 +56,34 @@ internal sealed interface ImportRequest {
  * pantalla lo recoge una sola vez al abrirse. Sin nada pendiente, la pantalla muestra la misma hoja por su cuenta.
  */
 internal object ImportHandoff {
-    @Volatile
-    var pending: ImportRequest? = null
+    private val request = AtomicReference<ImportRequest?>()
+    private val cleanupScope = CoroutineScope(Dispatchers.IO)
+    var pending: ImportRequest?
+        get() = request.get()
+        set(value) { replace(value) }
+
+    fun put(next: ImportRequest) = replace(next)
+
+    private fun replace(next: ImportRequest?) {
+        val previous = request.getAndSet(next) as? ImportRequest.Photo
+        val file = previous?.takenFile ?: return
+        if (file != (next as? ImportRequest.Photo)?.takenFile) {
+            cleanupScope.launch { file.delete() }
+        }
+    }
 
     /** Entrega lo pendiente y lo vacía: se recoge una sola vez. */
-    fun take(): ImportRequest? = pending.also { pending = null }
+    fun take(): ImportRequest? = request.getAndSet(null)
+}
+
+internal inline fun launchImportPicker(launch: () -> Unit) {
+    try {
+        launch()
+    } catch (_: ActivityNotFoundException) {
+        // No hay una actividad que pueda abrir el selector.
+    } catch (_: SecurityException) {
+        // El proveedor o el sistema rechazaron la apertura.
+    }
 }
 
 /** Las dos acciones de la foto: abrir la cámara (a un archivo temporal de la caché) y elegir de la galería. */
@@ -92,7 +119,7 @@ internal fun rememberImportPhotoActions(onPhoto: (photo: Uri, takenFile: File?) 
             }
         },
         openGallery = {
-            pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+            launchImportPicker { pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
         },
     )
 }

@@ -966,7 +966,7 @@ private fun ColumnScope.ReviewBody(
                 val chosenReps = reps ?: values.seconds
                 val chosenEffort = effort
                 VoicePillButton("Registrar", {
-                    if (chosenReps != null && chosenEffort != null) onRegister(weight, chosenReps, chosenEffort.coerceAtLeast(0.0))
+                    if (chosenReps != null && chosenEffort != null) onRegister(weight, chosenReps, chosenEffort)
                 }, Modifier.weight(1f), primary = true, enabled = chosenReps != null && chosenEffort != null, tag = "voice-capsule-register")
             }
         }
@@ -1217,7 +1217,7 @@ private fun ColumnScope.VoiceInlineEdit(entry: VoiceHistoryEntry, onCancel: () -
             val chosenReps = reps
             val chosenEffort = effort
             CapsuleButton("Confirmar", {
-                if (weight != null && chosenReps != null && chosenEffort != null) onConfirm(weight, chosenReps, chosenEffort.coerceAtLeast(0.0))
+                if (weight != null && chosenReps != null && chosenEffort != null) onConfirm(weight, chosenReps, chosenEffort)
             }, Modifier.weight(1f), primary = true, icon = KpknLineIcons.Check,
                 enabled = weight != null && chosenReps != null && chosenEffort != null, tag = "voice-entry-confirm-${entry.id}")
         }

@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout.components
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import androidx.activity.ComponentActivity
 import androidx.compose.foundation.background
@@ -9,15 +10,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.asAndroidBitmap
-import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.SemanticsActions
-import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
-import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -35,7 +34,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import java.io.File
 
-/** Compile here; the orchestrator runs this suite on its 360x880 emulator. 740dp cases restrict the real content. */
+/** Ejercita el marco de Tarjetas a 360 dp en los dos altos admitidos. */
 @RunWith(AndroidJUnit4::class)
 class LiveSetModesDeviceTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
@@ -81,23 +80,21 @@ class LiveSetModesDeviceTest {
             state = if (index == 0) WorkoutSetCardVisualState.ACTIVE else WorkoutSetCardVisualState.FUTURE) }, 0, 0, 4, null, true)
         rule.setContent {
             density = LocalDensity.current.density
-            CompositionLocalProvider(LocalDensity provides Density(density, font), LocalWizardReducedMotion provides true, LocalKpknOverlayHost provides null,
+            val viewport = Configuration(LocalConfiguration.current).apply {
+                screenWidthDp = 360
+                screenHeightDp = height
+            }
+            CompositionLocalProvider(LocalConfiguration provides viewport, LocalDensity provides Density(density, font), LocalWizardReducedMotion provides true, LocalKpknOverlayHost provides null,
                 LocalLiveSessionCompactLayout provides (height < 800)) {
                 KPKNTheme { MaterialTheme {
                     Box(Modifier.requiredSize(360.dp, height.dp).background(Color.Black).testTag("lv-b-device-scene")) {
-                        var headerPx by remember { mutableIntStateOf(0) }
-                        val localDensity = LocalDensity.current
-                        val header = with(localDensity) { headerPx.toDp() }
-                        val band = liveSessionRelatorBandHeight(height.toFloat(), header.value, 425f, 144f).dp
-                        Box(Modifier.align(Alignment.TopCenter).padding(top = 45.dp).onSizeChanged { headerPx = it.height + with(localDensity) { 45.dp.roundToPx() } }) {
+                        Box(Modifier.align(Alignment.TopCenter).padding(top = 45.dp).testTag("lv-b-device-header")) {
                             WorkoutHeaderBar(exercise.name, sessionName = "Fuerza A", groupName = "Principal", startTimeMs = 0L,
                                 isComplete = false, background = null, sessionTimeRemainingSeconds = null, onAdjustTimeLimit = {},
                                 onToggleVoice = {}, onStoryClick = {}, onMoreClick = {}, compactLayout = height < 800,
                                 statusBarInsets = WindowInsets(0, 0, 0, 0))
                         }
-                        WorkoutLiveRelatorLine("Registra el resultado realizado de tu serie.", "lv-b-device",
-                            modifier = Modifier.align(Alignment.TopCenter).offset(y = header).height(band))
-                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = 156.dp).width(312.dp)) {
+                        Box(Modifier.align(Alignment.BottomCenter).padding(bottom = liveSessionLineHeight() + 44.dp).width(312.dp)) {
                             LiveSessionCardFrame {
                                 SetInputCardV2(exercise, 0, exercise.sets.single(), null,
                                     onShowHistory = {}, onSetBodyWeight = {}, initialBodyWeight = 80.0,
@@ -120,49 +117,78 @@ class LiveSetModesDeviceTest {
     @OptIn(ExperimentalTestApi::class)
     private fun render(mode: TrainingMode, height: Int, rom: Boolean = false, font: Float = 1f, editRm: Boolean = false) {
         show(mode, height, rom, font)
-        if (editRm) rule.onNodeWithTag("live-rm-edit").performClick()
         val frame = rule.onNodeWithTag("live-card-frame").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val actions = rule.onNodeWithTag("live-card-actions").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         val line = rule.onNodeWithTag("live-session-line").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        if (editRm) rule.onNodeWithTag(EffortSliderTag).performScrollTo()
         val effort = rule.onNodeWithTag(EffortSliderTag).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        assertEquals(312f, frame.width / density, .5f); assertEquals(425f, frame.height / density, .5f)
-        assertEquals(44f, actions.height / density, .5f); assertEquals(44f, effort.height / density, .5f)
-        assertEquals(18f, rule.onNodeWithTag("effort-fire-track", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.height / density, .5f)
-        assertEquals(112f, line.height / density, .5f)
+        val header = rule.onNodeWithTag("lv-b-device-header").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val tall = height == 880
+        assertEquals(312f, frame.width / density, .5f)
+        assertEquals(if (tall) 430f else 394f, frame.height / density, .5f)
+        assertEquals(44f, actions.height / density, .5f)
+        assertEquals(44f, effort.height / density, .5f)
+        assertEquals(10f, rule.onNodeWithTag("live-effort-track", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.height / density, .5f)
+        assertEquals(if (tall) 132f else 112f, line.height / density, .5f)
         assertTrue(actions.left >= frame.left && actions.right <= frame.right && actions.bottom <= frame.bottom + 1)
         assertEquals(12f, (line.top - frame.bottom) / density, .5f)
-        val narrator = rule.onNodeWithText("Registra el resultado realizado de tu serie.", useUnmergedTree = true).assertIsDisplayed()
-        val layouts = mutableListOf<TextLayoutResult>()
-        narrator.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
-        val layout = layouts.single()
-        assertTrue(layout.getLineBottom(layout.lineCount - 1) <= layout.size.height + 1f)
-        assertTrue(narrator.fetchSemanticsNode().boundsInRoot.bottom <= frame.top)
+        assertTrue(header.bottom <= frame.top)
         if (rom) rule.onNodeWithTag("live-rom-slider").assertIsDisplayed()
-        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
         val folder = File(context.getExternalFilesDir(null), "lv-b-renders").apply { mkdirs() }
-        if (editRm) rule.onNodeWithTag("live-rm-percent").performScrollTo()
         val name = "lv-b-${if (rom) "rom" else if (editRm) "rm-editor" else mode.name.lowercase()}-$height" +
             if (font == 1f) "" else "-${(font * 100).toInt()}"
-        val bitmap = rule.onNodeWithTag("lv-b-device-scene").captureToImage().asAndroidBitmap()
-        File(folder, "$name.png").outputStream().use { assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
+        if (editRm) {
+            rule.onNodeWithTag("live-card-reference-history").performClick()
+            rule.onNodeWithTag("live-rm-edit").performClick()
+            rule.onNodeWithTag("live-rm-percent").assertTextEquals("80")
+            rule.onNodeWithTag("live-rm-percent").performSemanticsAction(SemanticsActions.SetText) { it(AnnotatedString("75")) }
+            rule.onNodeWithTag("live-rm-weight").assertTextEquals("93,75")
+        }
+        val bitmap = checkNotNull(instrumentation.uiAutomation.takeScreenshot())
+        try {
+            File(folder, "$name.png").outputStream().use { assertTrue(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
+        } finally {
+            bitmap.recycle()
+        }
         File(folder, "$name-medidas.txt").writeText("card=${frame.width / density}x${frame.height / density}; actions=${actions.height / density}; line=${line.height / density}; effort=${effort.height / density}")
     }
+
+    private fun reportEffort(mode: IntensityMode, value: Double) {
+        val scale = buildEffortScale(
+            mode, mode,
+            targetRir = value.toInt().takeIf { mode == IntensityMode.RIR },
+            targetRpe = value.takeIf { mode == IntensityMode.RPE },
+        )
+        val index = scale.items.indexOfFirst { !it.isFailure && it.numericValue == value }
+        assertTrue(index >= 0)
+        rule.onNodeWithTag(EffortSliderTag).performSemanticsAction(SemanticsActions.SetProgress) { it(index.toFloat()) }
+    }
+
     @Test fun customQuantityAndUnitAreRegisteredExactlyOnceThroughTheLine() {
         show(TrainingMode.CUSTOM, 880)
-        rule.onNodeWithTag("live-quantity-input").performTextReplacement("31.5")
-        rule.onNodeWithTag(EffortSliderTag).performScrollTo().performSemanticsAction(SemanticsActions.SetProgress) { it(8f) }
+        rule.onNodeWithContentDescription("Cantidad registrada").performClick()
+        val keyboard = hasAnyAncestor(hasTestTag("workout-numeric-keyboard"))
+        val switchToKeyboard = hasText("Teclado") and keyboard
+        if (rule.onAllNodes(switchToKeyboard).fetchSemanticsNodes().isNotEmpty()) {
+            rule.onNode(switchToKeyboard).performClick()
+        }
+        "31,5".forEach { digit -> rule.onNode(hasContentDescription(digit.toString()) and keyboard).performClick() }
+        rule.onNodeWithTag("workout-numeric-keyboard-apply").performClick()
+        reportEffort(IntensityMode.RIR, 2.0)
         rule.onNodeWithTag("live-session-record").performClick()
         assertEquals(1, records.size); assertEquals(UnitModeV2.CUSTOM, records.single().first); assertEquals(31.5, records.single().second, 0.0)
     }
+
     @Test fun completingTheTimeGoalWaitsForTheLineCheck() {
         show(TrainingMode.TIME, 880)
-        rule.onNodeWithContentDescription("Iniciar").performClick()
+        rule.onNodeWithTag("live-card-set-clock").performClick()
+        rule.onNodeWithTag("live-card-set-clock-face").assertExists()
         rule.runOnIdle { now += 60_000 }
-        rule.waitUntil(5_000) { rule.onAllNodesWithContentDescription("Detener").fetchSemanticsNodes().isEmpty() }
+        rule.waitUntil(5_000) { rule.onAllNodesWithTag("live-card-set-clock-face").fetchSemanticsNodes().isEmpty() }
         assertTrue(records.isEmpty())
-        rule.onNodeWithTag("live-quantity-input").assertTextEquals("1:00")
-        rule.onNodeWithTag(EffortSliderTag).performScrollTo().performSemanticsAction(SemanticsActions.SetProgress) { it(16f) }
+        rule.onNodeWithContentDescription("Cantidad registrada").assertTextEquals("60")
+        reportEffort(IntensityMode.RPE, 8.0)
         rule.onNodeWithTag("live-session-record").performClick()
         assertEquals(UnitModeV2.TIME, records.single().first); assertEquals(60.0, records.single().second, 0.0)
     }

@@ -88,7 +88,7 @@ object CsvDomainRows {
                     }.joinToString("+")
                     listOf(t(day.toString()), t(log.sessionName), t(exercise.exerciseName), n((set.setIndex ?: index) + 1), n(set.weight), n(set.reps), n(set.rir),
                         t(technique), t((!set.skipped).toString()), t(listOfNotNull(set.notes, log.exerciseNotes[exercise.exerciseId], log.notes).joinToString("\n")),
-                        t(set.side), t(set.isFailedSet.toString()), t(set.isWarmup.toString()), n(set.timeSeconds), n(set.distanceKm),
+                        t(set.side), t(set.isFailedSet.toString()), t(set.isWarmup.toString()), n(set.timeSeconds), n(set.resolvedDistanceKm),
                         t(if(set.restPauses.any { it.style == "myo" }) "myo" else null), t(Json.encodeToString(set.restPauses)), t(Json.encodeToString(set.dropSets)))
                 }
             } } }

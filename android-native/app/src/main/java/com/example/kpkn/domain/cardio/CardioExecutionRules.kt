@@ -117,8 +117,15 @@ object CardioTimerEngine {
         )
     }
 
-    fun applyElapsedWallClock(state: CardioTimerState, elapsedSeconds: Int, nowMs: Long): CardioTimerState =
-        tick(state, elapsedSeconds.coerceAtLeast(0), nowMs)
+    fun restore(state: CardioTimerState, nowMs: Long): CardioTimerState {
+        if (state.status != CardioExecutionStatus.RUNNING) return state
+        if (state.updatedAtMs <= 0L) return state.copy(updatedAtMs = nowMs)
+        val elapsedSinceAnchor = ((nowMs - state.updatedAtMs) / 1_000L)
+            .coerceIn(0L, Int.MAX_VALUE.toLong()).toInt()
+        if (elapsedSinceAnchor == 0) return state
+        val anchorMs = state.updatedAtMs + elapsedSinceAnchor * 1_000L
+        return tick(state, elapsedSeconds = elapsedSinceAnchor, nowMs = anchorMs)
+    }
 
     fun skipToNextBlock(details: CardioDetails, state: CardioTimerState, nowMs: Long): CardioTimerState {
         val progress = CardioIntervalEngine.progressAt(details, state.elapsedSeconds) ?: return state.copy(

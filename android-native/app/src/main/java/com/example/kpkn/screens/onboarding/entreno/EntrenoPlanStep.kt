@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -75,7 +75,7 @@ internal fun EntrenoPlanStep(state: SetupWizardState, vm: SetupWizardViewModel) 
     // La recomendación («Para ti») sale de la experiencia; la oferta, de los programas viables: una ficha por familia de autor
     // (PHUL, PHAT), los de disciplina primero y, en una disciplina con muchos, las primeras seis hasta «Ver más programas».
     val recommendedId = remember(reveals, profile, draft.experience) { recommendedIdOf(reveals, profile, draft.experience) }
-    val catalogExpanded by vm.catalogExpanded.collectAsState()
+    val catalogExpanded by vm.catalogExpanded.collectAsStateWithLifecycle()
     val offer = remember(reveals, catalogExpanded, selectedId) {
         splitPlanOfferOf(reveals, catalogExpanded = catalogExpanded, selectedId = selectedId)
     }

@@ -76,7 +76,10 @@ class WorkoutRestForegroundService : Service() {
         restForegroundActive = entered || startPlaceholderForeground()
     }
 
+    private var actionTimerId: String? = null
+
     private fun startForegroundFromStartIntent(intent: Intent, withImage: Boolean) {
+        actionTimerId = intent.getStringExtra(WorkoutRestAlertManager.EXTRA_TIMER_ID)
         val sessionName = intent.getStringExtra(EXTRA_SESSION_NAME) ?: getString(R.string.notif_rest_default_session)
         val exerciseName = intent.getStringExtra(EXTRA_EXERCISE_NAME) ?: getString(R.string.notif_rest_default_exercise)
         val setInfoText = intent.getStringExtra(EXTRA_SET_INFO) ?: ""
@@ -121,7 +124,7 @@ class WorkoutRestForegroundService : Service() {
 
     private fun startForegroundCompat(notification: android.app.Notification) {
         if (Build.VERSION.SDK_INT >= 34) {
-            startForeground(NOTIF_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
+            startForeground(NOTIF_ID, notification, android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
         } else {
             startForeground(NOTIF_ID, notification)
         }
@@ -216,6 +219,7 @@ class WorkoutRestForegroundService : Service() {
     private fun createCompleteSetAction(): NotificationCompat.Action {
         val intent = Intent(this, TimerNotificationActionReceiver::class.java).apply {
             action = ACTION_COMPLETE_SET
+            configureTimerAction(this)
         }
         val pending = PendingIntent.getBroadcast(
             this,
@@ -233,6 +237,7 @@ class WorkoutRestForegroundService : Service() {
     private fun createSkipTimerAction(): NotificationCompat.Action {
         val intent = Intent(this, TimerNotificationActionReceiver::class.java).apply {
             action = ACTION_SKIP_TIMER
+            configureTimerAction(this)
         }
         val pending = PendingIntent.getBroadcast(
             this,
@@ -250,6 +255,7 @@ class WorkoutRestForegroundService : Service() {
     private fun createSubtractTimeAction(): NotificationCompat.Action {
         val intent = Intent(this, TimerNotificationActionReceiver::class.java).apply {
             action = ACTION_SUBTRACT_TIME
+            configureTimerAction(this)
         }
         val pending = PendingIntent.getBroadcast(
             this,
@@ -267,6 +273,7 @@ class WorkoutRestForegroundService : Service() {
     private fun createAddTimeAction(): NotificationCompat.Action {
         val intent = Intent(this, TimerNotificationActionReceiver::class.java).apply {
             action = ACTION_ADD_TIME
+            configureTimerAction(this)
         }
         val pending = PendingIntent.getBroadcast(
             this,
@@ -279,6 +286,12 @@ class WorkoutRestForegroundService : Service() {
             "+15 s",
             pending,
         ).build()
+    }
+
+    private fun configureTimerAction(intent: Intent) {
+        val timerId = actionTimerId ?: return
+        intent.data = android.net.Uri.Builder().scheme("kpkn-rest").authority("timer").appendPath(timerId).build()
+        intent.putExtra(WorkoutRestAlertManager.EXTRA_TIMER_ID, timerId)
     }
 
     private fun ensureChannel() {
@@ -344,9 +357,11 @@ class WorkoutRestForegroundService : Service() {
             setInfo: String = "",
             exerciseImage: ByteArray? = null,
             endAt: Long,
+            timerId: String? = null,
         ) {
             val intent = Intent(context, WorkoutRestForegroundService::class.java).apply {
                 action = ACTION_START
+                putExtra(WorkoutRestAlertManager.EXTRA_TIMER_ID, timerId)
                 putExtra(EXTRA_SESSION_NAME, sessionName)
                 putExtra(EXTRA_EXERCISE_NAME, exerciseName)
                 putExtra(EXTRA_SET_INFO, setInfo)

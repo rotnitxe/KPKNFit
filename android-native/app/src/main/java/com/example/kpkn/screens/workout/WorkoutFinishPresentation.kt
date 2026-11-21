@@ -3,6 +3,7 @@ package com.example.kpkn.screens.workout
 import com.example.kpkn.domain.performance.StrengthModel
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.resolvedDistanceKm
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.WorkoutLog
@@ -21,6 +22,10 @@ internal data class FinishPresentationContext(
     val records: Int = 0,
     val milestones: List<com.example.kpkn.data.models.SessionMilestone> = emptyList(),
     val today: LocalDate = LocalDate.now(),
+    val programId: String? = null,
+    val sessionId: String? = null,
+    val currentExercises: List<CompletedExercise> = emptyList(),
+    val sessionStartMs: Long? = null,
 )
 
 /** The session belongs to its local start date even if the athlete finishes after midnight. */
@@ -61,6 +66,7 @@ internal data class FinishLiftProgress(
     val first: FinishProgressPoint? = history.firstOrNull(),
     /** Mejor serie comparable de la semana calendario inmediatamente anterior (lunes-domingo). */
     val previousWeek: FinishProgressPoint? = null,
+    val isCardio: Boolean = false,
 ) {
     val deltaKg: Double?
         get() {
@@ -95,7 +101,7 @@ private fun sameFinishExercise(a: CompletedExercise, b: CompletedExercise): Bool
         a.performanceProfileId.orEmpty() == b.performanceProfileId.orEmpty()
 }
 
-private fun finishUnit(set: CompletedSet): com.example.kpkn.data.models.UnitModeV2 =
+internal fun finishUnit(set: CompletedSet): com.example.kpkn.data.models.UnitModeV2 =
     set.recordedPayloadV3?.unitMode
         ?: set.homologatedResultV3?.unitMode
         ?: set.setOutcomeV2?.unitMode
@@ -223,8 +229,8 @@ private fun bestFinishSet(exercise: CompletedExercise): CompletedSet? {
         val comparable = sets.filter { finishUnit(it) == metric }
         return when (metric) {
             com.example.kpkn.data.models.UnitModeV2.DISTANCE -> comparable
-                .filter { (it.distanceKm ?: 0.0) > 0.0 }
-                .maxByOrNull { it.distanceKm ?: 0.0 }
+                .filter { (it.resolvedDistanceKm ?: 0.0) > 0.0 }
+                .maxByOrNull { it.resolvedDistanceKm ?: 0.0 }
             com.example.kpkn.data.models.UnitModeV2.TIME -> comparable
                 .filter { (it.timeSeconds ?: 0) > 0 }
                 .maxByOrNull { it.timeSeconds ?: 0 }
@@ -282,7 +288,7 @@ internal fun buildFinishLiftProgress(
             val bestCandidate: CompletedSet? = if (isCardio) {
                 when (currentUnit) {
                     com.example.kpkn.data.models.UnitModeV2.DISTANCE ->
-                        candidateSets.filter { (it.distanceKm ?: 0.0) > 0.0 }.maxByOrNull { it.distanceKm ?: 0.0 }
+                        candidateSets.filter { (it.resolvedDistanceKm ?: 0.0) > 0.0 }.maxByOrNull { it.resolvedDistanceKm ?: 0.0 }
                     com.example.kpkn.data.models.UnitModeV2.TIME ->
                         candidateSets.filter { (it.timeSeconds ?: 0) > 0 }.maxByOrNull { it.timeSeconds ?: 0 }
                     else -> null
@@ -326,7 +332,7 @@ internal fun buildFinishLiftProgress(
             val pointWeight = resolvedLoad ?: 0.0
             val estimate = finishComparableEstimate(best) ?: 0.0
             val comparableScore = when {
-                isCardio && currentUnit == com.example.kpkn.data.models.UnitModeV2.DISTANCE -> best.distanceKm?.times(1000.0) ?: 0.0
+                isCardio && currentUnit == com.example.kpkn.data.models.UnitModeV2.DISTANCE -> best.resolvedDistanceKm?.times(1000.0) ?: 0.0
                 isCardio -> (best.timeSeconds ?: 0).toDouble()
                 currentMode == com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT ->
                     if (currentUnit == com.example.kpkn.data.models.UnitModeV2.TIME) (best.timeSeconds ?: 0).toDouble() else best.reps.toDouble()
@@ -371,7 +377,7 @@ internal fun buildFinishLiftProgress(
         FinishLiftProgress(
             exercise.exerciseId, exercise.exerciseName, current,
             logicalSetCountFromCompleted(listOf(exercise)), points.lastOrNull(), points.takeLast(24), points.size,
-            points.firstOrNull(), previousWeek,
+            points.firstOrNull(), previousWeek, isCardio,
         )
     }
 

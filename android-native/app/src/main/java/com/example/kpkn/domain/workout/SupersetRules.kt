@@ -177,9 +177,10 @@ object SupersetRules {
                     if (part.id != resolvedAnchorPartId) part
                     else {
                         val mutableP = part.exercises.toMutableList()
-                        val originalAnchorIdx = session.parts.find { it.id == resolvedAnchorPartId }?.exercises?.indexOfFirst { it.id == anchorExerciseId } ?: -1
+                        val originalExercises = session.parts.find { it.id == resolvedAnchorPartId }?.exercises.orEmpty()
+                        val originalAnchorIdx = originalExercises.indexOfFirst { it.id == anchorExerciseId }
                         val safeIdx = if (originalAnchorIdx >= 0) {
-                            val removedBefore = session.parts.find { it.id == resolvedAnchorPartId }!!.exercises.take(originalAnchorIdx).count { it.id in targetIds }
+                            val removedBefore = originalExercises.take(originalAnchorIdx).count { it.id in targetIds }
                             (originalAnchorIdx - removedBefore).coerceIn(0, mutableP.size)
                         } else {
                             mutableP.size
@@ -220,8 +221,8 @@ object SupersetRules {
     fun roundCount(session: Session, groupId: String): Int {
         val group = session.allSupersetGroups().firstOrNull { it.id == groupId }
         val plannedRounds = group?.rounds?.takeIf { it > 0 }
-        if (plannedRounds != null) return plannedRounds
-        return orderedMembers(session, groupId).maxOfOrNull { it.sets.size } ?: 0
+        val memberRounds = orderedMembers(session, groupId).maxOfOrNull { it.sets.size } ?: 0
+        return maxOf(plannedRounds ?: 0, memberRounds)
     }
 
     fun nextTarget(

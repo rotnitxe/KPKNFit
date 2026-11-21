@@ -71,7 +71,6 @@ class WorkoutSessionHydrator(
         fun refreshLoadSuggestions(state: WorkoutUiState)
         fun nextIncompleteStepAfter(state: WorkoutUiState, includeCurrent: Boolean = false): WorkoutStep?
         fun firstIncompleteStep(state: WorkoutUiState): WorkoutStep?
-        fun startRestTimer(seconds: Int, preserveElapsed: Boolean = false, advanceOnFinish: Boolean = false)
         fun startSessionTimer(remainingSeconds: Int)
         fun workoutWidgetsSessionKey(): String
         fun bindActiveWorkoutHolder()
@@ -311,13 +310,17 @@ class WorkoutSessionHydrator(
             session = restoredSession,
             activeMode = restoredMode,
             completedSets = restoredCompletedSets,
+            skippedExerciseIds = restoredSkippedExerciseIds,
+            omittedSetKeys = restoredOmittedSetKeys,
             warmupCompletedExerciseIds = restoredWarmupCompletedExerciseIds,
             mobilityCompletedExerciseIds = migratedMobilityCompletedExerciseIds,
             mobilityTotalCompletedStepKeys = restoredMobilityTotalCompletedStepKeys,
         )
+        val modeSession = ports.sessionForActiveMode(restoredSession, restoredMode)
+        val visibleForResume = modeSession.liveRoadmapExercises().filterNot { it.id in restoredSkippedExerciseIds }
         val resumeSteps = WorkoutStepRules.buildSteps(
-            session = restoredSession,
-            visibleExercises = exercisesForMode,
+            session = modeSession,
+            visibleExercises = visibleForResume,
             omittedSetKeys = restoredOmittedSetKeys,
         )
         val amrapResultResumeStep = resumedState?.let { snapshot ->
@@ -333,13 +336,15 @@ class WorkoutSessionHydrator(
         val restoredResumeStep = resumedState?.let {
             preferredProtectedCardioResumeStep(
                 timer = restoredCardioTimerState,
-                exercises = exercisesForMode,
+                exercises = visibleForResume,
                 completedSets = restoredCompletedSets,
                 availableSteps = resumeSteps,
-            ) ?: amrapResultResumeStep ?: ports.firstIncompleteStep(resumeProbe)
+            ) ?: amrapResultResumeStep
+                ?: it.restModalState?.let { _ -> resumeSteps.firstOrNull { step -> step.stepKey == it.activeStepKey } }
+                ?: ports.firstIncompleteStep(resumeProbe)
         }
         val restoredExerciseIdx = restoredResumeStep
-            ?.let { step -> exercisesForMode.indexOfFirst { it.id == step.exerciseId }.takeIf { it >= 0 } }
+            ?.let { step -> visibleForResume.indexOfFirst { it.id == step.exerciseId }.takeIf { it >= 0 } }
             ?: 0
         val restoredSetIdx = restoredResumeStep?.setIndex?.coerceAtLeast(0) ?: 0
         val restoredStartTime = resumedState?.startTime ?: System.currentTimeMillis()
@@ -358,8 +363,7 @@ class WorkoutSessionHydrator(
             }
         }
 
-        val currentTimeMs = System.currentTimeMillis()
-        val restoredRestState = resumedState?.restModalState?.takeIf { it.endsAtMs > currentTimeMs }
+        val restoredRestState = resumedState?.restModalState
         val restoredSuggestions = buildMap<String, WorkoutLoadSuggestionUi> {
             val reasons = resumedState?.loadSuggestionReasons ?: emptyMap()
             resumedState?.dynamicWeights?.forEach { (key, weight) ->
@@ -472,26 +476,13 @@ class WorkoutSessionHydrator(
             )
         }
 
-        restoredRestState?.let { activeRestState ->
+        restoredRestState?.let { saved ->
             val capability = ports.restAlertCapability(soundsEnabled = settings.soundsEnabled)
-            val restoredSeconds = ((activeRestState.endsAtMs - currentTimeMs) / 1000L).toInt().coerceAtLeast(1)
-            val patchedRestState = activeRestState.copy(
+            updateState { it.copy(restModalState = saved.copy(
                 notificationsEnabled = capability.notificationsEnabled,
                 exactAlarmGranted = capability.exactAlarmGranted,
                 soundReady = capability.soundReady,
-            )
-            updateState {
-                it.copy(
-                    restTimerTotal = patchedRestState.activeSeconds,
-                    isRestTimerRunning = true,
-                    restModalState = patchedRestState,
-                )
-            }
-            ports.startRestTimer(
-                seconds = restoredSeconds,
-                preserveElapsed = true,
-                advanceOnFinish = patchedRestState.continuation == WorkoutRestContinuation.ADVANCE_SET,
-            )
+            )) }
         }
         // Starting the timer restores its default expanded state; V7 keeps the selected result visible.
         if (amrapResultResumeStep != null) updateState { it.copy(isRestMinimized = true) }
@@ -512,6 +503,7 @@ class WorkoutSessionHydrator(
             }
             resumedState != null &&
                 hydrated.logAlreadyWrittenId.isNullOrBlank() &&
+                restoredRestState == null &&
                 ports.firstIncompleteStep(hydrated) == null -> {
                 ports.openFinishSheet()
             }

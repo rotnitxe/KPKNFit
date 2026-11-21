@@ -1,6 +1,7 @@
 package com.example.kpkn.ui.locale
 
 import android.content.Context
+import android.os.LocaleList
 import androidx.test.core.app.ApplicationProvider
 import org.junit.After
 import org.junit.Assert.assertEquals
@@ -87,6 +88,24 @@ class LocaleManagerTest {
         assertEquals("en", LocaleManager.getEffectiveLocale(context).language)
 
         LocaleManager.persist(context, LocaleManager.LANGUAGE_SYSTEM)
+        assertEquals(Locale.getDefault(), LocaleManager.getEffectiveLocale(context))
+    }
+
+    @Test
+    fun api33_system_per_app_locale_overrides_stale_prefs_and_respects_reset_to_system() {
+        val sysLocMgr = context.getSystemService(android.app.LocaleManager::class.java)
+        LocaleManager.applyAndPersist(context, "es")
+        assertEquals("es", LocaleManager.getEffectiveLocale(context).language)
+
+        // Simulate user switching app language to English from Android System Settings.
+        sysLocMgr.applicationLocales = LocaleList.forLanguageTags("en")
+        LocaleManager.clearCachedLanguageForTests()
+        assertEquals("en", LocaleManager.getEffectiveLocale(context).language)
+
+        // Simulate user resetting back to System default from Android System Settings.
+        sysLocMgr.applicationLocales = LocaleList.getEmptyLocaleList()
+        LocaleManager.clearCachedLanguageForTests()
+        assertSame(context, LocaleManager.wrapContext(context))
         assertEquals(Locale.getDefault(), LocaleManager.getEffectiveLocale(context))
     }
 }

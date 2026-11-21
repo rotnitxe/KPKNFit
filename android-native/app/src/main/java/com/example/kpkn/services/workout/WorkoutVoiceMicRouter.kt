@@ -46,12 +46,12 @@ class WorkoutVoiceMicRouter(
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val routeLock = Any()
-    private var acquired = false
-    private var mode: RouteMode = RouteMode.CONTINUOUS_VOICE_FIRST
+    @Volatile private var acquired = false
+    @Volatile private var mode: RouteMode = RouteMode.CONTINUOUS_VOICE_FIRST
     private var callbackRegistered = false
-    private var lastPreferredId: Int? = null
-    private var communicationDeviceId: Int? = null
-    private var communicationDeviceRequested = false
+    @Volatile private var lastPreferredId: Int? = null
+    @Volatile private var communicationDeviceId: Int? = null
+    @Volatile private var communicationDeviceRequested = false
     private var legacyScoRequested = false
     private var previousAudioMode: Int? = null
     private var communicationModeApplied = false
@@ -61,7 +61,7 @@ class WorkoutVoiceMicRouter(
      * En modo MÚSICA no se solicita ruta de comunicación: el SCO queda libre y
      * la música intacta (la captura usa el mic interno con VOICE_RECOGNITION).
      */
-    var externalRouteEnabled: Boolean = true
+    @Volatile var externalRouteEnabled: Boolean = true
 
     private val _activeRouteLabel = MutableStateFlow<String?>(null)
     val activeRouteLabel: StateFlow<String?> = _activeRouteLabel.asStateFlow()
@@ -71,33 +71,38 @@ class WorkoutVoiceMicRouter(
 
     private val deviceCallback = object : AudioDeviceCallback() {
         override fun onAudioDevicesAdded(addedDevices: Array<out AudioDeviceInfo>) {
-            if (!acquired) return
-            // A headset can become available after the session starts. Reapply
-            // the communication request so the next record, and supported
-            // active records, do not remain on the phone mic.
-            requestCommunicationRoute()
-            refreshLabelOnly()
+            synchronized(routeLock) {
+                if (!acquired) return
+                // A headset can become available after the session starts. Reapply
+                // the communication request so the next record, and supported
+                // active records, do not remain on the phone mic.
+                requestCommunicationRoute()
+                refreshLabelOnly()
+            }
         }
 
         override fun onAudioDevicesRemoved(removedDevices: Array<out AudioDeviceInfo>) {
-            if (!acquired) return
-            val removedIds = removedDevices.map { it.id }.toSet()
-            val wasActive = communicationDeviceId in removedIds || lastPreferredId in removedIds
-            WorkoutVoiceDiagnosticLogger.event(
-                "audio_route_revoked",
-                mapOf(
-                    "removedIds" to removedDevices.map { it.id },
-                    "wasActive" to wasActive,
-                ),
-            )
-            if (communicationDeviceId in removedIds) {
-                clearCommunicationDeviceIfNeeded()
+            val wasActive: Boolean
+            synchronized(routeLock) {
+                if (!acquired) return
+                val removedIds = removedDevices.map { it.id }.toSet()
+                wasActive = communicationDeviceId in removedIds || lastPreferredId in removedIds
+                WorkoutVoiceDiagnosticLogger.event(
+                    "audio_route_revoked",
+                    mapOf(
+                        "removedIds" to removedDevices.map { it.id },
+                        "wasActive" to wasActive,
+                    ),
+                )
+                if (communicationDeviceId in removedIds) {
+                    clearCommunicationDeviceIfNeeded()
+                }
+                if (lastPreferredId in removedIds) {
+                    lastPreferredId = null
+                }
+                requestCommunicationRoute()
+                refreshLabelOnly()
             }
-            if (lastPreferredId in removedIds) {
-                lastPreferredId = null
-            }
-            requestCommunicationRoute()
-            refreshLabelOnly()
             if (wasActive) _routeRevoked.tryEmit(Unit)
         }
     }
@@ -116,12 +121,14 @@ class WorkoutVoiceMicRouter(
     }
 
     fun release() {
-        acquired = false
-        clearCommunicationDeviceIfNeeded()
-        unregisterCallbackIfNeeded()
-        lastPreferredId = null
-        restoreAudioModeIfNeeded()
-        _activeRouteLabel.value = null
+        synchronized(routeLock) {
+            acquired = false
+            clearCommunicationDeviceIfNeeded()
+            unregisterCallbackIfNeeded()
+            lastPreferredId = null
+            restoreAudioModeIfNeeded()
+            _activeRouteLabel.value = null
+        }
     }
 
     /**

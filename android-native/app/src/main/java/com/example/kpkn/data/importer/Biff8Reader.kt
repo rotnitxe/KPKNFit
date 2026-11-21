@@ -76,9 +76,9 @@ internal object Biff8Reader {
             val miniSectorShift = u16(bytes, 32)
             require(miniSectorShift == 6)
             miniSectorSize = 1 shl miniSectorShift
-            require(bytes.size >= sectorSize && bytes.size % sectorSize == 0)
+            require(bytes.size >= sectorSize * 2)
             require(u16(bytes, 28) == 0xFFFE)
-            sectorCount = bytes.size / sectorSize - 1
+            sectorCount = (bytes.size - sectorSize) / sectorSize
             require(sectorCount > 0)
 
             val fatSectorCount = u32(bytes, 44).boundedInt(sectorCount)
@@ -405,8 +405,11 @@ internal object Biff8Reader {
             val length = u16(source, offset)
             val flags = source[offset + 2].toInt() and 0xFF
             val width = if (flags and 1 != 0) 2 else 1
-            require(3 + length * width <= available)
-            return decodeChars(source, offset + 3, length, width == 2)
+            var charOffset = 3
+            if (flags and 0x08 != 0) charOffset += 2
+            if (flags and 0x04 != 0) charOffset += 4
+            require(charOffset + length * width <= available)
+            return decodeChars(source, offset + charOffset, length, width == 2)
         }
 
         private fun recordAt(offset: Int): Record {

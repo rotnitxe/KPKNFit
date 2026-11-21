@@ -7,10 +7,14 @@ import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.ParcelFileDescriptor
 import com.example.kpkn.data.importer.ImportFileException
+import com.example.kpkn.data.importer.ImportLimits
 import java.io.Closeable
 import java.io.File
 import kotlin.math.max
 import kotlin.math.roundToInt
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.ensureActive
 
 /** Ancho al que se dibuja cada página del PDF antes del OCR. */
 internal const val OCR_PAGE_WIDTH_PX = 1600
@@ -45,9 +49,14 @@ internal class PdfRendererPages private constructor(
         try {
             val (width, height) = targetSize(page.width, page.height)
             val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-            bitmap.eraseColor(Color.WHITE)
-            page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-            return bitmap
+            try {
+                bitmap.eraseColor(Color.WHITE)
+                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                return bitmap
+            } catch (error: Throwable) {
+                bitmap.recycle()
+                throw error
+            }
         } finally {
             page.close()
         }
@@ -61,13 +70,15 @@ internal class PdfRendererPages private constructor(
 
     companion object {
         /** Abre el PDF de [uri]. Lanza [ImportFileException] si no se puede abrir (protegido, dañado o sin acceso). */
-        fun open(contentResolver: ContentResolver, uri: Uri, cacheDir: File?): PdfRendererPages {
+        suspend fun open(contentResolver: ContentResolver, uri: Uri, cacheDir: File?): PdfRendererPages {
             val direct = runCatching { contentResolver.openFileDescriptor(uri, "r") }.getOrNull()
             if (direct != null) {
                 try {
+                    if (direct.statSize > ImportLimits.MAX_PDF_BYTES) throw ImportFileException(OcrImportSource.PDF_TOO_LARGE_MESSAGE)
                     return PdfRendererPages(PdfRenderer(direct), direct, copy = null)
                 } catch (error: Exception) {
                     runCatching { direct.close() }
+                    if (error is SecurityException || error is ImportFileException) throw pdfError(error)
                 }
             }
             // Sin un descriptor que PdfRenderer acepte: se copia el archivo a la caché y se abre la copia.
@@ -75,7 +86,18 @@ internal class PdfRendererPages private constructor(
                 ?: throw ImportFileException(OcrImportSource.PDF_UNREADABLE_MESSAGE)
             try {
                 val copied = contentResolver.openInputStream(uri)?.use { input ->
-                    target.outputStream().use { output -> input.copyTo(output) }
+                    target.outputStream().use { output ->
+                        val buffer = ByteArray(8 * 1024)
+                        var total = 0L
+                        while (true) {
+                            currentCoroutineContext().ensureActive()
+                            val count = input.read(buffer)
+                            if (count < 0) break
+                            total += count
+                            if (total > ImportLimits.MAX_PDF_BYTES) throw ImportFileException(OcrImportSource.PDF_TOO_LARGE_MESSAGE)
+                            output.write(buffer, 0, count)
+                        }
+                    }
                 }
                 if (copied == null) throw ImportFileException(OcrImportSource.PDF_UNREADABLE_MESSAGE)
                 val descriptor = ParcelFileDescriptor.open(target, ParcelFileDescriptor.MODE_READ_ONLY)
@@ -83,16 +105,18 @@ internal class PdfRendererPages private constructor(
                     return PdfRendererPages(PdfRenderer(descriptor), descriptor, copy = target)
                 } catch (error: Exception) {
                     runCatching { descriptor.close() }
-                    throw error
+                    throw pdfError(error)
                 }
             } catch (error: Exception) {
                 target.delete()
-                throw ImportFileException(OcrImportSource.PDF_UNREADABLE_MESSAGE)
+                if (error is CancellationException) throw error
+                throw (error as? ImportFileException ?: ImportFileException(OcrImportSource.PDF_UNREADABLE_MESSAGE))
             }
         }
 
         /** Abre un PDF descargado; la copia temporal se borra al cerrar el origen de páginas. */
         fun open(bytes: ByteArray, cacheDir: File?): PdfRendererPages {
+            if (bytes.size > ImportLimits.MAX_PDF_BYTES) throw ImportFileException(OcrImportSource.PDF_TOO_LARGE_MESSAGE)
             val target = cacheDir?.let { runCatching { File.createTempFile("ocr-url-", ".pdf", it) }.getOrNull() }
                 ?: throw ImportFileException(OcrImportSource.PDF_UNREADABLE_MESSAGE)
             try {
@@ -102,12 +126,19 @@ internal class PdfRendererPages private constructor(
                     return PdfRendererPages(PdfRenderer(descriptor), descriptor, copy = target)
                 } catch (error: Exception) {
                     runCatching { descriptor.close() }
-                    throw error
+                    throw pdfError(error)
                 }
             } catch (error: Exception) {
                 target.delete()
-                throw ImportFileException(OcrImportSource.PDF_UNREADABLE_MESSAGE)
+                if (error is CancellationException) throw error
+                throw (error as? ImportFileException ?: ImportFileException(OcrImportSource.PDF_UNREADABLE_MESSAGE))
             }
+        }
+
+        private fun pdfError(error: Exception): ImportFileException = when (error) {
+            is ImportFileException -> error
+            is SecurityException -> ImportFileException("El PDF está protegido con contraseña.")
+            else -> ImportFileException(OcrImportSource.PDF_UNREADABLE_MESSAGE)
         }
 
         /** Ancho fijo de [OCR_PAGE_WIDTH_PX] con el alto proporcional; si la página es muy alta, se estrecha. */

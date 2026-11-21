@@ -6,6 +6,11 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WorkoutFinishVolumeAdvanceDurableTest {
+    @Test
+    fun recoveredSessionWithDurableLogCannotRecordMoreSets() {
+        assertTrue(canStartWorkoutRecording(WorkoutUiState()))
+        assertFalse(canStartWorkoutRecording(WorkoutUiState(logAlreadyWrittenId = "saved-log")))
+    }
 
     @Test
     fun surplusKeepsOngoingUntilAck() {

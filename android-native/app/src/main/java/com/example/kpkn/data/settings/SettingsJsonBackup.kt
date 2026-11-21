@@ -164,7 +164,9 @@ object SettingsJsonBackup {
             workoutTags = v2.getAllWorkoutTags().map { it.toWorkoutTag() },
             replacementDecisions = readBackupRows(v2.getAllReplacementDecisions(), "workout_replacement_decisions", { it.id }) { it.toExerciseReplacementDecisionV2() },
             sharedLoadReferences = db.sharedExerciseLoadReferenceDao().getAll(),
-            programVersions = db.programVersionDao().getForProgramIds(programs.map { it.id }.toSet()),
+            programVersions = programs.map { it.id }.distinct().chunked(500).flatMap { chunk ->
+                db.programVersionDao().getForProgramIds(chunk.toSet())
+            },
             performanceRanges = performanceRanges,
             performanceSnapshots = performanceSnapshots,
             workoutMedia = workoutMedia,
@@ -227,6 +229,9 @@ object SettingsJsonBackup {
             payload.settings.profilePicture.isNullOrBlank() -> null
             else -> payload.settings.profilePicture
         }
+        // Pre-validate non-Room payloads before mutating Room so invalid backups fail without modifying local data.
+        payload.profilePhotoJpegBase64?.let { ProfilePhotoStore.decodeAndValidateBase64(it) }
+        payload.nutritionPreferences?.validate()
         val previousPreferences = if (payload.nutritionPreferences != null) NutritionPreferencesBackup.read(context) else null
         try {
         db.withTransaction {
@@ -340,7 +345,15 @@ object SettingsJsonBackup {
         // see a mismatch and import the whole catalog again (double import). The device's own meta stays
         // authoritative: `payload.foodCatalogMeta` is still exported and decoded for format compatibility, but it is
         // never applied. An empty catalog (e.g. restoring before the first import finished) is regenerated below.
-        ensureRegenerableAssetsIfEmpty(context, db)
+        ensureRegenerableAssetsIfEmpty(context, db) { meta ->
+            nutritionRepository.restoreFoodCatalogMeta(
+                NutritionRepository.FoodCatalogMeta(
+                    version = meta.version,
+                    checksum = meta.checksum,
+                    importedAt = meta.importedAt,
+                ),
+            )
+        }
         payload.nutritionPreferences?.let {
             it.restore(context)
             nutritionRepository.refreshFoodPreferencesFromStorage()
@@ -359,7 +372,11 @@ object SettingsJsonBackup {
         }
     }
 
-    suspend fun ensureRegenerableAssetsIfEmpty(context: Context, db: KpknDatabase) {
+    suspend fun ensureRegenerableAssetsIfEmpty(
+        context: Context,
+        db: KpknDatabase,
+        onFoodCatalogMetaUpdated: (FoodImporter.ImportMetadata) -> Unit = {},
+    ) {
         val wikiCount = db.wikiLabDao().getMuscleCount()
         if (wikiCount == 0) {
             prepopulateWikiLabAssets(context, db)
@@ -371,7 +388,7 @@ object SettingsJsonBackup {
                 context = context,
                 alreadyImported = false,
                 existingMeta = null,
-                onMetaUpdated = {},
+                onMetaUpdated = onFoodCatalogMetaUpdated,
             )
         }
     }
@@ -539,11 +556,15 @@ data class NutritionPreferencesBackup(
     val foodQueryLearning: String? = null,
     val favoriteFoodIds: Set<String> = emptySet(),
 ) {
-    suspend fun restore(context: Context) = withContext(Dispatchers.IO) {
+    internal fun validate() {
         require(utensilVolumesMl.all { (key, value) -> key.startsWith("ml_") && value.isFinite() && value > 0f }) {
             "La copia contiene un volumen de utensilio no válido."
         }
         require(favoriteFoodIds.none { it.isBlank() }) { "La copia contiene un favorito no válido." }
+    }
+
+    suspend fun restore(context: Context) = withContext(Dispatchers.IO) {
+        validate()
         val utensils = context.getSharedPreferences("nutrition_utensils", Context.MODE_PRIVATE)
         val foods = context.getSharedPreferences("nutrition_food_catalog", Context.MODE_PRIVATE)
         val old = read(context)

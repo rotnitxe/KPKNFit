@@ -104,8 +104,8 @@ object ImportDraftEditor {
     /** Copia el ejercicio justo después, con un id nuevo. */
     fun duplicate(draft: ImportedProgramDraft, exerciseId: String): ImportedProgramDraft {
         val place = placeOfExercise(draft, exerciseId) ?: return draft
-        val duplicated = draft.weeks[place.week].days[place.day].exercises[place.exercise].copy(id = "x${draft.nextId}")
-        return draft.copy(nextId = draft.nextId + 1).withWeek(place.week) { week ->
+        val duplicated = draft.weeks[place.week].days[place.day].exercises[place.exercise].copy(id = "x${nextFreeId(draft)}")
+        return draft.copy(nextId = nextFreeId(draft) + 1).withWeek(place.week) { week ->
             week.withDay(place.day) { day ->
                 day.copy(exercises = day.exercises.insertAt(place.exercise + 1, duplicated))
             }
@@ -137,8 +137,8 @@ object ImportDraftEditor {
     ): ImportedProgramDraft {
         val name = rawName.trim()
         if (name.isEmpty() || !isValidValues(sets, repsMin, repsMax) || placeOfDay(draft, dayId) == null) return draft
-        val exercise = newExercise("x${draft.nextId}", name, sets, repsMin, repsMax)
-        return draft.copy(nextId = draft.nextId + 1).withDayById(dayId) { day ->
+        val exercise = newExercise("x${nextFreeId(draft)}", name, sets, repsMin, repsMax)
+        return draft.copy(nextId = nextFreeId(draft) + 1).withDayById(dayId) { day ->
             day.copy(exercises = day.exercises.insertAt(index, exercise))
         } ?: draft
     }
@@ -152,12 +152,22 @@ object ImportDraftEditor {
         return draft.withDayById(dayId) { day -> day.copy(name = clean) } ?: draft
     }
 
+    private fun nextFreeId(draft: ImportedProgramDraft): Int {
+        val highest = draft.weeks.asSequence().flatMap { it.days.asSequence() }
+            .flatMap { day -> sequenceOf(day.id) + day.exercises.asSequence().map { it.id } }
+            .filter { it.startsWith('x') }.mapNotNull { it.substring(1).toIntOrNull() }.maxOrNull() ?: 0
+        return maxOf(draft.nextId, highest + 1)
+    }
+
     /** Quita el día con sus ejercicios. La semana queda aunque se vacíe. */
     fun removeDay(draft: ImportedProgramDraft, dayId: String): ImportedProgramDraft {
         val place = placeOfDay(draft, dayId) ?: return draft
-        return draft.withWeek(place.week) { week ->
-            week.copy(days = week.days.filterIndexed { index, _ -> index != place.day })
-        }
+        val removedExercises = draft.weeks[place.week].days[place.day].exercises.map { it.id }.toSet()
+        val warnings = draft.warnings.filterNot { it.dayId == dayId || it.exerciseId in removedExercises }
+        return draft.copy(warnings = warnings, reviewedWarnings = draft.reviewedWarnings.intersect(warnings.map { it.id }.toSet()))
+            .withWeek(place.week) { week ->
+                week.copy(days = week.days.filterIndexed { index, _ -> index != place.day })
+            }
     }
 
     /** Mueve el día dentro de su semana, a la posición [toIndex]. */
@@ -174,9 +184,7 @@ object ImportDraftEditor {
     fun duplicateDay(draft: ImportedProgramDraft, dayId: String): ImportedProgramDraft {
         val place = placeOfDay(draft, dayId) ?: return draft
         val source = draft.weeks[place.week].days[place.day]
-        val ids = draft.weeks.flatMap { week -> week.days.flatMap { day -> listOf(day.id) + day.exercises.map { it.id } } }
-        val highest = ids.filter { it.startsWith("x") }.mapNotNull { it.substring(1).toIntOrNull() }.maxOrNull() ?: 0
-        var next = maxOf(draft.nextId, highest + 1)
+        var next = nextFreeId(draft)
         val copied = source.copy(
             id = "x${next++}",
             name = "${source.name} (copia)".take(80),
@@ -233,8 +241,8 @@ object ImportDraftEditor {
                 if (index == place.day) day.copy(name = name, dayOfWeek = null) else day
             }
         } else {
-            newDayId = "x${draft.nextId}"
-            nextId = draft.nextId + 1
+            newDayId = "x${nextFreeId(draft)}"
+            nextId = nextFreeId(draft) + 1
             val newDay = source.copy(
                 id = newDayId,
                 name = name,
@@ -280,11 +288,11 @@ object ImportDraftEditor {
         if (weekPosition < 0) return draft
         val week = draft.weeks[weekPosition]
         val day = ImportedDay(
-            id = "x${draft.nextId}",
+            id = "x${nextFreeId(draft)}",
             name = name.trim().ifEmpty { "Día ${week.days.size + 1}" },
             exercises = emptyList(),
         )
-        return draft.copy(nextId = draft.nextId + 1).withWeek(weekPosition) { current ->
+        return draft.copy(nextId = nextFreeId(draft) + 1).withWeek(weekPosition) { current ->
             current.copy(days = current.days + day)
         }
     }
@@ -297,7 +305,15 @@ object ImportDraftEditor {
         val weeks = draft.weeks
             .filter { it.index != index }
             .map { week -> if (week.index > index) week.copy(index = week.index - 1) else week }
-        return draft.copy(weeks = weeks)
+        val removedDays = draft.weeks.filter { it.index == index }.flatMap { it.days }
+        val dayIds = removedDays.map { it.id }.toSet()
+        val exerciseIds = removedDays.flatMap { it.exercises }.map { it.id }.toSet()
+        val warnings = draft.warnings.filterNot { it.weekIndex == index || it.dayId in dayIds || it.exerciseId in exerciseIds }
+            .map { warning ->
+                val weekIndex = warning.weekIndex
+                if (weekIndex != null && weekIndex > index) warning.copy(weekIndex = weekIndex - 1) else warning
+            }
+        return draft.copy(weeks = weeks, warnings = warnings, reviewedWarnings = draft.reviewedWarnings.intersect(warnings.map { it.id }.toSet()))
     }
 
     /** Keeps one confirmed week for the Free plan and rebases it to week 1. */
@@ -328,7 +344,7 @@ object ImportDraftEditor {
         val position = draft.weeks.indexOfFirst { it.index == index }
         if (position < 0) return draft
         val source = draft.weeks[position]
-        var next = draft.nextId
+        var next = nextFreeId(draft)
         val copiedDays = source.days.map { day ->
             val dayId = "x${next++}"
             val exercises = day.exercises.map { exercise -> exercise.copy(id = "x${next++}") }
@@ -337,7 +353,11 @@ object ImportDraftEditor {
         val renumbered = draft.weeks.map { week -> if (week.index > index) week.copy(index = week.index + 1) else week }
         val weeks = renumbered.toMutableList()
         weeks.add(position + 1, source.copy(index = index + 1, days = copiedDays))
-        return draft.copy(weeks = weeks, nextId = next)
+        val warnings = draft.warnings.map { warning ->
+            val weekIndex = warning.weekIndex
+            if (weekIndex != null && weekIndex > index) warning.copy(weekIndex = weekIndex + 1) else warning
+        }
+        return draft.copy(weeks = weeks, nextId = next, warnings = warnings)
     }
 
     // ---- Avisos --------------------------------------------------------------------------------------------
@@ -369,17 +389,17 @@ object ImportDraftEditor {
         val reviewed = draft.reviewedWarnings + warningId
         val dayId = if (newDay) null else listOfNotNull(toDayId, warning.dayId).firstOrNull { placeOfDay(draft, it) != null }
         if (dayId != null) {
-            val exercise = newExercise("x${draft.nextId}", name, sets, repsMin, repsMax)
-            return draft.copy(nextId = draft.nextId + 1, reviewedWarnings = reviewed)
+            val exercise = newExercise("x${nextFreeId(draft)}", name, sets, repsMin, repsMax)
+            return draft.copy(nextId = nextFreeId(draft) + 1, reviewedWarnings = reviewed)
                 .withDayById(dayId) { day -> day.copy(exercises = day.exercises + exercise) } ?: draft
         }
         val weekIndex = warning.weekIndex ?: 1
         // «Día <n+1>»: n son los días que ya tiene la semana (ninguno si no existe).
         val dayNumber = (draft.weeks.firstOrNull { it.index == weekIndex }?.days?.size ?: 0) + 1
         val day = ImportedDay(
-            id = "x${draft.nextId}",
+            id = "x${nextFreeId(draft)}",
             name = "Día $dayNumber",
-            exercises = listOf(newExercise("x${draft.nextId + 1}", name, sets, repsMin, repsMax)),
+            exercises = listOf(newExercise("x${nextFreeId(draft) + 1}", name, sets, repsMin, repsMax)),
         )
         val weekPosition = draft.weeks.indexOfFirst { it.index == weekIndex }
         val weeks = if (weekPosition >= 0) {
@@ -389,7 +409,7 @@ object ImportDraftEditor {
         } else {
             (draft.weeks + ImportedWeek(index = weekIndex, days = listOf(day))).sortedBy { it.index }
         }
-        return draft.copy(weeks = weeks, nextId = draft.nextId + 2, reviewedWarnings = reviewed)
+        return draft.copy(weeks = weeks, nextId = nextFreeId(draft) + 2, reviewedWarnings = reviewed)
     }
 
     // ---- Borradores guardados antes de los ids ---------------------------------------------------------------
@@ -401,9 +421,8 @@ object ImportDraftEditor {
      */
     fun withIds(draft: ImportedProgramDraft): ImportedProgramDraft {
         val ids = draft.weeks.flatMap { week -> week.days.flatMap { day -> listOf(day.id) + day.exercises.map { it.id } } }
-        if (ids.none { it.isEmpty() }) return draft
-        val highest = ids.filter { it.startsWith("x") }.mapNotNull { it.substring(1).toIntOrNull() }.maxOrNull() ?: 0
-        var next = maxOf(draft.nextId, highest + 1)
+        var next = nextFreeId(draft)
+        if (ids.none { it.isEmpty() }) return if (next == draft.nextId) draft else draft.copy(nextId = next)
         val weeks = draft.weeks.map { week ->
             week.copy(
                 days = week.days.map { day ->

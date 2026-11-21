@@ -240,6 +240,34 @@ interface ProgramVersionDao {
     @Upsert
     suspend fun upsert(entities: List<ProgramVersionEntity>)
 
+    @Query("DELETE FROM program_versions WHERE programId = :programId")
+    suspend fun deleteForProgram(programId: String)
+
+    @Query(
+        """
+        DELETE FROM program_versions
+        WHERE programId = :programId
+          AND sessionId = :sessionId
+          AND variantId IS :variantId
+          AND isInitial = 0
+          AND id NOT IN (
+              SELECT id FROM program_versions
+              WHERE programId = :programId
+                AND sessionId = :sessionId
+                AND variantId IS :variantId
+                AND isInitial = 0
+              ORDER BY savedAtEpochMs DESC, id DESC
+              LIMIT :keepNonInitial
+          )
+        """,
+    )
+    suspend fun pruneSessionVariant(
+        programId: String,
+        sessionId: String,
+        variantId: String?,
+        keepNonInitial: Int,
+    )
+
     @Query("DELETE FROM program_versions")
     suspend fun deleteAll()
 }

@@ -299,15 +299,15 @@ internal fun DrawScope.drawStoryFoot(
  * Pinta una historia en un bitmap de 1080 × 1920 con [draw] y lo devuelve, para el PNG. Las fuentes se resuelven con el [context]
  * de la app.
  */
-internal fun renderStory(context: Context, draw: DrawScope.(TextMeasurer) -> Unit): android.graphics.Bitmap {
-    val image = ImageBitmap(StoryCanvas.WIDTH, StoryCanvas.HEIGHT)
+internal fun renderStory(context: Context, width: Int = StoryCanvas.WIDTH, height: Int = StoryCanvas.HEIGHT, draw: DrawScope.(TextMeasurer) -> Unit): android.graphics.Bitmap {
+    val image = ImageBitmap(width, height)
     val measurer = TextMeasurer(createFontFamilyResolver(context), StoryCanvas.Density1, LayoutDirection.Ltr)
     CanvasDrawScope().draw(
         StoryCanvas.Density1,
         LayoutDirection.Ltr,
         Canvas(image),
-        Size(StoryCanvas.WIDTH.toFloat(), StoryCanvas.HEIGHT.toFloat()),
-    ) { draw(measurer) }
+        Size(width.toFloat(), height.toFloat()),
+    ) { scale(width.toFloat() / StoryCanvas.WIDTH, height.toFloat() / StoryCanvas.HEIGHT, pivot = Offset.Zero) { draw(measurer) } }
     return image.asAndroidBitmap()
 }
 

@@ -125,6 +125,7 @@ class WorkoutSetRecorder(
         expectedSetIdx: Int? = null,
         expectedSide: String? = null,
         expectedSourceRef: com.example.kpkn.data.models.WorkoutSetExecutionRef? = null,
+        expectedActiveTagIds: List<String>? = null,
     ): RecordSetResult {
         val state = getState()
         recordedObservationError(weight, value, bodyWeight, advanced, intensity)?.let { message ->
@@ -137,8 +138,13 @@ class WorkoutSetRecorder(
             ports.onRecordingRejected("No hay ejercicio activo para registrar.")
             return RecordSetResult.Rejected("No hay ejercicio activo para registrar.")
         }
+        if (expectedActiveTagIds != null && state.activeTagsByExercise[exercise.id].orEmpty() != expectedActiveTagIds) {
+            return RecordSetResult.Rejected("La etiqueta cambió. Reabre la serie para registrar en el contexto correcto.")
+                .also { ports.onRecordingRejected(it.reason) }
+        }
         val targetSetIdx = setIdxOverride ?: state.currentSetIdx
         if (targetSetIdx !in exercise.sets.indices || exercise.sets[targetSetIdx].isEmptySlot ||
+            WorkoutStepRules.isSetOmitted(exercise.id, targetSetIdx, state.omittedSetKeys) ||
             expectedSourceRef?.let { it != executionRef(state, exercise, targetSetIdx, side) } == true) {
             return RecordSetResult.Rejected("La identidad de la serie cambió. Reabre su tarjeta.").also { ports.onRecordingRejected(it.reason) }
         }
@@ -196,7 +202,10 @@ class WorkoutSetRecorder(
             val locked = getState()
             val lockedExercise = ports.visibleExercises(locked).getOrNull(locked.currentExerciseIdx)
             if (locked.startTimeMs != state.startTimeMs || locked.activeMode != state.activeMode ||
-                lockedExercise == null || executionRef(locked, lockedExercise, targetSetIdx, initialSide) != executionRef(state, exercise, targetSetIdx, initialSide)) {
+                lockedExercise == null ||
+                WorkoutStepRules.isSetOmitted(exercise.id, targetSetIdx, locked.omittedSetKeys) ||
+                (expectedActiveTagIds != null && locked.activeTagsByExercise[exercise.id].orEmpty() != expectedActiveTagIds) ||
+                executionRef(locked, lockedExercise, targetSetIdx, initialSide) != executionRef(state, exercise, targetSetIdx, initialSide)) {
                 return RecordSetResult.Rejected("La serie cambió antes de guardar. Reabre su tarjeta.").also { ports.onRecordingRejected(it.reason) }
             }
         if (hasPendingTechniqueProgress && report.techniqueStatus != com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN) {
@@ -493,8 +502,7 @@ class WorkoutSetRecorder(
                 amrapMinimumReps != null &&
                 actualReps < amrapMinimumReps
             val recordedAfterAdvanced = applyAdvancedFeedback(
-                base = CompletedSet(
-                    id = state.completedSets[recordingKey]?.id ?: UUID.randomUUID().toString(),
+                base = (state.completedSets[recordingKey] ?: CompletedSet(id = UUID.randomUUID().toString())).copy(
                     recordedAtMs = if (recordingKey in state.completedSets) state.completedSets[recordingKey]?.recordedAtMs else System.currentTimeMillis(),
                     setIndex = targetSetIdx,
                     weight = when (resolvedLoadMode) {
@@ -503,6 +511,7 @@ class WorkoutSetRecorder(
                     },
                     reps = actualReps,
                     timeSeconds = durationSeconds,
+                    distanceKm = actualValue.takeIf { resolvedUnitMode == UnitModeV2.DISTANCE }?.div(1_000.0),
                     side = resolvedSide,
                     // RIR is stored in `rir`; never mirror it into the RPE
                     // field.  RM without explicit effort remains null.

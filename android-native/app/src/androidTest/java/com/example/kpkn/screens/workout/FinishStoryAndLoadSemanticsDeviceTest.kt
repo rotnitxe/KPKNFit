@@ -19,6 +19,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertTextContains
+import androidx.compose.ui.test.assertTextEquals
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onAllNodesWithText
@@ -268,8 +269,8 @@ class FinishStoryAndLoadSemanticsDeviceTest {
 
         // Esfuerzo derivado 8,5 y >5 músculos, gráfico semanal visible (incluye cardio <60 s "45 s" y "Sin dato comparable la semana anterior")
         rule.onNodeWithTag("finish-sheet").assertIsDisplayed()
-        rule.onNodeWithText("8,5", substring = true).assertIsDisplayed()
-        rule.onNodeWithText("ESFUERZO (sRPE)", substring = true).assertIsDisplayed()
+        rule.onNodeWithTag("finish-effort-value").performScrollTo().assertIsDisplayed().assertTextEquals("8,5")
+        rule.onNodeWithText("ESFUERZO (sRPE)").assertIsDisplayed()
         rule.onNodeWithTag("finish-deck-tab-comparativa").performScrollTo().performClick()
         rule.onNodeWithTag("finish-week-comparison").performScrollTo().assertIsDisplayed()
         rule.onAllNodesWithText("Sin dato comparable la semana anterior", substring = true).onFirst().assertExists()
@@ -277,6 +278,8 @@ class FinishStoryAndLoadSemanticsDeviceTest {
         rule.onNodeWithTag("finish-muscles").performScrollTo().assertIsDisplayed()
 
         // Notas + Valoración manual 4 + scroll + toggle Compartir al guardar
+        rule.onNodeWithContentDescription("Esfuerzo 4").performScrollTo().performClick()
+        rule.onNodeWithTag("finish-effort-value").performScrollTo().assertTextEquals("4")
         rule.onNodeWithTag("finish-notes-open").performScrollTo().performClick()
         rule.onNodeWithTag("finish-notes").performTextInput("Nota conservada")
         rule.onNodeWithTag("finish-notes-back").performClick()
@@ -289,7 +292,10 @@ class FinishStoryAndLoadSemanticsDeviceTest {
         rule.onNodeWithContentDescription("Volver al resumen").performClick()
         rule.waitForIdle()
         rule.onNodeWithTag("finish-sheet").assertIsDisplayed()
-        rule.onNodeWithText("Nota conservada", substring = true).assertExists()
+        rule.onNodeWithTag("finish-effort-value").performScrollTo().assertTextEquals("4")
+        rule.onNodeWithTag("finish-notes-open").performScrollTo().performClick()
+        rule.onNodeWithTag("finish-notes").assertTextContains("Nota conservada")
+        rule.onNodeWithTag("finish-notes-back").performClick()
 
         // Simular error de guardado y luego apagar "Compartir al guardar" -> debe cancelar la petición diferida
         rule.runOnUiThread { errorMsg = "No se pudo guardar" }

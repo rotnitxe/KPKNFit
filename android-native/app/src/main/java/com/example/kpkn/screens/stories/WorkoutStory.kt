@@ -24,6 +24,8 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.resolvedDistanceKm
+import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.domain.training.insights.MuscleVolumeAccounting
@@ -34,6 +36,7 @@ import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverSp
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.LineCoverStyle
 import com.example.kpkn.screens.onboarding.design.entreno.plan.cover.parseLineCover
 import com.example.kpkn.screens.workout.FinishLiftProgress
+import com.example.kpkn.screens.workout.finishUnit
 import com.example.kpkn.screens.workout.WorkoutStoryData
 import com.example.kpkn.screens.workout.WorkoutStoryOptions
 import com.example.kpkn.screens.workout.WorkoutStoryTemplate
@@ -224,7 +227,7 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
     } else {
         emptyList<WorkoutGain>()
     }
-    val recordHighlights = if (options.improvements) {
+    val recordHighlights = if (options.improvements && options.milestones) {
         data.finishRecords.orEmpty().take(2).map { record ->
             WorkoutGain(
                 name = "${if (record.isInitialReference) "Referencia" else "Récord"} · ${record.exerciseName}",
@@ -235,7 +238,11 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
     val recordIds = data.finishRecords.orEmpty().filter { !it.isInitialReference }.map { it.exerciseId }.toSet()
     val themeBackground = resolveStoryBackground(data, options)
     val prevVol = if (options.improvements && data.volume > 0.0) {
-        presentation.history.filter { it.sessionName == data.sessionName }
+        presentation.history.filter { log ->
+            log.programId == presentation.programId && log.sessionId == presentation.sessionId &&
+                !presentation.programId.isNullOrBlank() && !presentation.sessionId.isNullOrBlank() &&
+                (presentation.sessionStartMs == null || com.example.kpkn.domain.time.TrainingDates.logDateMs(log) < presentation.sessionStartMs)
+        }
             .sortedBy { it.date }
             .lastOrNull()
             ?.let { CompletedSetLoadSemantics.historicalLogTonnageKg(it) }
@@ -275,7 +282,7 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
         }
     }
     val musclesSummary = if (options.muscles) {
-        val lastLogStrength = presentation.history.lastOrNull()?.completedExercises?.filter { it.cardioDetails == null }.orEmpty()
+        val lastLogStrength = presentation.currentExercises.filter { it.cardioDetails == null }
         // If lifts exist, infer primary summary from finishRecords / lifts; MuscleVolumeAccounting is fed from history or lifts if needed.
         data.lifts.takeIf { it.isNotEmpty() }?.let { lifts ->
             val topSets = MuscleVolumeAccounting.sessionSets(lastLogStrength).takeIf { it.isNotEmpty() }
@@ -297,7 +304,7 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
     val bestMode = best?.let { CompletedSetLoadSemantics.mode(it) }
     val supportsE1rm = best?.let { CompletedSetLoadSemantics.supportsEstimatedOneRm(it) }
         ?: history.any { it.estimated1Rm > 0.0 }
-    val isCardio = best != null && ((best.distanceKm ?: 0.0) > 0.0 || ((best.timeSeconds ?: 0) > 0 && best.reps <= 0))
+    val isCardio = lift?.isCardio == true
 
     val exerciseEyebrow: String
     val exerciseUnit: String?
@@ -307,20 +314,22 @@ internal fun workoutStoryFrom(data: WorkoutStoryData, options: WorkoutStoryOptio
 
     when {
         isCardio && best != null -> {
-            val meters = best.distanceKm?.takeIf { it > 0.0 }?.times(1000.0)
+            val meters = best.resolvedDistanceKm?.takeIf { it > 0.0 }?.times(1000.0)
             val secs = best.timeSeconds?.takeIf { it > 0 }
-            if (meters != null) {
+            val distanceMode = finishUnit(best) == UnitModeV2.DISTANCE
+            val value = if (distanceMode) meters else secs?.toDouble()
+            if (distanceMode) {
                 exerciseEyebrow = "DISTANCIA"
                 exerciseUnit = "m"
-                exerciseValue = workoutThousands(meters)
-                exercisePoints = emptyList()
+                exerciseValue = meters?.let(::workoutThousands)
             } else {
                 exerciseEyebrow = "TIEMPO"
                 exerciseUnit = "s"
                 exerciseValue = secs?.toString()
-                exercisePoints = emptyList()
             }
-            exerciseDelta = null
+            exercisePoints = (history.map { it.comparableScore }.filter { it > 0.0 } + listOfNotNull(value)).takeLast(8)
+            val diff = value?.let { now -> history.lastOrNull()?.comparableScore?.let { now - it } }
+            exerciseDelta = diff?.takeIf { abs(it) > 0.001 }?.let { "${if (it > 0) "+" else "−"}${workoutKgText(abs(it))} ${if (distanceMode) "m" else "s"}" }
         }
         bestMode == LoadModeV2.LASTRE && best != null -> {
             val ext = CompletedSetLoadSemantics.externalLoadKg(best)
@@ -611,7 +620,9 @@ internal fun renderWorkoutStoryBitmap(
     story: WorkoutStory,
     template: WorkoutStoryTemplate,
     photo: ImageBitmap? = null,
-): android.graphics.Bitmap = renderStory(context) { drawWorkoutStory(story, template, it, photo) }
+    width: Int = StoryCanvas.WIDTH,
+    height: Int = StoryCanvas.HEIGHT,
+): android.graphics.Bitmap = renderStory(context, width, height) { drawWorkoutStory(story, template, it, photo) }
 
 // ------------------------------------------------------------------------------------------------------- medidas (px)
 

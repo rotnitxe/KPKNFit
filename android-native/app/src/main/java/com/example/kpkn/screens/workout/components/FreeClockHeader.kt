@@ -63,13 +63,13 @@ internal enum class PillClock { Stopwatch, Timer }
 /** Una marca de hora que avanza cada [periodMs] mientras la pantalla está a la vista (para la segunda línea de la píldora). */
 @Composable
 internal fun rememberTickMs(active: Boolean, periodMs: Long): androidx.compose.runtime.State<Long> {
-    val now = remember { mutableLongStateOf(System.currentTimeMillis()) }
+    val now = remember { mutableLongStateOf(android.os.SystemClock.elapsedRealtime()) }
     val owner = LocalLifecycleOwner.current
     LaunchedEffect(active, owner, periodMs) {
-        now.longValue = System.currentTimeMillis()
+        now.longValue = android.os.SystemClock.elapsedRealtime()
         if (!active) return@LaunchedEffect
         owner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            while (true) { now.longValue = System.currentTimeMillis(); delay(periodMs) }
+            while (true) { now.longValue = android.os.SystemClock.elapsedRealtime(); delay(periodMs) }
         }
     }
     return now

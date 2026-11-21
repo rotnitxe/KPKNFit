@@ -19,11 +19,13 @@ object DocxReader {
     fun read(bytes: ByteArray, title: String): ImportSheet {
         val entries = OfficeXml.entries(bytes, TOO_LARGE) { it == DOCUMENT } ?: throw notDocx()
         val xml = entries[DOCUMENT] ?: throw notDocx()
-        val body = OfficeXml.parse(xml, "El documento contiene XML no válido").getElementsByTagNameNS("*", "body").item(0)
-        val allRows = body?.let { bodyRows(it) }.orEmpty()
-        val rows = allRows.take(ImportLimits.MAX_ROWS)
+        val body = OfficeXml.parse(xml, "El documento contiene XML no válido").documentElement
+            ?.let { document -> OfficeXml.elementChildren(document).firstOrNull { OfficeXml.name(it) == "body" } }
+        val remaining = (body?.let { bodyRows(it) } ?: emptySequence()).iterator()
+        val rows = ArrayList<List<String>>()
+        while (rows.size < ImportLimits.MAX_ROWS && remaining.hasNext()) rows += remaining.next()
         val columnsCut = rows.any { row -> row.drop(ImportLimits.MAX_COLUMNS).any { it.isNotBlank() } }
-        val rowsCut = allRows.drop(ImportLimits.MAX_ROWS).any { row -> row.any { it.isNotBlank() } }
+        val rowsCut = remaining.asSequence().any { row -> row.any { it.isNotBlank() } }
         val width = minOf(rows.maxOfOrNull { it.size } ?: 0, ImportLimits.MAX_COLUMNS)
         return ImportSheet(
             name = title,
@@ -33,33 +35,37 @@ object DocxReader {
     }
 
     /** Filas del cuerpo en orden: párrafos con texto y filas de tablas. Los bloques de contenido (`w:sdt`) se abren. */
-    private fun bodyRows(container: Node): List<List<String>> {
-        val rows = mutableListOf<List<String>>()
-        for (child in OfficeXml.childElements(container)) {
+    private fun bodyRows(container: Node, depth: Int = 0): Sequence<List<String>> = sequence {
+        if (depth >= ImportLimits.MAX_DOM_DEPTH) return@sequence
+        for (child in OfficeXml.elementChildren(container)) {
             when (OfficeXml.name(child)) {
-                "p" -> paragraphText(child).takeIf { it.isNotEmpty() }?.let { rows.add(listOf(it)) }
-                "tbl" -> rows.addAll(tableRows(child))
-                "sdt", "sdtContent" -> rows.addAll(bodyRows(child))
+                "p" -> paragraphText(child).takeIf { it.isNotEmpty() }?.let { yield(listOf(it)) }
+                "tbl" -> yieldAll(tableRows(child))
+                "sdt", "sdtContent" -> yieldAll(bodyRows(child, depth + 1))
             }
         }
-        return rows
     }
 
     /** Una fila por `w:tr`, con una celda por `w:tc`. */
-    private fun tableRows(table: Element): List<List<String>> =
-        OfficeXml.childElements(table).filter { OfficeXml.name(it) == "tr" }.map { row ->
+    private fun tableRows(table: Element): Sequence<List<String>> =
+        OfficeXml.elementChildren(table).filter { OfficeXml.name(it) == "tr" }.map { row ->
             OfficeXml.childElements(row).filter { OfficeXml.name(it) == "tc" }.map { cellText(it) }
         }
 
     /** Texto de una celda: sus párrafos unidos con espacio, también los de tablas anidadas. */
     private fun cellText(cell: Element): String {
         if (isVerticalContinuation(cell)) return ""
-        val paragraphs = cell.getElementsByTagNameNS("*", "p")
-        return (0 until paragraphs.length)
-            .mapNotNull { paragraphs.item(it) as? Element }
+        return cellParagraphs(cell)
             .map { paragraphText(it) }
             .filter { it.isNotEmpty() }
             .joinToString(" ")
+    }
+
+    private fun cellParagraphs(element: Element, depth: Int = 0): Sequence<Element> {
+        if (depth >= ImportLimits.MAX_DOM_DEPTH) return emptySequence()
+        return OfficeXml.elementChildren(element).flatMap { child ->
+            if (OfficeXml.name(child) == "p") sequenceOf(child) else cellParagraphs(child, depth + 1)
+        }
     }
 
     /** Una celda es continuación si su combinación vertical no empieza en ella (`w:vMerge` sin `restart`). */
@@ -76,14 +82,17 @@ object DocxReader {
         return out.toString().trim()
     }
 
-    private fun collectText(node: Element, out: StringBuilder) {
+    private fun collectText(node: Element, out: StringBuilder, depth: Int = 0) {
+        if (depth >= ImportLimits.MAX_DOM_DEPTH) return
         for (child in OfficeXml.childElements(node)) {
             when (OfficeXml.name(child)) {
-                "t" -> out.append(child.textContent)
+                "t" -> generateSequence(child.firstChild) { it.nextSibling }
+                    .filter { it.nodeType == Node.TEXT_NODE || it.nodeType == Node.CDATA_SECTION_NODE }
+                    .forEach { out.append(it.nodeValue.orEmpty()) }
                 "tab", "br", "cr" -> out.append(' ')
                 // Las propiedades de párrafo traen sus propias tabulaciones (tabulados), que no son texto.
                 "pPr", "rPr" -> Unit
-                else -> collectText(child, out)
+                else -> collectText(child, out, depth + 1)
             }
         }
     }

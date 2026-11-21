@@ -10,11 +10,10 @@ import com.example.kpkn.data.models.Gender
 import com.example.kpkn.data.models.WeightUnit
 import com.example.kpkn.data.models.VolumeCalibrationProfile
 
-/** Explicit three-state field patch used by setup commits. */
+/** Explicit field patch used by setup commits; Set(null) clears nullable fields. */
 sealed interface SetupPatchField<out T> {
     data object Unchanged : SetupPatchField<Nothing>
     data class Set<T>(val value: T) : SetupPatchField<T>
-    data object Clear : SetupPatchField<Nothing>
 }
 
 /** Apply only the vitals that were actually confirmed, to the newest Settings row. */
@@ -50,8 +49,7 @@ data class SetupSettingsPatch(
     val volumeCalibrationProfile: SetupPatchField<VolumeCalibrationProfile?> = SetupPatchField.Unchanged,
     /**
      * Inventario principal del gimnasio confirmado en el alta. Set persiste el
-     * inventario declarado; Clear deriva de [Settings.barbellWeight] +
-     * [Settings.availablePlates]; Unchanged conserva el inventario actual.
+     * inventario declarado; Set(null) lo elimina; Unchanged conserva el inventario actual.
      */
     val equipmentInventory: SetupPatchField<EquipmentInventory?> = SetupPatchField.Unchanged,
     /**
@@ -96,9 +94,5 @@ data class SetupSettingsPatch(
     private fun <T> SetupPatchField<T>.resolve(previous: T): T = when (this) {
         SetupPatchField.Unchanged -> previous
         is SetupPatchField.Set -> value
-        SetupPatchField.Clear -> when (previous) {
-            is Boolean -> false as T
-            else -> null as T
-        }
     }
 }

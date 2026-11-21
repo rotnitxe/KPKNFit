@@ -32,6 +32,7 @@ interface FreeClockPlatform {
  */
 class FreeClockController(
     private val platform: FreeClockPlatform,
+    restoreForAlarm: Boolean = false,
     private val clock: () -> Long = { System.currentTimeMillis() },
 ) {
     private val _state = MutableStateFlow(platform.load())
@@ -41,7 +42,7 @@ class FreeClockController(
         // Tras matar el proceso: si el fin ya pasó, queda «terminado» con el aviso pendiente; solo suena si fue hace nada.
         val now = clock()
         val t = _state.value.timer
-        if (t.phase == FreeTimerPhase.RUNNING) {
+        if (t.phase == FreeTimerPhase.RUNNING && !restoreForAlarm) {
             if (t.endAtMs <= now) finishIfDue(playCue = now - t.endAtMs < LATE_CUE_WINDOW_MS) else platform.scheduleTimerEnd(t.endAtMs)
         }
     }
@@ -105,7 +106,10 @@ class FreeClockController(
     fun dismissBanner() = update { it.copy(bannerPending = false) }
 
     /** Llamada de la alarma del sistema (receptor) cuando llega el fin. */
-    fun onAlarm() { finishIfDue() }
+    fun onAlarm() {
+        val timer = _state.value.timer
+        finishIfDue(playCue = clock() - timer.endAtMs <= ALARM_CUE_WINDOW_MS)
+    }
 
     /** Pasa a terminado si toca; devuelve si lo hizo en esta llamada. Solo la primera llamada avisa. */
     fun finishIfDue(playCue: Boolean = true): Boolean {
@@ -125,5 +129,6 @@ class FreeClockController(
     companion object {
         /** Si la app despierta mucho después del fin, el aviso sonoro ya no tiene sentido. */
         const val LATE_CUE_WINDOW_MS = 5_000L
+        const val ALARM_CUE_WINDOW_MS = 30_000L
     }
 }

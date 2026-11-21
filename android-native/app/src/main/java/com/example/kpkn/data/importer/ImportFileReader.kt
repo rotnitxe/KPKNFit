@@ -2,7 +2,6 @@ package com.example.kpkn.data.importer
 
 import com.example.kpkn.domain.training.importer.ImportSheet
 import com.example.kpkn.domain.training.importer.ImportDocumentType
-import java.io.ByteArrayInputStream
 
 /**
  * Elige el lector de un archivo por su firma y, si no basta, por su extensión y su tipo MIME. Un ZIP es un libro .xlsx/.xlsm
@@ -91,7 +90,7 @@ object ImportFileReader {
             ?: throw ImportFileException(UNKNOWN_MESSAGE)
         val mimetype = archive.entries[MIMETYPE]?.let { String(it, Charsets.UTF_8).trim() }
         return when {
-            WORKBOOK in archive.names -> XlsxReader.read(ByteArrayInputStream(bytes))
+            WORKBOOK in archive.names -> XlsxReader.read(bytes)
             mimetype == ODS_MIME -> OdsReader.read(bytes)
             WORD_DOCUMENT in archive.names -> listOf(DocxReader.read(bytes, title))
             isSpreadsheetContent(bytes, archive.names) -> OdsReader.read(bytes)
@@ -112,12 +111,12 @@ object ImportFileReader {
         return when (extension) {
             "md", "markdown", "txt" -> listOf(TextProgramReader.read(text, title))
             "csv", "tsv" -> listOf(CsvReader.parse(text, title))
-            "xlsx", "xlsm" -> XlsxReader.read(ByteArrayInputStream(bytes))
+            "xlsx", "xlsm" -> XlsxReader.read(bytes)
             "xls" -> Biff8Reader.read(bytes)
             // Estos formatos tienen firma propia: sin ella no hay nada que leer con seguridad.
             "ods", "docx", "doc", "pdf" -> throw ImportFileException(UNKNOWN_MESSAGE)
             else -> when (mime) {
-                XLSX_MIME, XLSM_MIME -> XlsxReader.read(ByteArrayInputStream(bytes))
+                XLSX_MIME, XLSM_MIME -> XlsxReader.read(bytes)
                 XLS_MIME -> Biff8Reader.read(bytes)
                 MARKDOWN_MIME -> listOf(TextProgramReader.read(text, title))
                 else -> listOf(CsvReader.parse(text, title))

@@ -124,7 +124,6 @@ object DeepLinkRouter {
 
     private fun resolveSettings(second: String): ResolvedRoute = when (second) {
         "profile", "perfil" -> ResolvedRoute(KpknRoute.Profile.route)
-        "health-connect", "healthconnect", "salud" -> ResolvedRoute(KpknRoute.HealthConnect.route)
         else -> ResolvedRoute(KpknRoute.Settings.route)
     }
 }

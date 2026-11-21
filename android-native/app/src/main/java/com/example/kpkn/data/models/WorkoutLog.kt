@@ -192,6 +192,8 @@ data class CompletedSet(
     val notes: String? = null,
     /** Seconds per completed GPS kilometre; empty keeps old strength/cardio logs valid. */
     val kmSplitPaces: List<Int> = emptyList(),
+    /** Original local GPS evidence for this recorded cardio set. */
+    val gpsTrack: com.example.kpkn.domain.cardio.GpsTrackSnapshot? = null,
     /** Original zero-based plan ordinal, independent of UUID and compacted history order. Null in legacy logs. */
     val setIndex: Int? = null,
     /** Original input and normalized kg; weight already stores the normalized load. */
@@ -225,6 +227,13 @@ fun buildRecordedSetContextKey(
 ): String = "set-v1|" + listOf(
     configurationId, performanceContextKey, setupProfileId.orEmpty(), side ?: "bilateral", loadQuantityConvention.name,
 ).joinToString("|") { "${it.length}:$it" }
+
+/** Distance in kilometres, including strength observations saved before the km field was populated. */
+val CompletedSet.resolvedDistanceKm: Double?
+    get() = distanceKm ?: recordedPayloadV3
+        ?.takeIf { it.unitMode == UnitModeV2.DISTANCE }
+        ?.actualValue?.takeIf { it.isFinite() && it >= 0.0 }
+        ?.div(1_000.0)
 
 fun CompletedSet.effectiveRepEquivalent(): Double =
     reps.toDouble()
@@ -377,6 +386,8 @@ data class CardioTimerState(
     val endsAtMs: Long = 0L,
     val executionStartedAtMs: Long = 0L,
     val setId: String? = null,
+    val gpsBlockIndex: Int? = null,
+    val gpsBlockStartMeters: Double? = null,
 )
 
 @Serializable

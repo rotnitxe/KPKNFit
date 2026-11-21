@@ -722,12 +722,14 @@ class WorkoutContinuousVoiceEngine internal constructor(
         }
 
         fun launchModelPreparation(generation: Long) {
-            if (modelPrepareJob?.isActive == true) return
+            modelPrepareJob?.cancel()
             val ownerScope = scope ?: return
             modelPrepareJob = ownerScope.launch(Dispatchers.IO) {
                 try {
                     val prepared = WorkoutVoskModelStore.prepare(context)
                     commands.send(EngineCommand.ModelReady(generation, prepared))
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
                 } catch (e: Exception) {
                     commands.send(
                         EngineCommand.ModelFailed(
@@ -815,6 +817,8 @@ class WorkoutContinuousVoiceEngine internal constructor(
                             first
                         }
                     } ?: NativeRecognitionResult.Error("Timeout de reconocimiento nativo")
+                } catch (cancelled: CancellationException) {
+                    throw cancelled
                 } catch (e: Exception) {
                     NativeRecognitionResult.Error(
                         "Fallback nativo interrumpido: ${e.message ?: "error"}",

@@ -3,9 +3,12 @@ package com.example.kpkn.screens.workout
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
+import android.graphics.Paint
+import android.media.ExifInterface
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.example.kpkn.data.models.*
+import com.example.kpkn.screens.stories.loadStoryPhoto
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test
@@ -85,7 +88,7 @@ class WorkoutStoryDeviceTest {
                     )
                     val applicable=when(template){
                         WorkoutStoryTemplate.GENERAL->setOf("improvements","duration","intensity","exercises")
-                        WorkoutStoryTemplate.MILESTONES->setOf("improvements","duration")
+                        WorkoutStoryTemplate.MILESTONES->setOf("duration")
                         WorkoutStoryTemplate.EXERCISE->setOf("improvements")
                         WorkoutStoryTemplate.PHOTOS->setOf("duration")
                     }
@@ -114,6 +117,55 @@ class WorkoutStoryDeviceTest {
             context.contentResolver.openInputStream(uri)!!.use { android.graphics.BitmapFactory.decodeStream(it,null,bounds) }
             assertEquals(1080,bounds.outWidth);assertEquals(1920,bounds.outHeight)
         } finally { context.contentResolver.delete(uri,null,null) }
+    }
+
+    @Test fun mirroredExifPhotosUseTheIntendedCorners() = runBlocking {
+        val file = File.createTempFile("story-orientation-", ".jpg", context.cacheDir)
+        val corners = listOf(Color.RED, Color.GREEN, Color.BLUE, Color.YELLOW)
+        val source = Bitmap.createBitmap(80, 60, Bitmap.Config.ARGB_8888)
+        try {
+            val paint = Paint()
+            val canvas = Canvas(source)
+            corners.forEachIndexed { index, color ->
+                paint.color = color
+                val left = if (index % 2 == 0) 0f else 40f
+                val top = if (index < 2) 0f else 30f
+                canvas.drawRect(left, top, left + 40f, top + 30f, paint)
+            }
+            file.outputStream().use { assertTrue(source.compress(Bitmap.CompressFormat.JPEG, 100, it)) }
+            val orientations = mapOf(
+                ExifInterface.ORIENTATION_FLIP_HORIZONTAL to listOf(1, 0, 3, 2),
+                ExifInterface.ORIENTATION_FLIP_VERTICAL to listOf(2, 3, 0, 1),
+                ExifInterface.ORIENTATION_TRANSPOSE to listOf(0, 2, 1, 3),
+                ExifInterface.ORIENTATION_TRANSVERSE to listOf(3, 1, 2, 0),
+            )
+            orientations.forEach { (orientation, expected) ->
+                ExifInterface(file.absolutePath).apply {
+                    setAttribute(ExifInterface.TAG_ORIENTATION, orientation.toString())
+                    saveAttributes()
+                }
+                val loaded = checkNotNull(loadStoryPhoto(context, file.absolutePath))
+                try {
+                    expected.forEachIndexed { index, originalCorner ->
+                        val x = loaded.width * (if (index % 2 == 0) 1 else 3) / 4
+                        val y = loaded.height * (if (index < 2) 1 else 3) / 4
+                        val actual = loaded.getPixel(x, y)
+                        val nearest = corners.indices.minBy { corner ->
+                            val reference = corners[corner]
+                            kotlin.math.abs(Color.red(actual) - Color.red(reference)) +
+                                kotlin.math.abs(Color.green(actual) - Color.green(reference)) +
+                                kotlin.math.abs(Color.blue(actual) - Color.blue(reference))
+                        }
+                        assertEquals("Rotación EXIF $orientation, esquina $index", originalCorner, nearest)
+                    }
+                } finally {
+                    loaded.recycle()
+                }
+            }
+        } finally {
+            source.recycle()
+            file.delete()
+        }
     }
 
     @Test fun minimalGeneralAndExerciseRenderWithoutFabricatingHistoryOrPhotos()=runBlocking {

@@ -19,6 +19,9 @@ import androidx.test.core.app.ApplicationProvider
 import com.example.kpkn.data.importer.ImportedEditorDraftPersistence
 import com.example.kpkn.data.importer.ProgramUrlReader
 import com.example.kpkn.data.models.Program
+import com.example.kpkn.data.models.ExerciseMuscleInfo
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import com.example.kpkn.data.models.SessionRequirement
 import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.domain.entitlements.PlanLevel
@@ -552,6 +555,72 @@ class ImportProgramScreenTest {
     }
 
     @Test
+    fun ownExerciseIsMaterializedOnlyOnceDuringConcurrentSave() {
+        val vm = newViewModel()
+        val fileText = "Día 1 — Empuje\nPress propio 3x8"
+        val exerciseId = "custom:known-own"
+        var materializations = 0
+        vm.materializeCustomExercise = { name ->
+            materializations++
+            Result.success(ExerciseMuscleInfo(id = exerciseId, name = name, isCustom = true))
+        }
+        vm.importFromText(fileText)
+        settle(vm) { it.imported != null && !it.busy }
+        val exercise = vm.state.value.imported!!.weeks.single().days.single().exercises.single()
+        vm.resolve(exercise.rawName, null)
+        assertEquals(0, materializations)
+
+        val results = runSuspendingOffMain {
+            coroutineScope {
+                val first = async { vm.save(PlanLevel.PRO) }
+                val second = async { vm.save(PlanLevel.PRO) }
+                listOf(first.await(), second.await())
+            }
+        }
+
+        assertEquals(listOf(saved.single().id, saved.single().id), results)
+        assertEquals(1, materializations)
+        assertEquals(exerciseId, saved.single().macrocycles.single().blocks.single().mesocycles.single()
+            .weeks.single().sessions.single().allExercises().single().exerciseId)
+    }
+
+    @Test
+    fun ownExerciseFailureLeavesDraftAvailableToRetry() {
+        val vm = newViewModel()
+        vm.materializeCustomExercise = { Result.failure(IllegalStateException("Room failure")) }
+        vm.importFromText("Día 1 — Empuje\nPress propio 3x8")
+        settle(vm) { it.imported != null && !it.busy }
+        val exercise = vm.state.value.imported!!.weeks.single().days.single().exercises.single()
+        vm.resolve(exercise.rawName, null)
+
+        assertNull(runSuspendingOffMain { vm.save(PlanLevel.PRO) })
+        assertTrue(saved.isEmpty())
+        assertTrue(vm.state.value.error.orEmpty().contains(exercise.rawName))
+        assertFalse(vm.state.value.saving)
+        assertTrue(vm.state.value.resolutions.containsKey(exercise.rawName))
+    }
+
+    @Test
+    fun rapidSetTitleImmediatelyBeforeSavePersistsLatestTitleWithoutRevisionDesync() {
+        val vm = newViewModel()
+        vm.importFromText("Día 1 — Empuje\nSentadilla 4x6")
+        settle(vm) { it.imported != null && !it.busy }
+        decideAll(vm)
+        settleReviewPersistence(vm)
+
+        vm.setTitle("Titulo 1")
+        vm.setTitle("Titulo 2")
+        vm.setTitle("Mi programa final")
+
+        val savedId = runSuspendingOffMain { vm.save(PlanLevel.PRO) }
+        assertEquals(saved.single().id, savedId)
+        assertEquals("Mi programa final", saved.single().name)
+        assertNull(vm.state.value.draftPersistenceError)
+        assertNull(vm.state.value.error)
+        assertFalse(vm.state.value.saving)
+    }
+
+    @Test
     fun saveIsBlockedWhileADayIsEmptyAndSaysWhichOne() {
         val vm = newViewModel()
         vm.importFromText("Día 1 — Pierna\nSentadilla 4x6 @120kg\nDía 2 — Empuje\nPress banca 4x8 @80kg")
@@ -779,7 +848,7 @@ class ImportProgramScreenTest {
 
         assertEquals(before.imported, vm.state.value.imported)
         assertEquals(before.undoLabel, vm.state.value.undoLabel)
-        assertEquals("No se pudo abrir", vm.state.value.error)
+        assertEquals("No pudimos leer el programa.", vm.state.value.error)
         assertEquals(ImportSourceKind.FILE, vm.state.value.sourceEvidence.kind)
         assertEquals("Archivo seleccionado", vm.state.value.sourceEvidence.displayName)
         assertNull(vm.state.value.sourceEvidence.sourceText)

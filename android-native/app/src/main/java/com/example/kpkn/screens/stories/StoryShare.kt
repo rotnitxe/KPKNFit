@@ -30,10 +30,15 @@ internal object StoryShare {
     /** Abre el selector del sistema con [bitmap] como PNG, con el título «Compartir historia». */
     suspend fun shareWithChooser(context: Context, bitmap: Bitmap) {
         val uri = withContext(Dispatchers.IO) {
-            val dir = File(context.cacheDir, "shares").apply { check(isDirectory || mkdirs()) }
+            val dir = com.example.kpkn.screens.workout.storyShareDirectory(context)
             val file = File.createTempFile("program-story-", ".png", dir)
-            FileOutputStream(file).use { check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
-            FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            try {
+                FileOutputStream(file).use { check(bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) }
+                FileProvider.getUriForFile(context, "${context.packageName}.fileprovider", file)
+            } catch (failure: Throwable) {
+                file.delete()
+                throw failure
+            }
         }
         withContext(Dispatchers.Main) {
             val send = Intent(Intent.ACTION_SEND).apply {

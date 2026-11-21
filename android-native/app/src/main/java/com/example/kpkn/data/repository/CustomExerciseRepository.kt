@@ -69,7 +69,17 @@ object CustomExerciseRepository {
         if (!::appContext.isInitialized) return
         db = KpknDatabase.getInstance(appContext)
         val saved = runCatching {
-            db.customExerciseDao().getAll().map { it.toExerciseMuscleInfo().copy(isCustom = true) }
+            db.customExerciseDao().getAll().mapNotNull { row ->
+                runCatching { row.toExerciseMuscleInfo().copy(isCustom = true) }
+                    .onFailure { error ->
+                        android.util.Log.w(
+                            "CustomExerciseRepo",
+                            "Skipped corrupt custom exercise id=${row.id}",
+                            error,
+                        )
+                    }
+                    .getOrNull()
+            }
         }.getOrDefault(emptyList())
         _customExercises.value = saved
         setCustomExerciseOverlay(saved)

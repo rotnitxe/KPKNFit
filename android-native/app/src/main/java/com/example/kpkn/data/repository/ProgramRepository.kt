@@ -51,12 +51,16 @@ import kotlinx.serialization.encodeToString
 import androidx.room.Room
 import androidx.room.withTransaction
 import kotlin.time.Duration.Companion.seconds
+import java.io.File
 import java.util.Calendar
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicLong
 
 private const val PROGRAM_DATA_CHUNK_CHARS = 128_000
+private const val MAX_PROGRAM_VERSIONS_PER_VARIANT = 30
+private const val MAX_INLINE_QUARANTINE_ENTRY_CHARS = 32_768
+private const val MAX_INLINE_QUARANTINE_TOTAL_CHARS = 131_072
 
 /** Reintentos de [ProgramRepository.resolveNativeProgressionProposalNow] cuando la sesión/historial cambian a mitad. */
 private const val NATIVE_RESOLVE_MAX_ATTEMPTS = 5
@@ -113,6 +117,7 @@ class ProgramRepository private constructor(
     private val programWriteMutex = Mutex()
     private val programWriteSequence = AtomicLong(0L)
     private val newestProgramWrite = ConcurrentHashMap<String, Long>()
+    private val pendingProgramWrites = ConcurrentHashMap<String, Pair<Program, Long>>()
 
     /**
      * Monitor ÚNICO de reserva + publicación en memoria del caché de programas.
@@ -177,10 +182,6 @@ class ProgramRepository private constructor(
     @Volatile
     internal var durableCommitBeforeWriteForTests: (() -> Unit)? = null
 
-    /** Test seam after progress preparation, before version reservation or any finalization write. */
-    @Volatile
-    internal var finalizeBeforeCommitForTests: (suspend () -> Unit)? = null
-
     private val _programQueue = MutableStateFlow<List<String>>(emptyList())
     val programQueue: StateFlow<List<String>> = _programQueue.asStateFlow()
 
@@ -196,6 +197,7 @@ class ProgramRepository private constructor(
         val version = synchronized(programMutationLock) {
             val reserved = reserveProgramWrite(normalized.id)
             _programs.update { list -> list + normalized }
+            pendingProgramWrites[normalized.id] = normalized to reserved
             reserved
         }
         scope.launch { persistProgramIfNewest(normalized, version) }
@@ -206,6 +208,7 @@ class ProgramRepository private constructor(
         val version = synchronized(programMutationLock) {
             val reserved = reserveProgramWrite(normalized.id)
             _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
+            pendingProgramWrites[normalized.id] = normalized to reserved
             reserved
         }
         repairActiveStateIfNeeded(normalized)
@@ -217,6 +220,7 @@ class ProgramRepository private constructor(
         val version = synchronized(programMutationLock) {
             val reserved = reserveProgramWrite(normalized.id)
             _programs.update { list -> list.map { if (it.id == normalized.id) normalized else it } }
+            pendingProgramWrites[normalized.id] = normalized to reserved
             reserved
         }
         repairActiveStateIfNeeded(normalized)
@@ -536,8 +540,10 @@ class ProgramRepository private constructor(
     private suspend fun persistProgramIfNewest(program: Program, version: Long) {
         PersistenceWriteCoordinator.mutex.withLock {
             programWriteMutex.withLock {
-                if (newestProgramWrite[program.id] == version) {
-                    db.programDao().upsert(program.toEntity())
+                val pending = pendingProgramWrites[program.id]
+                if (pending?.second == version) {
+                    if (newestProgramWrite[program.id] == version) db.programDao().upsert(program.toEntity())
+                    pendingProgramWrites.remove(program.id, pending)
                 }
             }
         }
@@ -569,7 +575,9 @@ class ProgramRepository private constructor(
                         }
                     }
                 }
-                if (swapped) reserveProgramWrite(reconciled.id) else null
+                if (swapped) reserveProgramWrite(reconciled.id).also {
+                    pendingProgramWrites[reconciled.id] = reconciled to it
+                } else null
             }
             // Copia obsoleta: quien la reemplazó repara su propio programa.
             if (reservedVersion == null) return
@@ -760,6 +768,7 @@ class ProgramRepository private constructor(
                 atomicWrite = {
                     if (initial != null) dao.upsert(initial)
                     dao.upsert(versionRecord)
+                    dao.pruneSessionVariant(programId, sessionId, variant.name, MAX_PROGRAM_VERSIONS_PER_VARIANT)
                 },
             )
             if (!committed) throw ProgramWriteConflictException(programId)
@@ -861,6 +870,7 @@ class ProgramRepository private constructor(
                 atomicWrite = {
                     if (initial != null) dao.upsert(initial)
                     dao.upsert(versionRecord)
+                    dao.pruneSessionVariant(programId, sessionId, variant.name, MAX_PROGRAM_VERSIONS_PER_VARIANT)
                 },
             )
             if (!committed) throw ProgramWriteConflictException(programId)
@@ -941,7 +951,12 @@ class ProgramRepository private constructor(
             scope.launch {
                 PersistenceWriteCoordinator.mutex.withLock {
                     programWriteMutex.withLock {
-                        if (newestProgramWrite[programId] == version) db.programDao().delete(programId)
+                        if (newestProgramWrite[programId] == version) {
+                            db.withTransaction {
+                                db.programDao().delete(programId)
+                                db.programVersionDao().deleteForProgram(programId)
+                            }
+                        }
                     }
                     db.settingsDao().upsert(_settings.value.toEntity())
                 }
@@ -1274,18 +1289,21 @@ class ProgramRepository private constructor(
 
     private val _history = MutableStateFlow<List<WorkoutLog>>(emptyList())
     val history: StateFlow<List<WorkoutLog>> = _history.asStateFlow()
+    private val pendingLogWrites = ConcurrentHashMap<String, WorkoutLog>()
 
     fun addWorkoutLog(log: WorkoutLog) = whenHybridCalendarCommitFree {
         val normalized = checkNotNull(log.normalizedIdentityFields().toEntity().toWorkoutLog()) { "No se pudo preservar el registro" }
-        _history.update { listOf(normalized) + it.filterNot { existing -> existing.id == normalized.id } }
-        scope.launch {
-            ongoingWorkoutMutex.withLock {
-                // A delayed legacy import must not overwrite a later durable annotation.
-                if (_history.value.firstOrNull { it.id == normalized.id } == normalized) {
-                    db.workoutLogDao().insert(normalized.toEntity())
-                }
-            }
+        synchronized(pendingLogWrites) {
+            _history.update { listOf(normalized) + it.filterNot { existing -> existing.id == normalized.id } }
+            pendingLogWrites[normalized.id] = normalized
         }
+        scope.launch { ongoingWorkoutMutex.withLock { persistPendingLogLocked(normalized) } }
+    }
+
+    private suspend fun persistPendingLogLocked(log: WorkoutLog) {
+        if (pendingLogWrites[log.id] != log) return
+        if (_history.value.firstOrNull { it.id == log.id } == log) db.workoutLogDao().insert(log.toEntity())
+        pendingLogWrites.remove(log.id, log)
     }
 
     /**
@@ -1337,244 +1355,274 @@ class ProgramRepository private constructor(
         requireNoOngoingWorkout: Boolean = false,
     ) {
         withContext(Dispatchers.IO + NonCancellable) {
-            ongoingWorkoutMutex.withLock {
-                val externalCommit = expectedProgramForExternalCompletion != null
-                if (externalCommit) synchronized(programMutationLock) { reserveHybridExecutionPublication() }
-                try {
-                val prior = _history.value.firstOrNull { it.id == log.id }
-                    ?: db.workoutLogDao().getById(log.id)?.toWorkoutLog()?.normalizedIdentityFields()
-                val currentOngoing = _ongoingWorkout.value
-                if (requireNoOngoingWorkout) check(currentOngoing == null) { "Hay una sesión en curso. Finalízala antes de registrar otra actividad." }
-                if (prior == null && expectedProgramForExternalCompletion != null) {
-                    check(getProgramById(log.programId) == expectedProgramForExternalCompletion) {
-                        "El programa cambió antes de registrar la actividad. Revisa la semana actual."
-                    }
-                }
-                if (expectedExecutionStartTimeMs != null &&
-                    (currentOngoing == null || currentOngoing.programId != log.programId ||
-                        currentOngoing.session.id != log.sessionId || currentOngoing.startTime != expectedExecutionStartTimeMs)) {
-                    // An old screen must never finalize or clear another execution.
-                    check(prior != null && currentOngoing == null) { "La ejecución activa cambió; vuelve a abrir la sesión." }
-                }
-                val retainedOngoing = if (!clearOngoing && retainedOngoingTransform != null) {
-                    val current = checkNotNull(currentOngoing) { "No hay una sesión activa que conservar." }
-                    retainedOngoingTransform(current).also {
-                        check(it.programId == current.programId && it.session.id == current.session.id && it.startTime == current.startTime)
-                    }
-                } else null
-
-                if (prior != null) {
-                    // Retry path: never reinterpret identity against the current cursor.
-                    db.withTransaction {
-                        db.workoutLogDao().insert(prior.toEntity())
-                        mediaSessionKey?.takeIf { it.isNotBlank() }?.let { db.bindWorkoutMediaSession(it, prior) }
-                        if (clearOngoing) db.stateDao().clearOngoingWorkout()
-                        else if (retainedOngoing != null) db.stateDao().upsertOngoingWorkout(retainedOngoing.toEntity())
-                    }
-                    _history.update { current -> listOf(prior) + current.filterNot { it.id == prior.id } }
-                    if (clearOngoing) {
-                        _ongoingWorkout.value = null
-                        _ongoingWorkoutCorrupt.value = false
-                    } else if (retainedOngoing != null) _ongoingWorkout.value = retainedOngoing
-                    return@withLock
-                }
-
+            repeat(4) {
                 val program = getProgramById(log.programId)
                 val active = _activeProgramState.value
-                val isCalendarized = program?.isSimpleCalendarizedProgram == true
-                val isComplex = program?.structure == ProgramStructure.COMPLEX
-                val breakId = program?.activeCalendarBreakId
-
-                val enrichedCandidate = if (isCalendarized) {
-                    val templateWeekId = log.weekId?.let {
-                        ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
-                    } ?: log.weekId
-                    log.copy(
-                        programRunId = log.programRunId
-                            ?: program?.runState?.runId
-                            ?: "run_cal_${program?.id ?: log.programId}",
-                        // Do not stamp paused cyclic cycle/instance onto break logs.
-                        cycleNumber = null,
-                        weekInstanceId = log.weekInstanceId ?: templateWeekId,
-                        weekId = templateWeekId,
-                        calendarBreakId = log.calendarBreakId ?: breakId,
-                    ).normalizedIdentityFields()
-                } else {
-                    // Los planes nativos COMPLEX llevan instancias de ciclo
-                    // (`inst_c<N>_<semana>`): su ciclo real (log -> run -> cursor)
-                    // se respeta. Solo el COMPLEX sin instancias sigue forzando el
-                    // ciclo 1 (nunca avanza de ciclo).
-                    val nativeInstances = program?.usesCycleWeekInstances() == true
-                    val cycleNumber = if (isComplex && !nativeInstances) 1 else log.cycleNumber
-                        ?: program?.runState?.cycleNumber
-                        ?: active?.currentCycleNumber
-                        ?: 1
-                    val templateWeekId = log.weekId?.let {
-                        ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
-                    } ?: active?.currentWeekId?.let {
-                        ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
-                    }
-                    val resolvedInstanceId = if (isComplex && !nativeInstances) {
-                        log.weekInstanceId
-                            ?: active?.currentWeekInstanceId
-                            ?: program?.runState?.weekInstanceId
-                            ?: templateWeekId
-                            ?: log.weekId
-                    } else if (nativeInstances) {
-                        coerceNativeWeekInstanceId(
-                            cycleNumber,
-                            templateWeekId ?: log.weekId.orEmpty(),
-                            log.weekInstanceId
-                                ?: active?.currentWeekInstanceId
-                                ?: program?.runState?.weekInstanceId,
-                        )
-                    } else {
-                        log.weekInstanceId
-                            ?: active?.currentWeekInstanceId
-                            ?: templateWeekId?.let { ProgramProgressEngine.instanceIdFor(cycleNumber, it) }
-                            ?: log.weekId
-                    }
-                    log.copy(
-                        programRunId = log.programRunId ?: program?.runState?.runId ?: active?.programRunId,
-                        cycleNumber = cycleNumber,
-                        weekInstanceId = resolvedInstanceId,
-                        weekId = templateWeekId ?: log.weekId,
-                        calendarBreakId = null,
-                    ).normalizedIdentityFields()
+                val history = _history.value
+                val settings = _settings.value
+                val prepared = if (history.any { it.id == log.id }) null else withContext(Dispatchers.Default) {
+                    prepareWorkoutFinalization(log, program, active, history, settings)
                 }
-
-                val enriched = checkNotNull(enrichedCandidate.toEntity().toWorkoutLog()) { "No se pudo preservar el registro" }
-                val historyForProgress = listOf(enriched) + _history.value.filterNot { it.id == enriched.id }
-                val progress = if (
-                    program != null &&
-                    !isCalendarized &&
-                    (program.isSimpleProgram || program.structure == ProgramStructure.COMPLEX) &&
-                    enriched.calendarBreakId.isNullOrBlank()
-                ) {
-                    ProgramProgressEngine.advanceAfterSessionComplete(
-                        program = program,
-                        activeState = active,
-                        completedSession = Session(id = enriched.sessionId, name = enriched.sessionName),
-                        weekInstanceId = enriched.weekInstanceId ?: enriched.weekId.orEmpty(),
-                        logs = historyForProgress,
-                        transitionContext = buildTransitionContext(program, historyForProgress),
-                        weeklySignals = buildWeeklyAutoregulationSignals(program, historyForProgress),
-                        // A missing catalog provider is a supported recovery state:
-                        // the engine leaves recipe materialization pending while
-                        // preserving recorded evidence and updating the training max.
-                        compositionMetadata = CompositionMetadataHolder.current,
-                        nowMs = System.currentTimeMillis(),
-                        reviewCatalog = exerciseCatalogSnapshot(),
-                        // B.S3: la progresión de autor redondea el TM que sube con los discos reales
-                        // del atleta (sin inventario, medio kilo).
-                        inventory = _settings.value.resolvedEquipmentInventory(),
-                    )
-                } else {
-                    null
-                }
-                val progressedProgram = progress?.program
-                    ?.takeIf { it != program }
-                    ?.let { ProgramCalendarEngine.materializeWeekDates(it).normalizedIdentityFields() }
-                val progressionBase = (progressedProgram ?: program)?.let {
-                    com.example.kpkn.domain.training.ProgramExecutionReplacementEngine.consumeCompleted(it, enriched)
-                }
-                val nativeProgressedProgram = if (
-                    progressionBase != null &&
-                    enriched.calendarBreakId.isNullOrBlank() &&
-                    // El catálogo solo se materializa cuando la receta opta por la
-                    // progresión nativa; los programas de autor/legacy (el runtime
-                    // retorna de inmediato sin `nativeProgression`) no pagan la
-                    // instantánea completa del catálogo en cada finalización.
-                    progressionBase.sourceRecipe?.nativeProgression != null
-                ) {
-                    NativeWorkoutProgressionRuntime.observeCompletedWorkout(
-                        program = progressionBase,
-                        logs = historyForProgress,
-                        inventory = _settings.value.resolvedEquipmentInventory(),
-                        curatedConfigurations = exerciseCatalogSnapshot().mapNotNullTo(mutableSetOf()) {
-                            it.catalogConfigurationId
-                        },
-                        completedLogId = enriched.id,
-                    )
-                } else {
-                    progressionBase
-                }
-                // El runtime nativo puede añadir ejercicios/referencias: el programa que
-                // se persiste y publica pasa por el mismo normalizador que el resto de
-                // escrituras (las identidades nunca llegan a Room sin normalizar).
-                val nextProgram = nativeProgressedProgram?.takeIf { it != program }
-                    ?.normalizedIdentityFields()
-                val progressActive = progress?.activeState
-                val repairedActive = when {
-                    progressActive != null && progressActive != active -> progressActive
-                    nextProgram != null -> ProgramActiveStateEngine.repairForProgram(nextProgram, active)
-                        ?.takeIf { it != active }
-                    else -> null
-                }
-
-                finalizeBeforeCommitForTests?.invoke()
-                val reservedVersions = synchronized(programMutationLock) {
-                    if (expectedProgramForExternalCompletion != null &&
-                        getProgramById(log.programId) != expectedProgramForExternalCompletion
-                    ) throw ExternalSportCompletionConflictException()
-                    (nextProgram?.let { reserveProgramWrite(it.id) }) to
-                        (repairedActive?.let { reserveActiveStateWrite() })
-                }
-                val nextProgramVersion = reservedVersions.first
-                // Reserve the active-state version before entering the Room
-                // transaction. A concurrent updateActiveProgramState can then
-                // supersede this cursor instead of being overwritten by a
-                // late finalization write.
-                val repairedActiveVersion = reservedVersions.second
-                suspend fun persistFinalization() {
-                    // Keep the lock order identical to the async lane:
-                    // active mutex first, then Room.  The transaction uses the
-                    // locked-only helper and therefore never acquires a mutex
-                    // while Room already owns its transaction connection.
-                    activeStateWriteMutex.withLock {
-                        db.withTransaction {
-                            db.workoutLogDao().insert(enriched.toEntity())
-                            calibrationDecisions.saveSnapshot(enriched.calibrationDecisions)
-                            mediaSessionKey?.takeIf { it.isNotBlank() }?.let { db.bindWorkoutMediaSession(it, enriched) }
-                            if (clearOngoing) db.stateDao().clearOngoingWorkout()
-                            else if (retainedOngoing != null) db.stateDao().upsertOngoingWorkout(retainedOngoing.toEntity())
-                            if (nextProgram != null && nextProgramVersion != null && newestProgramWrite[nextProgram.id] == nextProgramVersion) {
-                                db.programDao().upsert(nextProgram.toEntity())
-                            }
-                            if (repairedActive != null && repairedActiveVersion != null) {
-                                persistActiveProgramStateLocked(repairedActive, repairedActiveVersion)
+                val committed = ongoingWorkoutMutex.withLock finalize@{
+                    val externalCommit = expectedProgramForExternalCompletion != null
+                    if (externalCommit) synchronized(programMutationLock) { reserveHybridExecutionPublication() }
+                    try {
+                        val prior = _history.value.firstOrNull { it.id == log.id }
+                            ?: db.workoutLogDao().getById(log.id)?.toWorkoutLog()?.normalizedIdentityFields()
+                        val currentOngoing = _ongoingWorkout.value
+                        if (requireNoOngoingWorkout) check(currentOngoing == null) { "Hay una sesión en curso. Finalízala antes de registrar otra actividad." }
+                        if (prior == null && expectedProgramForExternalCompletion != null) {
+                            check(getProgramById(log.programId) == expectedProgramForExternalCompletion) {
+                                "El programa cambió antes de registrar la actividad. Revisa la semana actual."
                             }
                         }
-                    }
-                }
-                if (nextProgram != null) {
-                    programWriteMutex.withLock { persistFinalization() }
-                } else {
-                    persistFinalization()
-                }
-
-                _history.update { current -> listOf(enriched) + current.filterNot { it.id == enriched.id } }
-                if (clearOngoing) {
-                    _ongoingWorkout.value = null
-                    _ongoingWorkoutCorrupt.value = false
-                } else if (retainedOngoing != null) _ongoingWorkout.value = retainedOngoing
-                if (nextProgram != null && nextProgramVersion != null) {
-                    // Chequeo + publicación atómicos: una reserva más nueva no
-                    // puede colarse entre ambos (ver [programMutationLock]).
-                    synchronized(programMutationLock) {
-                        if (newestProgramWrite[nextProgram.id] == nextProgramVersion) {
-                            _programs.update { list -> list.map { if (it.id == nextProgram.id) nextProgram else it } }
+                        if (expectedExecutionStartTimeMs != null &&
+                            (currentOngoing == null || currentOngoing.programId != log.programId ||
+                                currentOngoing.session.id != log.sessionId || currentOngoing.startTime != expectedExecutionStartTimeMs)) {
+                            // An old screen must never finalize or clear another execution.
+                            check(prior != null && currentOngoing == null) { "La ejecución activa cambió; vuelve a abrir la sesión." }
                         }
+                        val retainedOngoing = if (!clearOngoing && retainedOngoingTransform != null) {
+                            val current = checkNotNull(currentOngoing) { "No hay una sesión activa que conservar." }
+                            retainedOngoingTransform(current).also {
+                                check(it.programId == current.programId && it.session.id == current.session.id && it.startTime == current.startTime)
+                            }
+                        } else null
+
+                        if (prior != null) {
+                            // Retry path: never reinterpret identity against the current cursor.
+                            db.withTransaction {
+                                db.workoutLogDao().insert(prior.toEntity())
+                                mediaSessionKey?.takeIf { it.isNotBlank() }?.let { db.bindWorkoutMediaSession(it, prior) }
+                                if (clearOngoing) db.stateDao().clearOngoingWorkout()
+                                else if (retainedOngoing != null) db.stateDao().upsertOngoingWorkout(retainedOngoing.toEntity())
+                            }
+                            _history.update { current -> listOf(prior) + current.filterNot { it.id == prior.id } }
+                            if (clearOngoing) {
+                                _ongoingWorkout.value = null
+                                _ongoingWorkoutCorrupt.value = false
+                            } else if (retainedOngoing != null) _ongoingWorkout.value = retainedOngoing
+                            return@finalize true
+                        }
+
+                        val (enriched, nextProgram, repairedActive) = prepared ?: return@finalize false
+                        val reservedVersions = synchronized(programMutationLock) {
+                            val latestProgram = getProgramById(log.programId)
+                            if (expectedProgramForExternalCompletion != null && latestProgram != expectedProgramForExternalCompletion) {
+                                throw ExternalSportCompletionConflictException()
+                            }
+                            if (latestProgram !== program || _activeProgramState.value !== active ||
+                                _history.value !== history || _settings.value !== settings
+                            ) null else {
+                                (nextProgram?.let { reserveProgramWrite(it.id) }) to
+                                    (repairedActive?.let { reserveActiveStateWrite() })
+                            }
+                        } ?: return@finalize false
+                        val nextProgramVersion = reservedVersions.first
+                        // Reserve the active-state version before entering the Room
+                        // transaction. A concurrent updateActiveProgramState can then
+                        // supersede this cursor instead of being overwritten by a
+                        // late finalization write.
+                        val repairedActiveVersion = reservedVersions.second
+                        suspend fun persistFinalization() {
+                            // Keep the lock order identical to the async lane:
+                            // active mutex first, then Room.  The transaction uses the
+                            // locked-only helper and therefore never acquires a mutex
+                            // while Room already owns its transaction connection.
+                            activeStateWriteMutex.withLock {
+                                db.withTransaction {
+                                    db.workoutLogDao().insert(enriched.toEntity())
+                                    calibrationDecisions.saveSnapshot(enriched.calibrationDecisions)
+                                    mediaSessionKey?.takeIf { it.isNotBlank() }?.let { db.bindWorkoutMediaSession(it, enriched) }
+                                    if (clearOngoing) db.stateDao().clearOngoingWorkout()
+                                    else if (retainedOngoing != null) db.stateDao().upsertOngoingWorkout(retainedOngoing.toEntity())
+                                    if (nextProgram != null && nextProgramVersion != null && newestProgramWrite[nextProgram.id] == nextProgramVersion) {
+                                        db.programDao().upsert(nextProgram.toEntity())
+                                    }
+                                    if (repairedActive != null && repairedActiveVersion != null) {
+                                        persistActiveProgramStateLocked(repairedActive, repairedActiveVersion)
+                                    }
+                                }
+                            }
+                        }
+                        if (nextProgram != null) {
+                            programWriteMutex.withLock { persistFinalization() }
+                        } else {
+                            persistFinalization()
+                        }
+
+                        _history.update { current -> listOf(enriched) + current.filterNot { it.id == enriched.id } }
+                        if (clearOngoing) {
+                            _ongoingWorkout.value = null
+                            _ongoingWorkoutCorrupt.value = false
+                        } else if (retainedOngoing != null) _ongoingWorkout.value = retainedOngoing
+                        if (nextProgram != null && nextProgramVersion != null) {
+                            // Chequeo + publicación atómicos: una reserva más nueva no
+                            // puede colarse entre ambos (ver [programMutationLock]).
+                            synchronized(programMutationLock) {
+                                if (newestProgramWrite[nextProgram.id] == nextProgramVersion) {
+                                    _programs.update { list -> list.map { if (it.id == nextProgram.id) nextProgram else it } }
+                                }
+                            }
+                        }
+                        if (repairedActive != null && repairedActiveVersion != null && newestActiveStateWrite == repairedActiveVersion) {
+                            _activeProgramState.value = repairedActive
+                        }
+                        true
+                    } finally {
+                        if (externalCommit) releaseHybridExecutionPublication()
                     }
                 }
-                if (repairedActive != null && repairedActiveVersion != null && newestActiveStateWrite == repairedActiveVersion) {
-                    _activeProgramState.value = repairedActive
-                }
-                } finally {
-                    if (externalCommit) releaseHybridExecutionPublication()
-                }
+                if (committed) return@withContext
             }
+            throw ProgramWriteConflictException(log.programId)
         }
+    }
+
+    private data class PreparedWorkoutFinalization(
+        val log: WorkoutLog,
+        val nextProgram: Program?,
+        val repairedActive: ActiveProgramState?,
+    )
+
+    private suspend fun prepareWorkoutFinalization(
+        log: WorkoutLog,
+        program: Program?,
+        active: ActiveProgramState?,
+        history: List<WorkoutLog>,
+        settings: Settings,
+    ): PreparedWorkoutFinalization {
+        val isCalendarized = program?.isSimpleCalendarizedProgram == true
+        val isComplex = program?.structure == ProgramStructure.COMPLEX
+        val breakId = program?.activeCalendarBreakId
+
+        val enrichedCandidate = if (isCalendarized) {
+            val templateWeekId = log.weekId?.let {
+                ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
+            } ?: log.weekId
+            log.copy(
+                programRunId = log.programRunId
+                    ?: program?.runState?.runId
+                    ?: "run_cal_${program?.id ?: log.programId}",
+                // Do not stamp paused cyclic cycle/instance onto break logs.
+                cycleNumber = null,
+                weekInstanceId = log.weekInstanceId ?: templateWeekId,
+                weekId = templateWeekId,
+                calendarBreakId = log.calendarBreakId ?: breakId,
+            ).normalizedIdentityFields()
+        } else {
+            // Los planes nativos COMPLEX llevan instancias de ciclo
+            // (`inst_c<N>_<semana>`): su ciclo real (log -> run -> cursor)
+            // se respeta. Solo el COMPLEX sin instancias sigue forzando el
+            // ciclo 1 (nunca avanza de ciclo).
+            val nativeInstances = program?.usesCycleWeekInstances() == true
+            val cycleNumber = if (isComplex && !nativeInstances) 1 else log.cycleNumber
+                ?: program?.runState?.cycleNumber
+                ?: active?.currentCycleNumber
+                ?: 1
+            val templateWeekId = log.weekId?.let {
+                ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
+            } ?: active?.currentWeekId?.let {
+                ProgramProgressEngine.templateWeekIdFromInstance(it) ?: it
+            }
+            val resolvedInstanceId = if (isComplex && !nativeInstances) {
+                log.weekInstanceId
+                    ?: active?.currentWeekInstanceId
+                    ?: program?.runState?.weekInstanceId
+                    ?: templateWeekId
+                    ?: log.weekId
+            } else if (nativeInstances) {
+                coerceNativeWeekInstanceId(
+                    cycleNumber,
+                    templateWeekId ?: log.weekId.orEmpty(),
+                    log.weekInstanceId
+                        ?: active?.currentWeekInstanceId
+                        ?: program?.runState?.weekInstanceId,
+                )
+            } else {
+                log.weekInstanceId
+                    ?: active?.currentWeekInstanceId
+                    ?: templateWeekId?.let { ProgramProgressEngine.instanceIdFor(cycleNumber, it) }
+                    ?: log.weekId
+            }
+            log.copy(
+                programRunId = log.programRunId ?: program?.runState?.runId ?: active?.programRunId,
+                cycleNumber = cycleNumber,
+                weekInstanceId = resolvedInstanceId,
+                weekId = templateWeekId ?: log.weekId,
+                calendarBreakId = null,
+            ).normalizedIdentityFields()
+        }
+
+        val enriched = checkNotNull(enrichedCandidate.toEntity().toWorkoutLog()) { "No se pudo preservar el registro" }
+        val historyForProgress = listOf(enriched) + history.filterNot { it.id == enriched.id }
+        val progress = if (
+            program != null &&
+            !isCalendarized &&
+            (program.isSimpleProgram || program.structure == ProgramStructure.COMPLEX) &&
+            enriched.calendarBreakId.isNullOrBlank()
+        ) {
+            ProgramProgressEngine.advanceAfterSessionComplete(
+                program = program,
+                activeState = active,
+                completedSession = Session(id = enriched.sessionId, name = enriched.sessionName),
+                weekInstanceId = enriched.weekInstanceId ?: enriched.weekId.orEmpty(),
+                logs = historyForProgress,
+                transitionContext = BlockTransitionEngine.TransitionContext(settings = settings),
+                weeklySignals = buildWeeklyAutoregulationSignals(program, historyForProgress),
+                // A missing catalog provider is a supported recovery state:
+                // the engine leaves recipe materialization pending while
+                // preserving recorded evidence and updating the training max.
+                compositionMetadata = CompositionMetadataHolder.current,
+                nowMs = System.currentTimeMillis(),
+                reviewCatalog = exerciseCatalogSnapshot(),
+                // B.S3: la progresión de autor redondea el TM que sube con los discos reales
+                // del atleta (sin inventario, medio kilo).
+                inventory = settings.resolvedEquipmentInventory(),
+            )
+        } else {
+            null
+        }
+        val progressedProgram = progress?.program
+            ?.takeIf { it != program }
+            ?.let { ProgramCalendarEngine.materializeWeekDates(it).normalizedIdentityFields() }
+        val progressionBase = (progressedProgram ?: program)?.let {
+            com.example.kpkn.domain.training.ProgramExecutionReplacementEngine.consumeCompleted(it, enriched)
+        }
+        val nativeProgressedProgram = if (
+            progressionBase != null &&
+            enriched.calendarBreakId.isNullOrBlank() &&
+            // El catálogo solo se materializa cuando la receta opta por la
+            // progresión nativa; los programas de autor/legacy (el runtime
+            // retorna de inmediato sin `nativeProgression`) no pagan la
+            // instantánea completa del catálogo en cada finalización.
+            progressionBase.sourceRecipe?.nativeProgression != null
+        ) {
+            NativeWorkoutProgressionRuntime.observeCompletedWorkout(
+                program = progressionBase,
+                logs = historyForProgress,
+                inventory = settings.resolvedEquipmentInventory(),
+                curatedConfigurations = exerciseCatalogSnapshot().mapNotNullTo(mutableSetOf()) {
+                    it.catalogConfigurationId
+                },
+                completedLogId = enriched.id,
+            )
+        } else {
+            progressionBase
+        }
+        // El runtime nativo puede añadir ejercicios/referencias: el programa que
+        // se persiste y publica pasa por el mismo normalizador que el resto de
+        // escrituras (las identidades nunca llegan a Room sin normalizar).
+        val nextProgram = nativeProgressedProgram?.takeIf { it != program }
+            ?.normalizedIdentityFields()
+        val progressActive = progress?.activeState
+        val repairedActive = when {
+            progressActive != null && progressActive != active -> progressActive
+            nextProgram != null -> ProgramActiveStateEngine.repairForProgram(nextProgram, active)
+                ?.takeIf { it != active }
+            else -> null
+        }
+        return PreparedWorkoutFinalization(enriched, nextProgram, repairedActive)
     }
 
     /**
@@ -2386,6 +2434,7 @@ class ProgramRepository private constructor(
     suspend fun startWorkout(
         state: OngoingWorkoutState,
         replaceExisting: Boolean = false,
+        expectedReplacement: OngoingWorkoutState? = null,
     ): StartWorkoutResult {
         return withContext(Dispatchers.IO + NonCancellable) {
             ongoingWorkoutMutex.withLock {
@@ -2402,6 +2451,10 @@ class ProgramRepository private constructor(
                     return@withLock StartWorkoutResult.Corrupt
                 }
                 val existing = _ongoingWorkout.value
+                if (replaceExisting && expectedReplacement != null && existing != null &&
+                    (!existing.sameOngoingIdentity(expectedReplacement.programId, expectedReplacement.session.id) ||
+                        existing.startTime != expectedReplacement.startTime)
+                ) return@withLock StartWorkoutResult.Conflict(existing)
                 if (existing != null && !replaceExisting) {
                     if (!existing.sameOngoingIdentity(state.programId, state.session.id) || existing.startTime != state.startTime) {
                         return@withLock StartWorkoutResult.Conflict(existing)
@@ -2419,6 +2472,11 @@ class ProgramRepository private constructor(
                 val normalized = state.normalizedIdentityFields()
                 try {
                     db.withTransaction {
+                        if (replaceExisting && existing != null && existing.logAlreadyWrittenId == null &&
+                            (!existing.sameOngoingIdentity(normalized.programId, normalized.session.id) || existing.startTime != normalized.startTime)
+                        ) {
+                            calibrationDecisions.discardExecution(existing.programId, existing.session.id, existing.startTime)
+                        }
                         db.stateDao().upsertOngoingWorkout(normalized.toEntity())
                         calibrationDecisions.saveSnapshot(normalized.calibrationDecisions)
                     }
@@ -2453,13 +2511,18 @@ class ProgramRepository private constructor(
                 return@withLock com.example.kpkn.screens.workout.WorkoutPersistResult.Skipped
             }
             val current = _ongoingWorkout.value ?: return@withLock com.example.kpkn.screens.workout.WorkoutPersistResult.Cancelled
+            if (!current.logAlreadyWrittenId.isNullOrBlank()) return@withLock com.example.kpkn.screens.workout.WorkoutPersistResult.Skipped
             try {
-                val next = update(current).normalizedIdentityFields()
+                val candidate = update(current)
+                val next = if (current.volumeAdvanceHandled && !candidate.volumeAdvanceHandled) {
+                    candidate.copy(pendingVolumeAdvances = emptyList(), showVolumeAdvanceModal = false, volumeAdvanceHandled = true)
+                } else candidate
+                val normalized = next.normalizedIdentityFields()
                 db.withTransaction {
-                    db.stateDao().upsertOngoingWorkout(next.toEntity())
-                    calibrationDecisions.saveSnapshot(next.calibrationDecisions)
+                    db.stateDao().upsertOngoingWorkout(normalized.toEntity())
+                    calibrationDecisions.saveSnapshot(normalized.calibrationDecisions)
                 }
-                _ongoingWorkout.value = next
+                _ongoingWorkout.value = normalized
                 com.example.kpkn.screens.workout.WorkoutPersistResult.Ok
             } catch (error: Throwable) {
                 com.example.kpkn.screens.workout.WorkoutPersistResult.Failed(error)
@@ -2502,18 +2565,6 @@ class ProgramRepository private constructor(
         }
     }
 
-    private fun clearOngoingWorkoutForProgram(programId: String) {
-        runBlocking(Dispatchers.IO + NonCancellable) {
-            ongoingWorkoutMutex.withLock {
-                if (_ongoingWorkout.value?.programId != programId) return@withLock
-                val discarded = _ongoingWorkout.value
-                _ongoingWorkout.value = null
-                _ongoingWorkoutCorrupt.value = false
-                clearOngoingRowAndDiscardedCalibrations(discarded)
-            }
-        }
-    }
-
     /**
      * Borra la fila de la sesión en curso y, si se descarta (no si ya se escribió su registro), también las decisiones del
      * calibrador de esa ejecución: no hay serie en el historial que las respalde y no deben quedar como referencia aceptada.
@@ -2545,75 +2596,96 @@ class ProgramRepository private constructor(
     }
 
     /**
+     * Applies all future-session discounts and resolves the originating workout in one Room transaction.
+     * Reopening after the commit sees either the whole decision or the original pending choice.
+     */
+    internal suspend fun resolveWorkoutVolumeAdvance(
+        expected: OngoingWorkoutState,
+        owner: Any,
+        discountsBySession: Map<String, Map<String, Int>>,
+    ): Boolean = withContext(Dispatchers.IO + NonCancellable) {
+        ongoingWorkoutMutex.withLock decision@{
+            val current = _ongoingWorkout.value ?: return@decision false
+            if (ongoingWriterOwner !== owner || current.volumeAdvanceHandled ||
+                !current.sameOngoingIdentity(expected.programId, expected.session.id) ||
+                current.startTime != expected.startTime || current.logAlreadyWrittenId != expected.logAlreadyWrittenId
+            ) return@decision false
+            val resolved = current.copy(
+                pendingVolumeAdvances = emptyList(),
+                showVolumeAdvanceModal = false,
+                volumeAdvanceHandled = true,
+            ).takeIf { current.logAlreadyWrittenId.isNullOrBlank() }
+            suspend fun writeDecision() {
+                if (resolved == null) db.stateDao().clearOngoingWorkout()
+                else db.stateDao().upsertOngoingWorkout(resolved.toEntity())
+            }
+
+            val committed = programRmwMutex.withLock edit@{
+                val program = getProgramById(current.programId)
+                val weekId = current.weekId.orEmpty()
+                val macroIndex = current.macroIndex ?: 0
+                val mesoIndex = current.mesoIndex ?: 0
+                val updated = program?.let { base ->
+                    discountsBySession.entries.fold(base) { draft, (targetId, discounts) ->
+                        val target = findStoredSession(draft, weekId, macroIndex, mesoIndex, targetId)
+                            ?: return@fold draft
+                        val next = discounts.entries.fold(target) { session, (exerciseId, count) ->
+                            com.example.kpkn.domain.workout.WorkoutStructuralEditor.replaceExerciseById(session, exerciseId) {
+                                it.copy(sets = it.sets.dropLast(count))
+                            }
+                        }
+                        if (next == target) draft else draft.upsertSessionInWeek(weekId, macroIndex, mesoIndex, next)
+                            ?.withManualSessionOverride(next, weekId) ?: draft
+                    }
+                }
+                if (updated == null || updated == program) {
+                    db.withTransaction { writeDecision() }
+                    true
+                } else {
+                    val normalized = normalizeProgramWithCompetitions(updated)
+                    val version = synchronized(programMutationLock) {
+                        if (getProgramById(current.programId) !== program) null else reserveProgramWrite(current.programId)
+                    } ?: return@edit false
+                    var decisionWritten = false
+                    commitProgramDurableForCaller(normalized, version, repairActiveState = true, atomicWrite = {
+                        writeDecision()
+                        decisionWritten = true
+                    })
+                    decisionWritten
+                }
+            }
+            if (!committed) return@decision false
+            _ongoingWorkout.value = resolved
+            _ongoingWorkoutCorrupt.value = false
+            if (resolved == null) ongoingWriterOwner = null
+            true
+        }
+    }
+
+    /**
      * Synchronously persists the current [ongoingWorkout] state to Room.
      * Call from MainActivity's onStop to prevent data loss when the OS kills the process
      * before the background write coroutine completes.
      */
     suspend fun flushPendingWrites() {
         withContext(Dispatchers.IO + NonCancellable) {
-            // Initial nulls are not deletion requests. onStop can run while
-            // Room is loading or while its Main-thread publication is queued.
             if (!hasHydratedFromDb) return@withContext
-            // Finalization acquires ongoing→program; keep the same order here
-            // so a lifecycle flush cannot deadlock a concurrent completion.
-            val snapshot = ongoingWorkoutMutex.withLock {
-                // Reservas y snapshots DENTRO de [ongoingWorkoutMutex]: una
-                // finalización en vuelo lo mantiene de la reserva a la
-                // publicación, así que el flush ve su programa avanzado, su
-                // cursor y su log ya publicados (o empieza después y su reserva
-                // es la más nueva). Reservar antes de pedir el mutex dejaba que
-                // las guardas de versión descartaran el programa/cursor de la
-                // finalización mientras el flush escribía el snapshot previo.
-                // Reserve both lanes before taking their snapshots. A concurrent
-                // command that mutates either cache after this point receives a
-                // newer version and supersedes this lifecycle flush.
-                val activeVersion = reserveActiveStateWrite()
-                val programVersions = _programs.value.map { it.id }.associateWith(::reserveProgramWrite)
-                val flushSnapshot = FlushSnapshot(
-                    activeVersion = activeVersion,
-                    programVersions = programVersions,
-                    activeProgram = _activeProgramState.value,
-                    programs = _programs.value.filter { it.id in programVersions },
-                    latestLogs = _history.value.take(32),
-                )
+            ongoingWorkoutMutex.withLock {
                 val workout = _ongoingWorkout.value
                 if (workout != null) {
                     db.stateDao().upsertOngoingWorkout(workout.toEntity())
                 } else if (!_ongoingWorkoutCorrupt.value) {
                     db.stateDao().clearOngoingWorkout()
                 }
-                flushSnapshot
-            }
-            // Keep program→active→Room ordering aligned with finalizeWorkout.
-            programWriteMutex.withLock {
-                snapshot.programs.forEach { program ->
-                    val version = snapshot.programVersions[program.id] ?: return@forEach
-                    if (newestProgramWrite[program.id] == version) {
-                        db.programDao().upsert(program.normalizedIdentityFields().toEntity())
-                    }
+                pendingLogWrites.values.toList().forEach { persistPendingLogLocked(it) }
+                pendingProgramWrites.values.toList().forEach { (program, version) ->
+                    persistProgramIfNewest(program, version)
                 }
-                // Null is an explicit tombstone. The same versioned lane is
-                // used for both upsert and clear so an old cursor cannot be
-                // revived on process stop.
-                persistActiveProgramStateNow(snapshot.activeProgram, snapshot.activeVersion)
-                snapshot.latestLogs.forEach { log ->
-                    db.workoutLogDao().insert(log.toEntity())
-                }
-            }
-            PersistenceWriteCoordinator.mutex.withLock {
-                db.settingsDao().upsert(_settings.value.toEntity())
+                persistActiveProgramStateNow(_activeProgramState.value)
+                persistSettingsIfDirty()
             }
         }
     }
-
-    /** Estado capturado por [flushPendingWrites] bajo [ongoingWorkoutMutex]. */
-    private class FlushSnapshot(
-        val activeVersion: Long,
-        val programVersions: Map<String, Long>,
-        val activeProgram: ActiveProgramState?,
-        val programs: List<Program>,
-        val latestLogs: List<WorkoutLog>,
-    )
 
     // ─── Settings ─────────────────────────────────────────────────────────────
 
@@ -2637,12 +2709,22 @@ class ProgramRepository private constructor(
     private val _replacementDecisions = MutableStateFlow<List<ExerciseReplacementDecisionV2>>(emptyList())
     val replacementDecisions: StateFlow<List<ExerciseReplacementDecisionV2>> = _replacementDecisions.asStateFlow()
 
+    private val settingsRevision = AtomicLong()
+    private var persistedSettingsRevision = 0L
+
     fun updateSettings(update: (Settings) -> Settings) {
         _settings.update(update)
+        settingsRevision.incrementAndGet()
         ExerciseNicknameResolver.nicknames = _settings.value.exerciseNicknames
-        scope.launch {
-            PersistenceWriteCoordinator.mutex.withLock {
+        scope.launch { persistSettingsIfDirty() }
+    }
+
+    private suspend fun persistSettingsIfDirty() {
+        PersistenceWriteCoordinator.mutex.withLock {
+            val revision = settingsRevision.get()
+            if (revision > persistedSettingsRevision) {
                 db.settingsDao().upsert(_settings.value.toEntity())
+                persistedSettingsRevision = revision
             }
         }
     }
@@ -2917,7 +2999,12 @@ class ProgramRepository private constructor(
     /** Carga el estado persistido de Room en los StateFlows. Llamar al arrancar. */
     private fun loadFromDb() {
         scope.launch {
-            runCatching {
+            loadFromDbInternal()
+        }
+    }
+
+    private suspend fun loadFromDbInternal() {
+        runCatching {
                 // Program JSON is intentionally denormalized and can exceed CursorWindow's
                 // per-row limit. Read only metadata first, then reconstruct each blob from
                 // bounded SQL substrings so a valid large program remains loadable after restart.
@@ -2942,7 +3029,11 @@ class ProgramRepository private constructor(
                     entity.id to runCatching { entity.toProgram() }.getOrNull()
                 }
                 val migrationLoad = ProgramMigrationEngine.loadProgramsSafely(rawPrograms)
-                val activeProgram = db.stateDao().getActiveProgram()?.toActiveProgramState()
+                val activeProgram = db.stateDao().getActiveProgram()?.let { entity ->
+                    runCatching { entity.toActiveProgramState() }
+                        .onFailure { android.util.Log.w("ProgramRepository", "Corrupt active_program row; skipped", it) }
+                        .getOrNull()
+                }
                 val programs = migrationLoad.programs.map { program ->
                     val repaired = ProgramPersistNormalizer.repairNativeRunWeekCursor(program.normalizedIdentityFields())
                     if (activeProgram?.programId == repaired.id) {
@@ -2963,7 +3054,16 @@ class ProgramRepository private constructor(
                     entity.toWorkoutLog()?.normalizedIdentityFields()
                 }
                 val settingsEntity = db.settingsDao().get()
-                var settings = settingsEntity?.toSettings() ?: Settings()
+                val decodedSettingsResult = settingsEntity?.let { runCatching { it.toSettings() } }
+                val settingsCorrupt = decodedSettingsResult?.isFailure == true
+                if (settingsCorrupt) {
+                    android.util.Log.w(
+                        "ProgramRepository",
+                        "Corrupt settings row; using defaults without overwriting stored row",
+                        decodedSettingsResult?.exceptionOrNull(),
+                    )
+                }
+                var settings = decodedSettingsResult?.getOrNull() ?: Settings()
                 val previouslyQuarantined = settings.quarantinedProgramIds.toSet()
                 // Drop rows already quarantined so decode failures are not retried forever.
                 previouslyQuarantined.forEach { id ->
@@ -2974,16 +3074,33 @@ class ProgramRepository private constructor(
                 val freshCorrupted = migrationLoad.corruptedIds.filterNot { it in previouslyQuarantined }
                 if (migrationLoad.corruptedIds.isNotEmpty()) {
                     val backups = settings.quarantinedProgramBackups.toMutableMap()
+                    val quarantineDir = appContext?.filesDir?.let { File(it, "quarantine").apply { mkdirs() } }
                     migrationLoad.corruptedIds.forEach { id ->
                         val entity = programEntities.firstOrNull { it.id == id }
-                        if (entity != null) backups[id] = entity.data
+                        if (entity != null) {
+                            if (quarantineDir != null) {
+                                val safeId = id.replace(Regex("[^A-Za-z0-9._-]"), "_").take(80).ifBlank { "program" }
+                                runCatching { File(quarantineDir, "program_$safeId.json").writeText(entity.data) }
+                            }
+                            if (entity.data.length <= MAX_INLINE_QUARANTINE_ENTRY_CHARS) {
+                                backups[id] = entity.data
+                            }
+                        }
+                    }
+                    while (backups.values.sumOf { it.length } > MAX_INLINE_QUARANTINE_TOTAL_CHARS) {
+                        val evictKey = backups.keys.firstOrNull { it !in migrationLoad.corruptedIds }
+                            ?: backups.keys.firstOrNull()
+                            ?: break
+                        backups.remove(evictKey)
                     }
                     val quarantined = (settings.quarantinedProgramIds + migrationLoad.corruptedIds).distinct()
                     settings = settings.copy(
                         quarantinedProgramIds = quarantined,
                         quarantinedProgramBackups = backups,
                     )
-                    db.settingsDao().upsert(settings.toEntity())
+                    if (!settingsCorrupt) {
+                        db.settingsDao().upsert(settings.toEntity())
+                    }
                     // Remove corrupt rows after backup — quarantine must not leave failing JSON in Room.
                     migrationLoad.corruptedIds.forEach { id ->
                         db.programDao().delete(id)
@@ -3000,19 +3117,35 @@ class ProgramRepository private constructor(
                 val ongoingWorkout = (ongoingDecode as? OngoingDecode.Ok)?.state?.normalizedIdentityFields()
                 val ongoingCorrupt = ongoingDecode is OngoingDecode.Corrupt
                 val contextPerformance = db.workoutV2Dao().getAllContextPerformance()
-                    .map { it.toContextPerformanceStateV2() }
+                    .mapNotNull { row ->
+                        runCatching { row.toContextPerformanceStateV2() }
+                            .onFailure { android.util.Log.w("ProgramRepository", "Skipped corrupt workout_context_performance key=${row.contextKey}") }
+                            .getOrNull()
+                    }
                     .associateBy { it.contextKey }
                 val globalPerformance = db.workoutV2Dao().getAllGlobalPerformance()
-                    .map { it.toGlobalPerformanceStateV3() }
+                    .mapNotNull { row ->
+                        runCatching { row.toGlobalPerformanceStateV3() }
+                            .onFailure { android.util.Log.w("ProgramRepository", "Skipped corrupt workout_global_performance key=${row.globalKey}") }
+                            .getOrNull()
+                    }
                     .associateBy { it.globalKey }
                 val contextProfiles = db.workoutV2Dao().getAllContextProfiles()
-                    .map { it.toWorkoutContextProfile() }
+                    .mapNotNull { row ->
+                        runCatching { row.toWorkoutContextProfile() }
+                            .onFailure { android.util.Log.w("ProgramRepository", "Skipped corrupt workout_context_profiles id=${row.id}") }
+                            .getOrNull()
+                    }
                     .associateBy { it.id }
                 val workoutTags = db.workoutV2Dao().getAllWorkoutTags()
                     .map { it.toWorkoutTag() }
                     .associateBy { it.id }
                 val replacementDecisions = db.workoutV2Dao().getAllReplacementDecisions()
-                    .map { it.toExerciseReplacementDecisionV2() }
+                    .mapNotNull { row ->
+                        runCatching { row.toExerciseReplacementDecisionV2() }
+                            .onFailure { android.util.Log.w("ProgramRepository", "Skipped corrupt workout_replacement_decisions id=${row.id}") }
+                            .getOrNull()
+                    }
                 val normalizedActiveProgram = normalizeActiveProgramState(programs, activeProgram)
 
                 programEntities.forEach { entity ->
@@ -3025,7 +3158,11 @@ class ProgramRepository private constructor(
                     val normalized = programsById[entity.id] ?: return@forEach
                     val stored = runCatching { entity.toProgram() }.getOrNull()
                     if (stored != normalized) {
-                        val version = reserveProgramWrite(normalized.id)
+                        val version = synchronized(programMutationLock) {
+                            reserveProgramWrite(normalized.id).also {
+                                pendingProgramWrites[normalized.id] = normalized to it
+                            }
+                        }
                         scope.launch { persistProgramIfNewest(normalized, version) }
                     }
                 }
@@ -3068,10 +3205,10 @@ class ProgramRepository private constructor(
                     _isReady.value = true
                 }
             }.onFailure { error ->
+                if (error is CancellationException) throw error
                 android.util.Log.e("ProgramRepository", "loadFromDb failed", error)
                 _isReady.value = true
             }
-        }
     }
 
     private fun Program.upsertSessionInWeek(
@@ -3314,6 +3451,10 @@ class ProgramRepository private constructor(
     }
     fun refreshData() {
         loadFromDb()
+    }
+
+    suspend fun refreshDataAndAwait() = withContext(Dispatchers.IO) {
+        loadFromDbInternal()
     }
 
     /**

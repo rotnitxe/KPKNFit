@@ -8,7 +8,6 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalDensity
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
@@ -16,7 +15,9 @@ import java.io.File
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
+import androidx.test.platform.app.InstrumentationRegistry
 import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
+import com.example.kpkn.testutil.configureLiveSheetTestWindow
 import com.example.kpkn.ui.theme.KPKNTheme
 import dev.chrisbanes.haze.HazeState
 import kotlinx.coroutines.CompletableDeferred
@@ -24,6 +25,7 @@ import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -37,10 +39,14 @@ import java.util.concurrent.ConcurrentHashMap
 class WorkoutStoryPreviewDeviceTest {
     @get:Rule val rule=createAndroidComposeRule<ComponentActivity>()
 
+    @Before fun configureWindow() {
+        rule.activityRule.scenario.onActivity { it.configureLiveSheetTestWindow() }
+    }
+
     @Test fun cancelledRenderCannotExposePreviousBitmapOrEnableShareBeforeLatestPreview() {
         val initial=WorkoutStoryOptions()
-        val second=initial.copy(exerciseList=true)
-        val latest=second.copy(duration=false)
+        val second=initial.copy(exerciseList=!initial.exerciseList)
+        val latest=second.copy(duration=!second.duration)
         val requests=listOf(initial,second,latest).associateWith { CompletableDeferred<List<Bitmap>>() }
         val started=ConcurrentHashMap.newKeySet<WorkoutStoryOptions>()
         var selected by mutableStateOf(initial)
@@ -82,8 +88,18 @@ class WorkoutStoryPreviewDeviceTest {
             rule.waitUntil(10_000) { rule.onAllNodesWithTag("story-preview", useUnmergedTree = true).fetchSemanticsNodes().isNotEmpty() }
             rule.onNodeWithTag("story-share").assertIsEnabled()
             rule.onNodeWithTag("story-save-image").assertIsEnabled()
-            val pixels=rule.onNodeWithTag("story-preview", useUnmergedTree = true).captureToImage().asAndroidBitmap()
-            assertEquals("la vista previa pertenece a la última selección",Color.RED,pixels.getPixel(pixels.width/2,pixels.height/2))
+            val center = rule.onNodeWithTag("story-preview", useUnmergedTree = true).fetchSemanticsNode().boundsInRoot.center
+            val origin = IntArray(2)
+            rule.runOnIdle { rule.activity.findViewById<android.view.View>(android.R.id.content).getLocationOnScreen(origin) }
+            val instrumentation = InstrumentationRegistry.getInstrumentation()
+            instrumentation.waitForIdleSync()
+            val pixels = checkNotNull(instrumentation.uiAutomation.takeScreenshot())
+            try {
+                assertEquals("la vista previa pertenece a la última selección", Color.RED,
+                    pixels.getPixel(origin[0] + center.x.toInt(), origin[1] + center.y.toInt()))
+            } finally {
+                pixels.recycle()
+            }
         } finally {
             // No dejar decodificaciones no cancelables esperando si una aserción falla.
             requests.values.filterNot { it.isCompleted }.forEach { it.complete(listOf(image(Color.GRAY))) }
@@ -105,22 +121,24 @@ class WorkoutStoryPreviewDeviceTest {
                 density=LocalDensity.current.density
                 CompositionLocalProvider(LocalWizardReducedMotion provides true){KPKNTheme{WorkoutStorySheet(data,HazeState(),selected,{selected=it},false,{}, {},renderStoryPages=renderer)}}
             }
-            fun check(template:String,offered:Set<String>){
-                rule.onNodeWithText(template).performClick()
+            val allOptions = setOf("Progreso", "Hitos", "Duración", "sRPE", "Ejercicios", "Músculos")
+            fun check(template: WorkoutStoryTemplate, offered: Set<String>) {
+                rule.onNodeWithTag("story-template-${template.name}").performClick()
                 rule.waitUntil(10_000){rule.onAllNodesWithTag("story-preview",useUnmergedTree=true).fetchSemanticsNodes().isNotEmpty()}
                 val bounds=rule.onNodeWithTag("story-preview",useUnmergedTree=true).fetchSemanticsNode().boundsInRoot
                 assertEquals("La historia central debe conservar 9:16",9f/16f,bounds.width/bounds.height,.01f)
                 assertTrue("El preview central no supera 220dp",bounds.width<=220f*density+2f)
-                listOf("Mejoras en kg","Duración","sRPE declarado","Ejercicios").forEach{label->
+                allOptions.forEach{label->
                     if(label in offered)rule.onNodeWithTag("story-toggle-$label").assertIsDisplayed()
                     else rule.onNodeWithTag("story-toggle-$label").assertDoesNotExist()
                 }
                 rule.onNodeWithTag("story-share").assertIsEnabled()
             }
-            check("General",setOf("Mejoras en kg","Duración","sRPE declarado","Ejercicios"))
-            check("Ejercicio",setOf("Mejoras en kg"))
-            check("Fotos",setOf("Duración"))
-            check("General",setOf("Mejoras en kg","Duración","sRPE declarado","Ejercicios"))
+            check(WorkoutStoryTemplate.GENERAL, allOptions)
+            check(WorkoutStoryTemplate.MILESTONES, setOf("Duración"))
+            check(WorkoutStoryTemplate.EXERCISE, setOf("Progreso"))
+            check(WorkoutStoryTemplate.PHOTOS, setOf("Duración"))
+            check(WorkoutStoryTemplate.GENERAL, allOptions)
         }finally{file.delete()}
     }
 

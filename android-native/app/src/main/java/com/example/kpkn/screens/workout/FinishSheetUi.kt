@@ -220,6 +220,7 @@ internal class FinishSheetState(
     val ridges: List<List<Float>>,
     val ridgeRecordIndex: Int,
     val storyTemplateSummary: String = "General · ejercicios y progreso",
+    val pendingSeriesNotice: PendingSeriesNotice? = null,
 )
 
 internal enum class FinishPanelKind { NOTES, EFFORT }
@@ -240,6 +241,7 @@ internal class FinishSheetActions(
     val onAddTask: (String) -> Unit = {},
     val onToggleTask: (String) -> Unit = {},
     val onRemoveTask: (String) -> Unit = {},
+    val onContinuePending: () -> Unit = {},
 )
 
 /** El contenido de la hoja (sin la ventana): arte del encabezado, módulos, acciones y el panel de anotaciones. */
@@ -309,6 +311,10 @@ internal fun FinishSheetContent(
                 }
                 state.blockedMessage?.let {
                     Text(it, Modifier.fillMaxWidth().testTag("finish-blocked"), style = Lx.inter(12.5.sp, line = 17.5.sp), color = Lx.Faint, textAlign = TextAlign.Center)
+                }
+                state.pendingSeriesNotice?.let { notice ->
+                    Text(notice.message, Modifier.fillMaxWidth().testTag("finish-pending-series"), style = Lx.inter(12.5.sp, line = 17.5.sp), color = Lx.Faint)
+                    Text(notice.actionLabel, Modifier.clickable(enabled = !state.saving, onClick = actions.onContinuePending).padding(vertical = 8.dp).testTag("finish-continue-pending"), style = Lx.inter(13.sp, FontWeight.SemiBold), color = Lx.Ink)
                 }
                 SaveButton(state, actions)
                 BackButton(state, actions)
@@ -489,8 +495,8 @@ private fun DataModule(state: FinishSheetState, actions: FinishSheetActions) {
             }.padding(top = 10.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
-                Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
                     Text("ESFUERZO (sRPE)", style = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.4.sp), color = Lx.Faint)
                     Box(
                         Modifier.clip(RoundedCornerShape(50)).background(Color(0x0DFFFFFF)).padding(horizontal = 7.dp, vertical = 2.dp),
@@ -515,6 +521,7 @@ private fun DataModule(state: FinishSheetState, actions: FinishSheetActions) {
                 }
                 Text(
                     effectiveEffort?.let { finishGrouped(it, if (isManualEffort) 0 else 1) } ?: "—",
+                    modifier = Modifier.testTag("finish-effort-value"),
                     style = androidx.compose.ui.text.TextStyle(fontFamily = WizardFonts.display, fontWeight = FontWeight.ExtraBold, fontSize = 22.sp, letterSpacing = (-0.5).sp),
                     color = Lx.Ink,
                 )

@@ -1,6 +1,7 @@
 package com.example.kpkn.screens.workout
 
 import com.example.kpkn.data.models.LoadModeV2
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.UnitModeV2
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Session
@@ -66,6 +67,25 @@ data class WorkoutTechniqueProgressDraft(
     /** Exact rows for a pending guided commit. Empty is an explicit skip; null means legacy/no snapshot. */
     val commitDropRows: List<DropSetData>? = null,
     val commitRestPauseRows: List<RestPauseData>? = null,
+    val restDeadlineElapsedMs: Long? = null,
+    val restDeadlineBootCount: Int? = null,
+)
+
+@Serializable
+data class WorkoutTechniqueInputRow(
+    val weightText: String = "",
+    val repsText: String = com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults.Reps.toString(),
+    val restText: String = com.example.kpkn.screens.sessioneditor.components.RestPausePlanDefaults.PauseSeconds.toString(),
+    val done: Boolean = false,
+)
+
+@Serializable
+data class WorkoutInlineTechniqueDraft(
+    val drops: List<WorkoutTechniqueInputRow>,
+    val pauses: List<WorkoutTechniqueInputRow>,
+    val dropEnabled: Boolean,
+    val restPauseEnabled: Boolean,
+    val myo: Boolean,
 )
 
 @Serializable
@@ -103,6 +123,11 @@ data class WorkoutSetDraft(
     /** Monotonic stopwatch state for this exact set/side draft. */
     val timedSetAccumulatedMs: Long? = null,
     val timedSetStartedAtElapsedMs: Long? = null,
+    val effortMode: IntensityMode? = null,
+    val inlineDropSets: List<DropSetData>? = null,
+    val inlineRestPauses: List<RestPauseData>? = null,
+    val timedSetBootCount: Int? = null,
+    val inlineTechniqueEditor: WorkoutInlineTechniqueDraft? = null,
 )
 
 internal fun tagScopedWorkoutSetDraftKey(setKey: String, tagId: String?): String =
@@ -170,6 +195,9 @@ data class WorkoutRestModalState(
     val originStepKey: String? = null,
     /** Persisted so restoring a live session cannot lose the rest's continuation. */
     val continuation: WorkoutRestContinuation = WorkoutRestContinuation.KEEP_POSITION,
+    val elapsedRealtimeDeadlineMs: Long? = null,
+    val deadlineBootCount: Int? = null,
+    val skipExerciseIdOnFinish: String? = null,
 )
 
 internal fun workoutSetKey(exerciseId: String, setIdx: Int, side: String? = null): String = when (side) {

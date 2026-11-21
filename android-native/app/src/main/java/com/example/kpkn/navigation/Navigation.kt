@@ -1,10 +1,5 @@
 package com.example.kpkn.navigation
 
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.ShoppingCart
-import androidx.compose.ui.graphics.vector.ImageVector
 import android.net.Uri
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
 
@@ -32,7 +27,7 @@ sealed class KpknRoute(val route: String) {
     // ─── Detail screens ─────────────────────────────────────────────────
 
     object ProgramDetail : KpknRoute("program/{programId}") {
-        fun create(programId: String): String = "program/$programId"
+        fun create(programId: String): String = "program/${Uri.encode(programId)}"
         const val ARG_PROGRAM_ID = "programId"
     }
 
@@ -70,16 +65,18 @@ sealed class KpknRoute(val route: String) {
             dayOfWeek: Int? = null,
         ): String {
             val query = buildList {
-                weekId?.let { add("weekId=$it") }
+                weekId?.let { add("weekId=${Uri.encode(it)}") }
                 macroIndex?.let { add("macroIndex=$it") }
                 mesoIndex?.let { add("mesoIndex=$it") }
                 dayOfWeek?.let { add("dayOfWeek=$it") }
             }.joinToString("&")
 
+            val encodedProgramId = Uri.encode(programId)
+            val encodedSessionId = Uri.encode(sessionId)
             return if (query.isBlank()) {
-                "session-editor/$programId/$sessionId"
+                "session-editor/$encodedProgramId/$encodedSessionId"
             } else {
-                "session-editor/$programId/$sessionId?$query"
+                "session-editor/$encodedProgramId/$encodedSessionId?$query"
             }
         }
         const val ARG_PROGRAM_ID = "programId"
@@ -91,7 +88,8 @@ sealed class KpknRoute(val route: String) {
     }
 
     object Workout : KpknRoute("workout/{programId}/{sessionId}") {
-        fun create(programId: String, sessionId: String) = "workout/$programId/$sessionId"
+        fun create(programId: String, sessionId: String) =
+            "workout/${Uri.encode(programId)}/${Uri.encode(sessionId)}"
         const val ARG_PROGRAM_ID = "programId"
         const val ARG_SESSION_ID = "sessionId"
     }
@@ -137,7 +135,7 @@ sealed class KpknRoute(val route: String) {
     }
     /** La ficha de una competencia (c-detail o la de una próxima); `NEW_ID` abre «Nueva competencia» en la página. */
     object CompetitionDetail : KpknRoute("competition/{competitionId}") {
-        fun create(competitionId: String) = "competition/$competitionId"
+        fun create(competitionId: String) = "competition/${Uri.encode(competitionId)}"
         const val ARG_COMPETITION_ID = "competitionId"
         const val NEW_ID = "new"
     }
@@ -151,7 +149,8 @@ sealed class KpknRoute(val route: String) {
         const val ARG_MODE = "mode"
         const val ARG_DISCIPLINE = "discipline"
         fun create(competitionId: String, mode: String, discipline: String? = null) =
-            "competition-flow/$competitionId/$mode" + (discipline?.let { "?discipline=$it" } ?: "")
+            "competition-flow/${Uri.encode(competitionId)}/${Uri.encode(mode)}" +
+                (discipline?.let { "?discipline=${Uri.encode(it)}" } ?: "")
         /** c-plan: los nueve intentos y el pesaje de la competencia [competitionId]. */
         fun plan(competitionId: String) = create(competitionId, "plan")
         /** c-today: el modo competición de la competencia [competitionId] (guarda cada intento). */
@@ -161,14 +160,6 @@ sealed class KpknRoute(val route: String) {
     }
 
     object Settings : KpknRoute("settings")
-    object SettingsGeneral : KpknRoute("settings/general")
-    object SettingsProfile : KpknRoute("settings/profile")
-    object SettingsNutrition : KpknRoute("settings/nutrition")
-    object SettingsTraining : KpknRoute("settings/training")
-    object SettingsAuge : KpknRoute("settings/auge")
-    object SettingsNotifications : KpknRoute("settings/notifications")
-    object SettingsData : KpknRoute("settings/data")
-    object SettingsDiagnostics : KpknRoute("settings/diagnostics")
     object Profile : KpknRoute("profile")
     object WorkoutAlbums : KpknRoute("profile/albums")
     object WorkoutAlbumDetail : KpknRoute("profile/albums/{albumKey}") {
@@ -219,12 +210,6 @@ sealed class KpknRoute(val route: String) {
         const val BASE_ROUTE = "nutrition/wizard"
     }
     object SetupEntry : KpknRoute("setup/entry")
-
-    /**
-     * Puerta de aprobación visual de la Fase 1: prototipo navegable de las cinco
-     * pantallas representativas. No persiste nada y su entrada es temporal.
-     */
-    object SetupVisualGate : KpknRoute("setup/visual-gate")
     object SetupWizard : KpknRoute("setup/wizard?mode={mode}&draftId={draftId}&planId={planId}") {
         const val BASE_ROUTE = "setup/wizard"
         /**
@@ -249,7 +234,7 @@ sealed class KpknRoute(val route: String) {
     object NutritionCalibration : KpknRoute("nutrition/calibration")
     object MealHistory : KpknRoute("nutrition/meal-history")
     object NutritionAction : KpknRoute("nutrition/action/{action}") {
-        fun create(action: String) = "nutrition/action/$action"
+        fun create(action: String) = "nutrition/action/${Uri.encode(action)}"
         const val ARG_ACTION = "action"
     }
 
@@ -277,9 +262,6 @@ sealed class KpknRoute(val route: String) {
             "technique/compare/${Uri.encode(mediaA)}/${Uri.encode(mediaB)}"
     }
 
-    // ─── Health Connect ───────────────────────────────────────────────
-    object HealthConnect : KpknRoute("settings/health-connect")
-
     object ExerciseProgress : KpknRoute("progress/exercise?exerciseId={exerciseId}") {
         const val ARG_EXERCISE_ID = "exerciseId"
         fun create(exerciseId: String? = null): String = "progress/exercise?exerciseId=${Uri.encode(exerciseId.orEmpty())}"
@@ -298,18 +280,3 @@ sealed class KpknRoute(val route: String) {
 
 
 }
-
-// ─── Bottom Nav Items ────────────────────────────────────────────────────────
-
-data class BottomNavItem(
-    val route: String,
-    val label: String,
-    val icon: ImageVector,
-)
-
-val bottomNavItems = listOf(
-    BottomNavItem(KpknRoute.Home.route, "Inicio", Icons.Default.Home),
-    BottomNavItem(KpknRoute.Training.route, "Entreno", Icons.Default.Home),
-    BottomNavItem(KpknRoute.Nutrition.route, "Nutrición", Icons.Default.ShoppingCart),
-    BottomNavItem(KpknRoute.BodyProgress.route, "Cuerpo", Icons.Default.Person),
-)

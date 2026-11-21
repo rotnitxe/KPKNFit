@@ -81,7 +81,13 @@ class LiveSetModeTest {
             assertEquals(value, liveQuantityNumber(value.toLiveNumberString(), UnitModeV2.CUSTOM)!!, 0.0)
         }
         assertEquals("93,75", 93.75.toLiveNumberString())
+        assertEquals("57.75", formatDecimal(57.75))
         listOf("NaN", "Infinity", "-Infinity").forEach { assertNull(liveQuantityNumber(it, UnitModeV2.CUSTOM)) }
+    }
+    @Test fun draftRoundTripsTheChosenEffortScaleAndInlineTechniqueRows() {
+        val draft = WorkoutSetDraft(intensityText = "8.5", effortMode = IntensityMode.RPE,
+            inlineDropSets = emptyList(), inlineRestPauses = emptyList())
+        assertEquals(draft, Json.decodeFromString<WorkoutSetDraft>(Json.encodeToString(draft)))
     }
     @Test fun reopeningLegacyDistanceUsesMetersWithoutIntegerTruncation() {
         assertEquals(12.5, completedLiveQuantity(CompletedSet("c", weight = 24.0, reps = 12, distanceKm = .0125), UnitModeV2.DISTANCE)!!, 0.0)
@@ -91,6 +97,12 @@ class LiveSetModeTest {
         val resumed = first.start(5_000)
         assertEquals(1, resumed.seconds(5_550, 60))
         assertEquals(0, first.seconds(10_000, 60))
+    }
+    @Test fun restoredClockNeverStartsAcrossBootOrFromLegacyDraft() {
+        assertEquals(100L, restoredLiveClockStart(100L, 7, 7, 500L)!!)
+        assertNull(restoredLiveClockStart(100L, 6, 7, 500L))
+        assertNull(restoredLiveClockStart(100L, null, 7, 500L))
+        assertNull(restoredLiveClockStart(600L, 7, 7, 500L))
     }
     @Test fun clockCatchesUpAfterAnInactivePageAndStopsAtTheGoal() {
         val clock = LiveSetClockState().start(10_000)

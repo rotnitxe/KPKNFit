@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
 import androidx.activity.ComponentActivity
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.text.TextMeasurer
 import androidx.compose.ui.text.font.createFontFamilyResolver
@@ -22,11 +23,14 @@ import com.example.kpkn.data.models.Mesocycle
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
+import com.example.kpkn.testutil.configureLiveSheetTestWindow
 import com.example.kpkn.ui.theme.KPKNTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Assume.assumeTrue
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -40,6 +44,10 @@ import kotlin.math.roundToInt
 class ProgramStoryExportDeviceTest {
     @get:Rule val rule = createAndroidComposeRule<ComponentActivity>()
 
+    @Before fun configureWindow() {
+        rule.activityRule.scenario.onActivity { it.configureLiveSheetTestWindow() }
+    }
+
     private val context get() = rule.activity.applicationContext
 
     @Test
@@ -51,8 +59,10 @@ class ProgramStoryExportDeviceTest {
 
         try {
             rule.setContent {
-                KPKNTheme {
-                    ProgramShareSheet(program = program, logs = emptyList(), onDismiss = {})
+                CompositionLocalProvider(LocalWizardReducedMotion provides true) {
+                    KPKNTheme {
+                        ProgramShareSheet(program = program, logs = emptyList(), onDismiss = {})
+                    }
                 }
             }
 
@@ -60,7 +70,7 @@ class ProgramStoryExportDeviceTest {
             assertEquals(7, (weekStory.content as ProgramStoryContent.Week).days.size)
             val weekBounds = storyContentBounds(weekStory)
             println("AUDIT_C10_WEEK_BOUNDS top=${weekBounds.top} bottom=${weekBounds.bottom}")
-            val weekPreview = rule.onNodeWithTag("story-preview", useUnmergedTree = true).captureToImage().asAndroidBitmap()
+            val weekPreview = rule.onNodeWithTag("story-preview", useUnmergedTree = true).performScrollTo().captureToImage().asAndroidBitmap()
             try {
                 saveEvidenceBitmap("week-preview.png", weekPreview)
                 assertEquals(7, countInkRuns(weekPreview, weekBounds, xStart = 75f, xEnd = 140f, sameInkGapCanvasUnits = 16f))
@@ -81,7 +91,7 @@ class ProgramStoryExportDeviceTest {
             assertEquals("+${blockContent.blocks.size - visibleBlocks} bloques más", remainder.layoutInput.text.text)
             assertEquals(1, remainder.lineCount)
             assertFalse(remainder.hasVisualOverflow)
-            val blocksPreview = rule.onNodeWithTag("story-preview", useUnmergedTree = true).captureToImage().asAndroidBitmap()
+            val blocksPreview = rule.onNodeWithTag("story-preview", useUnmergedTree = true).performScrollTo().captureToImage().asAndroidBitmap()
             try {
                 saveEvidenceBitmap("blocks-preview.png", blocksPreview)
                 val phaseBarRuns = if (blockContent.weekColors.isNotEmpty()) 1 else 0

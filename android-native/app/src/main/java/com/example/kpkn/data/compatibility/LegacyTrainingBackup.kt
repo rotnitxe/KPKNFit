@@ -1,5 +1,6 @@
 package com.example.kpkn.data.compatibility
 
+import com.example.kpkn.data.db.BackupTableManifest
 import com.example.kpkn.data.db.TrainingObservationEntity
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.*
@@ -13,12 +14,12 @@ object LegacyTrainingBackup {
     fun normalize(raw: String): String {
         val root = LegacyTrainingImport.parseObject(raw)
         val version = root["schemaVersion"]?.jsonPrimitive?.intOrNull ?: 1
-        require(version in 1..7) { "Formato de respaldo no compatible" }
-        val observations = root["trainingObservations"]?.takeIf { it != JsonNull }?.let {
+        require(version in 1..BackupTableManifest.JSON_BACKUP_SCHEMA_VERSION) { "Formato de respaldo no compatible" }
+        val observations = root["trainingObservations"]?.takeIf { it is JsonArray }?.let {
             json.decodeFromJsonElement(ListSerializer(TrainingObservationEntity.serializer()), it)
         }.orEmpty().toMutableList()
         for ((section, table) in sections) {
-            root[section]?.takeIf { it != JsonNull }?.jsonArray?.forEach { value ->
+            root[section]?.takeIf { it is JsonArray }?.jsonArray?.forEach { value ->
                 val obj = value.jsonObject
                 val identity = obj[if (table == "auge_feedback") "logId" else "id"]?.jsonPrimitive?.content
                 require(!identity.isNullOrBlank()) { "No se puede preservar una observación sin identidad ($section)" }
@@ -27,13 +28,13 @@ object LegacyTrainingBackup {
                 }
             }
         }
-        root["settings"]?.let { settings ->
+        root["settings"]?.takeIf { it is JsonObject }?.let { settings ->
             LegacyTrainingImport.initialDeclarations(settings.toString())?.let {
                 observations += TrainingObservationEntity("settings:1:initial_declarations", "historical_onboarding", "", it.toString(),
                     "historical_original; scales_not_comparable; not_measured_marks")
             }
         }
-        val drafts = root["setupDrafts"]?.takeIf { it != JsonNull }?.jsonArray?.map { row ->
+        val drafts = root["setupDrafts"]?.takeIf { it is JsonArray }?.jsonArray?.map { row ->
             val draft = row.jsonObject
             val rawDraft = draft["payloadJson"]?.jsonPrimitive?.content ?: error("Borrador sin contenido recuperable")
             val original = LegacyTrainingImport.draftOriginals(rawDraft)
@@ -43,7 +44,7 @@ object LegacyTrainingBackup {
                 "historical_original; original_scale; not_comparable")
             JsonObject(draft + ("payloadJson" to JsonPrimitive(LegacyTrainingImport.draft(rawDraft))))
         }
-        root["ongoingWorkout"]?.takeIf { it != JsonNull }?.let { ongoing ->
+        root["ongoingWorkout"]?.takeIf { it is JsonObject }?.let { ongoing ->
             val original = LegacyTrainingImport.ongoingOriginals(ongoing.toString())
             if (original.isNotEmpty()) observations += TrainingObservationEntity(
                 "ongoing:1:${ongoing.jsonObject["startTime"]}", "historical_session_context", "", original.toString(),
@@ -55,15 +56,15 @@ object LegacyTrainingBackup {
         return JsonObject(root.filterKeys { it !in sections && it != "adaptiveCache" }.toMutableMap().apply {
             put("trainingObservations", json.encodeToJsonElement(ListSerializer(TrainingObservationEntity.serializer()), observations.distinctBy { it.sourceIdentity }))
             drafts?.let { put("setupDrafts", JsonArray(it)) }
-            root["programs"]?.let { programs ->
+            root["programs"]?.takeIf { it is JsonArray }?.let { programs ->
                 put("programs", JsonArray(programs.jsonArray.map { json.parseToJsonElement(LegacyProgramProposalImport.program(it.toString())) }))
             }
-            root["customExercises"]?.takeIf { it != JsonNull }?.let { exercises ->
+            root["customExercises"]?.takeIf { it is JsonArray }?.let { exercises ->
                 put("customExercises", JsonArray(exercises.jsonArray.map { json.parseToJsonElement(LegacyExerciseCoefficientImport.customExercise(it.toString())) }))
             }
-            root["ongoingWorkout"]?.takeIf { it != JsonNull }?.let { put("ongoingWorkout",json.parseToJsonElement(LegacyTrainingImport.ongoing(it.toString()))) }
-            root["settings"]?.let { put("settings",json.parseToJsonElement(LegacyTrainingImport.settings(it.toString()))) }
-            root["workoutLogs"]?.let { put("workoutLogs",JsonArray(it.jsonArray.map { log -> json.parseToJsonElement(LegacyTrainingImport.log(log.toString())) })) }
+            root["ongoingWorkout"]?.takeIf { it is JsonObject }?.let { put("ongoingWorkout",json.parseToJsonElement(LegacyTrainingImport.ongoing(it.toString()))) }
+            root["settings"]?.takeIf { it is JsonObject }?.let { put("settings",json.parseToJsonElement(LegacyTrainingImport.settings(it.toString()))) }
+            root["workoutLogs"]?.takeIf { it is JsonArray }?.let { put("workoutLogs",JsonArray(it.jsonArray.map { log -> json.parseToJsonElement(LegacyTrainingImport.log(log.toString())) })) }
         }).toString()
     }
 

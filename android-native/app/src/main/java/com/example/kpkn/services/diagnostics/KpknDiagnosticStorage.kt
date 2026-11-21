@@ -28,14 +28,12 @@ object KpknDiagnosticStorage {
     private const val MAX_MIRROR_FILES = 64
     private const val MAX_MIRROR_TOTAL_BYTES = 50L * 1024L * 1024L
     private const val PRUNE_EVERY_EVENTS = 32
-    private const val SYNC_EVERY_EVENTS = 25
     private val writer = Executors.newSingleThreadExecutor { runnable ->
         Thread(runnable, "kpkn-jsonl-mirror").apply { isDaemon = true }
     }
 
     private val fileUris = mutableMapOf<String, Uri>()
     private var eventsSincePrune = 0
-    private var eventsSinceSync = 0
     private val mirroredRecoveryFiles = mutableSetOf<String>()
 
     fun configure(context: Context, treeUri: Uri): Result<String> = runCatching {
@@ -55,7 +53,6 @@ object KpknDiagnosticStorage {
             fileUris.clear()
             mirroredRecoveryFiles.clear()
             eventsSincePrune = 0
-            eventsSinceSync = 0
         }
         ensureDirectoryPath(appContext, listOf(LOGS_NAME))
         val today = UTC_DAY_FORMAT.format(java.time.Instant.now())
@@ -81,7 +78,6 @@ object KpknDiagnosticStorage {
             fileUris.clear()
             mirroredRecoveryFiles.clear()
             eventsSincePrune = 0
-            eventsSinceSync = 0
         }
     }
 
@@ -117,12 +113,15 @@ object KpknDiagnosticStorage {
                         Log.e(TAG, "SAF mirror deferred; local source retained", retryError ?: error)
                     }
             }
-            if (++eventsSinceSync >= SYNC_EVERY_EVENTS) {
-                eventsSinceSync = 0
-                runCatching { java.io.FileInputStream(source).use { it.fd.sync() } }
+            val shouldPrune = synchronized(fileUris) {
+                if (++eventsSincePrune >= PRUNE_EVERY_EVENTS) {
+                    eventsSincePrune = 0
+                    true
+                } else {
+                    false
+                }
             }
-            if (++eventsSincePrune >= PRUNE_EVERY_EVENTS) {
-                eventsSincePrune = 0
+            if (shouldPrune) {
                 runCatching {
                     ensureDirectoryPath(appContext, listOf(LOGS_NAME, area, date))?.let { directory ->
                         pruneMirror(appContext, directory)
@@ -296,9 +295,10 @@ object KpknDiagnosticStorage {
                 val idIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DOCUMENT_ID)
                 val nameIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_DISPLAY_NAME)
                 val mimeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
+                if (idIndex < 0 || nameIndex < 0) return@use null
                 while (cursor.moveToNext()) {
                     val sameName = cursor.getString(nameIndex) == sanitize(name)
-                    val matchesType = mimeType == null || cursor.getString(mimeIndex) == mimeType
+                    val matchesType = mimeType == null || (mimeIndex >= 0 && cursor.getString(mimeIndex) == mimeType)
                     if (sameName && matchesType) {
                         return@use DocumentsContract.buildDocumentUriUsingTree(treeUri, cursor.getString(idIndex))
                     }
@@ -327,12 +327,14 @@ object KpknDiagnosticStorage {
             val mimeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_MIME_TYPE)
             val modifiedIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_LAST_MODIFIED)
             val sizeIndex = cursor.getColumnIndex(DocumentsContract.Document.COLUMN_SIZE)
+            if (idIndex < 0) return@use emptyList()
             buildList {
                 while (cursor.moveToNext()) {
-                    if (cursor.getString(mimeIndex) == DocumentsContract.Document.MIME_TYPE_DIR) continue
+                    if (mimeIndex >= 0 && cursor.getString(mimeIndex) == DocumentsContract.Document.MIME_TYPE_DIR) continue
+                    val docId = cursor.getString(idIndex) ?: continue
                     add(
                         Triple(
-                            DocumentsContract.buildDocumentUriUsingTree(treeUri, cursor.getString(idIndex)),
+                            DocumentsContract.buildDocumentUriUsingTree(treeUri, docId),
                             if (modifiedIndex >= 0) cursor.getLong(modifiedIndex) else 0L,
                             if (sizeIndex >= 0) cursor.getLong(sizeIndex) else 0L,
                         ),

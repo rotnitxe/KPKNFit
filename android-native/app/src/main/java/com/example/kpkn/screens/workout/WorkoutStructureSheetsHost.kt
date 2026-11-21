@@ -755,13 +755,14 @@ internal fun WorkoutStructureSheetsHost(
         visibleExercises = visibleExercises,
         completedSets = uiState.completedSets,
         hasCatalogAction = onOpenCatalog != null,
-        onCreateSuperset = { exerciseIds, partId, restBetween, restAfter, rounds ->
+        onCreateSuperset = { exerciseIds, partId, restBetween, restAfter, rounds, groupId ->
             viewModel.createLiveSuperset(
                 exerciseIds = exerciseIds,
                 partId = partId,
                 restBetween = restBetween,
                 restAfter = restAfter,
                 rounds = rounds,
+                existingGroupId = groupId,
             )
         },
     )
@@ -776,6 +777,9 @@ internal fun WorkoutStructureSheetsHost(
         onSaveTag = viewModel::upsertWorkoutTag,
         onSaveDefinition = { exerciseId, draft ->
             viewModel.saveExerciseDefinitionFromEditSheet(exerciseId, draft)
+        },
+        onSaveDefinitionWithResult = { exerciseId, draft, result ->
+            viewModel.saveExerciseDefinitionFromEditSheet(exerciseId, draft, result)
         },
     )
 
@@ -1366,7 +1370,7 @@ internal fun WorkoutSupersetCreatorSheet(
     visibleExercises: List<Exercise>,
     completedSets: Map<String, CompletedSet>,
     hasCatalogAction: Boolean,
-    onCreateSuperset: (exerciseIds: List<String>, partId: String?, restBetween: Int, restAfter: Int, rounds: Int) -> Unit,
+    onCreateSuperset: (exerciseIds: List<String>, partId: String?, restBetween: Int, restAfter: Int, rounds: Int, groupId: String?) -> Unit,
 ) {
     if (state.showWorkoutSupersetCreator) {
         val supersetAnchorId = state.workoutSupersetSelectedExerciseId
@@ -1449,6 +1453,7 @@ internal fun WorkoutSupersetCreatorSheet(
                             restBetweenText.toIntOrNull()?.coerceAtLeast(0) ?: supersetDefaults.second,
                             restAfterText.toIntOrNull()?.coerceAtLeast(0) ?: supersetDefaults.third,
                             roundsText.toIntOrNull()?.coerceAtLeast(1) ?: supersetDefaults.first,
+                            supersetAnchorGroupId,
                         )
                         closeWorkoutSupersetCreator()
                     },
@@ -1517,6 +1522,7 @@ internal fun WorkoutEditSeriesSheet(
     availableTags: (String) -> List<WorkoutTag> = { emptyList() },
     onSaveTag: (WorkoutTag) -> Unit = {},
     onSaveDefinition: (exerciseId: String, draft: Exercise) -> Unit,
+    onSaveDefinitionWithResult: ((String, Exercise, (Boolean) -> Unit) -> Unit)? = null,
 ) {
     if (state.editSheetExerciseId != null) {
         val editEx = modeSession.allExercises().firstOrNull { it.id == state.editSheetExerciseId }
@@ -1533,8 +1539,10 @@ internal fun WorkoutEditSeriesSheet(
             var showSmartLoadDialog by remember { mutableStateOf(false) }
             // Salir con cambios pide decidir: seguir editando o descartar la edición (Refinamiento 02). Lo registrado no se toca.
             var showDiscardChangesDialog by remember { mutableStateOf(false) }
+            var savingDefinition by remember { mutableStateOf(false) }
             val dismissSheet = {
-                if (draftExercise != draftBaseline) showDiscardChangesDialog = true
+                if (savingDefinition) Unit
+                else if (draftExercise != draftBaseline) showDiscardChangesDialog = true
                 else state.editSheetExerciseId = null
             }
             var rmInputMode by remember(draftExercise.id) {
@@ -1558,9 +1566,23 @@ internal fun WorkoutEditSeriesSheet(
 
             val confirmEdit = {
                 val confirmedDraft = draftExercise
-                onSaveDefinition(editEx.id, confirmedDraft)
-                state.selectedExerciseContextTab = null
-                state.editSheetExerciseId = null
+                if (!savingDefinition) {
+                    val save = onSaveDefinitionWithResult
+                    if (save == null) {
+                        onSaveDefinition(editEx.id, confirmedDraft)
+                        state.selectedExerciseContextTab = null
+                        state.editSheetExerciseId = null
+                    } else {
+                        savingDefinition = true
+                        save(editEx.id, confirmedDraft) { success ->
+                            savingDefinition = false
+                            if (success) {
+                                state.selectedExerciseContextTab = null
+                                state.editSheetExerciseId = null
+                            }
+                        }
+                    }
+                }
             }
             WorkoutDrawer(
                 title = if (draftExercise.cardioDetails != null) "Editar cardio" else "Editar series",

@@ -21,11 +21,13 @@ object CsvReader {
     fun parse(text: String, name: String): ImportSheet {
         val clean = text.removePrefix("﻿")
         val separator = detectSeparator(clean)
-        val records = splitRecords(clean, separator).dropLastWhile { it.isEmpty() }
-        val rows = records.take(ImportLimits.MAX_ROWS)
+        val records = splitRecords(clean, separator).iterator()
+        val firstRows = ArrayList<List<String>>()
+        while (firstRows.size < ImportLimits.MAX_ROWS && records.hasNext()) firstRows += records.next()
+        val rowsCut = records.asSequence().any { row -> row.any(String::isNotBlank) }
+        val rows = if (rowsCut) firstRows else firstRows.dropLastWhile { it.isEmpty() }
         // Solo cuenta lo que tiene texto: el relleno vacío de más no es un recorte.
         val columnsCut = rows.any { row -> row.drop(ImportLimits.MAX_COLUMNS).any { it.isNotBlank() } }
-        val rowsCut = records.drop(ImportLimits.MAX_ROWS).any { row -> row.any { it.isNotBlank() } }
         val width = minOf(rows.maxOfOrNull { it.size } ?: 0, ImportLimits.MAX_COLUMNS)
         return ImportSheet(
             name = name,
@@ -51,22 +53,17 @@ object CsvReader {
     }
 
     /** Divide el texto en registros y campos. Una línea vacía es un registro sin campos. */
-    private fun splitRecords(text: String, separator: Char): List<List<String>> {
-        val records = ArrayList<List<String>>()
+    private fun splitRecords(text: String, separator: Char): Sequence<List<String>> = sequence {
         var fields = ArrayList<String>()
         val field = StringBuilder()
         var inQuotes = false
         var index = 0
 
-        fun endRecord() {
-            if (fields.isEmpty() && field.isEmpty()) {
-                records.add(emptyList())
-            } else {
-                fields.add(field.toString())
-                records.add(fields)
-            }
+        fun endRecord(): List<String> {
+            val record = if (fields.isEmpty() && field.isEmpty()) emptyList() else fields.apply { add(field.toString()) }
             fields = ArrayList()
             field.clear()
+            return record
         }
 
         while (index < text.length) {
@@ -85,13 +82,12 @@ object CsvReader {
                 }
                 char == '\r' || char == '\n' -> {
                     if (char == '\r' && index + 1 < text.length && text[index + 1] == '\n') index++
-                    endRecord()
+                    yield(endRecord())
                 }
                 else -> field.append(char)
             }
             index++
         }
-        if (fields.isNotEmpty() || field.isNotEmpty()) endRecord()
-        return records
+        if (fields.isNotEmpty() || field.isNotEmpty()) yield(endRecord())
     }
 }

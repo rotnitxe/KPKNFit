@@ -116,7 +116,8 @@ class WorkoutEditSeriesSheetBoardTest {
                     sessionAccentColor = Color(0xFFF49A6E),
                     bottomHazeState = remember { HazeState() },
                     initialSetIndex = initialSetIndex,
-                ) { _, draft -> saved = draft }
+                    onSaveDefinition = { _, draft -> saved = draft },
+                )
                 KpknOverlayHostContent(overlays)
             }
         }
@@ -474,7 +475,8 @@ class WorkoutEditSeriesSheetBoardTest {
         tap(LIVE_EDIT_SMART_LOAD_TAG)
         rule.waitForIdle()
 
-        rule.onNodeWithText("Configura la referencia que alimenta las sugerencias de carga y %RM.").assertExists()
+        rule.onNodeWithText("Base para sugerencias").assertExists()
+        rule.onNodeWithText("Base efectiva:", substring = true).assertExists()
     }
 
     @Test
@@ -671,13 +673,12 @@ class WorkoutEditSeriesSheetBoardTest {
         mount(stationaryBike(), initialSetIndex = 0)
 
         rule.onNodeWithText("Editar cardio").assertExists()
-        rule.onNodeWithText("PLANTILLAS").assertExists()
+        rule.onNodeWithText("Plantillas").assertExists()
         rule.onNodeWithText("FORMA").assertExists()
         rule.onNodeWithText("Continuo").assertExists()
         rule.onNodeWithText("Series").assertExists()
         rule.onNodeWithText("Intervalos").assertExists()
-        rule.onNodeWithText("RPE").assertExists()
-        rule.onNodeWithText("Avanzado").assertExists()
+        rule.onNodeWithContentDescription("Esfuerzo RPE", substring = true).assertExists()
         rule.onNodeWithTag(LIVE_EDIT_CONFIRM_TAG).assertIsDisplayed()
         // Sin los controles de fuerza.
         rule.onNodeWithTag(LIVE_EDIT_FOCUS_TAG).assertDoesNotExist()
@@ -688,6 +689,8 @@ class WorkoutEditSeriesSheetBoardTest {
         mount(stationaryBike(), initialSetIndex = 0)
         val before = stationaryBike().cardioDetails
 
+        tapText("Plantillas")
+        rule.onNodeWithText("Elige una base y ajústala después.").assertExists()
         tapText("Tabata")
         rule.waitForIdle()
         confirm()

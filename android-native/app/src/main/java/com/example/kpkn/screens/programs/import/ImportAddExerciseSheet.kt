@@ -38,6 +38,7 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.domain.training.importer.ExerciseNameCandidate
 import com.example.kpkn.domain.training.importer.ImportedProgramDraft
+import com.example.kpkn.domain.training.importer.ImportWarning
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 
@@ -75,9 +76,11 @@ internal fun ImportAddExerciseSheet(
     onEdit: (ImportEditOp) -> Unit,
     onClose: () -> Unit,
     modifier: Modifier = Modifier,
+    fromWarning: ImportWarning? = null,
 ) {
+    val reading = remember(fromWarning) { importAddReading(fromWarning?.sourceText) }
     val targets = remember(imported) { importAddTargetsOf(imported) }
-    var target by rememberSaveable { mutableStateOf(contextDayId?.takeIf { id -> targets.any { it.dayId == id } } ?: targets.firstOrNull()?.dayId) }
+    var target by rememberSaveable(fromWarning?.id) { mutableStateOf(contextDayId?.takeIf { id -> targets.any { it.dayId == id } } ?: targets.firstOrNull()?.dayId) }
     // Si el día elegido desaparece del programa (se quitó con la hoja abierta), vuelve al primero.
     val chosen = target?.takeIf { id -> targets.any { it.dayId == id } } ?: targets.firstOrNull()?.dayId
     BackHandler(onBack = onClose)
@@ -115,12 +118,22 @@ internal fun ImportAddExerciseSheet(
                     .background(Color.White.copy(alpha = 0.22f), RoundedCornerShape(2.dp)),
             )
             ImportAddExercisePanel(
-                key = "island",
+                key = fromWarning?.id ?: "island",
+                initialName = importProposedName(fromWarning?.sourceText),
+                initialSets = reading.sets,
+                initialRepsMin = reading.repsMin,
+                initialRepsMax = reading.repsMax,
                 search = search,
                 namesOf = namesOf,
                 useSharedCatalog = useSharedCatalog,
                 onAdd = { name, configId, sets, repsMin, repsMax ->
-                    if (chosen != null) {
+                    if (fromWarning != null) {
+                        onEdit(ImportEditOp.AddFromWarning(
+                            warningId = fromWarning.id, toDayId = chosen, rawName = name,
+                            sets = sets, repsMin = repsMin, repsMax = repsMax, configId = configId,
+                            decided = true, newDay = chosen == null,
+                        ))
+                    } else if (chosen != null) {
                         val dayId = chosen
                         onEdit(ImportEditOp.AddExercise(dayId, name, sets, repsMin, repsMax, configId = configId, decided = true))
                     } else if (configId != null) {

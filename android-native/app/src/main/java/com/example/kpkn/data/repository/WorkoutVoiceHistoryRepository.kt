@@ -30,9 +30,11 @@ class WorkoutVoiceHistoryRepository(
         dao.observe(sessionKey).map { entities -> entities.map { it.toVoiceHistoryEntry() } }
 
     suspend fun record(entry: VoiceHistoryEntry) = withContext(Dispatchers.IO) {
-        dao.upsert(entry.toEntity())
-        dao.deleteOlderThan(entry.createdAtEpochMs - VoiceHistoryRetention.RETENTION_MS)
-        dao.trimSession(entry.sessionKey, VoiceHistoryRetention.MAX_ENTRIES_PER_SESSION)
+        dao.recordWithRetention(
+            entity = entry.toEntity(),
+            cutoffEpochMs = entry.createdAtEpochMs - VoiceHistoryRetention.RETENTION_MS,
+            keepPerSession = VoiceHistoryRetention.MAX_ENTRIES_PER_SESSION,
+        )
     }
 
     /** Corrige una captura, incrementa su revisión y audita el cambio anterior/nuevo. */

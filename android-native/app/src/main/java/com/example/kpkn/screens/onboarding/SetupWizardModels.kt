@@ -16,6 +16,7 @@ import com.example.kpkn.data.models.TrainingStyle
 import com.example.kpkn.data.programs.toTrainingReference
 import com.example.kpkn.domain.nutrition.NutritionConfigurationMode
 import com.example.kpkn.domain.nutrition.parseLocalizedNumber
+import com.example.kpkn.domain.nutrition.kilogramsFromInput
 import com.example.kpkn.domain.training.PersonalizationReport
 import com.example.kpkn.domain.training.SimpleCyclePersonalizer
 import com.example.kpkn.domain.training.importer.ImportDraftValidation
@@ -1787,9 +1788,12 @@ object SetupWizardValidation {
                 val raw = draft.inputTexts[step.name]
                     ?: draft.nutritionDraft?.targetWeightText.orEmpty().ifBlank { null }
                 val parsed = raw?.let { parseLocalizedNumber(it) }
+                val unit = if (draft.inputTexts[step.name] != null) draft.weightUnit else draft.nutritionDraft?.weightUnit ?: draft.weightUnit
+                val kg = parsed?.let { kilogramsFromInput(it, unit) }
+                val range = if (unit == "lb") "44,1 y 1102,3 lb" else "20 y 500 kg"
                 when {
-                    raw != null && parsed == null -> invalid("targetWeight", "Escribe un peso válido")
-                    parsed != null && parsed !in 20.0..500.0 -> invalid("targetWeight", "Usa un peso entre 20 y 500 kg")
+                    raw != null && (parsed == null || kg == null || !kg.isFinite()) -> invalid("targetWeight", "Escribe un peso válido")
+                    kg != null && kg !in 20.0..500.0 -> invalid("targetWeight", "Usa un peso entre $range")
                     raw == null && !draft.isAnswered(step) ->
                         absent("targetWeight", "Indica tu peso objetivo o usa omitir")
                     else -> ok("targetWeight")

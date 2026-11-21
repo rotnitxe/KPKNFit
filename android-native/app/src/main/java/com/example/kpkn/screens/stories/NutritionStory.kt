@@ -167,7 +167,7 @@ internal fun nutritionStoryPage(
                     NutritionDayBar(weekdayInitialEs(day.date.dayOfWeek), percent, over = g != null && percent > GOAL_HIGH)
                 },
                 ringCenter = average?.takeIf { options.calories }?.let(::formatKcalEs),
-                ringFill = if (average != null && goal != null && goal > 0) (average.toFloat() / goal).coerceIn(0f, 1f) else 1f,
+                ringFill = if (options.goal && average != null && goal != null && goal > 0) (average.toFloat() / goal).coerceIn(0f, 1f) else 1f,
                 ringParts = macroShares(macros),
             )
         }
@@ -202,7 +202,7 @@ internal fun nutritionStoryPage(
             NutritionStoryPage(
                 eyebrow = "Racha",
                 title = storyDays(s.current),
-                sub = "Registrando todas mis comidas",
+                sub = "Registrando mi alimentación",
                 badge = if (s.current >= 2 && s.current >= s.best) "Mi mejor racha" else null,
                 streakWeeks = ((s.current + 6) / 7).coerceAtLeast(1),
             )

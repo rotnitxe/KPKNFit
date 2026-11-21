@@ -94,9 +94,14 @@ internal fun Program.withImportedWeekdays(weekdays: Set<Int>, preservedSessionId
         macro.copy(blocks = macro.blocks.map { block ->
             block.copy(mesocycles = block.mesocycles.map { meso ->
                 meso.copy(weeks = meso.weeks.map { week ->
+                    val unpreservedCount = week.sessions.count {
+                        it.id !in preservedSessionIds && it.requirement == com.example.kpkn.data.models.SessionRequirement.REQUIRED
+                    }
+                    val occupied = week.sessions.filter { it.id in preservedSessionIds }.mapNotNull { it.dayOfWeek }.toSet()
+                    val availableDays = trainingDays.filterNot { it in occupied }
                     val assigned = ImportedProgramBuilder.assignWeekdays(
-                        week.sessions.count { it.requirement == com.example.kpkn.data.models.SessionRequirement.REQUIRED },
-                        trainingDays,
+                        unpreservedCount,
+                        availableDays.takeIf { it.size >= unpreservedCount } ?: trainingDays,
                     )
                     var trainingSessionIndex = 0
                     week.copy(sessions = week.sessions.map { session ->

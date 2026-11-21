@@ -78,6 +78,14 @@ class BodyStoryModelTest {
         assertEquals(6, pagina.ecoNumber)
     }
 
+    @Test fun `medidas ocultas no aparecen en titulo subtitulo filas ni eco`() {
+        val page = bodyStoryPage(BodyStoryTemplate.MEDIDAS, doceSemanas, WizardMassUnit.KG, BodyStoryOptions(measures = false))
+        assertEquals("12 semanas", page.title)
+        assertEquals(null, page.sub)
+        assertEquals(0, page.ecoNumber)
+        assertTrue(page.rows.none { it.label == "Cintura" })
+    }
+
     @Test
     fun `plantillas segun los datos`() {
         assertEquals(listOf(BodyStoryTemplate.CAMBIO, BodyStoryTemplate.MEDIDAS), bodyStoryTemplates(doceSemanas))

@@ -69,10 +69,11 @@ suspend fun readSheets(
     mime: String?,
     cacheDir: File? = null,
     onOcrPage: (page: Int, ocrPage: OcrPage) -> Unit = { _, _ -> },
+    knownFileName: String? = null,
     onProgress: (page: Int, pages: Int) -> Unit = { _, _ -> },
 ): Result<List<ImportSheet>> = withContext(Dispatchers.IO) {
     try {
-        val fileName = programFileNameOf(contentResolver, uri)
+        val fileName = knownFileName ?: programFileNameOf(contentResolver, uri)
         val title = ImportFileReader.titleOf(fileName)
         val peeked = contentResolver.openInputStream(uri)?.use { input -> peekWithinLimits(input, mime) }
             ?: return@withContext Result.failure(ImportFileException(UNREADABLE_MESSAGE))

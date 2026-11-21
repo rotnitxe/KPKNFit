@@ -37,6 +37,7 @@ internal fun mergeCommittedLiveMutation(base: WorkoutUiState, candidate: Workout
         postExerciseFeedbackByExerciseId = delta(base.postExerciseFeedbackByExerciseId, candidate.postExerciseFeedbackByExerciseId, current.postExerciseFeedbackByExerciseId),
         godModeUndoStack = field(base.godModeUndoStack, candidate.godModeUndoStack, current.godModeUndoStack),
         pendingStructuralPersistence = field(base.pendingStructuralPersistence, candidate.pendingStructuralPersistence, current.pendingStructuralPersistence),
+        pendingEditSheetExerciseId = field(base.pendingEditSheetExerciseId, candidate.pendingEditSheetExerciseId, current.pendingEditSheetExerciseId),
         ultraFastSnapshot = field(base.ultraFastSnapshot, candidate.ultraFastSnapshot, current.ultraFastSnapshot),
         ultraFastCompletedSetsSnapshot = field(base.ultraFastCompletedSetsSnapshot, candidate.ultraFastCompletedSetsSnapshot, current.ultraFastCompletedSetsSnapshot),
         ultraFastPreview = field(base.ultraFastPreview, candidate.ultraFastPreview, current.ultraFastPreview),

@@ -27,7 +27,8 @@ internal fun pendingLateralityPlan(state: WorkoutUiState, proposed: Session): Pe
                 continue
             }
             val doneIds = started.map { before.sets[it].id }.toSet()
-            val pending = after.sets.filterNot { it.id in doneIds }
+            val doneSlots = started.mapNotNull { before.sets[it].plannedSlotId }.toSet()
+            val pending = after.sets.filterNot { it.id in doneIds || (it.plannedSlotId != null && it.plannedSlotId in doneSlots) }
             if (pending.isEmpty()) {
                 rejection = "No quedan series pendientes para cambiar la lateralidad."
                 continue

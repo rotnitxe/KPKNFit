@@ -9,18 +9,20 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat
 import com.example.kpkn.data.db.KpknDatabase
 import com.example.kpkn.data.db.toCompetitionRecord
+import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.models.CompetitionRecord
 import com.example.kpkn.data.models.CompetitionRecordStatus
 import com.example.kpkn.navigation.KpknDeepLinks
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
+import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -45,16 +47,16 @@ class CompetitionReminderManager(context: Context) {
         manager.createNotificationChannel(channel)
     }
 
-    fun schedule(record: CompetitionRecord) {
+    fun schedule(record: CompetitionRecord, zoneId: ZoneId = ZoneId.systemDefault()) {
         cancel(record.id)
         if (record.status != CompetitionRecordStatus.PLANNED) return
         val eventAt = record.eventDate?.toEventDateTime(record.startTime) ?: return
-        scheduleIfEnabled(record, TYPE_WEEK, eventAt.minusDays(7), record.reminderOneWeekEnabled)
-        scheduleIfEnabled(record, TYPE_48H, eventAt.minusHours(48), record.reminder48hEnabled)
-        scheduleIfEnabled(record, TYPE_START, eventAt, record.reminderStartEnabled)
+        scheduleIfEnabled(record, TYPE_WEEK, eventAt.minusDays(7), record.reminderOneWeekEnabled, zoneId)
+        scheduleIfEnabled(record, TYPE_48H, eventAt.minusHours(48), record.reminder48hEnabled, zoneId)
+        scheduleIfEnabled(record, TYPE_START, eventAt, record.reminderStartEnabled, zoneId)
         // Follow-up reminder only when an explicit competition start time exists.
         if (!record.startTime.isNullOrBlank()) {
-            scheduleIfEnabled(record, TYPE_POST_RESULT, eventAt.plusHours(5), true)
+            scheduleIfEnabled(record, TYPE_POST_RESULT, eventAt.plusHours(5), true, zoneId)
         }
     }
 
@@ -64,9 +66,15 @@ class CompetitionReminderManager(context: Context) {
         }
     }
 
-    private fun scheduleIfEnabled(record: CompetitionRecord, type: String, triggerAt: LocalDateTime, enabled: Boolean) {
+    private fun scheduleIfEnabled(
+        record: CompetitionRecord,
+        type: String,
+        triggerAt: LocalDateTime,
+        enabled: Boolean,
+        zoneId: ZoneId = ZoneId.systemDefault(),
+    ) {
         if (!enabled) return
-        val triggerMs = triggerAt.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+        val triggerMs = triggerAt.atZone(zoneId).toInstant().toEpochMilli()
         if (triggerMs <= System.currentTimeMillis()) return
         val pendingIntent = pendingIntent(record.id, type, record.title, record.eventDate.orEmpty())
         runCatching {
@@ -115,7 +123,6 @@ class CompetitionReminderManager(context: Context) {
 class CompetitionReminderReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (!hasPermission(context)) return
-        CompetitionReminderManager(context).createChannels()
 
         val title = intent.getStringExtra(CompetitionReminderManager.EXTRA_TITLE)
             ?.takeIf { it.isNotBlank() }
@@ -124,12 +131,34 @@ class CompetitionReminderReceiver : BroadcastReceiver() {
         val date = intent.getStringExtra(CompetitionReminderManager.EXTRA_DATE).orEmpty()
         val type = intent.getStringExtra(CompetitionReminderManager.EXTRA_TYPE).orEmpty()
         if (type == CompetitionReminderManager.TYPE_POST_RESULT && recordId.isNotBlank()) {
-            val shouldNotify = runBlocking {
-                val entity = KpknDatabase.getInstance(context).competitionRecordDao().getById(recordId)
-                entity?.status == CompetitionRecordStatus.PLANNED.name
+            val appContext = context.applicationContext
+            val pendingResult: BroadcastReceiver.PendingResult? = goAsync()
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val entity = KpknDatabase.getInstance(appContext).competitionRecordDao().getById(recordId)
+                    if (entity?.status == CompetitionRecordStatus.PLANNED.name) {
+                        postNotification(appContext, title, recordId, date, type)
+                    }
+                } catch (t: Throwable) {
+                    Log.e(TAG, "Failed to verify competition status before posting notification", t)
+                    KpknDiagnosticLogger.exception("app", "competition_reminder_check_failed", t)
+                } finally {
+                    pendingResult?.finish()
+                }
             }
-            if (!shouldNotify) return
+            return
         }
+        postNotification(context, title, recordId, date, type)
+    }
+
+    private fun postNotification(
+        context: Context,
+        title: String,
+        recordId: String,
+        date: String,
+        type: String,
+    ) {
+        CompetitionReminderManager(context).createChannels()
         val body = when (type) {
             CompetitionReminderManager.TYPE_WEEK -> "Queda una semana para $title."
             CompetitionReminderManager.TYPE_48H -> "Quedan 48 horas para $title."
@@ -165,37 +194,70 @@ class CompetitionReminderReceiver : BroadcastReceiver() {
             }
         }
     }
+
+    private companion object {
+        const val TAG = "CompetitionReminderRcv"
+    }
 }
 
-/** Rebuilds all future competition alarms after a reboot or package replacement. */
+/** Rebuilds all future competition alarms after a reboot, package replacement, or timezone change. */
 class CompetitionReminderBootReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action != Intent.ACTION_BOOT_COMPLETED &&
-            intent.action != Intent.ACTION_MY_PACKAGE_REPLACED
-        ) return
+        val action = intent.action ?: return
+        if (action !in HANDLED_ACTIONS) return
 
-        val pendingResult = goAsync()
+        val appContext = context.applicationContext
+        val zoneId = zoneFor(intent)
+        val pendingResult: BroadcastReceiver.PendingResult? = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                reschedulePersistedRecords(context)
+                reschedulePersistedRecords(appContext, zoneId = zoneId)
+            } catch (t: Throwable) {
+                Log.e(TAG, "Failed to reschedule competition reminders after $action", t)
+                KpknDiagnosticLogger.exception("app", "competition_boot_reschedule_failed", t)
             } finally {
-                pendingResult.finish()
+                pendingResult?.finish()
             }
         }
     }
 
     companion object {
+        private const val TAG = "CompetitionReminderBoot"
+
+        internal val HANDLED_ACTIONS = setOf(
+            Intent.ACTION_BOOT_COMPLETED,
+            Intent.ACTION_MY_PACKAGE_REPLACED,
+            Intent.ACTION_TIMEZONE_CHANGED,
+        )
+
         suspend fun reschedulePersistedRecords(
             context: Context,
             database: KpknDatabase = KpknDatabase.getInstance(context),
+            zoneId: ZoneId = ZoneId.systemDefault(),
         ) {
             val manager = CompetitionReminderManager(context)
             manager.createChannels()
             database.competitionRecordDao()
                 .getAll()
-                .map { it.toCompetitionRecord() }
-                .filter { it.status == CompetitionRecordStatus.PLANNED }
-                .forEach(manager::schedule)
+                .forEach { entity ->
+                    runCatching {
+                        val record = entity.toCompetitionRecord()
+                        if (record.status == CompetitionRecordStatus.PLANNED) {
+                            manager.schedule(record, zoneId)
+                        }
+                    }.onFailure { error ->
+                        Log.w(TAG, "Skipping unreadable competition record ${entity.id}", error)
+                    }
+                }
+        }
+
+        internal fun zoneFor(intent: Intent): ZoneId {
+            val id = intent.getStringExtra(Intent.EXTRA_TIMEZONE) ?: return ZoneId.systemDefault()
+            return try {
+                ZoneId.of(id)
+            } catch (_: DateTimeException) {
+                ZoneId.systemDefault()
+            }
         }
     }
 }

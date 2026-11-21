@@ -87,12 +87,7 @@ import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextField
 import com.example.kpkn.ui.design.KpknType
 
-internal data class TechniqueCheckRow(
-    val weightText: String = "",
-    val repsText: String = RestPausePlanDefaults.Reps.toString(),
-    val restText: String = RestPausePlanDefaults.PauseSeconds.toString(),
-    val done: Boolean = false,
-)
+internal typealias TechniqueCheckRow = com.example.kpkn.screens.workout.WorkoutTechniqueInputRow
 
 private const val LiveDropSetMax = 5
 
@@ -148,6 +143,8 @@ internal fun SetCardTechniqueBack(
     loadStepKg: Double = 2.5,
     loadMode: com.example.kpkn.data.models.LoadModeV2 = com.example.kpkn.data.models.LoadModeV2.LOAD,
     modifier: Modifier = Modifier,
+    initialEditorDraft: com.example.kpkn.screens.workout.WorkoutInlineTechniqueDraft? = null,
+    onEditorDraftChange: ((com.example.kpkn.screens.workout.WorkoutInlineTechniqueDraft) -> Unit)? = null,
 ) {
     val plannedGuide = remember(currentSet) {
         // Volume-replaced editor plans run inside the front card controls.
@@ -157,20 +154,20 @@ internal fun SetCardTechniqueBack(
         if (currentSet.techniqueScope() == SetTechniqueScope.VOLUME_REPLACED) null
         else currentSet.resolvePlannedTechniqueGuide()
     }
-    var myo by remember(currentSet.id) { mutableStateOf(currentSet.isMyoReps()) }
+    var myo by remember(currentSet.id) { mutableStateOf(initialEditorDraft?.myo ?: currentSet.isMyoReps()) }
     val restParams = currentSet.plannedIntensityTechniques.firstOrNull { it.type == TechniqueType.REST_PAUSE }?.params.orEmpty()
     var dropEnabled by remember(currentSet.id) {
-        mutableStateOf(initialDropEnabled || plannedGuide?.kind == TechniqueType.DROP_SET)
+        mutableStateOf(initialEditorDraft?.dropEnabled ?: (initialDropEnabled || plannedGuide?.kind == TechniqueType.DROP_SET))
     }
     var restPauseEnabled by remember(currentSet.id) {
-        mutableStateOf(initialRestPauseEnabled || plannedGuide?.kind == TechniqueType.REST_PAUSE)
+        mutableStateOf(initialEditorDraft?.restPauseEnabled ?: (initialRestPauseEnabled || plannedGuide?.kind == TechniqueType.REST_PAUSE))
     }
     var dropRows by remember(currentSet.id, mainWeight, mainReps) {
         val count = plannedGuide?.count?.takeIf { plannedGuide.kind == TechniqueType.DROP_SET }
             ?: DropSetPlanDefaults.DefaultDrops
         val suggestions = suggestedDropLoadsForMainSet(mainWeight, mainReps, count, loadMode)
         mutableStateOf(
-            suggestions.map { load ->
+            initialEditorDraft?.drops ?: suggestions.map { load ->
                 TechniqueCheckRow(
                     weightText = if (load > 0) load.toTrimmedNumberString() else "",
                     repsText = RestPausePlanDefaults.Reps.toString(),
@@ -184,7 +181,7 @@ internal fun SetCardTechniqueBack(
         val count = plannedGuide?.count?.takeIf { plannedGuide.kind == TechniqueType.REST_PAUSE }
             ?: if(myo) 4 else RestPausePlanDefaults.DefaultCount
         mutableStateOf(
-            List(count.coerceIn(RestPausePlanDefaults.MinCount, RestPausePlanDefaults.MaxCount)) {
+            initialEditorDraft?.pauses ?: List(count.coerceIn(RestPausePlanDefaults.MinCount, RestPausePlanDefaults.MaxCount)) {
                 TechniqueCheckRow(repsText = (restParams["reps"]?.toIntOrNull() ?: if(myo) 4 else RestPausePlanDefaults.Reps).toString(),
                     restText = (restParams["pauseSeconds"]?.toIntOrNull() ?: RestPausePlanDefaults.PauseSeconds).toString())
             },
@@ -197,6 +194,11 @@ internal fun SetCardTechniqueBack(
 
     LaunchedEffect(dropEnabled) { onDropEnabledChange(dropEnabled) }
     LaunchedEffect(restPauseEnabled) { onRestPauseEnabledChange(restPauseEnabled) }
+    LaunchedEffect(dropRows, restPauseRows, dropEnabled, restPauseEnabled, myo) {
+        onEditorDraftChange?.invoke(
+            com.example.kpkn.screens.workout.WorkoutInlineTechniqueDraft(dropRows, restPauseRows, dropEnabled, restPauseEnabled, myo),
+        )
+    }
     // Con todas las filas marcadas como hechas, la técnica se registra en la serie (LR0).
     LaunchedEffect(dropEnabled, restPauseEnabled, dropRows, restPauseRows, committed, myo) {
         if (committed) return@LaunchedEffect

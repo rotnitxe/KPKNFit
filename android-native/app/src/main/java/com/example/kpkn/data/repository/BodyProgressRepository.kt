@@ -49,6 +49,7 @@ class BodyProgressRepository private constructor(
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     /** Serialises Room writes so a delete cannot be overtaken by a later reload. */
     private val writeMutex = Mutex()
+    private val prefsJson = Json { ignoreUnknownKeys = true; encodeDefaults = true; coerceInputValues = true }
     private val dao: BodyProgressDao = db.bodyProgressDao()
     private val ready = CompletableDeferred<Unit>()
 
@@ -163,7 +164,7 @@ class BodyProgressRepository private constructor(
             } else null,
         )
         _measurementSchedule.value = normalized
-        prefs.edit().putString(KEY_SCHEDULE, Json.encodeToString(normalized)).apply()
+        prefs.edit().putString(KEY_SCHEDULE, prefsJson.encodeToString(normalized)).apply()
         val notifier = NutritionNotificationManager(appContext)
         if (normalized.enabled && normalized.nextDate != null) {
             notifier.scheduleMeasurementReminder(normalized.nextDate, normalized.reminderHour, normalized.reminderMinute)
@@ -187,10 +188,13 @@ class BodyProgressRepository private constructor(
         awaitReady()
         prefs.edit().clear().commit()
         NutritionNotificationManager(appContext).cancelMeasurementReminder()
-        _measurementSchedule.value = MeasurementSchedule()
         writeMutex.withLock {
             dao.clearObservations()
             dao.clearGoals()
+            _observations.value = emptyList()
+            _goals.value = emptyList()
+            _measurementSchedule.value = MeasurementSchedule()
+            _lastError.value = null
         }
     }
 
@@ -245,8 +249,10 @@ class BodyProgressRepository private constructor(
                 val imported = importLegacyIfNeeded(rows)
                 _observations.value = (rows + imported).distinctBy { it.id }.sortedBy { it.timestampEpochMs }
                 _goals.value = goals
-                _measurementSchedule.value = prefs.getString(KEY_SCHEDULE, null)?.let {
-                    Json.decodeFromString<MeasurementSchedule>(it)
+                _measurementSchedule.value = prefs.getString(KEY_SCHEDULE, null)?.let { raw ->
+                    runCatching { prefsJson.decodeFromString<MeasurementSchedule>(raw) }
+                        .onFailure { android.util.Log.w("BodyProgressRepo", "Corrupt schedule pref; resetting default", it) }
+                        .getOrNull()
                 } ?: MeasurementSchedule()
                 val schedule = _measurementSchedule.value
                 if (schedule.enabled && schedule.nextDate != null) {
@@ -266,7 +272,7 @@ class BodyProgressRepository private constructor(
     private suspend fun importLegacyIfNeeded(existing: List<BodyObservation>): List<BodyObservation> {
         if (prefs.getBoolean(KEY_MIGRATED, false)) return emptyList()
         val json = prefs.getString(KEY_LEGACY_MEASUREMENTS, null) ?: return emptyList()
-        val legacy = runCatching { Json.decodeFromString<List<BodyMeasurementEntry>>(json) }.getOrDefault(emptyList())
+        val legacy = runCatching { prefsJson.decodeFromString<List<BodyMeasurementEntry>>(json) }.getOrDefault(emptyList())
         if (legacy.isEmpty()) {
             prefs.edit().putBoolean(KEY_MIGRATED, true).remove(KEY_LEGACY_MEASUREMENTS).apply()
             return emptyList()

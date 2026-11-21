@@ -230,13 +230,13 @@ class WorkoutStepNavigator(
         skipExerciseAndAdvance(state, currentExercise.id)
     }
 
-    fun skipCurrentSupersetRound() {
+    fun skipCurrentSupersetRound(targetStepKey: String? = null) {
         if (ports.isRecordingBusy()) return
         ports.stopRestTimer()
         val state = getState()
         val visible = ports.visibleExercises(state)
         val steps = workoutStepPositions(state)
-        val currentStepIdx = stepPositionIndex(
+        val currentStepIdx = targetStepKey?.let { key -> steps.indexOfFirst { it.stepKey == key } } ?: stepPositionIndex(
             steps = steps,
             visible = visible,
             exerciseIdx = state.currentExerciseIdx,
@@ -246,9 +246,10 @@ class WorkoutStepNavigator(
         val currentStep = steps.getOrNull(currentStepIdx) ?: return
         val groupId = currentStep.supersetGroupId ?: return
         val roundIndex = currentStep.supersetRoundIndex ?: return
+        val pendingKeys = pendingSeriesSteps(state).mapTo(mutableSetOf()) { it.stepKey }
         val remainingRoundSteps = steps.drop(currentStepIdx)
             .takeWhile { it.supersetGroupId == groupId && it.supersetRoundIndex == roundIndex }
-            .filter { it.type == WorkoutStepType.WORKING_SET && it.setIndex != null }
+            .filter { it.type == WorkoutStepType.WORKING_SET && it.setIndex != null && it.stepKey in pendingKeys }
         if (remainingRoundSteps.isEmpty()) return
 
         if (ports.requestSetOmissions(remainingRoundSteps.mapNotNull { step -> step.setIndex?.let { WorkoutStepRules.omittedSetKey(step.exerciseId, it) } }.toSet())) return

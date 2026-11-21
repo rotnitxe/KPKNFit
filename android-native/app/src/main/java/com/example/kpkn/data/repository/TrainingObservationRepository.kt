@@ -54,7 +54,14 @@ class TrainingObservationRepository(
     }
 
     suspend fun getPostSessionFeedbacks(): List<com.example.kpkn.data.models.PostSessionFeedback> = withContext(Dispatchers.IO) {
-        dao.all().filter { it.kind == "feedback" }.map { com.example.kpkn.data.db.dbJson.decodeFromString<com.example.kpkn.data.models.PostSessionFeedback>(it.payload) }
+        dao.all().filter { it.kind == "feedback" }.mapNotNull { observation ->
+            runCatching {
+                com.example.kpkn.data.db.dbJson.decodeFromString(
+                    com.example.kpkn.data.models.PostSessionFeedback.serializer(),
+                    observation.payload,
+                )
+            }.getOrNull()
+        }
     }
     suspend fun getFeedbackForLog(logId: String): com.example.kpkn.data.models.PostSessionFeedback? =
         getPostSessionFeedbacks().firstOrNull { it.logId == logId }

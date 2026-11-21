@@ -18,17 +18,18 @@ class WorkoutTtsManager(context: Context) {
     private class CompletionGroup(var remaining: Int, val callback: () -> Unit)
 
     private val appContext = context.applicationContext
-    private var tts: TextToSpeech? = null
-    private var _isInitialized = false
-    private var _initError: String? = null
+    private val ttsLock = Any()
+    @Volatile private var tts: TextToSpeech? = null
+    @Volatile private var _isInitialized = false
+    @Volatile private var _initError: String? = null
     private val completionGroups = ConcurrentHashMap<String, CompletionGroup>()
     private val completionIds = ConcurrentHashMap<String, String>()
-    private var openGroupKey: String? = null
-    private var latestGroupKey: String? = null
+    @Volatile private var openGroupKey: String? = null
+    @Volatile private var latestGroupKey: String? = null
     private var groupCounter = 0L
     private val mainHandler = Handler(Looper.getMainLooper())
     private val utteranceCounter = AtomicLong(0)
-    private var initializationStarted = false
+    @Volatile private var initializationStarted = false
     private val readyCallbacks = mutableListOf<() -> Unit>()
     private val errorCallbacks = mutableListOf<(String) -> Unit>()
 
@@ -60,14 +61,16 @@ class WorkoutTtsManager(context: Context) {
     val initError: String? get() = _initError
 
     fun initialize(onReady: (() -> Unit)? = null, onError: ((String) -> Unit)? = null) {
-        if (_isInitialized) {
-            onReady?.let { mainHandler.post(it) }
-            return
+        synchronized(ttsLock) {
+            if (_isInitialized) {
+                onReady?.let { mainHandler.post(it) }
+                return
+            }
+            onReady?.let(readyCallbacks::add)
+            onError?.let(errorCallbacks::add)
+            if (initializationStarted) return
+            initializationStarted = true
         }
-        onReady?.let(readyCallbacks::add)
-        onError?.let(errorCallbacks::add)
-        if (initializationStarted) return
-        initializationStarted = true
 
         tts = TextToSpeech(appContext) { status ->
             when (status) {
@@ -108,13 +111,16 @@ class WorkoutTtsManager(context: Context) {
                             fallback != TextToSpeech.LANG_NOT_SUPPORTED
                     }
                     if (!languageOk) {
-                        _isInitialized = false
-                        _initError = "TTS language unavailable"
-                        initializationStarted = false
-                        val message = _initError!!
-                        val callbacks = errorCallbacks.toList()
-                        readyCallbacks.clear()
-                        errorCallbacks.clear()
+                        val message = "TTS language unavailable"
+                        val callbacks = synchronized(ttsLock) {
+                            _isInitialized = false
+                            _initError = message
+                            initializationStarted = false
+                            val snapshot = errorCallbacks.toList()
+                            readyCallbacks.clear()
+                            errorCallbacks.clear()
+                            snapshot
+                        }
                         callbacks.forEach { callback -> mainHandler.post { callback(message) } }
                         return@TextToSpeech
                     }
@@ -126,22 +132,28 @@ class WorkoutTtsManager(context: Context) {
                                 .build()
                         )
                     }
-                    _isInitialized = true
-                    _initError = null
-                    initializationStarted = false
-                    val callbacks = readyCallbacks.toList()
-                    readyCallbacks.clear()
-                    errorCallbacks.clear()
+                    val callbacks = synchronized(ttsLock) {
+                        _isInitialized = true
+                        _initError = null
+                        initializationStarted = false
+                        val snapshot = readyCallbacks.toList()
+                        readyCallbacks.clear()
+                        errorCallbacks.clear()
+                        snapshot
+                    }
                     callbacks.forEach { callback -> mainHandler.post(callback) }
                 }
                 else -> {
-                    _isInitialized = false
-                    _initError = "TTS init error: $status"
-                    initializationStarted = false
-                    val message = _initError!!
-                    val callbacks = errorCallbacks.toList()
-                    readyCallbacks.clear()
-                    errorCallbacks.clear()
+                    val message = "TTS init error: $status"
+                    val callbacks = synchronized(ttsLock) {
+                        _isInitialized = false
+                        _initError = message
+                        initializationStarted = false
+                        val snapshot = errorCallbacks.toList()
+                        readyCallbacks.clear()
+                        errorCallbacks.clear()
+                        snapshot
+                    }
                     callbacks.forEach { callback -> mainHandler.post { callback(message) } }
                 }
             }
@@ -154,7 +166,7 @@ class WorkoutTtsManager(context: Context) {
      * Si otro grupo más nuevo se crea antes, el viejo queda superseded y nunca
      * dispara — así una preempción no reanuda el ASR a mitad de la última voz.
      */
-    fun setOnUtteranceComplete(callback: (() -> Unit)?) {
+    fun setOnUtteranceComplete(callback: (() -> Unit)?) = synchronized(ttsLock) {
         if (callback == null) {
             openGroupKey = null
             return
@@ -354,23 +366,29 @@ class WorkoutTtsManager(context: Context) {
     fun speak(text: String, queueFlush: Boolean = false) {
         val engine = tts
         if (engine == null || !_isInitialized) {
-            openGroupKey?.let { key ->
-                val group = completionGroups.remove(key)
-                if (key == latestGroupKey) {
-                    group?.callback?.invoke()
+            val callbackToInvoke = synchronized(ttsLock) {
+                val key = openGroupKey
+                openGroupKey = null
+                if (key != null) {
+                    val group = completionGroups.remove(key)
+                    if (key == latestGroupKey) group?.callback else null
+                } else {
+                    null
                 }
             }
-            openGroupKey = null
+            callbackToInvoke?.invoke()
             return
         }
 
         val queueMode = if (queueFlush) TextToSpeech.QUEUE_FLUSH else TextToSpeech.QUEUE_ADD
         val utteranceId = "kpkn-tts-${utteranceCounter.incrementAndGet()}"
         utteranceTexts[utteranceId] = text
-        openGroupKey?.let { key ->
-            completionGroups[key]?.let { group ->
-                group.remaining += 1
-                completionIds[utteranceId] = key
+        synchronized(ttsLock) {
+            openGroupKey?.let { key ->
+                completionGroups[key]?.let { group ->
+                    group.remaining += 1
+                    completionIds[utteranceId] = key
+                }
             }
         }
 
@@ -404,17 +422,19 @@ class WorkoutTtsManager(context: Context) {
     }
 
     fun shutdown() {
-        openGroupKey = null
-        latestGroupKey = null
-        completionGroups.clear()
-        completionIds.clear()
-        readyCallbacks.clear()
-        errorCallbacks.clear()
-        initializationStarted = false
+        synchronized(ttsLock) {
+            openGroupKey = null
+            latestGroupKey = null
+            completionGroups.clear()
+            completionIds.clear()
+            readyCallbacks.clear()
+            errorCallbacks.clear()
+            initializationStarted = false
+            _isInitialized = false
+        }
         tts?.stop()
         tts?.shutdown()
         tts = null
-        _isInitialized = false
         utteranceTexts.clear()
         speakingUtteranceId = null
         _speakingText.value = null
@@ -422,16 +442,25 @@ class WorkoutTtsManager(context: Context) {
 
     private fun complete(utteranceId: String?) {
         val id = utteranceId ?: return
-        val key = completionIds.remove(id) ?: return
-        val group = completionGroups[key] ?: return
-        group.remaining -= 1
-        if (group.remaining <= 0) {
-            completionGroups.remove(key)
-            if (key == latestGroupKey) {
-                latestGroupKey = null
-                openGroupKey = null
-                mainHandler.post(group.callback)
+        val callbackToPost = synchronized(ttsLock) {
+            val key = completionIds.remove(id) ?: return
+            val group = completionGroups[key] ?: return
+            group.remaining -= 1
+            if (group.remaining <= 0) {
+                completionGroups.remove(key)
+                if (key == latestGroupKey) {
+                    latestGroupKey = null
+                    openGroupKey = null
+                    group.callback
+                } else {
+                    null
+                }
+            } else {
+                null
             }
+        }
+        if (callbackToPost != null) {
+            mainHandler.post(callbackToPost)
         }
     }
 

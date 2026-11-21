@@ -2,12 +2,22 @@ package com.example.kpkn.data.importer
 
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
+import java.math.BigDecimal
+
+internal fun String.boundedImportDecimal(): BigDecimal? {
+    val raw = trim()
+    if (raw.length > 256) return null
+    return raw.toBigDecimalOrNull()?.takeIf { it.scale() in -100..100 && it.precision() - it.scale() <= 30 }
+}
 
 /** Error con mensaje para el usuario: el archivo no se puede leer o supera los límites del importador. */
 class ImportFileException(message: String) : Exception(message)
 
 /** Límites defensivos del importador de programas (archivos de entrenamiento, no hojas masivas). */
 object ImportLimits {
+    const val MAX_ZIP_ENTRIES = 2_048
+    const val MAX_DOM_DEPTH = 128
+    const val MAX_PASTED_TEXT_CHARS = com.example.kpkn.domain.training.importer.MAX_IMPORT_TEXT_CHARS
     /** Tamaño máximo de una hoja, un CSV o un texto en disco (el PDF y la foto tienen sus propios topes). */
     const val MAX_FILE_BYTES: Long = 5L * 1024 * 1024
 

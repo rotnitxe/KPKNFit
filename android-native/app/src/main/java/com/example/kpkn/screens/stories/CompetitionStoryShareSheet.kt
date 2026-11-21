@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
@@ -81,16 +83,21 @@ fun CompetitionStoryShareSheet(
     var options by remember { mutableStateOf(CompetitionStoryOptions()) }
     var photoIndex by remember { mutableIntStateOf(0) }
     val photoPath = availability.photos.getOrNull(photoIndex)
-    val photo: ImageBitmap? by produceState<ImageBitmap?>(initialValue = null, photoPath) {
-        value = photoPath?.let { loadStoryPhoto(context, it)?.asImageBitmap() }
+    var photoRetry by remember(photoPath) { mutableIntStateOf(0) }
+    val photoRequest = photoPath to photoRetry
+    val loadedPhoto by produceState<Pair<Pair<String?, Int>, ImageBitmap?>?>(initialValue = null, photoRequest) {
+        value = photoRequest to photoPath?.let { loadStoryPhoto(context, it)?.asImageBitmap() }
     }
     val page = remember(competition, allCompetitions, template, options) {
         competitionStoryPage(template, competition, allCompetitions, today, options)
     }
     val usesPhoto = template == CompetitionStoryTemplate.FOTO || template == CompetitionStoryTemplate.TARIMA
-    val shownPhoto = photo.takeIf { usesPhoto }
+    val currentPhoto = loadedPhoto?.takeIf { it.first == photoRequest }
+    val shownPhoto = currentPhoto?.second.takeIf { usesPhoto }
     val progress = rememberStoryDrawProgress(template, photoIndex)
-    val outputs = rememberStoryOutputs { ctx -> renderCompetitionStory(ctx, template, page, shownPhoto) }
+    val rawOutputs = rememberStoryOutputs { ctx -> renderCompetitionStory(ctx, template, page, shownPhoto) }
+    val photoUnavailable = usesPhoto && photoPath != null && shownPhoto == null
+    val outputs = StoryOutputs(rawOutputs.busy || photoUnavailable, rawOutputs.instagram, rawOutputs.saveAndMore, rawOutputs.video)
     val celebration = remember(competition, allCompetitions, options) { competitionCelebration(competition, allCompetitions, today, options) }
 
     val includes = buildList {
@@ -119,6 +126,11 @@ fun CompetitionStoryShareSheet(
             StoryPreview(modifier) { measurer -> drawCompetitionStory(template, page, measurer, shownPhoto, progress) }
         },
         extra = {
+            if (photoUnavailable && currentPhoto != null) {
+                TextButton(onClick = { photoRetry++ }) {
+                    Text("No se pudo cargar la foto. Reintentar")
+                }
+            }
             // Con varias fotos, se elige cuál va en la historia (la primera por defecto).
             if (usesPhoto && availability.photos.size > 1) {
                 Row(

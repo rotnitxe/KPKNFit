@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
@@ -163,7 +164,11 @@ class SetupCommitCoordinator(
     suspend fun commit(request: SetupCommitRequest): SetupCommitResult = mutex.withLock {
         PersistenceWriteCoordinator.mutex.withLock {
             require(request.commitId.isNotBlank())
-            programRepository?.isReady?.first { it }
+            programRepository?.let { repository ->
+                check(withTimeoutOrNull(30_000) { repository.isReady.first { it } } != null) {
+                    "El repositorio de programas no estuvo listo a tiempo. Inténtalo de nuevo."
+                }
+            }
             withContext(Dispatchers.IO) {
             var result: SetupCommitResult? = null
             var shouldPublish = false
@@ -422,23 +427,6 @@ class SetupCommitCoordinator(
         committedAtEpochMs = System.currentTimeMillis(),
     )
 
-}
-
-/**
- * Merge por campos del check-in compartido entre el commit del alta y su
- * vista previa. El desconocimiento nunca toca lo existente; los "muscular"
- * (sensación muscular global), "energy" y "structure" preservan ceros
- * explícitos y los canales manuales no tocados quedan intactos.
- */
-internal fun mergeSetupWellbeing(existing: DailyWellbeingLog?, incoming: DailyWellbeingLog): DailyWellbeingLog {
-    if (existing == null) return incoming
-    val fields = existing.capturedFields + incoming.capturedFields
-    val incomingHas = { key: String -> key in incoming.capturedFields }
-    return existing.copy(
-        id = existing.id,
-        preWorkoutDiscomforts = if (incomingHas("discomforts")) incoming.preWorkoutDiscomforts else existing.preWorkoutDiscomforts,
-        capturedFields = fields,
-    )
 }
 
 class PersistenceFactory private constructor(

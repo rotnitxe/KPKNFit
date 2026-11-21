@@ -66,6 +66,7 @@ internal fun WorkoutSessionOverlaysHost(
     TrainingMaxPreparation(viewModel.missingTrainingMaxes(session), enabled = !showReadinessSheet,
         onConfirm = viewModel::confirmTrainingMax)
     var readinessSaving by remember { mutableStateOf(false) }
+    var confirmAbandon by remember { mutableStateOf(false) }
     var readinessError by remember { mutableStateOf<String?>(null) }
     var showContext by remember { mutableStateOf(false) }
     LaunchedEffect(session.id) { viewModel.loadReadiness() }
@@ -168,16 +169,33 @@ internal fun WorkoutSessionOverlaysHost(
             }, icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Flag, small = "Guarda lo registrado")
             com.example.kpkn.screens.workout.components.LiveSheetMenuRow("Pausar y salir", {
                 val exitRequestId = RepairBenchmarkTrace.workoutExitRequested("pause_exit")
-                viewModel.stopRestTimer()
+                // El descanso sigue contando fuera de pantalla; salir no equivale a completarlo.
+                viewModel.flushOngoingForBackground()
                 onBack()
                 RepairBenchmarkTrace.workoutExitNavigationCommitted(exitRequestId)
                 onShowExitDialogChange(false)
             }, icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Pause, small = "Sigue en curso")
             com.example.kpkn.screens.workout.components.LiveSheetMenuRow("Abandonar sin guardar", {
                 onShowExitDialogChange(false)
-                viewModel.cancelWorkout()
+                confirmAbandon = true
             }, icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Trash, danger = true)
         }
+    }
+
+    if (confirmAbandon) {
+        val count = uiState.completedSets.values.count { !it.skipped && !it.isWarmup } +
+            uiState.archivedCompletedExercises.sumOf { exercise -> exercise.sets.count { !it.skipped && !it.isWarmup } }
+        com.example.kpkn.screens.workout.components.LiveAlert(
+            title = "¿Abandonar entrenamiento?",
+            text = if (count == 1) "Se perderá 1 registro de serie de esta sesión." else "Se perderán $count registros de series de esta sesión.",
+            primaryLabel = "Continuar entrenando",
+            onPrimary = { confirmAbandon = false },
+            secondaryLabel = "Abandonar sin guardar",
+            onSecondary = { confirmAbandon = false; viewModel.cancelWorkout() },
+            dangerSecondary = true,
+            onDismiss = { confirmAbandon = false },
+            icon = com.example.kpkn.ui.components.icons.KpknLineIcons.Alert,
+        )
     }
 
     // ─── Overlay preventivo: molestia persistente (≥3 sesiones en el patrón) ───

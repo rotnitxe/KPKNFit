@@ -472,7 +472,7 @@ class LiveLayerDismissTest {
                 visibleExercises = exercises,
                 completedSets = emptyMap(),
                 hasCatalogAction = false,
-                onCreateSuperset = { _, _, _, _, _ -> },
+                onCreateSuperset = { _, _, _, _, _, _ -> },
             )
         }
 

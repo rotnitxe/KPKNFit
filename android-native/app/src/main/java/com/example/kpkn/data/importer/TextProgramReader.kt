@@ -17,10 +17,10 @@ object TextProgramReader {
 
     /** Lee [text] como una hoja llamada [name], recortada a los topes con notas. */
     fun read(text: String, name: String): ImportSheet {
-        val lines = text.removePrefix("﻿").replace("\r\n", "\n").replace('\r', '\n').split('\n')
+        val lines = text.removePrefix("﻿").lineSequence()
         val allRows = lines.mapIndexedNotNull { index, line ->
             if (line.trim().startsWith("```")) null else rowOf(line)?.let { (index + 1) to it }
-        }
+        }.filter { (_, row) -> row.any(String::isNotBlank) }.take(ImportLimits.MAX_ROWS + 1).toList()
         val rows = allRows.take(ImportLimits.MAX_ROWS)
         val columnsCut = rows.any { (_, row) -> row.drop(ImportLimits.MAX_COLUMNS).any { it.isNotBlank() } }
         val rowsCut = allRows.size > rows.size

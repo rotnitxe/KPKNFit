@@ -49,7 +49,9 @@ internal class ImportedEditorDraftPersistence(
     private val atomicFile: AtomicFile = AtomicFile(file),
     private val sourceMediaStore: ImportSourceMediaStore? = null,
 ) {
-    private val mutex = locks.computeIfAbsent(file.absoluteFile.canonicalPath.replace('\\', '/').lowercase(Locale.ROOT)) { Mutex() }
+    private val mutex by lazy {
+        locks.computeIfAbsent(file.absoluteFile.canonicalPath.replace('\\', '/').lowercase(Locale.ROOT)) { Mutex() }
+    }
     private val json = Json { ignoreUnknownKeys = true; encodeDefaults = true }
 
     companion object {
@@ -63,7 +65,7 @@ internal class ImportedEditorDraftPersistence(
             check(!decoded.editingStarted || decoded.program?.id?.isNotBlank() == true) { "Borrador editado inválido" }
         }.copy(schemaVersion = 3)
 
-    private fun readLocked(): ImportedEditorDocument? {
+    private fun readBytesLocked(): ByteArray? {
         val base = atomicFile.baseFile
         check(!(File(base.path + ".rollback").exists() && File(base.path + ".rollback-empty").exists())) {
             "Hay respaldos incompatibles de borrador; se preservaron para recuperación"
@@ -71,24 +73,27 @@ internal class ImportedEditorDraftPersistence(
         restoreInterruptedWriteIfPresent(base)
         restoreInterruptedFirstWriteIfPresent(base)
         quarantinePendingWriteIfPresent(base)
+        base.parentFile?.listFiles { candidate ->
+            candidate.isFile && candidate.name.startsWith(base.name + ".") && ".uncommitted-" in candidate.name
+        }?.sortedByDescending { it.lastModified() }?.drop(2)?.forEach { it.delete() }
         if (!base.exists() && !File(base.path + ".bak").exists()) return null
-        return decodeDocument(atomicFile.openRead().use { it.readBytes() })
+        return atomicFile.openRead().use { it.readBytes() }
     }
 
     suspend fun read(): Result<ImportedEditorDocument?> = withContext(Dispatchers.IO) {
         mutex.withLock {
-            runCatching { readLocked() }.onSuccess { document ->
+            runCatching { readBytesLocked()?.let(::decodeDocument) }.onSuccess { document ->
                 runCatching { sourceMediaStore?.retainOnly(document?.sourceEvidence?.sourceMediaId) }
             }
         }
     }
 
-    private fun writeLocked(document: ImportedEditorDocument) {
+    private fun writeLocked(document: ImportedEditorDocument, previousBytes: ByteArray?) {
         val bytes = json.encodeToString(ImportedEditorDocument.serializer(), document).toByteArray(Charsets.UTF_8)
         val base = atomicFile.baseFile
         base.parentFile?.mkdirs()
-        val hadPreviousDraft = base.exists()
-        val rollback = snapshotPreviousDraft(base)
+        val hadPreviousDraft = previousBytes != null
+        val rollback = previousBytes?.let { snapshotPreviousDraft(base, it) }
         val emptyRollback = if (hadPreviousDraft) null else markAbsentDraft(base)
         var output: FileOutputStream? = null
         var finishing = false
@@ -138,7 +143,7 @@ internal class ImportedEditorDraftPersistence(
             }
             val backup = File(base.path + ".bak")
             if (backup.exists()) {
-                val previous = rollback?.readBytes()
+                val previous = previousBytes
                     ?: throw IOException("No se pudo verificar el respaldo del borrador")
                 check(backup.readBytes().contentEquals(previous)) {
                     "El respaldo del borrador cambió durante la escritura"
@@ -161,16 +166,13 @@ internal class ImportedEditorDraftPersistence(
     }
 
     /** Keeps the last committed bytes until the replacement has been read back and verified. */
-    private fun snapshotPreviousDraft(base: File): File? {
-        if (!base.exists()) return null
+    private fun snapshotPreviousDraft(base: File, bytes: ByteArray): File {
         val rollback = File(base.path + ".rollback")
         check(!rollback.exists()) { "Hay una recuperación de borrador pendiente" }
-        val bytes = base.readBytes()
-        decodeDocument(bytes)
         val temporary = File(base.path + ".rollback-${UUID.randomUUID()}.tmp")
         try {
             writeSynced(temporary, bytes)
-            check(temporary.readBytes().contentEquals(bytes) && base.readBytes().contentEquals(bytes)) {
+            check(temporary.readBytes().contentEquals(bytes)) {
                 "No se pudo verificar el respaldo del borrador"
             }
             if (!temporary.renameTo(rollback)) throw IOException("No se pudo preparar el respaldo recuperable")
@@ -311,14 +313,15 @@ internal class ImportedEditorDraftPersistence(
             runCatching {
                 require(document.schemaVersion == 3 && document.id.isNotBlank() && document.revision >= 0)
                 require(!document.editingStarted || document.program?.id?.isNotBlank() == true)
-                val previous = readLocked()
+                val previousBytes = readBytesLocked()
+                val previous = previousBytes?.let(::decodeDocument)
                 if (previous == null) {
                     require(expectedRevision == null && document.revision == 0L)
                 } else {
                     require(previous.id == document.id && previous.revision == expectedRevision)
                     require(document.revision == previous.revision + 1)
                 }
-                writeLocked(document)
+                writeLocked(document, previousBytes)
                 if (previous?.sourceEvidence?.sourceMediaId != document.sourceEvidence.sourceMediaId) {
                     runCatching { sourceMediaStore?.delete(previous?.sourceEvidence?.sourceMediaId) }
                 }
@@ -331,12 +334,13 @@ internal class ImportedEditorDraftPersistence(
         withContext(Dispatchers.IO) {
             mutex.withLock {
                 runCatching {
-                    val previous = requireNotNull(readLocked())
+                    val previousBytes = requireNotNull(readBytesLocked())
+                    val previous = decodeDocument(previousBytes)
                     require(previous.id == expectedId && previous.revision == expectedRevision)
                     require(document.id.isNotBlank() && document.id != previous.id && document.revision == 0L)
                     require(document.schemaVersion == 3)
                     require(!document.editingStarted || document.program?.id?.isNotBlank() == true)
-                    writeLocked(document)
+                    writeLocked(document, previousBytes)
                     runCatching { sourceMediaStore?.delete(previous.sourceEvidence.sourceMediaId) }
                     Unit
                 }
@@ -347,10 +351,11 @@ internal class ImportedEditorDraftPersistence(
     suspend fun delete(id: String, expectedRevision: Long): Result<Boolean> = withContext(Dispatchers.IO) {
         mutex.withLock {
             runCatching {
-                val current = readLocked() ?: return@runCatching false
+                val previousBytes = readBytesLocked() ?: return@runCatching false
+                val current = decodeDocument(previousBytes)
                 if (current.id != id || current.revision != expectedRevision) return@runCatching false
                 val base = atomicFile.baseFile
-                val rollback = snapshotPreviousDraft(base)
+                val rollback = snapshotPreviousDraft(base, previousBytes)
                 try {
                     atomicFile.delete()
                     check(!base.exists() && !File(base.path + ".bak").exists())

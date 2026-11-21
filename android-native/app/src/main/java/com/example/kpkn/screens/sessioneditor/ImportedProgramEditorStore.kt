@@ -22,7 +22,8 @@ class ImportedProgramEditorStore internal constructor(
 ) {
     internal val instanceKey: String = java.util.UUID.randomUUID().toString()
     /** Vive con el borrador durante una rotación; se limpia al salir del editor de forma segura. */
-    internal val editorViewModels = ViewModelStore()
+    private val hostedViewModels = lazy { ViewModelStore() }
+    internal val editorViewModels by hostedViewModels
     private val mutex = Mutex()
     private var closed = false
     private val _program = MutableStateFlow(initial)
@@ -61,5 +62,8 @@ class ImportedProgramEditorStore internal constructor(
     /** Espera cualquier escritura en curso y evita que un editor antiguo vuelva a escribir. */
     internal suspend fun closeForMutations() = withContext(Dispatchers.IO) {
         mutex.withLock { closed = true }
+        if (hostedViewModels.isInitialized()) {
+            withContext(NonCancellable + Dispatchers.Main.immediate) { editorViewModels.clear() }
+        }
     }
 }

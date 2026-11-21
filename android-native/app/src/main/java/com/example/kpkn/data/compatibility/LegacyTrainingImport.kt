@@ -35,8 +35,10 @@ object LegacyTrainingImport {
                 val manual = obj.filterKeys { it in manualFields }.filterValues { it != JsonNull && it != JsonObject(emptyMap()) }
                 if (manual.isNotEmpty()) add(Original("$table:$identity:manual", "historical_self_report", date,
                     JsonObject(manual.mapValues { (key, value) ->
-                        if (key == "manualMuscleOverridesV2") JsonObject(value.jsonObject.mapValues { (_, override) ->
-                            JsonObject(override.jsonObject.filterKeys { it != "automaticBatteryAtAnchor" })
+                        if (key == "manualMuscleOverridesV2" && value is JsonObject) JsonObject(value.mapValues { (_, override) ->
+                            (override as? JsonObject)?.let { overrideObj ->
+                                JsonObject(overrideObj.filterKeys { it != "automaticBatteryAtAnchor" })
+                            } ?: override
                         }) else value
                     }).toString(), "legacy_0_100_self_report; not_neurological_measurement; not_comparable"))
             }
@@ -54,14 +56,21 @@ object LegacyTrainingImport {
             .filterValues { it != JsonNull && it != JsonObject(emptyMap()) }
         return if (declarations.isEmpty()) JsonObject(emptyMap()) else JsonObject(declarations + obj.filterKeys { it in setOf("programId", "startTime") })
     }
-    private fun completedSets(value: JsonElement): JsonObject = JsonObject(value.jsonObject.mapValues { (_,set) ->
-        JsonObject(set.jsonObject.filterKeys { it !in setOf("spinalScore", "batteryDrain", "cnsDrain", "spinalDrain", "muscularDrain", "readinessScore") })
-    })
+    private fun completedSets(value: JsonElement): JsonElement =
+        (value as? JsonObject)?.let { setsObj ->
+            JsonObject(setsObj.mapValues { (_, set) ->
+                (set as? JsonObject)?.let { setObj ->
+                    JsonObject(setObj.filterKeys { it !in setOf("spinalScore", "batteryDrain", "cnsDrain", "spinalDrain", "muscularDrain", "readinessScore") })
+                } ?: set
+            })
+        } ?: value
     fun ongoing(raw: String): String = JsonObject(parseObject(raw).filterKeys { it !in ongoingDerived }.mapValues { (key,value) ->
         when {
-            key == "completedSets" -> completedSets(value)
-            key == "godModeUndoStack" && value != JsonNull -> JsonArray(value.jsonArray.map { snapshot ->
-                JsonObject(snapshot.jsonObject.mapValues { (k,v) -> if (k == "completedSets") completedSets(v) else v })
+            key == "completedSets" && value is JsonObject -> completedSets(value)
+            key == "godModeUndoStack" && value is JsonArray -> JsonArray(value.map { snapshot ->
+                (snapshot as? JsonObject)?.let { snapshotObj ->
+                    JsonObject(snapshotObj.mapValues { (k,v) -> if (k == "completedSets") completedSets(v) else v })
+                } ?: snapshot
             })
             else -> value
         }
@@ -75,8 +84,8 @@ object LegacyTrainingImport {
         for (key in listOf("stepSelections", "stepValues", "stepNumbers", "stepTexts")) {
             (obj[key] as? JsonObject)?.filterKeys(::retiredStep)?.takeIf { it.isNotEmpty() }?.let { kept[key]=JsonObject(it) }
         }
-        (obj["wizChat"] as? JsonObject)?.get("acceptedAnswers")?.jsonArray?.filter {
-            it.jsonObject["questionId"]?.jsonPrimitive?.content?.startsWith("R_") == true
+        ((obj["wizChat"] as? JsonObject)?.get("acceptedAnswers") as? JsonArray)?.filter {
+            ((it as? JsonObject)?.get("questionId") as? JsonPrimitive)?.contentOrNull?.startsWith("R_") == true
         }?.takeIf { it.isNotEmpty() }?.let { kept["legacyConversationAnswers"]=JsonArray(it) }
         return JsonObject(kept)
     }
@@ -84,30 +93,29 @@ object LegacyTrainingImport {
         val obj = parseObject(raw)
         return JsonObject(obj.filterKeys { it !in draftRetired }.mapValues { (key,value) ->
             when {
-                key == "draftScope" && value.jsonPrimitive.content.lowercase().contains("rings") -> JsonPrimitive("resume")
+                key == "draftScope" && (value as? JsonPrimitive)?.contentOrNull?.lowercase()?.contains("rings") == true -> JsonPrimitive("resume")
                 key in setOf("stepSelections","stepValues","stepNumbers","stepTexts") && value is JsonObject -> JsonObject(value.filterKeys { !retiredStep(it) })
-                key == "stepProgress" -> JsonObject(value.jsonObject.mapValues { (k,v) ->
+                key == "stepProgress" && value is JsonObject -> JsonObject(value.mapValues { (k,v) ->
                     when {
-                        k == "currentStepId" && retiredStep(v.jsonPrimitive.content) -> JsonPrimitive("REVIEW_ACTIVATE")
-                        k == "block" && v.jsonPrimitive.content == "RINGS" -> JsonPrimitive("REVIEW")
-                        k == "completedBlocks" -> JsonArray(v.jsonArray.filterNot { it.jsonPrimitive.content == "RINGS" })
-                        k in setOf("visited","pendingReview") -> JsonArray(v.jsonArray.filterNot { retiredStep(it.jsonPrimitive.content) })
-                        k == "answers" -> JsonObject(v.jsonObject.filterKeys { !retiredStep(it) })
-                        k == "stalePreviews" -> JsonArray(v.jsonArray.filterNot { it.jsonPrimitive.content == "RINGS_BATTERIES" })
+                        k == "currentStepId" && (v as? JsonPrimitive)?.contentOrNull?.let(::retiredStep) == true -> JsonPrimitive("REVIEW_ACTIVATE")
+                        k == "block" && (v as? JsonPrimitive)?.contentOrNull == "RINGS" -> JsonPrimitive("REVIEW")
+                        k == "completedBlocks" && v is JsonArray -> JsonArray(v.filterNot { (it as? JsonPrimitive)?.contentOrNull == "RINGS" })
+                        k in setOf("visited","pendingReview") && v is JsonArray -> JsonArray(v.filterNot { (it as? JsonPrimitive)?.contentOrNull?.let(::retiredStep) == true })
+                        k == "answers" && v is JsonObject -> JsonObject(v.filterKeys { !retiredStep(it) })
+                        k == "stalePreviews" && v is JsonArray -> JsonArray(v.filterNot { (it as? JsonPrimitive)?.contentOrNull == "RINGS_BATTERIES" })
                         else -> v
                     }
                 }.toMutableMap().apply {
-                    val old=value.jsonObject
-                    if (old["currentStepId"]?.jsonPrimitive?.content?.let(::retiredStep)==true &&
-                        old["origin"]?.jsonPrimitive?.content in setOf(null,"NOT_CONVERTIBLE"))
+                    if ((value["currentStepId"] as? JsonPrimitive)?.contentOrNull?.let(::retiredStep) == true &&
+                        (value["origin"] as? JsonPrimitive)?.contentOrNull in setOf(null,"NOT_CONVERTIBLE"))
                         put("origin",JsonPrimitive("MIGRATED_FROM_RETIRED_STAGE"))
                 })
-                key == "wizChat" -> JsonObject(value.jsonObject.mapValues { (k,v) ->
+                key == "wizChat" && value is JsonObject -> JsonObject(value.mapValues { (k,v) ->
                     when {
-                        k == "currentQuestionId" && v.jsonPrimitive.content.startsWith("R_") -> JsonPrimitive("REVIEW")
-                        k == "stage" && v.jsonPrimitive.content == "RINGS" -> JsonPrimitive("REVIEW")
-                        k == "completedStages" -> JsonArray(v.jsonArray.filterNot { it.jsonPrimitive.content == "RINGS" })
-                        k == "acceptedAnswers" -> JsonArray(v.jsonArray.filterNot { it.jsonObject["questionId"]?.jsonPrimitive?.content?.startsWith("R_") == true })
+                        k == "currentQuestionId" && (v as? JsonPrimitive)?.contentOrNull?.startsWith("R_") == true -> JsonPrimitive("REVIEW")
+                        k == "stage" && (v as? JsonPrimitive)?.contentOrNull == "RINGS" -> JsonPrimitive("REVIEW")
+                        k == "completedStages" && v is JsonArray -> JsonArray(v.filterNot { (it as? JsonPrimitive)?.contentOrNull == "RINGS" })
+                        k == "acceptedAnswers" && v is JsonArray -> JsonArray(v.filterNot { ((it as? JsonObject)?.get("questionId") as? JsonPrimitive)?.contentOrNull?.startsWith("R_") == true })
                         else -> v
                     }
                 })
@@ -118,7 +126,7 @@ object LegacyTrainingImport {
 
 
     fun initialDeclarations(raw: String): JsonObject? = parseObject(raw)["initialRecoveryEvidence"]
-        ?.takeIf { it != JsonNull }?.jsonObject?.let { JsonObject(it.filterKeys { k -> k in evidenceFields }) }
+        ?.takeIf { it != JsonNull }?.let { it as? JsonObject }?.let { JsonObject(it.filterKeys { k -> k in evidenceFields }) }
 
     fun log(raw: String): String {
         val obj = parseObject(raw)
@@ -126,11 +134,17 @@ object LegacyTrainingImport {
             com.example.kpkn.data.models.isRetiredTrainingEnergyMethod(it["methodVersion"]?.jsonPrimitive?.contentOrNull)
         } == true
         return JsonObject(obj.filterKeys { it !in derivedLog && !(it == "energySummary" && legacyEnergy) }.mapValues { (key,value) ->
-            when(key) {
-                "completedExercises" -> JsonArray(value.jsonArray.map { ex ->
-                    JsonObject(LegacyExerciseCoefficientImport.completedExercise(ex.jsonObject).filterKeys { it != "totalSpinalScore" }.mapValues { (k,v) -> if (k == "sets") JsonArray(v.jsonArray.map { set ->
-                        JsonObject(set.jsonObject.filterKeys { it !in setOf("batteryDrain", "cnsDrain", "spinalDrain", "muscularDrain", "readinessScore", "spinalScore") })
-                    }) else v })
+            when {
+                key == "completedExercises" && value is JsonArray -> JsonArray(value.map { ex ->
+                    (ex as? JsonObject)?.let { exObj ->
+                        JsonObject(LegacyExerciseCoefficientImport.completedExercise(exObj).filterKeys { it != "totalSpinalScore" }.mapValues { (k,v) ->
+                            if (k == "sets" && v is JsonArray) JsonArray(v.map { set ->
+                                (set as? JsonObject)?.let { setObj ->
+                                    JsonObject(setObj.filterKeys { it !in setOf("batteryDrain", "cnsDrain", "spinalDrain", "muscularDrain", "readinessScore", "spinalScore") })
+                                } ?: set
+                            }) else v
+                        })
+                    } ?: ex
                 })
                 else -> value
             }

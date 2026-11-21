@@ -2,6 +2,12 @@ package com.example.kpkn.screens.programs.importer
 
 import android.app.Application
 import android.net.Uri
+import android.util.Log
+import com.example.kpkn.data.importer.ImportFileException
+import com.example.kpkn.data.importer.ImportLimits
+import java.util.concurrent.ConcurrentHashMap
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.cancelAndJoin
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.kpkn.data.exercises.catalogv2.ApprovedAssetExerciseCatalogRepositoryV2
@@ -76,10 +82,10 @@ internal data class ImportMuscleDistribution(
     val unassignedExercises: Int,
 )
 
-private const val MAX_SOURCE_EVIDENCE_CHARS = 500_000
+private const val MAX_SOURCE_EVIDENCE_CHARS = 120_000
 
 /** Persiste la cita de origen sin la ruta pública, que también puede contener identificadores privados. */
-private fun publicSourceOrigin(value: String): String? = runCatching {
+internal fun publicSourceOrigin(value: String): String? = runCatching {
     val source = URI(value)
     val host = source.host?.removeSurrounding("[", "]")?.lowercase()?.takeIf { it.isNotBlank() }
         ?: return@runCatching null
@@ -158,6 +164,7 @@ data class ImportProgramState(
     val draftPersistenceError: String? = null,
     val savedProgramId: String? = null,
     val busy: Boolean = false,
+    val saving: Boolean = false,
     /** Lo que se muestra mientras se lee: «Leyendo la página N de M…», «Leyendo la foto…» o «Leyendo el programa…». */
     val progress: String? = null,
     val readingProgress: ImportReadingProgress? = null,
@@ -178,6 +185,9 @@ class ImportProgramViewModel @JvmOverloads constructor(
         ApprovedAssetExerciseCatalogRepositoryV2(application.applicationContext)
     private val catalogMutex = Mutex()
     private val reviewPersistenceMutex = Mutex()
+    private val saveMutex = Mutex()
+    private var titlePersistJob: Job? = null
+    internal var materializeCustomExercise: suspend (String) -> Result<ExerciseMuscleInfo> = ::findOrCreateImportedExercise
     private val sourceMediaStore = ImportSourceMediaStore(application.filesDir)
     private val draftPersistence = ImportedEditorDraftPersistence(draftFile, sourceMediaStore = sourceMediaStore)
     private val restored = CompletableDeferred<Unit>()
@@ -196,7 +206,7 @@ class ImportProgramViewModel @JvmOverloads constructor(
     private val undoStack = ImportUndoStack()
 
     /** Nombre que se muestra por configuración del catálogo, para los textos de deshacer. */
-    private val displayNames = mutableMapOf<String, String>()
+    private val displayNames = ConcurrentHashMap<String, String>()
 
     /** Guarda el programa; las pruebas lo sustituyen. Producción: el repositorio de programas. */
     internal var saveProgram: suspend (Program) -> Result<Unit> = { ProgramRepository.getInstance().addProgramNow(it) }
@@ -288,36 +298,34 @@ class ImportProgramViewModel @JvmOverloads constructor(
             }
         }
 
-    fun importFromText(text: String) =
+    fun importFromText(text: String) {
+        val boundedText = text.take(ImportLimits.MAX_PASTED_TEXT_CHARS)
+        val truncated = text.length > boundedText.length
+        val evidence = ImportSourceEvidence(
+            kind = ImportSourceKind.PASTED_TEXT,
+            displayName = "Texto pegado",
+            mediaType = "text/plain",
+            documentType = ImportDocumentType.PASTED_TEXT,
+        ).withBoundedSourceText(boundedText)
         startImport(
             ImportedProgramBuilder.DEFAULT_TITLE,
             IMPORT_READING_TEXT,
-            sourceEvidenceOnFailure = {
-                ImportSourceEvidence(
-                    kind = ImportSourceKind.PASTED_TEXT,
-                    displayName = "Texto pegado",
-                    mediaType = "text/plain",
-                    documentType = ImportDocumentType.PASTED_TEXT,
-                ).withBoundedSourceText(text).withTextRowCount(text)
-            },
+            sourceEvidenceOnFailure = { evidence.withTextRowCount(boundedText) },
         ) { reportStage ->
             withContext(Dispatchers.Default) {
-                val prepared = com.example.kpkn.data.importer.TextProgramReader.read(text, "Texto pegado")
+                val prepared = com.example.kpkn.data.importer.TextProgramReader.read(boundedText, "Texto pegado")
+                    .withPasteLimitNote(truncated)
                 reportStage(ImportReadingStage.STRUCTURE, null)
                 val draft = ProgramImportParser.parsePreparedText(prepared, ImportedProgramBuilder.DEFAULT_TITLE)
                 reportStage(ImportReadingStage.EXERCISES, draft)
                 ImportReadResult(
                     draft = draft,
-                    knownProgram = KnownProgramRecognizer.recognizeText(text),
-                    sourceEvidence = ImportSourceEvidence(
-                        kind = ImportSourceKind.PASTED_TEXT,
-                        displayName = "Texto pegado",
-                        mediaType = "text/plain",
-                        documentType = ImportDocumentType.PASTED_TEXT,
-                    ).withBoundedSourceText(text).withTextRowCount(text),
+                    knownProgram = KnownProgramRecognizer.recognizeText(boundedText),
+                    sourceEvidence = evidence.withTextRowCount(boundedText),
                 )
             }
         }
+    }
 
     /** Lee una página pública o un archivo compartido por HTTPS y lo convierte al mismo borrador que los archivos locales. */
     fun importFromUrl(url: String) {
@@ -359,11 +367,11 @@ class ImportProgramViewModel @JvmOverloads constructor(
                     )
                 }
             } catch (cancel: CancellationException) {
-                sourceMediaStore.delete(copiedMediaId)
+                withContext(NonCancellable + Dispatchers.IO) { sourceMediaStore.delete(copiedMediaId) }
                 copiedMediaId = null
                 throw cancel
             } catch (error: Throwable) {
-                sourceMediaStore.delete(copiedMediaId)
+                withContext(NonCancellable + Dispatchers.IO) { sourceMediaStore.delete(copiedMediaId) }
                 copiedMediaId = null
                 throw error
             }
@@ -414,15 +422,15 @@ class ImportProgramViewModel @JvmOverloads constructor(
                     )
                 }
             } catch (cancel: CancellationException) {
-                sourceMediaStore.delete(copiedMediaId)
+                withContext(NonCancellable + Dispatchers.IO) { sourceMediaStore.delete(copiedMediaId) }
                 copiedMediaId = null
                 throw cancel
             } catch (error: Throwable) {
-                sourceMediaStore.delete(copiedMediaId)
+                withContext(NonCancellable + Dispatchers.IO) { sourceMediaStore.delete(copiedMediaId) }
                 copiedMediaId = null
                 throw error
             } finally {
-                takenFile?.delete()
+                withContext(NonCancellable + Dispatchers.IO) { takenFile?.delete() }
             }
         }
     }
@@ -550,18 +558,20 @@ class ImportProgramViewModel @JvmOverloads constructor(
 
     /** Re-parses edited extraction text while keeping its original file or URL attribution. */
     fun reanalyzeSourceText(text: String) {
-        val evidence = _state.value.sourceEvidence
+        val boundedText = text.take(ImportLimits.MAX_PASTED_TEXT_CHARS)
+        val truncated = text.length > boundedText.length
+        val evidence = _state.value.sourceEvidence.withBoundedSourceText(boundedText)
         val previous = _state.value.imported
         startImport(
             ImportedProgramBuilder.DEFAULT_TITLE,
             IMPORT_READING_TEXT,
-            sourceEvidenceOnFailure = { evidence.withBoundedSourceText(text).withTextRowCount(text) },
+            sourceEvidenceOnFailure = { evidence.withTextRowCount(boundedText) },
         ) { reportStage ->
             withContext(Dispatchers.Default) {
                 var sheet = com.example.kpkn.data.importer.TextProgramReader.read(
-                    text,
+                    boundedText,
                     evidence.displayName ?: "Texto revisado",
-                )
+                ).withPasteLimitNote(truncated)
                 previous?.warnings?.firstOrNull { it.message.startsWith("Origen web:") }?.let { sourceWarning ->
                     sheet = sheet.copy(notes = (sheet.notes + sourceWarning.message).distinct())
                 }
@@ -573,8 +583,8 @@ class ImportProgramViewModel @JvmOverloads constructor(
                 reportStage(ImportReadingStage.EXERCISES, parsed)
                 ImportReadResult(
                     draft = parsed,
-                    knownProgram = KnownProgramRecognizer.recognizeText(text),
-                    sourceEvidence = evidence.withBoundedSourceText(text).withTextRowCount(text),
+                    knownProgram = KnownProgramRecognizer.recognizeText(boundedText),
+                    sourceEvidence = evidence.withTextRowCount(boundedText),
                 )
             }
         }
@@ -600,6 +610,7 @@ class ImportProgramViewModel @JvmOverloads constructor(
 
     fun setTitle(title: String) {
         val current = _state.value
+        if (current.saving) return
         if (current.editorStarted) {
             val session = editorDraftSession ?: return
             viewModelScope.launch {
@@ -608,7 +619,7 @@ class ImportProgramViewModel @JvmOverloads constructor(
             }
         } else {
             _state.value = current.copy(title = title)
-            scheduleReviewPersistence()
+            scheduleReviewPersistence(debounceTitle = true)
         }
     }
 
@@ -618,11 +629,12 @@ class ImportProgramViewModel @JvmOverloads constructor(
 
     /** Aplica una edición de la vista previa y la deja en la pila de deshacer. Sin cambios, no hace nada. */
     fun edit(op: ImportEditOp) {
+        val current = _state.value
+        if (current.saving) return
         if (op is ImportEditOp.SetDayOfWeek) {
             assignImportedDay(op.dayId, op.dayOfWeek)
             return
         }
-        val current = _state.value
         if (current.editorStarted) {
             editorWeekdayUndo = null
             _state.update { it.copy(canUndoWeekdayChange = false, undoLabel = null) }
@@ -710,8 +722,6 @@ class ImportProgramViewModel @JvmOverloads constructor(
                         current.copy(busy = false, progress = null, notice = IMPORT_CATALOG_UNAVAILABLE)
                     } else current
                 }
-            } finally {
-                catalogRetryJob = null
             }
         }
     }
@@ -720,6 +730,7 @@ class ImportProgramViewModel @JvmOverloads constructor(
     fun assignImportedDay(dayId: String, dayOfWeek: Int?) {
         if (dayOfWeek == null || dayOfWeek !in 1..7) return
         val current = _state.value
+        if (current.saving) return
         val source = current.imported ?: return
         val day = source.weeks.asSequence().flatMap { it.days.asSequence() }
             .firstOrNull { it.id == dayId && !it.isRestDay } ?: return
@@ -847,6 +858,7 @@ class ImportProgramViewModel @JvmOverloads constructor(
     /** Deshace el último cambio de la vista previa. */
     fun undo() {
         val current = _state.value
+        if (current.saving) return
         if (current.editorStarted) {
             val previous = editorWeekdayUndo ?: return
             val session = editorDraftSession ?: return
@@ -891,22 +903,32 @@ class ImportProgramViewModel @JvmOverloads constructor(
     }
 
     fun clear(onComplete: (() -> Unit)? = null) {
-        cancelImport()
-        importJob?.cancel()
-        importJob = null
-        catalogRetryJob?.cancel()
-        catalogRetryJob = null
-        stateBeforeRead = null
-        undoStack.clear()
-        val session = editorDraftSession
-        if (session == null) {
-            _state.value = ImportProgramState()
-            onComplete?.invoke()
-            return
-        }
-        _state.update { it.copy(draftPersistencePending = true, draftPersistenceError = null, error = null) }
         viewModelScope.launch {
             restored.await()
+            saveMutex.withLock { clearRestoredDraft(onComplete) }
+        }
+    }
+
+    private suspend fun clearRestoredDraft(onComplete: (() -> Unit)?) {
+        val reading = importJob
+        val matching = catalogRetryJob
+        cancelImport()
+        titlePersistJob?.cancel()
+        titlePersistJob = null
+        importJob = null
+        catalogRetryJob = null
+        reading?.cancelAndJoin()
+        matching?.cancelAndJoin()
+        stateBeforeRead = null
+        undoStack.clear()
+        reviewPersistenceMutex.withLock {
+            val session = editorDraftSession
+            if (session == null) {
+                _state.value = ImportProgramState()
+                onComplete?.invoke()
+                return@withLock
+            }
+            _state.update { it.copy(draftPersistencePending = true, draftPersistenceError = null, error = null) }
             val result = session.discard()
             if (result.getOrNull() == true) {
                 editorDocumentJob?.cancel()
@@ -935,6 +957,7 @@ class ImportProgramViewModel @JvmOverloads constructor(
     fun toggleWeekday(day: Int) {
         if (day !in 1..7) return
         val current = _state.value
+        if (current.saving) return
         val weekdays = if (day in current.weekdays) current.weekdays - day else current.weekdays + day
         if (current.editorStarted) {
             val session = editorDraftSession ?: return
@@ -1028,6 +1051,7 @@ class ImportProgramViewModel @JvmOverloads constructor(
                     importKnownPlanId = previous.importKnownPlanId,
                     importKnownDismissed = previous.importKnownDismissed,
                     busy = previous.busy,
+                    saving = previous.saving,
                     progress = previous.progress,
                     error = previous.error,
                     notice = previous.notice,
@@ -1038,15 +1062,27 @@ class ImportProgramViewModel @JvmOverloads constructor(
         }
     }
 
-    private fun scheduleReviewPersistence() {
+    private fun scheduleReviewPersistence(debounceTitle: Boolean = false) {
         if (_state.value.editorStarted || _state.value.imported == null) return
         synchronized(this) { reviewMutationGeneration += 1 }
         _state.update { it.copy(draftPersistencePending = true, draftPersistenceError = null) }
-        viewModelScope.launch { persistReviewNow() }
+        titlePersistJob?.cancel()
+        titlePersistJob = null
+        if (debounceTitle) {
+            titlePersistJob = viewModelScope.launch {
+                delay(350)
+                titlePersistJob = null
+                viewModelScope.launch { persistReviewNow() }
+            }
+        } else {
+            viewModelScope.launch { persistReviewNow() }
+        }
     }
 
     /** Serializes review edits and writes the latest snapshot before an editor handoff or library commit. */
     private suspend fun persistReviewNow(): Boolean {
+        titlePersistJob?.cancel()
+        titlePersistJob = null
         restored.await()
         return reviewPersistenceMutex.withLock { persistReviewLocked() }
     }
@@ -1071,9 +1107,11 @@ class ImportProgramViewModel @JvmOverloads constructor(
                 wizardSheet = current.sheet,
                 sourceEvidence = current.sourceEvidence,
             )
+            if (editorDraftSession !== session) return false
             if (generation != synchronized(this) { reviewMutationGeneration }) continue
             var isLatest = false
             withContext(Dispatchers.Main.immediate) {
+                if (editorDraftSession !== session) return@withContext
                 if (generation == synchronized(this@ImportProgramViewModel) { reviewMutationGeneration }) {
                     if (saved) {
                         _state.update { it.copy(draftPersistencePending = false, draftPersistenceError = null) }
@@ -1094,7 +1132,8 @@ class ImportProgramViewModel @JvmOverloads constructor(
     }
 
     private suspend fun awaitCatalogMatching() {
-        if (_state.value.notice == IMPORT_MATCHING) importJob?.join()
+        importJob?.join()
+        catalogRetryJob?.join()
     }
 
     suspend fun suggestions(rawName: String): List<ExerciseNameCandidate> =
@@ -1165,9 +1204,19 @@ class ImportProgramViewModel @JvmOverloads constructor(
     }
 
     /** Guarda el importado cuando ejercicios, avisos y distribución semanal están resueltos. */
-    suspend fun save(level: PlanLevel): String? {
+    suspend fun save(level: PlanLevel): String? = saveMutex.withLock {
         restored.await()
         awaitCatalogMatching()
+        _state.value.savedProgramId?.let { return@withLock it }
+        _state.update { it.copy(saving = true) }
+        try {
+            saveCurrentDraft(level)
+        } finally {
+            _state.update { it.copy(saving = false) }
+        }
+    }
+
+    private suspend fun saveCurrentDraft(level: PlanLevel): String? {
         if (!persistReviewNow()) return null
         val current = _state.value
         val imported = current.imported ?: return null
@@ -1185,6 +1234,22 @@ class ImportProgramViewModel @JvmOverloads constructor(
             _state.update { it.copy(savedProgramId = alreadySaved, notice = null, error = null) }
             return alreadySaved
         }
+        if (!document.editingStarted) {
+            ImportDraftValidation.checkOccurrences(imported) {
+                it.catalogSelectionId != null || current.resolutions.containsKey(it.rawName)
+            }.firstOrNull()?.let {
+                reportError(importIssueLine(it, imported))
+                return null
+            }
+            if (document.weekdays.isEmpty()) {
+                reportError(IMPORT_WEEKDAYS_MISSING)
+                return null
+            }
+        }
+        if (!document.editingStarted && planRejection(level) != null) {
+            _state.update { it.copy(notice = IMPORT_PRO_NOTICE, sheet = ImportWizardSheet.PRO, error = null) }
+            return null
+        }
         val program = if (document.editingStarted) {
             document.program ?: run {
                 reportError("El borrador editado no contiene un programa recuperable.")
@@ -1199,31 +1264,35 @@ class ImportProgramViewModel @JvmOverloads constructor(
                 _state.update { it.copy(sheet = null, notice = IMPORT_CATALOG_UNAVAILABLE, error = null) }
                 return null
             }
-            val customExercises = com.example.kpkn.data.repository.CustomExerciseRepository.customExercises.value
-            val unavailable = ImportedProgramBuilder.unavailableNames(imported, current.resolutions, readyCatalog, customExercises)
+            val materialized = try {
+                materializeImportExercises(imported, current.resolutions, materializeCustomExercise)
+            } catch (cancel: CancellationException) {
+                throw cancel
+            } catch (error: Exception) {
+                reportError(error.message ?: "No pudimos guardar los ejercicios propios.")
+                return null
+            }
+            val customExercises = materialized.exercises
+            val unavailable = ImportedProgramBuilder.unavailableNames(materialized.draft, current.resolutions, readyCatalog, customExercises)
             if (unavailable.isNotEmpty()) {
                 reportError(importedExerciseCatalogChoiceMessage(unavailable.first()))
                 return null
             }
             ImportedProgramBuilder.build(
-                draft = imported.copy(title = current.title),
+                draft = materialized.draft.copy(title = current.title),
                 resolved = current.resolutions,
                 weekdays = current.weekdays.sorted(),
                 programId = document.program?.id ?: "import-${document.id}",
                 catalog = readyCatalog,
                 customExercises = customExercises,
                 catalogConfigurationInfo = readyCatalog.toLegacyConfigurationLookup(
-                    ImportedProgramBuilder.catalogConfigurationIds(imported, current.resolutions),
+                    ImportedProgramBuilder.catalogConfigurationIds(materialized.draft, current.resolutions),
                 ),
             )
         }
         val issues = if (document.editingStarted) {
             canonicalImportIssues(imported, program, document.sourceMap, document.resolutions)
-        } else {
-            ImportDraftValidation.checkOccurrences(imported) {
-                it.catalogSelectionId != null || current.resolutions.containsKey(it.rawName)
-            }
-        }
+        } else emptyList()
         issues.firstOrNull()?.let { first ->
             reportError(importIssueLine(first, imported))
             return null
@@ -1393,7 +1462,7 @@ class ImportProgramViewModel @JvmOverloads constructor(
                     wizardPage = if (names.isEmpty()) ImportWizardPage.EMPTY else ImportWizardPage.EXERCISES,
                     sourceEvidence = evidence,
                 )
-                val nextSession = withContext(NonCancellable) {
+                withContext(NonCancellable) {
                     val replacement = if (previousDocument == null) {
                         ImportedEditorDraftSession.create(draftPersistence, initialDocument)
                     } else {
@@ -1415,11 +1484,11 @@ class ImportProgramViewModel @JvmOverloads constructor(
                         notice = if (catalogUnavailable) IMPORT_CATALOG_UNAVAILABLE else null,
                     )
                     mediaCommitted = true
-                    next
                 }
             } catch (cancel: CancellationException) {
                 throw cancel
             } catch (error: Throwable) {
+                Log.w("ImportProgramVM", "Import failed", error)
                 val failed = _state.value
                 val before = stateBeforeRead ?: failed
                 _state.value = before.copy(
@@ -1429,10 +1498,10 @@ class ImportProgramViewModel @JvmOverloads constructor(
                     readingProgress = failed.readingProgress,
                     sheet = null,
                     sourceEvidence = attemptedEvidence ?: before.sourceEvidence,
-                    error = error.message ?: "No pudimos leer el programa.",
+                    error = (error as? ImportFileException)?.message ?: "No pudimos leer el programa.",
                 )
             } finally {
-                if (!mediaCommitted) sourceMediaStore.delete(attemptedMediaId)
+                if (!mediaCommitted) withContext(NonCancellable + Dispatchers.IO) { sourceMediaStore.delete(attemptedMediaId) }
             }
         }
     }
@@ -1456,6 +1525,9 @@ class ImportProgramViewModel @JvmOverloads constructor(
     }
 }
 
+internal fun ImportSheet.withPasteLimitNote(truncated: Boolean): ImportSheet =
+    if (truncated) copy(notes = notes + "El texto pegado se recortó al límite de caracteres.") else this
+
 private fun ImportSourceEvidence.withBoundedSourceText(text: String?): ImportSourceEvidence {
     if (text == null) return this
     return copy(
@@ -1474,11 +1546,26 @@ private fun ImportSourceEvidence.withTextRowCount(text: String): ImportSourceEvi
     rowCount = text.lineSequence().count { it.isNotBlank() },
 )
 
-private fun List<ImportSheet>.asImportEvidenceText(): String = joinToString("\n\n") { sheet ->
-    buildString {
-        append("## ").append(sheet.name).append('\n')
-        sheet.rows.forEach { row ->
-            append(row.joinToString("\t")).append('\n')
+private fun List<ImportSheet>.asImportEvidenceText(): String {
+    val limit = MAX_SOURCE_EVIDENCE_CHARS + 1
+    val output = StringBuilder()
+    fun append(text: String) {
+        output.append(text, 0, minOf(text.length, limit - output.length))
+    }
+
+    forEachIndexed { sheetIndex, sheet ->
+        if (sheetIndex > 0) append("\n\n")
+        append("## ")
+        append(sheet.name)
+        for (row in sheet.rows) {
+            append("\n")
+            row.forEachIndexed { index, cell ->
+                if (index > 0) append("\t")
+                append(cell)
+                if (output.length >= limit) return output.toString()
+            }
         }
-    }.trimEnd()
+        if (output.length >= limit) return output.toString()
+    }
+    return output.toString().trimEnd()
 }

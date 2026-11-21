@@ -315,7 +315,7 @@ object ImportEdits {
     private fun addedDay(snapshot: ImportSnapshot, op: ImportEditOp.AddDay): Pair<ImportSnapshot, String> {
         val draft = snapshot.imported
         val imported = ImportDraftEditor.addDay(draft, op.weekIndex, op.name)
-        val name = dayOf(imported, "x${draft.nextId}")?.name.orEmpty()
+        val name = dayOf(imported, "x${imported.nextId - 1}")?.name.orEmpty()
         return snapshot.copy(imported = imported) to "Añadiste «$name»."
     }
 
@@ -334,7 +334,7 @@ object ImportEdits {
         val shown = nameOf(name)
         val end = dayOf(draft, op.dayId)?.exercises?.size ?: 0
         val added = ImportDraftEditor.add(draft, op.dayId, end, name, op.sets, op.repsMin, op.repsMax)
-        val imported = if (added != draft && op.decided && op.configId != null) ImportDraftEditor.selectCatalogExercise(added, "x${draft.nextId}", op.configId) else added
+        val imported = if (added != draft && op.decided && op.configId != null) ImportDraftEditor.selectCatalogExercise(added, "x${added.nextId - 1}", op.configId) else added
         val decide = op.decided && op.configId == null && imported != draft && !snapshot.resolutions.containsKey(name)
         val resolutions = if (decide) snapshot.resolutions + (name to op.configId) else snapshot.resolutions
         return snapshot.copy(imported = imported, resolutions = resolutions) to "Añadiste «$shown»."

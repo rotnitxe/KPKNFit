@@ -4,6 +4,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
+import android.media.ExifInterface
+import com.example.kpkn.data.importer.ocr.OcrImportSource
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import androidx.compose.foundation.Image
@@ -47,16 +49,23 @@ internal fun ImportSourcePreviewDialog(
     onDismiss: () -> Unit,
 ) {
     var page by remember(file) { mutableStateOf(0) }
-    var preview by remember(file, page) { mutableStateOf<SourcePreviewPage?>(null) }
-    LaunchedEffect(file, type, page) {
-        preview = withContext(Dispatchers.IO) {
-            when {
-                unavailable -> SourcePreviewPage(null, 0, "No se pudo conservar una copia privada del original.")
-                file == null -> SourcePreviewPage(null, 0, "El original ya no está disponible en este borrador.")
-                type in setOf(ImportDocumentType.IMAGE, ImportDocumentType.URL_IMAGE) -> decodeSourceImage(file)
-                type in setOf(ImportDocumentType.PDF, ImportDocumentType.URL_PDF) -> renderSourcePdf(file, page)
-                else -> SourcePreviewPage(null, 0, "Este tipo de documento no tiene vista previa visual.")
+    var preview by remember(file, type, page, unavailable) { mutableStateOf<SourcePreviewPage?>(null) }
+    LaunchedEffect(file, type, page, unavailable) {
+        var decoded: SourcePreviewPage? = null
+        try {
+            withContext(Dispatchers.IO) {
+                decoded = when {
+                    unavailable -> SourcePreviewPage(null, 0, "No se pudo conservar una copia privada del original.")
+                    file == null -> SourcePreviewPage(null, 0, "El original ya no está disponible en este borrador.")
+                    type in setOf(ImportDocumentType.IMAGE, ImportDocumentType.URL_IMAGE) -> decodeSourceImage(file)
+                    type in setOf(ImportDocumentType.PDF, ImportDocumentType.URL_PDF) -> renderSourcePdf(file, page)
+                    else -> SourcePreviewPage(null, 0, "Este tipo de documento no tiene vista previa visual.")
+                }
             }
+            preview = decoded
+            decoded = null
+        } finally {
+            decoded?.bitmap?.recycle()
         }
     }
     val bitmap = preview?.bitmap
@@ -97,10 +106,15 @@ private fun decodeSourceImage(file: File): SourcePreviewPage {
     val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
     BitmapFactory.decodeFile(file.absolutePath, bounds)
     if (bounds.outWidth < 1 || bounds.outHeight < 1) return SourcePreviewPage(null, 0, "No pudimos mostrar la foto original.")
-    val sample = generateSequence(1) { it * 2 }.takeWhile { bounds.outWidth / it > 1800 || bounds.outHeight / it > 2200 }.lastOrNull() ?: 1
+    var sample = 1
+    while (maxOf(bounds.outWidth, bounds.outHeight) / (sample * 2) >= 2_000) sample *= 2
     val bitmap = BitmapFactory.decodeFile(file.absolutePath, BitmapFactory.Options().apply { inSampleSize = sample })
         ?: return SourcePreviewPage(null, 0, "No pudimos mostrar la foto original.")
-    return SourcePreviewPage(bitmap, 1)
+    return try {
+        SourcePreviewPage(OcrImportSource.orientAndScale(bitmap, 2_000) { ExifInterface(file.absolutePath) }, 1)
+    } catch (_: Exception) {
+        SourcePreviewPage(null, 0, "No pudimos mostrar la foto original.")
+    }
 }
 
 private fun renderSourcePdf(file: File, requestedPage: Int): SourcePreviewPage = try {
@@ -109,11 +123,17 @@ private fun renderSourcePdf(file: File, requestedPage: Int): SourcePreviewPage =
             if (renderer.pageCount == 0) return SourcePreviewPage(null, 0, "El PDF original no tiene páginas.")
             val index = requestedPage.coerceIn(0, renderer.pageCount - 1)
             renderer.openPage(index).use { page ->
+                if (page.width <= 0 || page.height <= 0) return SourcePreviewPage(null, renderer.pageCount, "No pudimos mostrar esta página.")
                 val scale = minOf(1500f / page.width, 2200f / page.height, 1f)
                 val bitmap = Bitmap.createBitmap((page.width * scale).toInt().coerceAtLeast(1), (page.height * scale).toInt().coerceAtLeast(1), Bitmap.Config.ARGB_8888)
-                Canvas(bitmap).drawColor(Color.WHITE)
-                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-                SourcePreviewPage(bitmap, renderer.pageCount)
+                try {
+                    Canvas(bitmap).drawColor(Color.WHITE)
+                    page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                    SourcePreviewPage(bitmap, renderer.pageCount)
+                } catch (error: Throwable) {
+                    bitmap.recycle()
+                    throw error
+                }
             }
         }
     }

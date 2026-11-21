@@ -8,6 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
 /**
@@ -52,17 +53,22 @@ object WikiLabRepository {
         dao = db.wikiLabDao()
 
         scope.launch {
-            prepopulateWikiLabAssets(context, db)
-
-            val muscles = dao.getAllMuscles().first()
-            val joints = dao.getAllJoints().first()
-            val patterns = dao.getAllPatterns().first()
-            _muscles.value = muscles
-            _joints.value = joints
-            _patterns.value = patterns
-            _tendons.value = emptyList()
-            _chains.value = emptyList()
+            refreshFromStorage(context, db)
         }
+    }
+
+    suspend fun refreshFromStorage(context: Context, db: KpknDatabase) = withContext(Dispatchers.IO) {
+        dao = db.wikiLabDao()
+        prepopulateWikiLabAssets(context, db)
+
+        val muscles = dao.getAllMuscles().first()
+        val joints = dao.getAllJoints().first()
+        val patterns = dao.getAllPatterns().first()
+        _muscles.value = muscles
+        _joints.value = joints
+        _patterns.value = patterns
+        _tendons.value = emptyList()
+        _chains.value = emptyList()
     }
 
     // ─── Lookup Helpers ─────────────────────────────────────────────────

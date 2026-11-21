@@ -19,6 +19,7 @@ interface CsvExportPort {
 class CsvExportService(private val context: Context, private val program: ProgramRepository, private val database: () -> KpknDatabase) : CsvExportPort {
     override suspend fun prepare(domains: Set<CsvExportDomain>): CsvExportBundle = withContext(Dispatchers.IO) {
         check(withTimeoutOrNull(30_000L) { program.isReady.first { it } } == true) { "Los datos todavía no están disponibles. Inténtalo de nuevo." }
+        program.flushPendingWrites()
         val snapshot = CsvSnapshotLoader(database(), program.settings.value).load(domains)
         CsvDomainRows.build(snapshot, domains, LocalDate.now())
     }

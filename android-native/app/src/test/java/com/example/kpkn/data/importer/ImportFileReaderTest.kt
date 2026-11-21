@@ -246,6 +246,13 @@ class ImportFileReaderTest {
         closeEntry()
     }
 
+    @Test
+    fun `BIFF8 accepts trailing bytes after the last complete sector`() {
+        val bytes = biff8CompoundFile()
+        val original = ImportFileReader.read(bytes, "rutina.xls", null)
+        assertEquals(original, ImportFileReader.read(bytes + byteArrayOf(0, 0, 0), "rutina.xls", null))
+    }
+
     /** Crea una muestra BIFF8 mínima dentro de CFB con mini-stream para probar el camino real de archivos .xls. */
     private fun biff8CompoundFile(): ByteArray {
         val shared = listOf("Día 1 — Pierna", "Ejercicio", "Series", "Reps", "Sentadilla")

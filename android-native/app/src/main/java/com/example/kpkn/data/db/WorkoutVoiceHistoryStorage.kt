@@ -7,6 +7,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.PrimaryKey
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.kpkn.domain.workout.VoiceHistoryAudit
@@ -115,6 +116,17 @@ interface WorkoutVoiceHistoryDao {
             "ORDER BY createdAtEpochMs DESC LIMIT :keep)",
     )
     suspend fun trimSession(sessionKey: String, keep: Int)
+
+    @Transaction
+    suspend fun recordWithRetention(
+        entity: WorkoutVoiceHistoryEntity,
+        cutoffEpochMs: Long,
+        keepPerSession: Int,
+    ) {
+        upsert(entity)
+        deleteOlderThan(cutoffEpochMs)
+        trimSession(entity.sessionKey, keepPerSession)
+    }
 }
 
 val WORKOUT_VOICE_HISTORY_36_37 = object : Migration(36, 37) {

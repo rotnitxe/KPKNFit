@@ -337,7 +337,7 @@ fun WorkoutScreen(
     var sessionTimeRequest by remember { mutableIntStateOf(0) }
     val liveSessionTimer = rememberLiveSessionTimer(programId, sessionId, uiState.startTimeMs)
     var storyFromHeader by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(uiState.showFinishSheet) { if (!uiState.showFinishSheet) storyFromHeader = false }
+    var headerStoryOptions by rememberSaveable(stateSaver = storyOptionsSaver) { mutableStateOf(WorkoutStoryOptions()) }
     // El roadmap mide 132 dp (B) en ventanas de 820 dp de alto o más y 112 dp (A) en las demás.
     val dockBottomClearance = liveSessionLineHeight() + 8.dp
 
@@ -456,7 +456,7 @@ fun WorkoutScreen(
             WeekVariant.D -> session.sessionD ?: session
         }
     }
-    val modeExercises = remember(modeSession) { modeSession.allExercises() }
+    val modeExercises = remember(modeSession) { modeSession.liveRoadmapExercises() }
     val skipped = uiState.skippedExerciseIds
     val visibleExercises = remember(modeExercises, skipped) {
         modeExercises.filterNot { it.id in skipped }
@@ -493,37 +493,31 @@ fun WorkoutScreen(
             }
         }
     }
-    val currentSupersetGroupId = currentExercise?.supersetGroupRefOrLegacyId()
-    val currentSupersetMembers = remember(currentSupersetGroupId, visibleExercises) {
-        currentSupersetGroupId
-            ?.let { groupId -> visibleExercises.filter { it.supersetGroupRefOrLegacyId() == groupId } }
-            .orEmpty()
+    val rest = uiState.restModalState
+    val canonicalRestSteps = if (rest == null) emptyList() else viewModel.workoutStepPositions(uiState)
+    val pendingRestSteps = if (rest == null) emptyList() else viewModel.pendingSeriesSteps(uiState)
+    val originIndex = canonicalRestSteps.indexOfFirst { it.stepKey == rest?.originStepKey }
+    val origin = canonicalRestSteps.getOrNull(originIndex)
+    val remainingRoundStep = if (origin?.supersetGroupId != null && origin.supersetRoundIndex != null) {
+        val pendingKeys = pendingRestSteps.mapTo(mutableSetOf()) { it.stepKey }
+        canonicalRestSteps.asSequence().drop(originIndex + 1).firstOrNull { step ->
+            step.supersetGroupId == origin.supersetGroupId &&
+                step.supersetRoundIndex == origin.supersetRoundIndex && step.stepKey in pendingKeys
+        }
+    } else null
+    val skipExercise = (origin?.exerciseId ?: rest?.exerciseId)
+        ?.takeIf { origin?.supersetGroupId == null && rest?.kind != RestTimerKind.SUPERSET_INTRA && rest?.kind != RestTimerKind.SUPERSET_ROUND }
+        ?.takeIf { id -> pendingRestSteps.any { it.exerciseId == id } }
+        ?.let { id -> visibleExercises.firstOrNull { it.id == id } }
+    val skipExerciseLabel = when {
+        remainingRoundStep != null -> "Saltar ronda"
+        skipExercise != null -> "Saltar series restantes de ${displayWorkoutExerciseName(skipExercise)} e ir al siguiente ejercicio"
+        else -> null
     }
-    val currentSupersetMemberIndex = currentSupersetMembers.indexOfFirst { it.id == currentExercise?.id }
-    val isInsideSupersetRound = currentSupersetMembers.size > 1 && currentSupersetMemberIndex >= 0
-    val isLastExerciseInSupersetRound = isInsideSupersetRound &&
-            currentSupersetMemberIndex == currentSupersetMembers.lastIndex
-    val canSkipCurrentExerciseOnRestFinish =
-        if (isInsideSupersetRound) {
-            !isLastExerciseInSupersetRound
-        } else {
-            currentExercise?.sets?.lastIndex?.let { uiState.currentSetIdx < it } == true
-        }
-    val skipExerciseLabel = if (isInsideSupersetRound && !isLastExerciseInSupersetRound) {
-        "Saltar ronda"
-    } else {
-        currentExercise?.let(::displayWorkoutExerciseName)?.let { exerciseName ->
-            "Saltar series restantes de $exerciseName e ir al siguiente ejercicio"
-        }
-    }
-    val onSkipExerciseFromRest: (() -> Unit)? = if (canSkipCurrentExerciseOnRestFinish) {
-        if (isInsideSupersetRound && !isLastExerciseInSupersetRound) {
-            { viewModel.skipCurrentSupersetRound() }
-        } else {
-            { viewModel.deferSkipRemainingCurrentExercise() }
-        }
-    } else {
-        null
+    val onSkipExerciseFromRest: (() -> Unit)? = when {
+        remainingRoundStep != null -> ({ viewModel.skipCurrentSupersetRound(remainingRoundStep.stepKey) })
+        skipExercise != null -> ({ viewModel.deferSkipRemainingCurrentExercise(skipExercise.id) })
+        else -> null
     }
     val activeTag = currentExercise?.let { uiState.exerciseTags[it.id] }
     val activeTagDisplay = activeTag?.let { tag ->
@@ -959,6 +953,7 @@ fun WorkoutScreen(
             uiState = uiState,
             settings = settings,
             viewModel = viewModel,
+            onOpenTechniqueInCards = { temporaryLiveSessionView = LiveSessionView.CARDS },
             onRetryPendingCaptures = viewModel::retryPendingMediaCaptures,
             currentExercise = currentExercise,
             visibleExercises = visibleExercises,
@@ -978,7 +973,7 @@ fun WorkoutScreen(
             headerProgram = activeProgram,
             headerExerciseTag = activeTagDisplay,
             onToggleVoice = onToggleVoice,
-            onStoryClick = { storyFromHeader = true; viewModel.showFinish() },
+            onStoryClick = { storyFromHeader = true },
             onMoreSessionOptionsClick = { liveSessionDestination = LiveSessionDestination.MENU },
             recordActionHolder = recordActionHolder,
             recordFabHolder = recordFabHolder,
@@ -1176,7 +1171,7 @@ fun WorkoutScreen(
         onRemoveChecklistItem = viewModel::removeSessionChecklistItem,
         onOpenPhotos = { viewModel.mediaCapture.openAlbumSheet() },
         onOpenVoice = { showVoiceConversation = true },
-        onOpenStory = { storyFromHeader = true; viewModel.showFinish() },
+        onOpenStory = { storyFromHeader = true },
         timer = liveSessionTimer,
         sessionAccentColor = sessionAccentColor,
         currentView = liveSessionView,
@@ -1450,9 +1445,23 @@ fun WorkoutScreen(
         )
     }
 
-    var recordedFinishStory by remember { mutableStateOf<Pair<WorkoutStoryData,WorkoutStoryOptions>?>(null) }
+    var recordedFinishStory by remember { mutableStateOf(viewModel.pendingFinishStoryShare) }
+    if (storyFromHeader) {
+        val presentation = viewModel.finishPresentationContext()
+        val completed = completedExercisesForSummary
+        val story = WorkoutStoryData(
+            session.name, presentation.copy(currentExercises = completed), ((System.currentTimeMillis() - uiState.startTimeMs) / 60_000).toInt().coerceAtLeast(0),
+            sessionTonnage(completed), logicalSetCountFromCompleted(completed), finishAverageRir(completed), "Sin registro",
+            buildFinishLiftProgress(completed, presentation.history, presentation.today),
+            sessionRpe = com.example.kpkn.domain.training.insights.RpeConversion.recordedEffort(completed).value,
+            finishRecords = buildFinishRecords(completed, presentation.history),
+        )
+        WorkoutStorySheet(data = story, hazeState = overlayHazeState, options = headerStoryOptions,
+            onOptionsChange = { headerStoryOptions = it }, shareAfterSave = false,
+            onShareAfterSaveChange = {}, onDismiss = { storyFromHeader = false })
+    }
     LaunchedEffect(uiState.showFinishSheet) {
-        if (!uiState.showFinishSheet) recordedFinishStory = null
+        if (!uiState.showFinishSheet) { recordedFinishStory = null; viewModel.pendingFinishStoryShare = null }
     }
 
     // ─── Finish sheet ─────────────────────────────────────────────────────────
@@ -1494,7 +1503,6 @@ fun WorkoutScreen(
             plannedSets = sessionPaceWork(visibleExercises, uiState.completedSets, uiState.omittedSetKeys).total,
             targetMinutes = resolveEffectiveSessionTargetMinutes(uiState.customTargetDurationMinutes, uiState.targetDurationMinutes, session?.targetDurationMinutes),
             errorMessage = uiState.finishWarning,
-            openStoryOnStart = storyFromHeader,
             onNotesCommitted = { viewModel.setSessionNotes(it, flush = true) },
             discomforts = uiState.postExerciseFeedbackByExerciseId.values.flatMap { it.discomfortIds }.filter { it != "none" }.distinct(),
             presentation = viewModel.finishPresentationContext(),
@@ -1503,27 +1511,37 @@ fun WorkoutScreen(
             onToggleTask = viewModel::toggleSessionChecklistItem,
             onRemoveTask = viewModel::removeSessionChecklistItem,
             onSummaryReady = viewModel::announceWorkoutSessionSummary,
-            onShareAfterSave = { story,options -> recordedFinishStory=story to options },
-            onCancelShareAfterSave = { recordedFinishStory = null },
+            pendingSeriesNotice = buildPendingSeriesNotice(viewModel.pendingSeriesSteps(uiState)),
+            onContinuePending = viewModel::continuePendingSeriesFromFinish,
+            onShareAfterSave = { story,options -> recordedFinishStory=story to options; viewModel.pendingFinishStoryShare = recordedFinishStory },
+            onCancelShareAfterSave = { recordedFinishStory = null; viewModel.pendingFinishStoryShare = null },
             onNotes = viewModel::setSessionNotes,
             onAlbum = { viewModel.mediaCapture.openAlbumSheet() },
             onConfirm = { notes, effort ->
+                val shareIntent = recordedFinishStory
+                var shareConsumed = false
                 viewModel.finishWorkout(notes = notes, fatigueLevel = 0,
                     closingFeedback = SessionClosingFeedback(
                         discomforts = emptyList(), sessionEffortRpe = effort,
                         finishOperationId = uiState.finishResumeSnapshot?.finishOperationId,
                         completionInstantIso = uiState.finishResumeSnapshot?.completionInstantIso,
                     ), onComplete = {
-                        recordedFinishStory?.let { (story,options) -> WorkoutShareService.shareAfterFinish(context,story,options) }
-                        recordedFinishStory=null
+                        if (!shareConsumed) {
+                            shareConsumed = true
+                            recordedFinishStory = null
+                            viewModel.pendingFinishStoryShare = null
+                            shareIntent?.let { (story,options) -> WorkoutShareService.shareAfterFinish(context.applicationContext,story,options) }
+                        }
                     })
             },
             onDismiss = {
                 recordedFinishStory = null
+                viewModel.pendingFinishStoryShare = null
                 viewModel.hideFinish()
             },
             onDiscardEmpty = {
                 recordedFinishStory = null
+                viewModel.pendingFinishStoryShare = null
                 viewModel.cancelWorkout()
             },
         )

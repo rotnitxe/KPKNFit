@@ -469,12 +469,11 @@ abstract class KpknDatabase : RoomDatabase() {
                 """.trimIndent())
                 db.execSQL("""
                     CREATE TABLE IF NOT EXISTS `performance_snapshot` (
-                        `id` INTEGER PRIMARY KEY AUTOINCREMENT,
+                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
                         `contextKey` TEXT NOT NULL,
                         `data` TEXT NOT NULL
                     )
                 """.trimIndent())
-                db.execSQL("CREATE INDEX IF NOT EXISTS `index_performance_snapshot_contextKey` ON `performance_snapshot` (`contextKey`)")
             }
         }
 

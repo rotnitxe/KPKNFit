@@ -22,13 +22,12 @@ object ActiveWorkoutHolder {
 
     fun isActive(): Boolean = _viewModelRef?.get() != null
 
-    fun handleAction(action: TimerAction) {
-        _viewModelRef?.get()?.handleTimerAction(action)
+    fun handleAction(action: TimerAction, expectedTimerId: String) {
+        _viewModelRef?.get()?.handleTimerAction(action, expectedTimerId)
     }
 }
 
 sealed class TimerAction {
-    data object CompleteSet : TimerAction()
     data object SkipTimer : TimerAction()
     data object AddTime : TimerAction()
     data object SubtractTime : TimerAction()

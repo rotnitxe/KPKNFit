@@ -15,9 +15,7 @@ import com.example.kpkn.domain.training.importer.OcrLayout
 import com.example.kpkn.domain.training.importer.OcrPage
 import java.io.ByteArrayInputStream
 import java.io.File
-import java.io.IOException
 import kotlin.math.max
-import kotlin.math.roundToInt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.ensureActive
@@ -51,11 +49,12 @@ object OcrImportSource {
         title: String,
         cacheDir: File?,
         onProgress: (page: Int, pages: Int) -> Unit = { _, _ -> },
-        recognizer: TextRecognizerPort = MlKitTextRecognizer(),
+        recognizer: TextRecognizerPort? = null,
         onPageRecognized: (page: Int, ocrPage: OcrPage) -> Unit = { _, _ -> },
-    ): List<ImportSheet> {
-        val pages = withContext(Dispatchers.IO) { PdfRendererPages.open(contentResolver, uri, cacheDir) }
-        return pages.use { readPages(it, title, recognizer, onPageRecognized = onPageRecognized, onProgress = onProgress) }
+    ): List<ImportSheet> = withContext(Dispatchers.IO) {
+        PdfRendererPages.open(contentResolver, uri, cacheDir).use { pages ->
+            withRecognizer(recognizer) { readPages(pages, title, it, onPageRecognized, onProgress) }
+        }
     }
 
     /** Lee un PDF descargado desde una URL; los bytes se guardan temporalmente para abrirlos con [android.graphics.pdf.PdfRenderer]. */
@@ -64,12 +63,12 @@ object OcrImportSource {
         title: String,
         cacheDir: File?,
         onProgress: (page: Int, pages: Int) -> Unit = { _, _ -> },
-        recognizer: TextRecognizerPort = MlKitTextRecognizer(),
+        recognizer: TextRecognizerPort? = null,
         onPageRecognized: (page: Int, ocrPage: OcrPage) -> Unit = { _, _ -> },
-    ): List<ImportSheet> {
-        if (bytes.size > ImportLimits.MAX_PDF_BYTES) throw ImportFileException(PDF_TOO_LARGE_MESSAGE)
-        val pages = withContext(Dispatchers.IO) { PdfRendererPages.open(bytes, cacheDir) }
-        return pages.use { readPages(it, title, recognizer, onPageRecognized = onPageRecognized, onProgress = onProgress) }
+    ): List<ImportSheet> = withContext(Dispatchers.IO) {
+        PdfRendererPages.open(bytes, cacheDir).use { pages ->
+            withRecognizer(recognizer) { readPages(pages, title, it, onPageRecognized, onProgress) }
+        }
     }
 
     /** Lee una foto (JPEG, PNG, WebP o HEIC) con OCR, orientada según su EXIF y con el lado largo acotado. */
@@ -77,23 +76,23 @@ object OcrImportSource {
         contentResolver: ContentResolver,
         uri: Uri,
         title: String,
-        recognizer: TextRecognizerPort = MlKitTextRecognizer(),
+        recognizer: TextRecognizerPort? = null,
         onPageRecognized: (ocrPage: OcrPage) -> Unit = {},
-    ): List<ImportSheet> {
-        val bitmap = withContext(Dispatchers.IO) { decodeUpright(contentResolver, uri) }
-        return readBitmap(bitmap, title, recognizer, onPageRecognized)
+    ): List<ImportSheet> = withContext(Dispatchers.IO) {
+        withRecognizer(recognizer) { readBitmap(decodeUpright(contentResolver, uri), title, it, onPageRecognized) }
     }
 
     /** Lee una foto descargada desde una URL sin guardarla en un archivo de usuario. */
     internal suspend fun readImageBytes(
         bytes: ByteArray,
         title: String,
-        recognizer: TextRecognizerPort = MlKitTextRecognizer(),
-    ): List<ImportSheet> {
-        if (bytes.size > ImportLimits.MAX_IMAGE_BYTES) throw ImportFileException(IMAGE_TOO_LARGE_MESSAGE)
-        val bitmap = withContext(Dispatchers.IO) { decodeUpright(bytes) }
-        return readBitmap(bitmap, title, recognizer)
+        recognizer: TextRecognizerPort? = null,
+    ): List<ImportSheet> = withContext(Dispatchers.IO) {
+        withRecognizer(recognizer) { readBitmap(decodeUpright(bytes), title, it) }
     }
+
+    private suspend fun <T> withRecognizer(recognizer: TextRecognizerPort?, block: suspend (TextRecognizerPort) -> T): T =
+        if (recognizer != null) block(recognizer) else MlKitTextRecognizer.forSession().use { block(it) }
 
     private suspend fun readBitmap(
         bitmap: Bitmap,
@@ -135,11 +134,13 @@ object OcrImportSource {
         for (index in 0 until total) {
             currentCoroutineContext().ensureActive()
             onProgress(index + 1, total)
-            val bitmap = withContext(Dispatchers.Default) { source.render(index) }
-            val page = try {
-                OcrPage(bitmap.width, bitmap.height, recognizer.recognize(bitmap))
-            } finally {
-                bitmap.recycle()
+            val page = withContext(Dispatchers.IO) {
+                val bitmap = source.render(index)
+                try {
+                    OcrPage(bitmap.width, bitmap.height, recognizer.recognize(bitmap))
+                } finally {
+                    bitmap.recycle()
+                }
             }
             onPageRecognized(index + 1, page)
             pages.add(page)
@@ -209,21 +210,31 @@ object OcrImportSource {
         val options = BitmapFactory.Options().apply { inSampleSize = sample }
         val decoded = BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
             ?: throw ImportFileException(IMAGE_UNREADABLE_MESSAGE)
-        return scaleToSide(rotateByExif(decoded, bytes), ImportLimits.MAX_OCR_IMAGE_SIDE)
+        return orientAndScale(decoded, ImportLimits.MAX_OCR_IMAGE_SIDE) { ExifInterface(ByteArrayInputStream(bytes)) }
     }
 
     /** Gira o refleja la foto según su orientación EXIF; sin EXIF legible, la deja como está. */
-    private fun rotateByExif(bitmap: Bitmap, bytes: ByteArray): Bitmap {
-        val orientation = try {
-            ExifInterface(ByteArrayInputStream(bytes))
-                .getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
-        } catch (error: IOException) {
-            ExifInterface.ORIENTATION_NORMAL
+    internal fun orientAndScale(bitmap: Bitmap, maxSide: Int, exif: () -> ExifInterface): Bitmap {
+        try {
+            val orientation = try {
+                exif().getAttributeInt(ExifInterface.TAG_ORIENTATION, ExifInterface.ORIENTATION_NORMAL)
+            } catch (_: Exception) {
+                ExifInterface.ORIENTATION_NORMAL
+            }
+            val matrix = orientationMatrix(orientation) ?: Matrix()
+            val side = max(bitmap.width, bitmap.height)
+            if (side > maxSide) {
+                val factor = maxSide.toFloat() / side
+                matrix.preScale(maxOf(factor, 1f / bitmap.width), maxOf(factor, 1f / bitmap.height))
+            }
+            if (matrix.isIdentity) return bitmap
+            val transformed = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+            if (transformed !== bitmap) bitmap.recycle()
+            return transformed
+        } catch (error: Throwable) {
+            bitmap.recycle()
+            throw error
         }
-        val matrix = orientationMatrix(orientation) ?: return bitmap
-        val turned = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
-        bitmap.recycle()
-        return turned
     }
 
     /** La transformación de cada orientación EXIF; null si la foto ya está derecha. */
@@ -248,15 +259,4 @@ object OcrImportSource {
         return matrix
     }
 
-    /** Reduce la foto para que su lado largo no pase de [maxSide] píxeles. */
-    private fun scaleToSide(bitmap: Bitmap, maxSide: Int): Bitmap {
-        val longSide = max(bitmap.width, bitmap.height)
-        if (longSide <= maxSide) return bitmap
-        val factor = maxSide.toDouble() / longSide
-        val width = max(1, (bitmap.width * factor).roundToInt())
-        val height = max(1, (bitmap.height * factor).roundToInt())
-        val scaled = Bitmap.createScaledBitmap(bitmap, width, height, true)
-        bitmap.recycle()
-        return scaled
-    }
 }

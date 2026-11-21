@@ -105,8 +105,9 @@ internal fun preferredPendingCardioSetIndex(
     exercise: Exercise,
     completedSets: Map<String, CompletedSet>,
     preferredSetId: String?,
+    omittedSetKeys: Set<String> = emptySet(),
 ): Int? {
-    val cardioSetIndices = WorkoutStepRules.cardioSetIndices(exercise)
+    val cardioSetIndices = WorkoutStepRules.cardioSetIndices(exercise, omittedSetKeys)
     val preferredSetIndex = preferredSetId
         ?.let { setId -> exercise.sets.indexOfFirst { it.id == setId } }
         ?.takeIf { setIndex ->

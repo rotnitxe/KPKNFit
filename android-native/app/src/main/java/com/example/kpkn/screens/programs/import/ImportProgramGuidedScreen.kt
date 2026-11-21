@@ -14,6 +14,16 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Text
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.TextButton
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import com.example.kpkn.domain.training.importer.ImportedExercise
+import com.example.kpkn.domain.training.importer.ImportExercisePatch
+import com.example.kpkn.domain.training.importer.ImportLoadUnit
+import com.example.kpkn.domain.training.importer.ImportWarning
+import com.example.kpkn.domain.training.importer.ImportWarningKind
+import com.example.kpkn.domain.training.importer.ProgramImportParser
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -58,7 +68,7 @@ fun ImportProgramScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val sourceMediaStore = remember(context.filesDir) { ImportSourceMediaStore(context.filesDir) }
-    var pastedText by rememberSaveable { mutableStateOf("") }
+    var pastedText by remember { mutableStateOf("") }
     var sourceUrl by rememberSaveable { mutableStateOf("") }
     var urlMode by rememberSaveable { mutableStateOf(false) }
     var catalogRawName by rememberSaveable { mutableStateOf<String?>(null) }
@@ -69,9 +79,10 @@ fun ImportProgramScreen(
     var sessionMenuWarningId by rememberSaveable { mutableStateOf<String?>(null) }
     var addExerciseContextDayId by rememberSaveable { mutableStateOf<String?>(null) }
     var showAddExercise by rememberSaveable { mutableStateOf(false) }
+    var addExerciseFromWarning by remember { mutableStateOf<ImportWarning?>(null) }
     var scheduleWeekIndex by rememberSaveable { mutableIntStateOf(1) }
     var showOriginal by rememberSaveable { mutableStateOf(false) }
-    var extractedText by rememberSaveable(state.sourceEvidence.sourceText) {
+    var extractedText by remember(state.sourceEvidence.sourceText) {
         mutableStateOf(state.sourceEvidence.sourceText.orEmpty())
     }
     val pickFile = rememberImportFilePicker { uri -> viewModel.importFromPicked(uri) }
@@ -132,7 +143,7 @@ fun ImportProgramScreen(
         }
     )
     val pendingWarnings = imported?.warnings?.count { it.id !in imported.reviewedWarnings } ?: 0
-    val canSave = issues.isEmpty() && pendingWarnings == 0 && !weekdaysMissing && !state.busy && state.notice != IMPORT_CATALOG_UNAVAILABLE &&
+    val canSave = issues.isEmpty() && pendingWarnings == 0 && !weekdaysMissing && !state.saving && !state.busy && state.notice != IMPORT_CATALOG_UNAVAILABLE &&
         !state.draftPersistencePending && state.draftPersistenceError == null
     val planRejection = viewModel.planRejection(level)
     val requiresPro = planRejection != null
@@ -187,7 +198,7 @@ fun ImportProgramScreen(
     }
 
     fun requestSave() {
-        if (!canSave) return
+        if (!canSave || viewModel.state.value.saving) return
         if (requiresPro) {
             viewModel.showSheet(ImportWizardSheet.PRO)
             return
@@ -426,7 +437,7 @@ fun ImportProgramScreen(
                 }
                 ImportWizardDock(
                     label = dockLabel,
-                    enabled = dockEnabled,
+                    enabled = dockEnabled && !state.saving,
                     onNext = dockAction,
                     secondaryLabel = dockSecondaryLabel,
                     onSecondary = dockSecondaryAction,
@@ -443,7 +454,7 @@ fun ImportProgramScreen(
                 onBack = ::backPage,
                 action = null,
                 onAction = null,
-                modifier = Modifier.align(Alignment.TopCenter).padding(horizontal = 12.dp).padding(top = 36.dp),
+                modifier = Modifier.align(Alignment.TopCenter).statusBarsPadding().padding(horizontal = 12.dp, vertical = 8.dp),
             )
         }
 
@@ -493,6 +504,10 @@ fun ImportProgramScreen(
                         },
                         onEdit = viewModel::edit,
                         onOpenSessionEditor = ::openWarningTarget,
+                        onAddFromWarning = if (state.editorStarted) null else { warning ->
+                            addExerciseFromWarning = warning
+                            viewModel.showSheet(null)
+                        },
                         onClose = { viewModel.showSheet(null) },
                         hasOriginalSource = state.sourceEvidence.sourceMediaId != null || state.sourceEvidence.sourcePreviewUnavailable,
                         onOpenOriginalSource = { showOriginal = true },
@@ -569,28 +584,51 @@ fun ImportProgramScreen(
             null -> Unit
         }
 
-        if (state.sheet == ImportWizardSheet.CATALOG && catalogFullScreen && catalogRawName != null && catalogExerciseId != null) {
+        val rawName = catalogRawName
+        val exerciseId = catalogExerciseId
+        if (state.sheet == ImportWizardSheet.CATALOG && catalogFullScreen && rawName != null && exerciseId != null) {
             ImportSharedCatalog(
-                rawName = catalogRawName!!,
+                rawName = rawName,
                 onSelect = { id ->
-                    if (catalogApplyToAll) viewModel.edit(ImportEditOp.Decide(catalogRawName!!, id, catalogRawName!!))
-                    else viewModel.edit(ImportEditOp.DecideOccurrence(catalogExerciseId!!, id, catalogRawName!!))
-                    catalogRawName = null
-                    catalogExerciseId = null
-                    viewModel.showSheet(null)
+                    if (catalogApplyToAll) viewModel.edit(ImportEditOp.Decide(rawName, id, rawName))
+                    else viewModel.edit(ImportEditOp.DecideOccurrence(exerciseId, id, rawName))
+                    closeImportCatalog()
                 },
                 onClose = ::closeImportCatalog,
             )
         }
 
-        if (showAddExercise && imported != null) {
+        if (imported != null && state.sheet == null) {
+            val selected = state.openedExerciseId?.let { importExerciseOf(imported, it) }
+            if (selected != null) {
+                ImportWarningExerciseEditor(
+                    exercise = selected,
+                    unit = imported.loadUnit,
+                    onClose = { viewModel.open(null) },
+                    onSave = { patch ->
+                        val reviewed = imported.warnings.filter {
+                            it.exerciseId == selected.id && it.id !in imported.reviewedWarnings &&
+                                it.kind in setOf(ImportWarningKind.INCOMPLETE_ROW, ImportWarningKind.IGNORED_VALUE)
+                        }.map { ImportEditOp.IgnoreWarning(it.id) }
+                        viewModel.edit(ImportEditOp.Batch(listOf(ImportEditOp.Update(selected.id, patch, false)) + reviewed))
+                        viewModel.open(null)
+                    },
+                )
+            }
+        }
+
+        if ((showAddExercise || addExerciseFromWarning != null) && imported != null) {
             ImportAddExerciseSheet(
                 imported = imported,
-                contextDayId = addExerciseContextDayId,
+                contextDayId = addExerciseFromWarning?.dayId ?: addExerciseContextDayId,
+                fromWarning = addExerciseFromWarning,
                 search = viewModel::search,
                 namesOf = viewModel::namesOf,
                 onEdit = viewModel::edit,
-                onClose = { showAddExercise = false },
+                onClose = {
+                    showAddExercise = false
+                    addExerciseFromWarning = null
+                },
             )
         }
         if (showOriginal) {
@@ -602,6 +640,110 @@ fun ImportProgramScreen(
             )
         }
     }
+}
+
+@Composable
+private fun ImportWarningExerciseEditor(
+    exercise: ImportedExercise,
+    unit: ImportLoadUnit,
+    onSave: (ImportExercisePatch) -> Unit,
+    onClose: () -> Unit,
+) {
+    var form by remember(exercise) { mutableStateOf(ImportExerciseForm.of(exercise)) }
+    var range by remember(exercise) { mutableStateOf(exercise.repsMin != exercise.repsMax) }
+    KpknSheet(onDismissRequest = onClose, maxHeightFraction = 0.9f) {
+        Column(
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(exercise.rawName, style = WizardTypography.stepTitle)
+            ImportStepper(
+                field = "series",
+                valueText = "${form.sets} series",
+                canDecrease = form.sets > 1,
+                canIncrease = form.sets < ProgramImportParser.MAX_SETS,
+                onDecrease = { form = form.copy(sets = form.sets - 1) },
+                onIncrease = { form = form.copy(sets = form.sets + 1) },
+                testTag = "import-warning-edit-sets",
+            )
+            if (form.durationSeconds == null) {
+                ImportRepsEditor(range, form.repsMin, form.repsMax, { mode, min, max ->
+                    range = mode
+                    form = form.copy(repsMin = min, repsMax = max)
+                }, "import-warning-edit")
+            } else {
+                ImportWarningNumber(exercise.id, "Duración (s)", form.durationSeconds) {
+                    form = form.copy(durationSeconds = it.toIntOrNull() ?: 0)
+                }
+            }
+            ImportSegmented(
+                options = ImportLoadMode.entries,
+                selected = form.loadMode,
+                label = { mode -> when (mode) {
+                    ImportLoadMode.NONE -> "Sin carga"
+                    ImportLoadMode.KG -> if (unit == ImportLoadUnit.LB) "lb" else "kg"
+                    ImportLoadMode.PERCENT -> "%1RM"
+                } },
+                onSelected = { form = form.copy(loadMode = it) },
+                testTag = "import-warning-edit-load-mode",
+            )
+            when (form.loadMode) {
+                ImportLoadMode.NONE -> Unit
+                ImportLoadMode.KG -> ImportWarningNumber(exercise.id, if (unit == ImportLoadUnit.LB) "Carga (lb)" else "Carga (kg)", form.loadKg) {
+                    form = form.copy(loadKg = it.replace(',', '.').toDoubleOrNull())
+                }
+                ImportLoadMode.PERCENT -> ImportWarningNumber(exercise.id, "% de 1RM", form.percent1Rm) {
+                    form = form.copy(percent1Rm = it.replace(',', '.').toDoubleOrNull())
+                }
+            }
+            ImportSegmented(
+                options = ImportEffortMode.entries,
+                selected = form.effortMode,
+                label = { if (it == ImportEffortMode.NONE) "Sin esfuerzo" else it.name },
+                onSelected = { form = form.copy(effortMode = it) },
+                testTag = "import-warning-edit-effort-mode",
+            )
+            when (form.effortMode) {
+                ImportEffortMode.NONE -> Unit
+                ImportEffortMode.RPE -> ImportWarningNumber(exercise.id, "RPE", form.rpe) {
+                    form = form.copy(rpe = it.replace(',', '.').toDoubleOrNull())
+                }
+                ImportEffortMode.RIR -> ImportWarningNumber(exercise.id, "RIR", form.rir) {
+                    form = form.copy(rir = it.toIntOrNull())
+                }
+            }
+            ImportWarningNumber(exercise.id, "Descanso (s)", form.restSeconds) {
+                form = form.copy(restSeconds = if (it.isBlank()) null else it.toIntOrNull() ?: -1)
+            }
+            OutlinedTextField(
+                value = form.notes,
+                onValueChange = { form = form.copy(notes = it.take(ProgramImportParser.MAX_NOTE_CHARS)) },
+                label = { Text("Notas") },
+                modifier = Modifier.fillMaxWidth(),
+            )
+            TextButton(
+                enabled = form.isValid(unit),
+                onClick = { onSave(patchFrom(exercise, form)) },
+                modifier = Modifier.testTag("import-warning-edit-save"),
+            ) { Text("Guardar cambios") }
+        }
+    }
+}
+
+@Composable
+private fun ImportWarningNumber(key: String, label: String, initial: Number?, onChange: (String) -> Unit) {
+    var text by remember(key, label) { mutableStateOf(initial?.toString().orEmpty()) }
+    OutlinedTextField(
+        value = text,
+        onValueChange = { value ->
+            text = value.take(12)
+            onChange(text)
+        },
+        label = { Text(label) },
+        modifier = Modifier.fillMaxWidth(),
+        singleLine = true,
+        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+    )
 }
 
 private const val IMPORT_TEXT_EXAMPLE_FOR_WIZARD = "Día 1 — Pierna\nSentadilla 4×6 @120 kg\nPrensa 3×10\nPeso muerto rumano 3×8 @100 kg"

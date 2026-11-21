@@ -29,7 +29,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.core.content.FileProvider
 import com.example.kpkn.data.importer.PROGRAM_IMPORT_MIME_TYPES
-import com.example.kpkn.data.importer.programTitleOf
+import com.example.kpkn.data.importer.ImportFileReader
 import com.example.kpkn.data.importer.programFileNameOf
 import com.example.kpkn.data.importer.readSheets
 import com.example.kpkn.domain.onboarding.ProgramSource
@@ -213,7 +213,7 @@ internal fun ImportSourceChoices(
                 ImportTextAction(
                     label = "Elegir de la galería",
                     onClick = {
-                        pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly))
+                        launchImportPicker { pickPhoto.launch(PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)) }
                     },
                     modifier = Modifier.testTag("import-photo-gallery"),
                 )
@@ -326,7 +326,7 @@ internal fun rememberImportFilePicker(onPicked: (Uri) -> Unit): () -> Unit {
     val launcher = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
         if (uri != null) onPicked(uri)
     }
-    return { launcher.launch(PROGRAM_IMPORT_MIME_TYPES) }
+    return { launchImportPicker { launcher.launch(PROGRAM_IMPORT_MIME_TYPES) } }
 }
 
 /**
@@ -356,10 +356,11 @@ internal suspend fun readPickedSource(
     cacheDir: File,
     onProgress: (page: Int, pages: Int) -> Unit = { _, _ -> },
 ): Result<PickedProgramSource> {
-    val mime = withContext(Dispatchers.IO) { contentResolver.getType(uri) }
-    val displayName = withContext(Dispatchers.IO) { programFileNameOf(contentResolver, uri) }
-    val title = programTitleOf(contentResolver, uri)
-    return readSheets(contentResolver, uri, mime, cacheDir, onProgress = onProgress).map { sheets ->
+    val (mime, displayName) = withContext(Dispatchers.IO) {
+        contentResolver.getType(uri) to programFileNameOf(contentResolver, uri)
+    }
+    val title = ImportFileReader.titleOf(displayName)
+    return readSheets(contentResolver, uri, mime, cacheDir, knownFileName = displayName, onProgress = onProgress).map { sheets ->
         PickedProgramSource(title, displayName, mime, sheets)
     }
 }

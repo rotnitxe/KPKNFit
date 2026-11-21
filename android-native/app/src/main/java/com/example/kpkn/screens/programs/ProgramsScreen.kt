@@ -424,7 +424,7 @@ fun ProgramsScreen(
     // «Importar» es una hoja con filas sobre la lista: elegir una fuente deja la petición y abre la lectura.
     if (showImportSheet) {
         val startImport: (ImportRequest) -> Unit = { request ->
-            ImportHandoff.pending = request
+            ImportHandoff.put(request)
             showImportSheet = false
             onImportProgram()
         }

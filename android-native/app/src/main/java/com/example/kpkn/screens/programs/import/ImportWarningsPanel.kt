@@ -214,6 +214,7 @@ internal fun ImportWarningsSheetContent(
     hasOriginalSource: Boolean = false,
     onOpenOriginalSource: () -> Unit = {},
     modifier: Modifier = Modifier,
+    onAddFromWarning: ((ImportWarning) -> Unit)? = null,
 ) {
     val pending = imported.warnings.filter { it.id !in imported.reviewedWarnings }
     val informationalPending = pending.filter { it.kind == ImportWarningKind.SHEET_NOTE }
@@ -255,13 +256,12 @@ internal fun ImportWarningsSheetContent(
                 }
                 val exerciseId = warning.exerciseId?.takeIf { importExerciseOf(imported, it) != null }
                 val opensStructure = warning.kind == ImportWarningKind.STRUCTURE_REVIEW && warning.dayId != null
-                val opensEditor = warning.kind == ImportWarningKind.SKIPPED_ROW && warning.dayId != null
+                val opensEditor = warning.kind == ImportWarningKind.SKIPPED_ROW && (onAddFromWarning != null || warning.dayId != null)
                 val opensExercise = warning.kind in setOf(ImportWarningKind.INCOMPLETE_ROW, ImportWarningKind.IGNORED_VALUE) && exerciseId != null
                 val actionLabel = when {
                     opensStructure -> "Asignar día"
                     opensEditor -> "Corregir"
                     opensExercise -> "Corregir"
-                    warning.kind == ImportWarningKind.SKIPPED_ROW && warning.dayId != null -> "Añadir"
                     else -> if (expandedId == warning.id) "Ocultar" else "Ver"
                 }
                 ImportWarningsSheetRow(
@@ -271,12 +271,12 @@ internal fun ImportWarningsSheetContent(
                     expanded = expandedId == warning.id,
                     hasOriginalSource = hasOriginalSource,
                     onOpenOriginalSource = onOpenOriginalSource,
+                    onIgnore = { onEdit(ImportEditOp.IgnoreWarning(warning.id)) },
                     onAction = {
                         when {
                             opensStructure -> onOpenSessionEditor(warning.dayId)
-                            opensEditor -> onOpenSessionEditor(warning.dayId)
+                            opensEditor -> if (onAddFromWarning != null) onAddFromWarning(warning) else onOpenSessionEditor(warning.dayId)
                             opensExercise -> exerciseId?.let(onOpenExercise)
-            warning.kind == ImportWarningKind.SKIPPED_ROW && warning.dayId != null -> onOpenSessionEditor(warning.dayId)
                             else -> expandedId = if (expandedId == warning.id) null else warning.id
                         }
                     },
@@ -340,6 +340,7 @@ private fun ImportWarningsSheetRow(
     hasOriginalSource: Boolean,
     onOpenOriginalSource: () -> Unit,
     onAction: () -> Unit,
+    onIgnore: () -> Unit,
 ) {
     val warningAccent = Color(0xFFF7CF73)
     Row(
@@ -395,12 +396,19 @@ private fun ImportWarningsSheetRow(
                 )
             }
         }
-        ImportTextAction(
-            label = actionLabel,
-            onClick = onAction,
-            modifier = Modifier.testTag("import-warning-sheet-action-${warning.id}"),
-            color = if (actionLabel == "Corregir" || actionLabel == "Añadir") warningAccent else WizardColors.text,
-        )
+        Column(horizontalAlignment = Alignment.End) {
+            ImportTextAction(
+                label = actionLabel,
+                onClick = onAction,
+                modifier = Modifier.testTag("import-warning-sheet-action-${warning.id}"),
+                color = if (actionLabel == "Corregir") warningAccent else WizardColors.text,
+            )
+            ImportTextAction(
+                label = if (warning.kind == ImportWarningKind.SKIPPED_ROW) "Ignorar" else "Entendido",
+                onClick = onIgnore,
+                modifier = Modifier.testTag("import-warning-sheet-ignore-${warning.id}"),
+            )
+        }
     }
 }
 

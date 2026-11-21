@@ -51,6 +51,7 @@ data class CardioGpsState(
     val kmSplitPaces: List<Int> = emptyList(),
     val pointCount: Int = 0,
     val lastFixAtEpochMs: Long? = null,
+    val persistenceFailed: Boolean = false,
 )
 
 internal data class CardioGpsExecutionToken(
@@ -145,6 +146,7 @@ object CardioGpsTracker {
     private var restoreGeneration = 0L
     private var activeExecutionToken: CardioGpsExecutionToken? = null
     private var tickerJob: Job? = null
+    private var persistenceRetryJob: Job? = null
 
     private data class RestoreTicket(
         val generation: Long,
@@ -461,10 +463,12 @@ object CardioGpsTracker {
                 // Invalidate synchronously above, but resolve an uncached path on
                 // the serialized IO writer. All accepted writes precede this delete.
                 persistenceQueue.execute {
-                    val file = cachedFile ?: contextForDelete?.let {
-                        currentCardioGpsSnapshotFile(it.filesDir, sessionKey)
-                    } ?: return@execute
-                    fileStore.delete(file, legacyFile)
+                    runCatching {
+                        val file = cachedFile ?: contextForDelete?.let {
+                            currentCardioGpsSnapshotFile(it.filesDir, sessionKey)
+                        } ?: return@runCatching
+                        fileStore.delete(file, legacyFile)
+                    }
                 }
             }
         }
@@ -545,6 +549,7 @@ object CardioGpsTracker {
             kmSplitPaces = CardioGpsEngine.kmSplitPaces(current.points),
             pointCount = current.points.size,
             lastFixAtEpochMs = current.lastFixAtEpochMs,
+            persistenceFailed = _state.value.takeIf { it.sessionKey == current.sessionKey }?.persistenceFailed ?: false,
         )
     }
 
@@ -573,6 +578,9 @@ object CardioGpsTracker {
         persistenceQueue.execute {
             runCatching {
                 fileStore.write(file, current)
+                synchronized(lock) {
+                    if (_state.value.sessionKey == current.sessionKey) _state.value = _state.value.copy(persistenceFailed = false)
+                }
                 deleteLegacyAfterSuccess?.let { legacy ->
                     fileStore.deleteLegacy(legacy)
                     synchronized(lock) {
@@ -582,6 +590,20 @@ object CardioGpsTracker {
                     }
                 }
             }.onFailure { error ->
+                synchronized(lock) {
+                    if (snapshot?.sessionKey == current.sessionKey && _state.value.sessionKey == current.sessionKey) {
+                        _state.value = _state.value.copy(persistenceFailed = true)
+                        if (persistenceRetryJob?.isActive != true) {
+                            persistenceRetryJob = scope.launch {
+                                delay(5_000L)
+                                synchronized(lock) {
+                                    persistenceRetryJob = null
+                                    if (_state.value.sessionKey == current.sessionKey && _state.value.persistenceFailed) persistLocked()
+                                }
+                            }
+                        }
+                    }
+                }
                 com.example.kpkn.data.diagnostics.KpknDiagnosticLogger.event(
                     namespace = "workout", name = "gps_snapshot_failed",
                     fields = mapOf("sessionKey" to current.sessionKey, "exceptionType" to error.javaClass.name),

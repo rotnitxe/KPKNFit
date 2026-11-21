@@ -50,7 +50,7 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
     val draft = state.draft
     val imported = draft.importedProgram
     var pasting by rememberSaveable { mutableStateOf(false) }
-    var pasted by rememberSaveable { mutableStateOf("") }
+    var pasted by remember { mutableStateOf("") }
     var enteringUrl by rememberSaveable { mutableStateOf(false) }
     var sourceUrl by rememberSaveable { mutableStateOf("") }
     var catalogRawName by rememberSaveable { mutableStateOf<String?>(null) }
@@ -226,9 +226,10 @@ internal fun EntrenoProgramImportStep(state: SetupWizardState, vm: SetupWizardVi
     }
     val editor = draft.importedProgramEditor
     val target = activeSessionId?.let { editor?.program?.editorTarget(it) }
-    if (target != null && activeEditorStore != null && editor != null) {
+    val store = activeEditorStore
+    if (target != null && store != null && editor != null) {
         ImportSessionEditorPortal(
-            store = activeEditorStore!!,
+            store = store,
             programId = target.programId,
             sessionId = target.sessionId,
             weekId = target.weekId,

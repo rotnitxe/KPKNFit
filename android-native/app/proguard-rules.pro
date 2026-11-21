@@ -35,6 +35,9 @@
     *** Companion;
 }
 
+# Keep app package prefix even when classes/methods are obfuscated so local crash sanitizer retains app frames.
+-keeppackagenames com.example.kpkn.**
+
 # ── KPKN domain models (serializable data classes) ────────────────────────────
 -keep class com.example.kpkn.data.models.** { *; }
 -keep class com.example.kpkn.data.exercises.** { *; }

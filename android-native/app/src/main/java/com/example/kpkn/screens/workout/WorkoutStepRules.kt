@@ -94,7 +94,7 @@ object WorkoutStepRules {
 
     /** Completion keys for roadmap progress badges; mirrors the roadmap card model. */
     fun completionKeysForRoadmapSet(exercise: Exercise, setIndex: Int): List<String> {
-        if (setIndex !in exercise.sets.indices) return emptyList()
+        if (setIndex !in exercise.sets.indices || exercise.sets[setIndex].isEmptySlot) return emptyList()
         if (!exercise.isEffectivelyUnilateral()) return listOf(workingStepKey(exercise.id, setIndex))
 
         val set = exercise.sets[setIndex]
@@ -159,7 +159,7 @@ object WorkoutStepRules {
             }
         }
 
-        return steps
+        return steps.filterNot { it.isEmptySlot }
     }
 
     fun buildWorkingPositions(
@@ -229,11 +229,9 @@ object WorkoutStepRules {
     fun cardioCompletionKey(exerciseId: String, setIndex: Int): String = "${exerciseId}_$setIndex"
 
     /** Real cardio set positions; a legacy cardio with no set metadata still has its single activity step. */
-    fun cardioSetIndices(exercise: Exercise): List<Int> {
-        val configuredIndices = exercise.sets.indices.filterNot { exercise.sets[it].isEmptySlot }
-        if (configuredIndices.isNotEmpty()) return configuredIndices
-        // An absent legacy set list still represents one cardio activity; explicit empty slots do not.
-        return if (exercise.sets.isEmpty()) listOf(0) else emptyList()
+    fun cardioSetIndices(exercise: Exercise, omittedSetKeys: Set<String> = emptySet()): List<Int> {
+        val indices = if (exercise.sets.isEmpty()) listOf(0) else exercise.sets.indices.filterNot { exercise.sets[it].isEmptySlot }
+        return indices.filterNot { isSetOmitted(exercise.id, it, omittedSetKeys) }
     }
 
     /** Preserve the persisted key used by existing single-set cardio sessions. */
@@ -298,7 +296,7 @@ object WorkoutStepRules {
 
         members.forEach { exercise ->
             if (exercise.isCardio) {
-                appendCardioStep(exercise, groupId, steps)
+                appendCardioStep(exercise, groupId, steps, omittedSetKeys)
             } else {
                 appendMobilitySteps(
                     exercise = exercise,
@@ -317,12 +315,15 @@ object WorkoutStepRules {
         val rounds = SupersetRules.roundCount(session, groupId)
         repeat(rounds) { roundIdx ->
             members.forEachIndexed { memberIdx, exercise ->
-                if (exercise.isCardio) return@forEachIndexed
-                if (roundIdx !in exercise.sets.indices) return@forEachIndexed
-                if (isSetOmitted(exercise.id, roundIdx, omittedSetKeys)) return@forEachIndexed
+                fun eligible(member: Exercise): Boolean = if (member.isCardio) {
+                    roundIdx in cardioSetIndices(member, omittedSetKeys)
+                } else {
+                    member.sets.getOrNull(roundIdx)?.isEmptySlot == false && !isSetOmitted(member.id, roundIdx, omittedSetKeys)
+                }
+                if (exercise.isCardio || !eligible(exercise)) return@forEachIndexed
                 val isLastMemberWithSet = members
                     .drop(memberIdx + 1)
-                    .none { roundIdx in it.sets.indices }
+                    .none { !it.isCardio && eligible(it) }
                 appendWorkingSetSteps(
                     exercise = exercise,
                     setIndex = roundIdx,
@@ -343,7 +344,7 @@ object WorkoutStepRules {
         omittedSetKeys: Set<String>,
     ) {
         if (exercise.isCardio) {
-            appendCardioStep(exercise, groupId, steps)
+            appendCardioStep(exercise, groupId, steps, omittedSetKeys)
             return
         }
         appendPreparationSteps(exercise, groupId, steps)
@@ -364,8 +365,9 @@ object WorkoutStepRules {
         exercise: Exercise,
         groupId: String?,
         steps: MutableList<WorkoutStep>,
+        omittedSetKeys: Set<String>,
     ) {
-        cardioSetIndices(exercise).forEach { setIndex ->
+        cardioSetIndices(exercise, omittedSetKeys).forEach { setIndex ->
             steps += WorkoutStep(
                 type = WorkoutStepType.CARDIO,
                 exerciseId = exercise.id,
@@ -476,6 +478,7 @@ object WorkoutStepRules {
         restAfterKind: RestTimerKind,
         steps: MutableList<WorkoutStep>,
     ) {
+        if (exercise.sets.getOrNull(setIndex)?.isEmptySlot == true) return
         if (!exercise.isEffectivelyUnilateral()) {
             steps += WorkoutStep(
                 type = WorkoutStepType.WORKING_SET,

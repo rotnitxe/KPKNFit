@@ -38,6 +38,11 @@ class NutritionStoryModelTest {
         assertNull(pagina.ringCenter)
     }
 
+    @Test fun `meta oculta no determina relleno del anillo`() {
+        val page = nutritionStoryPage(NutritionStoryTemplate.SEMANA, semana, macros, null, NutritionStoryOptions(goal = false))
+        assertEquals(1f, page.ringFill, 0f)
+    }
+
     @Test
     fun `Macros con la proteina de titular y barras frente al objetivo`() {
         val pagina = nutritionStoryPage(NutritionStoryTemplate.MACROS, semana, macros, null)
@@ -52,6 +57,7 @@ class NutritionStoryModelTest {
     fun `racha de un dia y mejor racha`() {
         val uno = nutritionStoryPage(NutritionStoryTemplate.RACHA, emptyList(), null, NutritionStoryStreak(current = 1, best = 1))
         assertEquals("1 día", uno.title)
+        assertEquals("Registrando mi alimentación", uno.sub)
         assertNull(uno.badge)
         val veintitres = nutritionStoryPage(NutritionStoryTemplate.RACHA, emptyList(), null, NutritionStoryStreak(current = 23, best = 23))
         assertEquals("23 días", veintitres.title)

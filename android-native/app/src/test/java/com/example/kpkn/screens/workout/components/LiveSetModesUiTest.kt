@@ -234,6 +234,15 @@ class LiveSetModesUiTest {
         assertEquals(93.75, records.single().weight, 0.0)
         assertEquals(7.0, records.single().value, 0.0)
     }
+
+    @Test fun plannedFractionalLoadIsRecordedExactlyWhenWeightIsUntouched() {
+        show(TrainingMode.REPS, transform = { exercise ->
+            exercise.copy(sets = exercise.sets.map { it.copy(weight = 57.75) })
+        })
+        mark()
+        record()
+        assertEquals(57.75, records.single().weight, 0.0)
+    }
     @Test fun advancedTechniquesReceiveTheActualCommaDecimalLoad() {
         show(TrainingMode.RM, initialDraft = WorkoutSetDraft(weightText = "112,5", valueText = "9", isDirty = true))
         rule.onNodeWithTag("secondary_pill_avanzado").performClick()

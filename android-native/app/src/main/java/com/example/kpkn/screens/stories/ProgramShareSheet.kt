@@ -116,7 +116,7 @@ internal fun ProgramShareSheet(
         personalPhoto = loadProgramStoryCover(context, value)?.asImageBitmap()
         personalPhotoReady = true
     }
-    val coverLoading = story.personalCoverValue != null && !personalPhotoReady
+    val coverLoading = story.personalCoverValue != null && (!personalPhotoReady || personalPhoto == null)
     val progress = remember { Animatable(if (reduced) 1f else 0f) }
     LaunchedEffect(template, styleChoice, reduced, story.studioCover, story.personalCoverValue) {
         if (reduced || story.studioCover != null || story.personalCoverValue != null) {
@@ -135,7 +135,7 @@ internal fun ProgramShareSheet(
     }
 
     fun withStoryBitmap(action: suspend (Bitmap) -> Unit) {
-        if (busy) return
+        if (busy || coverLoading) return
         busy = true
         scope.launch {
             try {

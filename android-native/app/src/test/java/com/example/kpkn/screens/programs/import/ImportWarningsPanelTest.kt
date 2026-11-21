@@ -377,6 +377,32 @@ class ImportWarningsPanelTest {
     }
 
     @Test
+    fun cadaAvisoPendienteSePuedeDescartarYLaFilaOmitidaSePuedeRecuperar() {
+        val kinds = listOf(ImportWarningKind.SKIPPED_ROW, ImportWarningKind.IGNORED_VALUE, ImportWarningKind.INCOMPLETE_ROW, ImportWarningKind.EMPTY_DAY)
+        val warnings = kinds.mapIndexed { index, kind -> ImportWarning(
+            id = "individual-$index", kind = kind, location = "Línea 3", message = "Revisar",
+            sourceText = null, weekIndex = null, dayId = null, exerciseId = null,
+        ) }
+        val edits = mutableListOf<ImportEditOp>()
+        var opened: ImportWarning? = null
+        rule.setContent {
+            ImportWarningsSheetContent(
+                imported = program().copy(warnings = warnings),
+                onOpenExercise = {},
+                onEdit = { edits += it },
+                onOpenSessionEditor = {},
+                onClose = {},
+                onAddFromWarning = { opened = it },
+            )
+        }
+
+        rule.onNodeWithTag("import-warning-sheet-action-individual-0").performClick()
+        assertEquals(warnings.first(), opened)
+        warnings.forEach { rule.onNodeWithTag("import-warning-sheet-ignore-${it.id}").performClick() }
+        assertEquals(warnings.map { ImportEditOp.IgnoreWarning(it.id) }, edits)
+    }
+
+    @Test
     fun laHojaCompactaMantieneLaRutaDeCorreccionDelEjercicio() {
         var openedExercise by mutableStateOf<String?>(null)
         rule.setContent {

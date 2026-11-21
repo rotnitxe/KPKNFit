@@ -73,9 +73,6 @@ import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.navigation.DeepLinkRouter
 import com.example.kpkn.navigation.KpknRoute
-import com.example.kpkn.navigation.addHealthConnectRoute
-import com.example.kpkn.navigation.healthConnectRouteAvailable
-import com.example.kpkn.navigation.NavigationBus
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchOrigin
 import com.example.kpkn.screens.sessioneditor.CatalogLaunchRequest
 import com.example.kpkn.screens.sessioneditor.CatalogResult
@@ -139,10 +136,15 @@ import com.example.kpkn.ui.locale.LocaleManager
 import com.example.kpkn.ui.theme.AppThemeMode
 import com.example.kpkn.ui.motion.KpknBrandSplash
 import com.example.kpkn.ui.theme.KPKNTheme
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.NonCancellable
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.withContext
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -153,6 +155,7 @@ import com.example.kpkn.ui.components.permissions.RecommendedPermissionsDialog
 class MainActivity : ComponentActivity() {
     private val pendingDeepLinkRoute = mutableStateOf<String?>(null)
     private val pendingSharedNutritionText = mutableStateOf<String?>(null)
+    private val notificationPermissionInFlight = mutableStateOf(false)
     private lateinit var telemetryHelper: TelemetryHelper
 
     override fun attachBaseContext(newBase: android.content.Context) {
@@ -165,6 +168,7 @@ class MainActivity : ComponentActivity() {
         installSplashScreen()
         super.onCreate(savedInstanceState)
         initialPermissionFlowStarted = savedInstanceState?.getBoolean("kpkn.initialPermissionFlowStarted") == true
+        notificationPermissionInFlight.value = savedInstanceState?.getBoolean(STATE_NOTIF_IN_FLIGHT) == true
         // La app es SIEMPRE oscura (KPKNTheme dark): íconos claros fijos para
         // contraste correcto de status/nav bar en wizard y rutas setup/*.
         enableEdgeToEdge(
@@ -181,104 +185,103 @@ class MainActivity : ComponentActivity() {
         RepairBenchmarkTrace.workoutEntryIntentReceived(intent)
         // C6: una Activity recreada (rotación, plegado, idioma, muerte del proceso) recibe de nuevo el
         // intent ORIGINAL (ACTION_SEND, extra del widget); solo un lanzamiento fresco puede consumirlo.
-        val launchRequest = com.example.kpkn.navigation.LaunchIntentResolver.forLaunch(
-            intent = intent,
-            isRecreation = savedInstanceState != null,
-        )
-        pendingDeepLinkRoute.value = launchRequest?.route
-        pendingSharedNutritionText.value = launchRequest?.sharedText
-
-        // Initialize repositories synchronously before setContent
-        runCatching {
-            ProgramRepository.init(this@MainActivity)
-            com.example.kpkn.data.repository.CompetitionRepository.init(this@MainActivity)
-            com.example.kpkn.data.repository.TrainingObservationRepository.getInstance(this@MainActivity)
-            com.example.kpkn.data.repository.NutritionRepository.init(this@MainActivity)
-            com.example.kpkn.data.repository.CustomExerciseRepository.initialize(this@MainActivity)
-            com.example.kpkn.data.repository.WorkoutMediaRepository.init(this@MainActivity)
-        }.onFailure { logKpknError("MainActivity", "Error initializing repositories", it) }
-
-        lifecycleScope.launch(Dispatchers.IO) {
-            runCatching {
-                com.example.kpkn.data.repository.WorkoutMediaRepository.getInstance().importLegacyIfNeeded()
-            }.onFailure { logKpknError("MainActivity", "Error importing workout media", it) }
-            // Técnica en vídeo: rehace las filas que falten desde sus sidecars y limpia huérfanos, ya con los medios importados.
-            // Corre una vez por proceso aunque la Activity se recree.
-            runCatching {
-                com.example.kpkn.data.work.TechniqueAnalysisScheduler.reconcileInBackground(this@MainActivity)
-            }.onFailure { logKpknError("MainActivity", "Error reconciling technique analysis", it) }
+        if (savedInstanceState != null) {
+            pendingDeepLinkRoute.value = savedInstanceState.getString(STATE_PENDING_DEEP_LINK_ROUTE)
+            pendingSharedNutritionText.value = savedInstanceState.getString(STATE_PENDING_SHARED_TEXT)
+        } else {
+            val launchRequest = com.example.kpkn.navigation.LaunchIntentResolver.forLaunch(
+                intent = intent,
+                isRecreation = false,
+            )
+            pendingDeepLinkRoute.value = launchRequest?.route
+            pendingSharedNutritionText.value = launchRequest?.sharedText
         }
 
-        lifecycleScope.launch(Dispatchers.IO) {
-            // Retired Learn preferences are independent from Nutrition's Room learning table.
-            // Keep the synchronous commit off Main and preserve cleanup-before-Wiki ordering.
-            runCatching {
-                com.example.kpkn.data.migrations.clearLegacyLearnPreferencesOnce(this@MainActivity)
-            }.onFailure { logKpknError("MainActivity", "Error clearing legacy Learn preferences", it) }
+        // Initialize each repository independently before setContent so one failure does not skip the rest.
+        initRepositorySafely("ProgramRepository") { ProgramRepository.init(this@MainActivity) }
+        initRepositorySafely("CompetitionRepository") { com.example.kpkn.data.repository.CompetitionRepository.init(this@MainActivity) }
+        initRepositorySafely("TrainingObservationRepository") { com.example.kpkn.data.repository.TrainingObservationRepository.getInstance(this@MainActivity) }
+        initRepositorySafely("NutritionRepository") { com.example.kpkn.data.repository.NutritionRepository.init(this@MainActivity) }
+        initRepositorySafely("CustomExerciseRepository") { com.example.kpkn.data.repository.CustomExerciseRepository.initialize(this@MainActivity) }
+        initRepositorySafely("WorkoutMediaRepository") { com.example.kpkn.data.repository.WorkoutMediaRepository.init(this@MainActivity) }
 
-            // 2. Initialize Exercise Database
-            runCatching {
-                com.example.kpkn.data.exercises.initializeExerciseDatabase(this@MainActivity)
-            }.onFailure { logKpknError("MainActivity", "Error initializing exercise database", it) }
+        if (processBootstrapStarted.compareAndSet(false, true)) {
+            val appContext = applicationContext
+            val appScope = (application as? KpknApplication)?.processScope ?: lifecycleScope
+            appScope.launch(Dispatchers.IO) {
+                runCatching {
+                    com.example.kpkn.data.repository.WorkoutMediaRepository.getInstance().importLegacyIfNeeded()
+                }.onFailure { logKpknError("MainActivity", "Error importing workout media", it) }
+                // Técnica en vídeo: rehace las filas que falten desde sus sidecars y limpia huérfanos, ya con los medios importados.
+                runCatching {
+                    com.example.kpkn.data.work.TechniqueAnalysisScheduler.reconcileInBackground(appContext)
+                }.onFailure { logKpknError("MainActivity", "Error reconciling technique analysis", it) }
+            }
 
-            // 3. Initialize WikiLab
-            runCatching {
-                val db = com.example.kpkn.data.db.KpknDatabase.getInstance(this@MainActivity)
-                com.example.kpkn.data.repository.WikiLabRepository.initialize(this@MainActivity, db)
-            }.onFailure { logKpknError("MainActivity", "Error initializing WikiLab", it) }
+            appScope.launch(Dispatchers.IO) {
+                runCatching {
+                    com.example.kpkn.data.migrations.clearLegacyLearnPreferencesOnce(appContext)
+                }.onFailure { logKpknError("MainActivity", "Error clearing legacy Learn preferences", it) }
 
-            // 4. Sync Room appLanguage -> SharedPreferences (retrocompat)
-            runCatching {
-                val savedLang = ProgramRepository.getInstance().settings.value.appLanguage
-                LocaleManager.persist(this@MainActivity, savedLang)
-            }.onFailure { logKpknError("MainActivity", "Error syncing app language", it) }
+                runCatching {
+                    com.example.kpkn.data.exercises.initializeExerciseDatabase(appContext)
+                }.onFailure { logKpknError("MainActivity", "Error initializing exercise database", it) }
 
-            // 5. Load Custom Exercises
-            runCatching {
-                com.example.kpkn.data.exercises.loadCustomExercisesAsync(this@MainActivity)
-            }.onFailure { logKpknError("MainActivity", "Error loading custom exercises", it) }
+                runCatching {
+                    val db = com.example.kpkn.data.db.KpknDatabase.getInstance(appContext)
+                    com.example.kpkn.data.repository.WikiLabRepository.initialize(appContext, db)
+                }.onFailure { logKpknError("MainActivity", "Error initializing WikiLab", it) }
 
-            // 6. Ensure channels and alert managers
-            runCatching {
-                WorkoutRestAlertManager(this@MainActivity).ensureChannels()
-            }.onFailure { logKpknError("MainActivity", "Error setting up WorkoutRestAlertManager channels", it) }
+                runCatching {
+                    com.example.kpkn.data.exercises.loadCustomExercisesAsync(appContext)
+                }.onFailure { logKpknError("MainActivity", "Error loading custom exercises", it) }
 
-            // 7. Setup nutrition notification channels + reminders
-            runCatching {
-                val nutritionNotifManager = com.example.kpkn.services.nutrition.NutritionNotificationManager(this@MainActivity)
-                nutritionNotifManager.createChannels()
-                val settings = ProgramRepository.getInstance().settings.value
-                // Los recordatorios de registrar comida siguen activos también
-                // en modo «solo registro»; solo SKIPPED los silencia.
-                if (com.example.kpkn.domain.nutrition.areMealRemindersAvailable(settings)) {
-                    nutritionNotifManager.scheduleMealReminders(
-                        breakfastTime = settings.mealReminderBreakfast,
-                        lunchTime = settings.mealReminderLunch,
-                        dinnerTime = settings.mealReminderDinner,
-                    )
-                    nutritionNotifManager.scheduleDailyMacroCheck()
+                runCatching {
+                    WorkoutRestAlertManager(appContext).ensureChannels()
+                }.onFailure { logKpknError("MainActivity", "Error setting up WorkoutRestAlertManager channels", it) }
+
+                // Wait for Room hydration before syncing locale and scheduling reminders from real Settings.
+                val repo = runCatching { ProgramRepository.getInstance() }.getOrNull()
+                if (repo != null) {
+                    repo.isReady.first { it }
+                    val settings = repo.settings.value
+
+                    runCatching {
+                        LocaleManager.syncFromSavedSettings(appContext, settings.appLanguage)
+                    }.onFailure { logKpknError("MainActivity", "Error syncing app language", it) }
+
+                    runCatching {
+                        val nutritionNotifManager = com.example.kpkn.services.nutrition.NutritionNotificationManager(appContext)
+                        nutritionNotifManager.createChannels()
+                        if (com.example.kpkn.domain.nutrition.areMealRemindersAvailable(settings)) {
+                            nutritionNotifManager.scheduleMealReminders(
+                                breakfastTime = settings.mealReminderBreakfast,
+                                lunchTime = settings.mealReminderLunch,
+                                dinnerTime = settings.mealReminderDinner,
+                            )
+                            nutritionNotifManager.scheduleDailyMacroCheck()
+                        }
+                    }.onFailure { logKpknError("MainActivity", "Error setting up nutrition notifications", it) }
+
+                    runCatching {
+                        val workoutReminderManager = com.example.kpkn.services.workout.WorkoutReminderManager(appContext)
+                        workoutReminderManager.createChannels()
+                        com.example.kpkn.services.workout.LoopNotificationManager(appContext).createChannels()
+                        com.example.kpkn.services.competition.CompetitionReminderManager(appContext).createChannels()
+                        if (settings.workoutReminderEnabled) {
+                            workoutReminderManager.scheduleWorkoutReminder(settings.workoutReminderTime)
+                        }
+                        if (settings.sleepReminderEnabled) {
+                            workoutReminderManager.scheduleSleepReminder(settings.sleepReminderTime)
+                        }
+                    }.onFailure { logKpknError("MainActivity", "Error setting up workout reminders", it) }
                 }
-            }.onFailure { logKpknError("MainActivity", "Error setting up nutrition notifications", it) }
 
-            // 8. Setup workout reminders
-            runCatching {
-                val workoutReminderManager = com.example.kpkn.services.workout.WorkoutReminderManager(this@MainActivity)
-                workoutReminderManager.createChannels()
-                com.example.kpkn.services.workout.LoopNotificationManager(this@MainActivity).createChannels()
-                com.example.kpkn.services.competition.CompetitionReminderManager(this@MainActivity).createChannels()
-                val settings = ProgramRepository.getInstance().settings.value
-                if (settings.workoutReminderEnabled) {
-                    workoutReminderManager.scheduleWorkoutReminder(settings.workoutReminderTime)
-                }
-                if (settings.sleepReminderEnabled) {
-                    workoutReminderManager.scheduleSleepReminder(settings.sleepReminderTime)
-                }
-            }.onFailure { logKpknError("MainActivity", "Error setting up workout reminders", it) }
-
-            // 9. Preload Catalog V2 picker cache (decodes the ~3 MB asset once per process)
-            runCatching {
-                com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache.getOrLoad(this@MainActivity)
-            }.onFailure { logKpknError("MainActivity", "Error preloading Catalog V2 cache", it) }
+                // Preload Catalog V2 picker cache (decodes the ~2.3 MB asset once per process)
+                runCatching {
+                    com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache.getOrLoad(appContext)
+                }.onFailure { logKpknError("MainActivity", "Error preloading Catalog V2 cache", it) }
+            }
         }
 
         // API ≤ 32: observe locale change events emitted by SettingsViewModel
@@ -289,7 +292,7 @@ class MainActivity : ComponentActivity() {
         // El splash animado de marca solo suena en un arranque en frío desde el ícono: ni al recrear la Activity
         // (rotación, plegado, idioma) ni al abrir un enlace, un widget o un compartir, que van directo a su destino.
         val showBrandSplashOnLaunch = savedInstanceState == null &&
-            launchRequest?.route == null && launchRequest?.sharedText == null
+            pendingDeepLinkRoute.value == null && pendingSharedNutritionText.value == null
 
         setContent {
             var themeMode by remember { mutableStateOf(AppThemeMode.HIGH_CONTRAST) }
@@ -305,6 +308,7 @@ class MainActivity : ComponentActivity() {
                         onDeepLinkHandled = { pendingDeepLinkRoute.value = null },
                         pendingSharedNutritionText = pendingSharedNutritionText.value,
                         onSharedNutritionHandled = { pendingSharedNutritionText.value = null },
+                        notificationPermissionInFlight = notificationPermissionInFlight.value,
                         onRequestRequiredPermissions = { requestRequiredPermissions() },
                     )
                     if (showBrandSplash) {
@@ -333,9 +337,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private inline fun initRepositorySafely(component: String, block: () -> Unit) {
+        runCatching(block).onFailure { logKpknError("MainActivity", "Error initializing $component", it) }
+    }
+
     private fun logKpknError(tag: String, message: String, throwable: Throwable?) {
         if (BuildConfig.DEBUG) {
             android.util.Log.e(tag, message, throwable)
+        }
+        if (throwable != null) {
+            KpknDiagnosticLogger.exception(
+                namespace = "app",
+                name = "startup_error",
+                error = throwable,
+                fields = mapOf("tag" to tag, "message" to message),
+            )
         }
     }
 
@@ -344,14 +360,19 @@ class MainActivity : ComponentActivity() {
         super.onStop()
         telemetryHelper.logAppBackground()
         KpknDiagnosticLogger.flushAsync()
-        // Flush pending writes without blocking the main thread during background transition.
-        lifecycleScope.launch(Dispatchers.IO) {
-            runCatching {
-                withTimeoutOrNull(1500L) {
-                    ActiveWorkoutHolder.get()?.flushOngoingForBackgroundAndAwait()
-                    ProgramRepository.getInstance().flushPendingWrites()
+        // Flush pending writes on a process-level scope so onDestroy() does not cancel persistence.
+        val app = application as? KpknApplication
+        if (app != null) {
+            app.flushPendingWritesOnBackground()
+        } else {
+            CoroutineScope(SupervisorJob() + Dispatchers.IO + NonCancellable).launch {
+                withTimeoutOrNull(3_000L) {
+                    runCatching { ActiveWorkoutHolder.get()?.flushOngoingForBackgroundAndAwait() }
+                        .onFailure { logKpknError("MainActivity", "Error flushing workout writes on stop", it) }
+                    runCatching { ProgramRepository.getInstance().flushPendingWrites() }
+                        .onFailure { logKpknError("MainActivity", "Error flushing program writes on stop", it) }
                 }
-            }.onFailure { logKpknError("MainActivity", "Error flushing pending writes on stop", it) }
+            }
         }
     }
 
@@ -371,10 +392,12 @@ class MainActivity : ComponentActivity() {
 
     private var hasResumedOnce = false
     private var initialPermissionFlowStarted = false
-    private var locationPermissionRequestInFlight = false
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean("kpkn.initialPermissionFlowStarted", initialPermissionFlowStarted)
+        outState.putBoolean(STATE_NOTIF_IN_FLIGHT, notificationPermissionInFlight.value)
+        pendingDeepLinkRoute.value?.let { outState.putString(STATE_PENDING_DEEP_LINK_ROUTE, it) }
+        pendingSharedNutritionText.value?.let { outState.putString(STATE_PENDING_SHARED_TEXT, it) }
         super.onSaveInstanceState(outState)
     }
 
@@ -384,11 +407,10 @@ class MainActivity : ComponentActivity() {
         initialPermissionFlowStarted = true
         val shouldRequestNotifications =
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-            ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
+                ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED
         if (shouldRequestNotifications) {
+            notificationPermissionInFlight.value = true
             ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1001)
-        } else {
-            requestLocationPermissionIfNeeded()
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
@@ -408,27 +430,10 @@ class MainActivity : ComponentActivity() {
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == 1001) {
-            // Android only presents one runtime permission dialog at a time. Chain
-            // location after the notification result instead of racing two requests.
-            requestLocationPermissionIfNeeded()
+            notificationPermissionInFlight.value = false
         }
     }
 
-    private fun requestLocationPermissionIfNeeded() {
-        if (
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED
-        ) {
-            val alreadyRequested = ProgramRepository.getInstance().settings.value.locationPermissionRequestedOnce
-            if (!alreadyRequested && !locationPermissionRequestInFlight) {
-                locationPermissionRequestInFlight = true
-                ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.ACCESS_FINE_LOCATION), 1002)
-                lifecycleScope.launch(Dispatchers.IO) {
-                    ProgramRepository.getInstance().updateSettings { it.copy(locationPermissionRequestedOnce = true) }
-                }
-            }
-        }
-    }
-    
     private fun logKpknPermissionIssue(permission: String) {
         runCatching {
             com.example.kpkn.telemetry.KpknTelemetry.getInstance(this).logEvent(
@@ -437,6 +442,13 @@ class MainActivity : ComponentActivity() {
                 "blocker" to false
             )
         }
+    }
+
+    companion object {
+        private const val STATE_PENDING_DEEP_LINK_ROUTE = "kpkn.pendingDeepLinkRoute"
+        private const val STATE_PENDING_SHARED_TEXT = "kpkn.pendingSharedNutritionText"
+        private const val STATE_NOTIF_IN_FLIGHT = "kpkn.notificationPermissionInFlight"
+        private val processBootstrapStarted = AtomicBoolean(false)
     }
 }
 
@@ -453,6 +465,9 @@ private fun resolveRouteTemplate(route: String?, arguments: android.os.Bundle?):
     return resolved
 }
 
+private const val PERMISSION_UI_PREFS = "kpkn_permission_ui_prefs"
+private const val KEY_NOTIF_RATIONALE_DISMISSED = "notif_rationale_dismissed"
+
 @Composable
 fun KPKNApp(
     themeMode: AppThemeMode,
@@ -461,6 +476,7 @@ fun KPKNApp(
     onDeepLinkHandled: () -> Unit = {},
     pendingSharedNutritionText: String? = null,
     onSharedNutritionHandled: () -> Unit = {},
+    notificationPermissionInFlight: Boolean = false,
     onRequestRequiredPermissions: () -> Unit = {},
 ) {
     val context = LocalContext.current
@@ -481,27 +497,52 @@ fun KPKNApp(
     val lifecycleOwner = LocalLifecycleOwner.current
     var showPermissionAlert by remember { mutableStateOf(false) }
     var missingPermissions by remember { mutableStateOf(emptyList<String>()) }
+    var permissionsPrefLoaded by remember { mutableStateOf(false) }
     var permissionsSkipped by rememberSaveable { mutableStateOf(false) }
     val settings by ProgramRepository.getInstance().settings.collectAsState()
+
+    LaunchedEffect(context) {
+        val dismissed = withContext(Dispatchers.IO) {
+            context.applicationContext
+                .getSharedPreferences(PERMISSION_UI_PREFS, android.content.Context.MODE_PRIVATE)
+                .getBoolean(KEY_NOTIF_RATIONALE_DISMISSED, false)
+        }
+        if (dismissed) permissionsSkipped = true
+        permissionsPrefLoaded = true
+    }
+
+    fun refreshMissingPermissions() {
+        if (!ProgramRepository.getInstance().settings.value.onboardingCompleted ||
+            notificationPermissionInFlight ||
+            !permissionsPrefLoaded
+        ) {
+            missingPermissions = emptyList()
+            showPermissionAlert = false
+            return
+        }
+        val missing = mutableListOf<String>()
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            val postNotifGranted = ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS,
+            ) == PackageManager.PERMISSION_GRANTED
+            if (!postNotifGranted) {
+                missing.add("Notificaciones: recordatorios y avisos del descanso")
+            }
+        }
+        missingPermissions = missing
+        showPermissionAlert = missing.isNotEmpty() && !permissionsSkipped
+    }
+
+    LaunchedEffect(notificationPermissionInFlight, permissionsPrefLoaded, permissionsSkipped, settings.onboardingCompleted) {
+        refreshMissingPermissions()
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = androidx.lifecycle.LifecycleEventObserver { _, event ->
             if (event == androidx.lifecycle.Lifecycle.Event.ON_RESUME) {
                 ProgramRepository.getInstance().reconcileTemporalState()
-                if (!ProgramRepository.getInstance().settings.value.onboardingCompleted) {
-                    missingPermissions = emptyList()
-                    showPermissionAlert = false
-                } else {
-                    val missing = mutableListOf<String>()
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        val postNotifGranted = ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED
-                        if (!postNotifGranted) {
-                            missing.add("Notificaciones: recordatorios y avisos del descanso")
-                        }
-                    }
-                    missingPermissions = missing
-                    showPermissionAlert = missing.isNotEmpty() && !permissionsSkipped
-                }
+                refreshMissingPermissions()
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
@@ -511,23 +552,23 @@ fun KPKNApp(
     }
     
     // Log navigation when route changes
-    LaunchedEffect(currentRoute) {
+    LaunchedEffect(resolvedRoute) {
         KpknDiagnosticLogger.setCurrentScreen(resolvedRoute)
-        if (currentRoute == null) return@LaunchedEffect
+        val destination = resolvedRoute ?: return@LaunchedEffect
         val traceId = UUID.randomUUID().toString()
         KpknDiagnosticLogger.event(
             "app",
             "screen_visible",
-            mapOf("route" to resolvedRoute),
+            mapOf("route" to destination),
             traceId = traceId,
         )
-        if (currentRoute != previousRoute.value) {
+        if (destination != previousRoute.value) {
             telemetryHelper.logNavigation(
                 from = previousRoute.value ?: "unknown",
-                to = resolvedRoute ?: "unknown",
+                to = destination,
                 traceId = traceId,
             )
-            previousRoute.value = currentRoute
+            previousRoute.value = destination
         }
     }
 
@@ -540,6 +581,7 @@ fun KPKNApp(
     val isFullscreenWizard =
         currentRoute?.startsWith("session-editor") == true ||
         currentRoute?.startsWith("workout") == true ||
+        currentRoute?.startsWith("media/") == true ||
         // El reproductor y el CTA de comparación de técnica necesitan su propio borde inferior.
         (currentRoute == KpknRoute.TechniqueHub.route ||
             currentRoute?.startsWith("${KpknRoute.TechniqueHub.route}/") == true) ||
@@ -559,8 +601,9 @@ fun KPKNApp(
     val primaryProgramId = activeProgram?.id ?: allPrograms.firstOrNull()?.id
 
     val currentTab = when {
-        currentRoute?.startsWith(KpknRoute.Training.route) == true  -> KpknRoute.Training.route
+        currentRoute?.startsWith(KpknRoute.Training.route) == true -> KpknRoute.Training.route
         currentRoute?.startsWith("program/") == true -> KpknRoute.Training.route
+        currentRoute?.startsWith("program-four-weeks/") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("program-metric-") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("program-editor") == true -> KpknRoute.Training.route
         currentRoute?.startsWith("program-import") == true -> KpknRoute.Training.route
@@ -579,13 +622,25 @@ fun KPKNApp(
 
     val ongoingWorkout by ProgramRepository.getInstance().ongoingWorkout.collectAsState()
 
-    LaunchedEffect(pendingDeepLinkRoute, settings.onboardingCompleted, currentRoute) {
+    LaunchedEffect(pendingDeepLinkRoute, settings.onboardingCompleted, currentRoute, resolvedRoute) {
         val route = pendingDeepLinkRoute ?: return@LaunchedEffect
         if (currentRoute == null || !settings.onboardingCompleted || currentRoute.startsWith(KpknRoute.SetupWizard.SETUP_ROUTES_BASE)) return@LaunchedEffect
-        if (route != currentRoute) {
-            navController.navigate(route) {
-                launchSingleTop = true
-                restoreState = true
+        if (route != resolvedRoute && route != currentRoute) {
+            runCatching {
+                navController.navigate(route) {
+                    launchSingleTop = true
+                    restoreState = true
+                }
+            }.onFailure { error ->
+                KpknDiagnosticLogger.exception(
+                    namespace = "app",
+                    name = "deeplink_navigation_failed",
+                    error = error,
+                    fields = mapOf("route" to route),
+                )
+                runCatching {
+                    navController.navigate(KpknRoute.Home.route) { launchSingleTop = true }
+                }
             }
         }
         onDeepLinkHandled()
@@ -612,28 +667,6 @@ fun KPKNApp(
             }
         }
         onSharedNutritionHandled()
-    }
-
-    DisposableEffect(Unit) {
-        val listener: (String) -> Unit = nutritionShare@{ text ->
-            if (!ProgramRepository.getInstance().settings.value.onboardingCompleted) return@nutritionShare
-            NutritionTelemetry.event(
-                "shared_text_received",
-                mapOf("channel" to "navigation_bus", "descriptionLength" to text.length),
-            )
-            nutritionViewModel.enqueueSharedDescription(text, openTab = 0)
-            val routeNow = navController.currentBackStackEntry?.destination?.route
-            if (routeNow != KpknRoute.Nutrition.route) {
-                navController.navigate(KpknRoute.Nutrition.route) {
-                    launchSingleTop = true
-                    restoreState = true
-                }
-            }
-        }
-        NavigationBus.registerNutritionShareListener(listener)
-        onDispose {
-            NavigationBus.unregisterNutritionShareListener(listener)
-        }
     }
 
     val showContextualSubtabbar = false
@@ -705,12 +738,15 @@ fun KPKNApp(
         LocalConceptsBottomOcclusion provides conceptsBottomOcclusion,
     ) {
     Box(modifier = Modifier.fillMaxSize()) {
-        if (isFullscreenWizard) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .hazeSource(state = hazeState),
+        // Un solo NavHost compartido para no destruir ni remontar el árbol de navegación al cambiar a pantalla completa.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.background)
+                .hazeSource(state = hazeState),
+        ) {
+            CompositionLocalProvider(
+                LocalContentColor provides MaterialTheme.colorScheme.onSurface,
             ) {
                 KPKNNavGraph(
                     navController = navController,
@@ -723,34 +759,13 @@ fun KPKNApp(
                     onHomeOnboardingOverlayChange = onHomeOnboardingOverlayChange,
                 )
             }
-        } else {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(MaterialTheme.colorScheme.background)
-                    .hazeSource(state = hazeState),
-            ) {
-                CompositionLocalProvider(
-                    LocalContentColor provides MaterialTheme.colorScheme.onSurface,
-                ) {
-                KPKNNavGraph(
-                    navController = navController,
-                    themeMode = themeMode,
-                    onThemeChange = onThemeChange,
-                    primaryProgramId = primaryProgramId,
-                    nutritionViewModel = nutritionViewModel,
-                    onHomeGlassOverlayChange = onHomeGlassOverlayChange,
-                    onHomeModalOverlayChange = onHomeModalOverlayChange,
-                    onHomeOnboardingOverlayChange = onHomeOnboardingOverlayChange,
-                )
-                }
+        }
 
-            }
-
+        if (!isFullscreenWizard) {
             // ─── Session in progress banner ─────────────────────────────────
             // Glass overlays must be siblings drawn after hazeSource.
             val isHomeOrTrainingTab = currentTab == KpknRoute.Home.route || currentTab == KpknRoute.Training.route
-            val showOngoingFloatingCard = ongoingWorkout != null && isHomeOrTrainingTab && !isFullscreenWizard
+            val showOngoingFloatingCard = ongoingWorkout != null && isHomeOrTrainingTab
 
             if (showOngoingFloatingCard) {
                 val targetClearance = 12.dp + (if (bottomBarHeightDp > 0.dp) bottomBarHeightDp else (if (showContextualSubtabbar) 130.dp else 76.dp)) + 8.dp
@@ -906,24 +921,42 @@ fun KPKNApp(
                     onSelect = { route ->
                         when (route) {
                             KpknRoute.Home.route -> {
-                                navController.navigate(KpknRoute.Home.route) { launchSingleTop = true }
+                                navController.navigate(KpknRoute.Home.route) {
+                                    popUpTo(KpknRoute.Home.route) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
                             KpknRoute.Training.route -> {
                                 val activeProgramId = activeProgram?.id
                                 if (activeProgramId != null) {
                                     navController.navigate(KpknRoute.ProgramDetail.create(activeProgramId)) {
+                                        popUpTo(KpknRoute.Home.route) { saveState = true }
                                         launchSingleTop = true
+                                        restoreState = false
                                     }
                                 } else {
-                                    navController.navigate(KpknRoute.Training.route) { launchSingleTop = true }
+                                    navController.navigate(KpknRoute.Training.route) {
+                                        popUpTo(KpknRoute.Home.route) { saveState = true }
+                                        launchSingleTop = true
+                                        restoreState = true
+                                    }
                                 }
                             }
                             KpknRoute.Nutrition.route -> {
                                 telemetryHelper.logNutritionOpen()
-                                navController.navigate(KpknRoute.Nutrition.route) { launchSingleTop = true }
+                                navController.navigate(KpknRoute.Nutrition.route) {
+                                    popUpTo(KpknRoute.Home.route) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
                             KpknRoute.BodyProgress.route -> {
-                                navController.navigate(KpknRoute.BodyProgress.route) { launchSingleTop = true }
+                                navController.navigate(KpknRoute.BodyProgress.route) {
+                                    popUpTo(KpknRoute.Home.route) { saveState = true }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
                             }
                         }
                     },
@@ -986,9 +1019,21 @@ fun KPKNApp(
                 val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
                     data = android.net.Uri.fromParts("package", context.packageName, null)
                 }
-                context.startActivity(intent)
+                runCatching { context.startActivity(intent) }.onFailure {
+                    Toast.makeText(context, "No se pudieron abrir los ajustes de la aplicación.", Toast.LENGTH_SHORT).show()
+                }
             },
-            onSkip = { showPermissionAlert = false; permissionsSkipped = true },
+            onSkip = {
+                showPermissionAlert = false
+                permissionsSkipped = true
+                cancellationScope.launch(Dispatchers.IO) {
+                    context.applicationContext
+                        .getSharedPreferences(PERMISSION_UI_PREFS, android.content.Context.MODE_PRIVATE)
+                        .edit()
+                        .putBoolean(KEY_NOTIF_RATIONALE_DISMISSED, true)
+                        .apply()
+                }
+            },
         )
     }
     } // CompositionLocalProvider(LocalHazeState)
@@ -1006,12 +1051,6 @@ private fun KPKNNavGraph(
     onHomeOnboardingOverlayChange: HomeGlassOverlayChange = { _, _ -> },
 ) {
     NavHost(navController = navController, startDestination = KpknRoute.SetupEntry.route) {
-        // Puerta de aprobación visual (Fase 1). Prototipo sin persistencia.
-        composable(KpknRoute.SetupVisualGate.route) {
-            com.example.kpkn.screens.onboarding.design.WizardVisualGateScreen(
-                onBack = { navController.popBackStack() },
-            )
-        }
         composable(KpknRoute.SetupEntry.route) {
             com.example.kpkn.screens.onboarding.SetupEntryScreen(
                 onStart = { mode, draftId ->
@@ -1487,8 +1526,8 @@ private fun KPKNNavGraph(
         composable(KpknRoute.Settings.route) {
             SettingsScreen(
                 onBack = { navController.popBackStack() },
-                healthConnectAvailable = healthConnectRouteAvailable(),
-                onOpenHealthConnect = { navController.navigate(KpknRoute.HealthConnect.route) },
+                healthConnectAvailable = false,
+                onOpenHealthConnect = {},
             )
         }
         composable(KpknRoute.NutritionCalibration.route) {
@@ -1499,7 +1538,6 @@ private fun KPKNNavGraph(
                 }
             }
         }
-        addHealthConnectRoute(navController)
         composable(KpknRoute.Profile.route) {
             ProfileScreen(
                 onBack = { navController.popBackStack() },
@@ -1531,7 +1569,7 @@ private fun KPKNNavGraph(
                 ?.getString(KpknRoute.WorkoutAlbumDetail.ARG_ALBUM_KEY)
                 .orEmpty()
             WorkoutAlbumDetailScreen(
-                albumKey = Uri.decode(albumKey),
+                albumKey = albumKey,
                 onBack = { navController.popBackStack() },
                 onOpenMedia = { mediaId ->
                     navController.navigate(KpknRoute.WorkoutMediaViewer.create(mediaId))
@@ -1546,7 +1584,7 @@ private fun KPKNNavGraph(
                 ?.getString(KpknRoute.WorkoutMediaViewer.ARG_MEDIA_ID)
                 .orEmpty()
             WorkoutMediaViewerScreen(
-                mediaId = Uri.decode(mediaId),
+                mediaId = mediaId,
                 onBack = { navController.popBackStack() },
                 onOpenAnalysis = { id -> navController.navigate(KpknRoute.TechniqueAnalysis.create(id)) },
             )
@@ -1712,17 +1750,23 @@ private fun KPKNNavGraph(
         }
         composable(KpknRoute.ProgramFourWeeks.route) { backStack ->
             val id = backStack.arguments?.getString(KpknRoute.ProgramFourWeeks.ARG_PROGRAM_ID) ?: ""
-            // Comparte el ViewModel de Program Detail (de donde se abre): mismos datos y sin repetir su arranque.
-            val detailEntry = remember(backStack) {
-                runCatching { navController.getBackStackEntry(KpknRoute.ProgramDetail.route) }.getOrNull()
+            // Comparte el ViewModel de Program Detail (de donde se abre) solo si coincide con el mismo programa.
+            val detailEntry = remember(backStack, id) {
+                runCatching { navController.getBackStackEntry(KpknRoute.ProgramDetail.route) }
+                    .getOrNull()
+                    ?.takeIf { it.arguments?.getString(KpknRoute.ProgramDetail.ARG_PROGRAM_ID) == id }
             }
             val detailViewModel: com.example.kpkn.screens.programdetail.ProgramDetailViewModel = if (detailEntry != null) {
                 viewModel(
                     viewModelStoreOwner = detailEntry,
+                    key = "program_detail_$id",
                     factory = com.example.kpkn.screens.programdetail.ProgramDetailViewModel.factory(id),
                 )
             } else {
-                viewModel(factory = com.example.kpkn.screens.programdetail.ProgramDetailViewModel.factory(id))
+                viewModel(
+                    key = "program_detail_$id",
+                    factory = com.example.kpkn.screens.programdetail.ProgramDetailViewModel.factory(id),
+                )
             }
             com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksRoute(
                 viewModel = detailViewModel,
@@ -1996,6 +2040,3 @@ internal fun NavLabel(text: String, selected: Boolean) {
         )
     }
 }
-
-
-@Composable fun GenericScreen(t: String) { Column(Modifier.fillMaxSize(), Arrangement.Center, Alignment.CenterHorizontally) { Text(t, style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold) } }

@@ -269,6 +269,23 @@ class RemoteVoiceStopDeviceTest {
         }
     }
 
+    @Test fun pauseTimeoutReturnsBeforeUnresponsiveBinder() = runBlocking {
+        val context = BindingContext()
+        val entered = CountDownLatch(1)
+        val release = CountDownLatch(1)
+        context.endpoint.pauseHandler = { _, _ -> entered.countDown(); release.await(3, TimeUnit.SECONDS); true }
+        val client = WorkoutRemoteVoiceEngineClient(context)
+        try {
+            withContext(Dispatchers.Main.immediate) { start(client) }
+            val pending = async(Dispatchers.Main.immediate) { client.pauseAndAwait(timeoutMs = 100) }
+            awaitLatch(entered, "Pause should reach the remote endpoint")
+            assertFalse("A stalled Binder must not report a confirmed pause", withTimeout(1_000) { pending.await() })
+        } finally {
+            release.countDown()
+            withContext(Dispatchers.Main.immediate) { client.stopAndAwait() }
+        }
+    }
+
     private suspend fun awaitLatch(latch: CountDownLatch, message: String) = withContext(Dispatchers.IO) {
         assertTrue(message, latch.await(3, TimeUnit.SECONDS))
     }

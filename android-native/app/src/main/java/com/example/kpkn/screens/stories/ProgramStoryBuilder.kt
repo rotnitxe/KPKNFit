@@ -175,9 +175,10 @@ internal object ProgramStoryBuilder {
      */
     private fun progressContent(program: Program, own: List<WorkoutLog>): ProgramStoryContent.Progress {
         val weekIds = loggedWeekIds(own)
-        val planned = allWeeks(program).filter { it.id in weekIds }.sumOf { it.sessions.size }
-        val done = own.mapNotNull { log -> log.weekId?.let { week -> week to log.sessionId } }.toSet().size
-        val percent = if (planned == 0) 0 else (100.0 * minOf(done, planned) / planned).roundToInt()
+        val plannedPairs = allWeeks(program).filter { it.id in weekIds }
+            .flatMap { week -> week.sessions.map { session -> week.id to session.id } }.toSet()
+        val done = own.mapNotNull { log -> log.weekId?.let { week -> week to log.sessionId } }.toSet().intersect(plannedPairs).size
+        val percent = if (plannedPairs.isEmpty()) 0 else (100.0 * done / plannedPairs.size).roundToInt()
         val weeks = if (weekIds.size == 1) "1 semana" else "${weekIds.size} semanas"
         return ProgramStoryContent.Progress(
             meta = "$weeks · $percent % de cumplimiento",
@@ -201,7 +202,9 @@ internal object ProgramStoryBuilder {
 
     /** Series planificadas en las sesiones de [sessions] que caen en el día [dayId]. */
     private fun setsOn(sessions: List<Session>, dayId: Int): Int =
-        sessionsOn(sessions, dayId).sumOf { session -> session.allExercises().sumOf { it.sets.size } }
+        sessionsOn(sessions, dayId).sumOf { session -> session.allExercises().sumOf { exercise ->
+            exercise.sets.count { !it.isEmptySlot }.let { count -> if (count == 0 && exercise.cardioDetails != null) 1 else count }
+        } }
 
     /** El nombre del bloque sin su «Bloque N · »; si al quitarlo no queda nada, el nombre entero. */
     private fun blockName(name: String): String = name.replace(blockPrefix, "").trim().ifEmpty { name }

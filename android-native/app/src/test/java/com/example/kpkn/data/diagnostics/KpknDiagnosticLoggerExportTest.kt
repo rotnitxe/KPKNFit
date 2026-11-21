@@ -1,10 +1,16 @@
 package com.example.kpkn.data.diagnostics
 
+import android.content.Context
+import android.net.Uri
+import androidx.test.core.app.ApplicationProvider
+import java.io.ByteArrayOutputStream
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
+import org.robolectric.Shadows.shadowOf
 import org.robolectric.annotation.Config
 
 @RunWith(RobolectricTestRunner::class)
@@ -27,5 +33,21 @@ class KpknDiagnosticLoggerExportTest {
         assertEquals("app", KpknDiagnosticLogger.areaFor("auge"))
         assertEquals("app", KpknDiagnosticLogger.areaFor("reports"))
         assertEquals(listOf("workout", "voice", "nutrition", "app"), KpknDiagnosticLogger.officialAreas)
+    }
+
+    @Test
+    fun exportAllTo_returnsFalseWhenOutputStreamIsNull_andTrueWhenZipIsWritten() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        KpknDiagnosticLogger.initialize(context)
+        KpknDiagnosticLogger.event("app", "export_probe")
+        assertTrue(KpknDiagnosticLogger.awaitIdle())
+
+        val targetUri = Uri.parse("content://com.example.kpkn.export/diag.zip")
+        assertFalse(KpknDiagnosticLogger.exportAllTo(context, targetUri) { null })
+
+        val out = ByteArrayOutputStream()
+        shadowOf(context.contentResolver).registerOutputStream(targetUri, out)
+        assertTrue(KpknDiagnosticLogger.exportAllTo(context, targetUri))
+        assertTrue(out.size() > 0)
     }
 }

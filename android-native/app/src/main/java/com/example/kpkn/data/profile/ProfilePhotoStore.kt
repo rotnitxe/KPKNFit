@@ -27,13 +27,28 @@ object ProfilePhotoStore {
     }
 
     fun saveBase64(context: Context, encoded: String): String {
+        val bytes = decodeAndValidateBase64(encoded)
+        return saveNormalizedBytes(context, bytes)
+    }
+
+    internal fun decodeAndValidateBase64(encoded: String): ByteArray {
         val normalized = encoded.filterNot(Char::isWhitespace)
         require(normalized.isNotEmpty() && BASE64_PATTERN.matches(normalized)) {
             "La imagen del respaldo no es válida"
         }
         val bytes = runCatching { Base64.decode(normalized, Base64.DEFAULT) }
             .getOrElse { error("La imagen del respaldo no es válida") }
-        return saveNormalizedBytes(context, bytes)
+        validateImageBytes(bytes)
+        return bytes
+    }
+
+    private fun validateImageBytes(sourceBytes: ByteArray): BitmapFactory.Options {
+        require(sourceBytes.isNotEmpty()) { "La imagen está vacía" }
+        require(sourceBytes.size <= MAX_ENCODED_BYTES * 16) { "La imagen del respaldo es demasiado grande" }
+        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
+        BitmapFactory.decodeByteArray(sourceBytes, 0, sourceBytes.size, bounds)
+        require(bounds.outWidth > 0 && bounds.outHeight > 0) { "El archivo no contiene una imagen válida" }
+        return bounds
     }
 
     fun readBase64(context: Context, token: String?): String? {
@@ -54,11 +69,7 @@ object ProfilePhotoStore {
     }
 
     private fun saveNormalizedBytes(context: Context, sourceBytes: ByteArray): String {
-        require(sourceBytes.isNotEmpty()) { "La imagen está vacía" }
-        require(sourceBytes.size <= MAX_ENCODED_BYTES * 16) { "La imagen del respaldo es demasiado grande" }
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        BitmapFactory.decodeByteArray(sourceBytes, 0, sourceBytes.size, bounds)
-        require(bounds.outWidth > 0 && bounds.outHeight > 0) { "El archivo no contiene una imagen válida" }
+        val bounds = validateImageBytes(sourceBytes)
         var sample = 1
         while (max(bounds.outWidth / sample, bounds.outHeight / sample) > MAX_DIMENSION * 2) sample *= 2
         val options = BitmapFactory.Options().apply { inSampleSize = sample }

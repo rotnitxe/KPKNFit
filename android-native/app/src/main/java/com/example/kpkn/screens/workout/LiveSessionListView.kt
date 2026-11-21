@@ -90,8 +90,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.RecordedTechniqueStatus
+import com.example.kpkn.data.models.resolvedDistanceKm
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.data.models.UnitModeV2
@@ -253,6 +256,7 @@ internal fun LiveSessionListView(
     workingRestTotal: Int? = null,
     /** Fuente del desenfoque de la isla de arriba: las filas de la lista se registran aquí para verse borrosas a través del vidrio. */
     hazeState: HazeState? = null,
+    onOpenTechniqueInCards: () -> Unit = {},
 ) {
     val settings by viewModel.settings.collectAsState()
     var expandedKey by rememberSaveable { mutableStateOf<String?>(null) }
@@ -261,9 +265,12 @@ internal fun LiveSessionListView(
     var autoRecordKey by remember { mutableStateOf<String?>(null) }
     // Panel que debe abrir el editor de una fila: «scale» (esfuerzo), «advanced» o «details».
     var panelOpen by remember { mutableStateOf<Pair<String, String>?>(null) }
-    val sections = remember(exercises) { buildSections(exercises) }
+    val canonicalSteps = remember(uiState.session, uiState.activeMode, exercises, uiState.omittedSetKeys) {
+        viewModel.workoutStepPositions(uiState)
+    }
+    val sections = remember(exercises, canonicalSteps) { buildSections(exercises, canonicalSteps) }
     val doneExerciseIds = sections.filterIsInstance<ListSection.Single>().filter { section ->
-        !isCardioExercise(section.exercise) && rowsFor(section.exercise, section.order, uiState.completedSets).let { rows ->
+        !isCardioExercise(section.exercise) && rowsFor(section.exercise, section.order, uiState.completedSets, uiState.omittedSetKeys).let { rows ->
             rows.isNotEmpty() && rows.all { it.completed != null }
         }
     }.map { it.exercise.id }
@@ -273,10 +280,16 @@ internal fun LiveSessionListView(
     var foldedDone by rememberSaveable { mutableStateOf(doneExerciseIds) }
     var movementSheet by remember { mutableStateOf<Pair<String, String>?>(null) }
     val reduced = wizardReducedMotion()
-    val workingDone = exercises.sumOf { exercise ->
-        rowsFor(exercise, 0, uiState.completedSets).count { it.completed != null && !it.completed.skipped }
+    val executableSteps = remember(canonicalSteps) {
+        canonicalSteps.filter { it.type == WorkoutStepType.WORKING_SET || it.type == WorkoutStepType.CARDIO }
     }
-    val workingTotal = exercises.sumOf { exercise -> rowsFor(exercise, 0, uiState.completedSets).size }
+    val workingDone = executableSteps.count { step ->
+        val key = if (step.type == WorkoutStepType.CARDIO) {
+            WorkoutStepRules.cardioCompletionKey(step.exerciseId, step.setIndex ?: 0)
+        } else step.stepKey
+        uiState.completedSets[key]?.let { !it.skipped && it.techniqueStatus != RecordedTechniqueStatus.OPEN } == true
+    }
+    val workingTotal = executableSteps.size
 
     // Carga sugerida de cada aproximación: la misma fuente que la tarjeta y la voz (kg alcanzables con el material real, ya redondeados;
     // null = falta la carga de trabajo, nunca 0) y la carga de trabajo de la que sale.
@@ -352,10 +365,12 @@ internal fun LiveSessionListView(
             when (section) {
                 is ListSection.Single -> {
                     val exercise = section.exercise
-                    val rows = rowsFor(exercise, section.order, uiState.completedSets)
+                    val rows = rowsFor(exercise, section.order, uiState.completedSets, uiState.omittedSetKeys)
                     if (isCardioExercise(exercise)) {
-                        // `c-list`: el cardio es un bloque propio con su perfil y «Empezar cardio»; no se descompone en filas de series.
-                        out += ListEntry.Cardio(exercise, section.order, rows.any { it.completed != null })
+                        val indices = WorkoutStepRules.cardioSetIndices(exercise, uiState.omittedSetKeys)
+                        if (indices.isNotEmpty()) out += ListEntry.Cardio(exercise, section.order, indices.all {
+                            WorkoutStepRules.cardioCompletionKey(exercise.id, it) in uiState.completedSets
+                        })
                         return@forEach
                     }
                     val isCollapsed = exercise.id in collapsedIds
@@ -389,13 +404,23 @@ internal fun LiveSessionListView(
                 is ListSection.Superset -> {
                     val letter = ('A' + supersets.indexOf(section).coerceAtLeast(0)).toString()
                     out += ListEntry.SupersetHead(section.groupId, section.members.map { it.first }, letter)
-                    section.members.forEachIndexed { memberIdx, (member, _) -> addPreparation(member, badge = "$letter${memberIdx + 1}") }
-                    val roundCount = section.members.maxOfOrNull { it.first.sets.count { set -> !set.isEmptySlot } } ?: 0
+                    section.members.filter { isCardioExercise(it.first) }.forEach { (member, order) ->
+                        val indices = WorkoutStepRules.cardioSetIndices(member, uiState.omittedSetKeys)
+                        if (indices.isNotEmpty()) out += ListEntry.Cardio(member, order, indices.all {
+                            WorkoutStepRules.cardioCompletionKey(member.id, it) in uiState.completedSets
+                        })
+                    }
+                    section.members.forEachIndexed { memberIdx, (member, _) ->
+                        if (!isCardioExercise(member)) addPreparation(member, badge = "$letter${memberIdx + 1}")
+                    }
+                    val roundCount = section.members.maxOfOrNull { member -> member.first.sets.indexOfLast { !it.isEmptySlot } + 1 } ?: 0
                     for (round in 0 until roundCount) {
+                        if (section.members.none { (member, _) -> !isCardioExercise(member) && member.sets.getOrNull(round)?.isEmptySlot == false && !WorkoutStepRules.isSetOmitted(member.id, round, uiState.omittedSetKeys) }) continue
                         out += ListEntry.Round(section.groupId, round)
                         section.members.forEachIndexed { memberIdx, (member, order) ->
+                            if (isCardioExercise(member)) return@forEachIndexed
                             val set = member.sets.getOrNull(round) ?: return@forEachIndexed
-                            if (set.isEmptySlot) return@forEachIndexed
+                            if (set.isEmptySlot || WorkoutStepRules.isSetOmitted(member.id, round, uiState.omittedSetKeys)) return@forEachIndexed
                             out += ListEntry.MemberName("sm-${member.id}-$round", "$letter${memberIdx + 1}", displayWorkoutExerciseName(member),
                                 first = memberIdx == 0)
                             rowsForSet(member, order, round, set, uiState.completedSets, "${round + 1}").forEach { row ->
@@ -465,24 +490,32 @@ internal fun LiveSessionListView(
         expandedKey = if (opening) row.key else null
         if (opening) viewModel.selectWorkoutStep(WorkoutStepRules.workingStepKey(row.exercise.id, row.setIndex, row.side))
     }
+    fun openTechnique(row: ListSetRow) {
+        val stepKey = WorkoutStepRules.workingStepKey(row.exercise.id, row.setIndex, row.side)
+        viewModel.selectWorkoutStep(stepKey)
+        if (viewModel.uiState.value.activeStepKey == stepKey) onOpenTechniqueInCards()
+    }
     fun openWarmup(entry: ListEntry.Warmup) {
         val opening = expandedKey != entry.key
         expandedKey = if (opening) entry.key else null
         if (opening && !entry.done) viewModel.selectWorkoutStep(WorkoutStepRules.warmupStepKey(entry.exercise.id, entry.warmup.id))
     }
     fun registerWarmup(entry: ListEntry.Warmup, kg: Double?, reps: Int) {
-        // Nueva: la API de la tarjeta (guarda un CompletedSet de aproximación con ese peso y abre su descanso). Ya hecha: corrige lo guardado.
-        if (entry.done) viewModel.reportWarmupStep(entry.exercise.id, entry.warmup.id, kg, reps)
-        else viewModel.completeWarmupStep(entry.exercise.id, entry.warmup.id, usedWeightKg = kg, reportedReps = reps)
-        advanceFrom(entry.key, selectStep = false)
+        viewModel.launchWorkoutCommand {
+            val result = if (entry.done) viewModel.reportWarmupStepAndAwait(entry.exercise.id, entry.warmup.id, kg, reps)
+            else viewModel.completeWarmupStepAndAwait(entry.exercise.id, entry.warmup.id, usedWeightKg = kg, reportedReps = reps)
+            if (result.succeeded) advanceFrom(entry.key, selectStep = false)
+        }
     }
     fun toggleMobility(entry: ListEntry.Mobility) {
         val done = !entry.done
-        (0 until entry.mobility.sets.coerceAtLeast(1)).forEach { index ->
-            viewModel.markMobilityComplete(entry.exercise.id, entry.mobility.id, index, done)
-        }
+        viewModel.setMobilityExerciseCompleted(entry.exercise.id, entry.mobility.id, done)
     }
     fun register(row: ListSetRow) {
+        if (row.completed?.techniqueStatus == RecordedTechniqueStatus.OPEN) {
+            openTechnique(row)
+            return
+        }
         if (row.completed != null && !row.completed.skipped) {
             viewModel.showSeriesTypeSheet(row.exercise.id, row.setIndex)
             return
@@ -670,7 +703,8 @@ internal fun LiveSessionListView(
                                     onEffort = { openEffort(row) }, onRecorded = { advanceFrom(row.key, selectStep = false) },
                                     autoRecord = autoRecordKey == row.key, onAutoRecordConsumed = { autoRecordKey = null },
                                     openPanel = panelOpen?.takeIf { it.first == row.key }?.second, onPanelConsumed = { panelOpen = null },
-                                    supersetColumns = entry.superset, media = media)
+                                     supersetColumns = entry.superset, media = media,
+                                     onOpenTechnique = { openTechnique(row) })
                                 ListApreProposal(
                                     row = row,
                                     uiState = uiState,
@@ -865,11 +899,14 @@ private fun ListRowWithEditor(
     onPanelConsumed: () -> Unit = {},
     supersetColumns: Boolean = false,
     media: ListEditorMedia = ListEditorMedia(),
+    onOpenTechnique: () -> Unit,
 ) {
     val displayedRow = liveListDisplayedRow(row, uiState)
     val settings by viewModel.settings.collectAsState()
-    var quickKeyboardField by rememberSaveable(row.key) { mutableStateOf<String?>(null) }
+    val activeTagIds = uiState.activeTagsByExercise[row.exercise.id].orEmpty()
+    var quickKeyboardField by rememberSaveable(row.key, activeTagIds) { mutableStateOf<String?>(null) }
     val activeDraft = viewModel.getSetDraft(row.exercise.id, row.setIndex, row.side)
+    val openTechnique = row.completed?.techniqueStatus == RecordedTechniqueStatus.OPEN
     Column(Modifier.fillMaxWidth().animateContentSize()) {
         SetListRow(displayedRow, uiState, active = expanded || isCurrent, onOpen = onOpen, onRegister = onRegister,
             onEffort = onEffort, supersetColumns = supersetColumns, draft = activeDraft,
@@ -878,8 +915,17 @@ private fun ListRowWithEditor(
         // El editor de la serie se despliega y se pliega animado (fundido + alto), no a saltos.
         val reducedMotion = wizardReducedMotion()
         AnimatedVisibility(visible = expanded, enter = liveEnter(reducedMotion), exit = liveExit(reducedMotion)) {
-            InlineSetEditor(displayedRow, uiState, viewModel, recordRequest, onRecorded, autoRecord, onAutoRecordConsumed, openPanel, onPanelConsumed,
-                media)
+            if (openTechnique) {
+                Text(
+                    "Continuar técnica en Tarjetas",
+                    Modifier.fillMaxWidth().clickable(role = Role.Button, onClick = onOpenTechnique)
+                        .padding(12.dp).testTag("live-list-open-technique-${row.key}"),
+                    style = Body.copy(fontSize = 14.sp),
+                    color = WizardColors.text,
+                )
+            } else androidx.compose.runtime.key(activeTagIds) {
+                InlineSetEditor(displayedRow, uiState, viewModel, recordRequest, onRecorded, autoRecord, onAutoRecordConsumed, openPanel, onPanelConsumed, media)
+            }
         }
         quickKeyboardField?.let { field ->
             val editingWeight = field == "weight"
@@ -933,6 +979,10 @@ private fun ListRowWithEditor(
                     viewModel.setExerciseLoadIncrementKg(loadStepKey, step)
                 },
                 onApplyFields = { values ->
+                    if (viewModel.uiState.value.activeTagsByExercise[row.exercise.id].orEmpty() != activeTagIds) {
+                        quickKeyboardField = null
+                        return@WorkoutNumericKeyboardDialog
+                    }
                     val nextWeight = values.getOrElse(0) { currentWeight }
                     val nextValue = values.getOrElse(1) { currentValue }
                     val base = viewModel.getSetDraft(displayedRow.exercise.id, displayedRow.setIndex, displayedRow.side) ?: WorkoutSetDraft()
@@ -946,6 +996,10 @@ private fun ListRowWithEditor(
                 },
                 onDismiss = { quickKeyboardField = null },
                 onApply = { staged ->
+                    if (viewModel.uiState.value.activeTagsByExercise[row.exercise.id].orEmpty() != activeTagIds) {
+                        quickKeyboardField = null
+                        return@WorkoutNumericKeyboardDialog
+                    }
                     val base = viewModel.getSetDraft(displayedRow.exercise.id, displayedRow.setIndex, displayedRow.side) ?: WorkoutSetDraft()
                     val update = if (editingWeight) base.copy(weightText = staged) else base.copy(valueText = staged)
                     viewModel.updateSetDraftFromExercise(displayedRow.exercise, displayedRow.setIndex, displayedRow.side,
@@ -994,17 +1048,24 @@ private fun ListApreProposal(
     }
 }
 
-internal fun buildSections(exercises: List<Exercise>): List<ListSection> {
+internal fun buildSections(exercises: List<Exercise>, canonicalSteps: List<WorkoutStep>? = null): List<ListSection> {
+    val canonicalGroups = canonicalSteps?.mapNotNull { step ->
+        step.supersetGroupId?.let { step.exerciseId to it }
+    }?.toMap()
+    val canonicalOrder = canonicalSteps?.map { it.exerciseId }?.distinct()?.withIndex()?.associate { it.value to it.index }
+    fun groupFor(exercise: Exercise) = if (canonicalGroups == null) exercise.supersetGroupRefOrLegacyId()
+        else canonicalGroups[exercise.id]
     val out = mutableListOf<ListSection>()
     val visited = mutableSetOf<String>()
     exercises.forEachIndexed { index, exercise ->
         if (!visited.add(exercise.id)) return@forEachIndexed
-        val groupId = exercise.supersetGroupRefOrLegacyId()
+        val groupId = groupFor(exercise)
         if (groupId.isNullOrBlank()) {
             out += ListSection.Single(exercise, index)
         } else {
             val members = exercises.withIndex()
-                .filter { it.value.supersetGroupRefOrLegacyId() == groupId }
+                .filter { groupFor(it.value) == groupId }
+                .sortedBy { canonicalOrder?.get(it.value.id) ?: it.index }
                 .map { it.value to it.index }
             members.forEach { visited += it.first.id }
             out += ListSection.Superset(groupId, members)
@@ -1013,9 +1074,9 @@ internal fun buildSections(exercises: List<Exercise>): List<ListSection> {
     return out
 }
 
-internal fun rowsFor(exercise: Exercise, order: Int, completedSets: Map<String, CompletedSet>): List<ListSetRow> =
+internal fun rowsFor(exercise: Exercise, order: Int, completedSets: Map<String, CompletedSet>, omittedSetKeys: Set<String> = emptySet()): List<ListSetRow> =
     exercise.sets.flatMapIndexed { setIndex, set ->
-        if (set.isEmptySlot) emptyList()
+        if (set.isEmptySlot || WorkoutStepRules.isSetOmitted(exercise.id, setIndex, omittedSetKeys)) emptyList()
         else rowsForSet(exercise, order, setIndex, set, completedSets, "${setIndex + 1}")
     }
 
@@ -1027,7 +1088,7 @@ internal fun rowsForSet(
     completedSets: Map<String, CompletedSet>,
     label: String,
 ): List<ListSetRow> {
-    val sides = if (exercise.isUnilateral) listOf("left", "right") else listOf<String?>(null)
+    val sides: List<String?> = if (exercise.isEffectivelyUnilateral()) WorkoutStepRules.workingSidesForSet(exercise, setIndex) else listOf(null)
     return sides.map { side ->
         val key = workoutSetKey(exercise.id, setIndex, side)
         val suffix = sideLabel(side)
@@ -1150,7 +1211,7 @@ private fun ListIconButton(icon: ImageVector, description: String, onClick: () -
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
 private fun SupersetHeader(members: List<Exercise>, letter: String, onSettings: () -> Unit) {
-    val rounds = members.maxOfOrNull { it.sets.count { set -> !set.isEmptySlot } } ?: 0
+    val rounds = members.maxOfOrNull { it.sets.indexOfLast { set -> !set.isEmptySlot } + 1 } ?: 0
     val between = members.firstNotNullOfOrNull { it.supersetRestBetween ?: it.restTime }
     val after = members.firstNotNullOfOrNull { it.supersetRestAfter }
     Column(Modifier.fillMaxWidth().padding(top = 12.dp).supersetRail(inner = false).padding(start = 13.dp)) {
@@ -1449,19 +1510,20 @@ private fun InlineSetEditor(
     media: ListEditorMedia = ListEditorMedia(),
 ) {
     val savedDraft = viewModel.getSetDraft(row.exercise.id, row.setIndex, row.side)
+    val bootCount = liveClockBootCount(androidx.compose.ui.platform.LocalContext.current)
     // La escala puede cambiarse entre RIR y RPE en «Esfuerzo realizado».
-    var mode by rememberSaveable(row.key) { mutableStateOf(effortModeOf(row.planned)) }
+    var mode by rememberSaveable(row.key) { mutableStateOf(savedDraft?.effortMode ?: row.completed?.actualIntensityMode?.takeIf { it == IntensityMode.RPE || it == IntensityMode.RIR } ?: if (row.completed?.rpe != null) IntensityMode.RPE else if (row.completed?.rir != null) IntensityMode.RIR else effortModeOf(row.planned)) }
     var weightText by rememberSaveable(row.key) { mutableStateOf(savedDraft?.weightText ?: initialWeight(row)) }
     var valueText by rememberSaveable(row.key) { mutableStateOf(savedDraft?.valueText ?: initialValue(row)) }
     var effort by rememberSaveable(row.key) {
-        mutableStateOf(initialEffortValue(row, mode) ?: savedDraft?.intensityText?.let(::parseDecimal))
+        mutableStateOf(savedDraft?.intensityText?.let(::parseDecimal) ?: initialEffortValue(row, mode))
     }
     var failure by rememberSaveable(row.key) { mutableStateOf(row.completed?.isFailure == true || savedDraft?.reachedFailure == true) }
     var partials by rememberSaveable(row.key) { mutableIntStateOf(savedDraft?.partialReps ?: row.completed?.partialReps ?: 0) }
-    var assisted by rememberSaveable(row.key) { mutableIntStateOf(savedDraft?.assistedReps ?: 0) }
+    var assisted by rememberSaveable(row.key) { mutableIntStateOf(savedDraft?.assistedReps ?: row.completed?.assistedReps ?: 0) }
     // Pulido v1 (15): igual que en la tarjeta, el plan del ejercicio (`trackRom`) decide el valor de partida; lo ya guardado manda.
     var rom by rememberSaveable(row.key) { mutableStateOf(liveSetInitialRom(row.exercise.trackRom, savedDraft?.rom, row.completed?.rom)) }
-    var note by rememberSaveable(row.key) { mutableStateOf(savedDraft?.notes.orEmpty()) }
+    var note by rememberSaveable(row.key) { mutableStateOf(savedDraft?.notes ?: row.completed?.notes.orEmpty()) }
     // El ROM sigue a `Exercise.trackRom` (la única verdad): si el editor, la tarjeta o la hoja de otra serie lo cambian, esta fila también.
     var seenTracksRom by remember(row.key) { mutableStateOf(row.exercise.trackRom) }
     LaunchedEffect(row.exercise.trackRom) {
@@ -1478,19 +1540,20 @@ private fun InlineSetEditor(
     var error by remember(row.key) { mutableStateOf<String?>(null) }
     // `state.face` del prototipo en la Lista: el editor muestra el registro, «Avanzado» o «Modo visual» en el mismo hueco.
     var face by rememberSaveable(row.key) { mutableStateOf(EDITOR_FACE_FRONT) }
-    var drops by remember(row.key) { mutableStateOf<List<DropSetData>>(emptyList()) }
-    var pauses by remember(row.key) { mutableStateOf<List<RestPauseData>>(emptyList()) }
+    var drops by remember(row.key) { mutableStateOf(savedDraft?.inlineDropSets ?: row.completed?.dropSets.orEmpty()) }
+    var pauses by remember(row.key) { mutableStateOf(savedDraft?.inlineRestPauses ?: row.completed?.restPauses.orEmpty()) }
+    var techniqueEditor by remember(row.key) { mutableStateOf(savedDraft?.inlineTechniqueEditor) }
     var failedSet by remember(row.key) { mutableStateOf(row.completed?.isFailedSet == true) }
     // «Modo visual» se abre en su vista expandida, como en la tarjeta; cada «Ampliar» la vuelve a abrir (pedido del usuario, 29-oct).
     var visualExpandRequest by rememberSaveable(row.key) { mutableIntStateOf(0) }
     var visualAutoExpand by rememberSaveable(row.key) { mutableStateOf(false) }
-    val unit = row.planned.unitModeV2 ?: UnitModeV2.REPS
+    val unit = liveSetUnitMode(row.exercise, row.planned)
     val timedTargetSeconds = if (unit == UnitModeV2.TIME) {
         row.planned.targetDuration ?: row.planned.plannedTargetV2?.takeIf { it > 0.0 }?.toInt()
     } else null
     var timedClock by remember(row.key, savedDraft?.timedSetAccumulatedMs, savedDraft?.timedSetStartedAtElapsedMs) {
         val now = android.os.SystemClock.elapsedRealtime()
-        val started = savedDraft?.timedSetStartedAtElapsedMs?.takeIf { it > 0L && it <= now }
+        val started = restoredLiveClockStart(savedDraft?.timedSetStartedAtElapsedMs, savedDraft?.timedSetBootCount, bootCount, now)
         val accumulated = savedDraft?.timedSetAccumulatedMs
             ?: if (unit == UnitModeV2.TIME) parseLiveDurationSeconds(valueText)?.times(1_000L) ?: 0L else 0L
         mutableStateOf(LiveSetClockState(startedAtMs = started, accumulatedMs = accumulated))
@@ -1501,7 +1564,12 @@ private fun InlineSetEditor(
     val timedClockRunning = unit == UnitModeV2.TIME && timedClock.running
     val initialRequest = remember(row.key) { recordRequest }
 
+    fun hasCurrentTags(): Boolean =
+        viewModel.uiState.value.activeTagsByExercise[row.exercise.id].orEmpty() ==
+            uiState.activeTagsByExercise[row.exercise.id].orEmpty()
+
     fun persist() {
+        if (!hasCurrentTags()) return
         val base = viewModel.getSetDraft(row.exercise.id, row.setIndex, row.side) ?: WorkoutSetDraft()
         viewModel.updateSetDraftFromExercise(
             row.exercise, row.setIndex, row.side,
@@ -1509,6 +1577,10 @@ private fun InlineSetEditor(
                 weightText = weightText,
                 valueText = valueText,
                 intensityText = effort?.let(::formatDecimal),
+                effortMode = mode,
+                inlineDropSets = drops,
+                inlineRestPauses = pauses,
+                inlineTechniqueEditor = techniqueEditor,
                 reachedFailure = failure,
                 partialReps = partials.takeIf { it > 0 },
                 assistedReps = assisted.takeIf { it > 0 },
@@ -1516,6 +1588,7 @@ private fun InlineSetEditor(
                 notes = note.ifBlank { null },
                 timedSetAccumulatedMs = timedClock.accumulatedMs,
                 timedSetStartedAtElapsedMs = timedClock.startedAtMs,
+                timedSetBootCount = bootCount,
                 isDirty = true,
             ),
         )
@@ -1579,7 +1652,9 @@ private fun InlineSetEditor(
     }
 
     fun record() {
-        val value = if (unit == UnitModeV2.TIME) parseLiveDurationSeconds(valueText)?.toDouble() else parseDecimal(valueText)
+        val value = if (unit == UnitModeV2.TIME && timedClock.running) {
+            timedClock.seconds(android.os.SystemClock.elapsedRealtime(), timedTargetSeconds).toDouble()
+        } else if (unit == UnitModeV2.TIME) parseLiveDurationSeconds(valueText)?.toDouble() else parseDecimal(valueText)
         if (value == null || value < 0.0) {
             error = "Completa la cantidad realizada."
             return
@@ -1598,6 +1673,10 @@ private fun InlineSetEditor(
         error = null
         viewModel.launchWorkoutCommand {
             try {
+                if (!hasCurrentTags()) {
+                    error = "La etiqueta cambió. Reabre la serie para registrar en el contexto correcto."
+                    return@launchWorkoutCommand
+                }
                 val result = viewModel.recordSetV2(
                     weight = performed,
                     value = value,
@@ -1606,6 +1685,10 @@ private fun InlineSetEditor(
                         rir = performedEffort?.toInt()?.takeIf { mode == IntensityMode.RIR },
                         reachedFailure = failure,
                         isFailedSet = failedSet,
+                        failureReason = row.completed?.failureReason,
+                        isPartial = partials > 0,
+                        skipped = row.completed?.skipped == true,
+                        superSetWithExerciseId = row.completed?.superSetWithExerciseId,
                         dropSets = drops,
                         restPauses = pauses,
                         actualIntensityMode = if (failure) IntensityMode.FAILURE else mode,
@@ -1616,7 +1699,7 @@ private fun InlineSetEditor(
                         rom = rom,
                         notes = note.ifBlank { null },
                     ),
-                    loadMode = resolvePersistedLoadModeForSet(
+                    loadMode = row.completed?.loadMode ?: resolvePersistedLoadModeForSet(
                         exerciseId = row.exercise.id,
                         setIdx = row.setIndex,
                         tagId = uiState.exerciseTags[row.exercise.id],
@@ -1634,6 +1717,7 @@ private fun InlineSetEditor(
                     expectedSetIdx = row.setIndex,
                     expectedSide = row.side,
                     expectedSourceRef = executionRef(uiState, row.exercise, row.setIndex, row.side),
+                    expectedActiveTagIds = uiState.activeTagsByExercise[row.exercise.id].orEmpty(),
                 )
                 if (result.succeeded) {
                     onClose()
@@ -1690,7 +1774,20 @@ private fun InlineSetEditor(
                     isFailedSet = failedSet,
                     onFailedSetChange = { failed -> failedSet = failed; if (failed) failure = false },
                     onFlipBack = { face = EDITOR_FACE_FRONT },
-                    onCompleteTechniques = { d, p -> drops = d; pauses = p; face = EDITOR_FACE_FRONT },
+                    onCompleteTechniques = { recordedDrops, recordedPauses ->
+                        drops = recordedDrops
+                        pauses = recordedPauses
+                        techniqueEditor = null
+                        persist()
+                        face = EDITOR_FACE_FRONT
+                    },
+                    initialEditorDraft = techniqueEditor,
+                    onEditorDraftChange = { draft ->
+                        if (techniqueEditor != draft) {
+                            techniqueEditor = draft
+                            persist()
+                        }
+                    },
                     noteText = note,
                     onNoteChange = { note = it; persist() },
                     initialDropEnabled = drops.isNotEmpty(),
@@ -1860,7 +1957,7 @@ private fun InlineSetEditor(
                                 decimal = unit != UnitModeV2.REPS, allowColon = unit == UnitModeV2.TIME,
                                 fields = editorFields, activeContextIndex = 1, onApplyFields = applyEditorFields,
                                 allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange)
-                            Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "km"; else -> "reps" }, Modifier.padding(start = 4.dp, bottom = 5.dp),
+                            Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "m"; else -> "reps" }, Modifier.padding(start = 4.dp, bottom = 5.dp),
                                 style = Body.copy(fontSize = 13.sp, fontFeatureSettings = "'tnum' 1, 'lnum' 1", platformStyle = PlatformTextStyle(includeFontPadding = false)),
                                 color = WizardColors.textFaint, maxLines = 1, softWrap = false)
                         }
@@ -1887,7 +1984,7 @@ private fun InlineSetEditor(
                                 decimal = unit != UnitModeV2.REPS, allowColon = unit == UnitModeV2.TIME,
                                 fields = editorFields, activeContextIndex = 1, onApplyFields = applyEditorFields,
                                 allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange)
-                            Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "km"; else -> "reps" }, Modifier.padding(start = 2.dp, bottom = 5.dp),
+                            Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "m"; else -> "reps" }, Modifier.padding(start = 2.dp, bottom = 5.dp),
                                 style = Body.copy(fontSize = 13.sp, fontFeatureSettings = "'tnum' 1, 'lnum' 1", platformStyle = PlatformTextStyle(includeFontPadding = false)),
                                 color = WizardColors.textFaint, maxLines = 1, softWrap = false)
                         }
@@ -2185,7 +2282,7 @@ private fun listRowQuantity(row: ListSetRow): Pair<String, String?> {
     val completed = row.completed?.takeIf { !it.skipped }
     if (completed != null) return when (unit) {
         UnitModeV2.TIME -> (completed.timeSeconds ?: completed.reps.takeIf { it > 0 })?.toString()?.let { it to "s" } ?: ("—" to "s")
-        UnitModeV2.DISTANCE -> (completed.distanceKm?.let(::listNumber) ?: completed.reps.takeIf { it > 0 }?.toDouble()?.let(::listNumber))?.let { it to "km" } ?: ("—" to "km")
+        UnitModeV2.DISTANCE -> completedLiveQuantity(completed, unit)?.let { listNumber(it) to "m" } ?: ("—" to "m")
         UnitModeV2.CUSTOM -> (completed.recordedPayloadV3?.actualValue ?: completed.homologatedResultV3?.actualValue
             ?: completed.reps.takeIf { it > 0 }?.toDouble())?.let { listNumber(it) to row.exercise.customUnit?.takeIf { label -> label.isNotBlank() } }
             ?: ("—" to row.exercise.customUnit?.takeIf { it.isNotBlank() })
@@ -2195,7 +2292,7 @@ private fun listRowQuantity(row: ListSetRow): Pair<String, String?> {
     val apre = liveListApreSetPresentation(row.exercise, set.id)
     return when (unit) {
         UnitModeV2.TIME -> (set.targetDuration?.toString() ?: set.plannedTargetV2?.takeIf { it > 0.0 }?.let(::listNumber) ?: "—") to "s"
-        UnitModeV2.DISTANCE -> (set.plannedTargetV2?.takeIf { it > 0.0 }?.let(::listNumber) ?: "—") to "km"
+        UnitModeV2.DISTANCE -> (set.plannedTargetV2?.takeIf { it > 0.0 }?.let(::listNumber) ?: "—") to "m"
         UnitModeV2.CUSTOM -> (set.plannedTargetV2?.takeIf { it > 0.0 }?.let(::listNumber) ?: "—") to row.exercise.customUnit?.takeIf { it.isNotBlank() }
         UnitModeV2.REPS -> (if (apre != null && apre.ordinal in 3..4) "${apre.xrmReps}+"
             else set.targetReps?.toString() ?: set.plannedTargetV2?.let(::listNumber) ?: "—") to null
@@ -2226,22 +2323,24 @@ internal fun effortOptions(mode: IntensityMode): List<Double?> =
 internal fun initialEffortValue(row: ListSetRow, mode: IntensityMode): Double? {
     val completed = row.completed ?: return null
     if (completed.isFailure) return if (mode == IntensityMode.RPE) 10.0 else 0.0
-    return completed.rir?.toDouble() ?: completed.rpe
+    return if (mode == IntensityMode.RPE) completed.rpe ?: completed.actualIntensityValue else completed.rir?.toDouble() ?: completed.actualIntensityValue
 }
 
 private fun initialWeight(row: ListSetRow): String =
-    row.completed?.weight?.takeIf { it > 0.0 }?.let(::listNumber)
+    row.completed?.originalLoad?.takeIf { it > 0.0 }?.let(::listNumber)
+        ?: row.completed?.weight?.takeIf { it > 0.0 }?.let(::listNumber)
         ?: row.planned.weight?.takeIf { it > 0.0 }?.let(::listNumber)
         ?: ""
 
-private fun initialValue(row: ListSetRow): String =
-    row.completed?.reps?.takeIf { it > 0 }?.toString()
-        ?: row.completed?.timeSeconds?.toString()
-        ?: row.completed?.distanceKm?.let(::listNumber)
-        ?: row.planned.targetReps?.toString()
-        ?: row.planned.targetDuration?.toString()
-        ?: row.planned.plannedTargetV2?.let(::listNumber)
-        ?: ""
+private fun initialValue(row: ListSetRow): String {
+    val unit = liveSetUnitMode(row.exercise, row.planned)
+    return row.completed?.let { completedLiveQuantity(it, unit)?.toLiveNumberString() }
+        ?: when (unit) {
+            UnitModeV2.TIME -> row.planned.targetDuration?.toString() ?: row.planned.plannedTargetV2?.toLiveNumberString()
+            UnitModeV2.REPS -> row.planned.targetReps?.toString() ?: row.planned.plannedTargetV2?.toLiveNumberString()
+            else -> row.planned.plannedTargetV2?.toLiveNumberString()
+        }.orEmpty()
+}
 
 private fun weightOrPlanned(row: ListSetRow, weightText: String): Double =
     parseDecimal(weightText) ?: row.planned.weight ?: 0.0
@@ -2249,7 +2348,7 @@ private fun weightOrPlanned(row: ListSetRow, weightText: String): Double =
 private fun planSummary(set: ExerciseSet): String {
     val value = when (set.unitModeV2) {
         UnitModeV2.TIME -> set.targetDuration?.let { "$it s" } ?: set.plannedTargetV2?.let { "${formatDecimal(it)} s" }
-        UnitModeV2.DISTANCE -> set.plannedTargetV2?.let { "${formatDecimal(it)} km" } ?: set.targetDuration?.let { "$it s" }
+        UnitModeV2.DISTANCE -> set.plannedTargetV2?.let { "${formatDecimal(it)} m" } ?: set.targetDuration?.let { "$it s" }
         else -> set.targetReps?.let { "$it reps" } ?: set.plannedTargetV2?.let(::formatDecimal)
     }
     val effort = set.targetRIR?.let { " · RIR $it" } ?: set.targetRPE?.let { " · RPE ${formatDecimal(it)}" } ?: ""
@@ -2275,9 +2374,7 @@ private fun recordedSummary(row: ListSetRow): String {
 private fun parseDecimal(raw: String): Double? =
     raw.trim().replace(',', '.').toDoubleOrNull()
 
-internal fun formatDecimal(value: Double): String =
-    if (value == value.toLong().toDouble()) value.toLong().toString()
-    else String.format(Locale.US, "%.1f", value)
+internal fun formatDecimal(value: Double): String = value.toLiveNumberString().replace(',', '.')
 
 private const val EDITOR_FACE_FRONT = "front"
 private const val EDITOR_FACE_ADVANCED = "advanced"
@@ -2285,7 +2382,7 @@ private const val EDITOR_FACE_VISUAL = "visual"
 
 private fun unitLabel(unit: UnitModeV2): String = when (unit) {
     UnitModeV2.TIME -> "s"
-    UnitModeV2.DISTANCE -> "km"
+    UnitModeV2.DISTANCE -> "m"
     else -> "reps"
 }
 

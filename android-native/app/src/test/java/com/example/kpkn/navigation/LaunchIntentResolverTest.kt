@@ -154,4 +154,13 @@ class LaunchIntentResolverTest {
     fun theExtraKeyIsTheOneTheLaunchersWrite() {
         assertEquals("kpkn_nutrition_action", LaunchIntentResolver.EXTRA_NUTRITION_ACTION)
     }
+
+    @Test
+    fun maliciousActionExtrasAreEncodedAndBounded() {
+        val injected = LaunchIntentResolver.route(widgetIntent("a/b?x=1#frag"))
+        assertEquals("nutrition/action/a%2Fb%3Fx%3D1%23frag", injected)
+
+        val oversized = LaunchIntentResolver.route(widgetIntent("x".repeat(250)))
+        assertEquals("nutrition/action/${"x".repeat(120)}", oversized)
+    }
 }

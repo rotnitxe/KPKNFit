@@ -16,6 +16,7 @@ import android.media.RingtoneManager
 import android.media.AudioTrack
 import android.os.Build
 import android.os.PowerManager
+import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
 import androidx.core.app.NotificationCompat
@@ -60,10 +61,14 @@ class WorkoutRestAlertManager(private val context: Context) {
         private var timerPreferencesRevision = 0L
         private var timerPreferencesLoaded = false
         private var activeTimerId: String? = null
+        private var completionClaimedTimerId: String? = null
         private const val KEY_TIMER_ID = "active_timer_id"
         private const val KEY_SESSION_NAME = "active_session_name"
         private const val KEY_EXERCISE_NAME = "active_exercise_name"
         private const val KEY_END_AT = "active_end_at"
+        private const val KEY_SOUND_ENABLED = "active_sound_enabled"
+        private const val KEY_HAPTICS_ENABLED = "active_haptics_enabled"
+        private const val KEY_HAPTIC_INTENSITY = "active_haptic_intensity"
         private const val KEY_LAST_AUDIO_FAILURE_AT = "last_audio_failure_at"
 
         private const val NOTIF_ID_ONGOING = 42041
@@ -86,9 +91,13 @@ class WorkoutRestAlertManager(private val context: Context) {
     private val notificationManager = NotificationManagerCompat.from(appContext)
     private val prefs by lazy { appContext.getSharedPreferences(PREFS, Context.MODE_PRIVATE) }
 
+    internal var bootCount: Int? = null
+        private set
+
     /** Loads SharedPreferences before a workout can use the rest-alert path on Main. */
     suspend fun preloadPreferences() {
         withContext(Dispatchers.IO) {
+            bootCount = runCatching { workoutClockBootCount(appContext) }.getOrNull()?.takeIf { it >= 0 }
             val readyPrefs = prefs
             val storedTimerId = readyPrefs.all[KEY_TIMER_ID] as? String
             synchronized(timerPreferencesLock) {
@@ -173,7 +182,7 @@ class WorkoutRestAlertManager(private val context: Context) {
         val timerId = UUID.randomUUID().toString()
         val now = System.currentTimeMillis()
         val endAt = endAtOverrideMs?.takeIf { it > now } ?: (now + (durationSeconds * 1000L))
-        val remainingSeconds = ((endAt - now + 999L) / 1000L).toInt().coerceAtLeast(1)
+        val settings = runCatching { ProgramRepository.getInstance().settings.value }.getOrNull()
 
         synchronized(timerPreferencesLock) {
             timerPreferencesLoaded = true
@@ -184,6 +193,9 @@ class WorkoutRestAlertManager(private val context: Context) {
                 .putString(KEY_SESSION_NAME, sessionName)
                 .putString(KEY_EXERCISE_NAME, exerciseName)
                 .putLong(KEY_END_AT, endAt)
+                .putBoolean(KEY_SOUND_ENABLED, settings?.soundsEnabled ?: false)
+                .putBoolean(KEY_HAPTICS_ENABLED, settings?.hapticFeedbackEnabled ?: false)
+                .putString(KEY_HAPTIC_INTENSITY, settings?.hapticIntensity?.name)
                 .apply()
         }
 
@@ -193,20 +205,9 @@ class WorkoutRestAlertManager(private val context: Context) {
             sessionName = sessionName,
             exerciseName = exerciseName,
             event = EVENT_FINISH,
-            triggerAtMs = endAt,
+            triggerAtMs = SystemClock.elapsedRealtime() + (endAt - now),
             endAtMs = endAt,
         )
-        if (shouldScheduleWorkoutRestPrealert(remainingSeconds)) {
-            scheduleAlarm(
-                requestCode = REQUEST_CODE_PREALERT,
-                timerId = timerId,
-                sessionName = sessionName,
-                exerciseName = exerciseName,
-                event = EVENT_PREALERT,
-                triggerAtMs = workoutRestPrealertTriggerAt(endAt),
-                endAtMs = endAt,
-            )
-        }
 
         runCatching {
             WorkoutRestForegroundService.start(
@@ -216,6 +217,7 @@ class WorkoutRestAlertManager(private val context: Context) {
                 setInfo = setInfo,
                 exerciseImage = exerciseImage,
                 endAt = endAt,
+                timerId = timerId,
             )
         }.onFailure {
             postOngoingNotification(sessionName, exerciseName, endAt)
@@ -233,6 +235,13 @@ class WorkoutRestAlertManager(private val context: Context) {
             timerPreferencesRevision
         }
         deliverCompletionAlert(sessionName, exerciseName, activeId, revision)
+    }
+
+    internal fun onPrealertInApp(expectedTimerId: String?) {
+        fun isCurrent() = synchronized(timerPreferencesLock) {
+            expectedTimerId != null && expectedTimerId == activeTimerId && expectedTimerId != completionClaimedTimerId
+        }
+        if (isCurrent()) deliverPrealertCue(::isCurrent)
     }
 
     fun cancelRestAlerts(cancelFinished: Boolean = false) {
@@ -302,33 +311,26 @@ class WorkoutRestAlertManager(private val context: Context) {
         try {
             when {
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && canScheduleExactAlarm() -> {
-                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerAtMs, pending)
+                    alarmManager.setExactAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMs, pending)
                 }
 
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.M -> {
-                    // API 23+: setAlarmClock is allowed without exact-alarm permission.
-                    alarmManager.setAlarmClock(
-                        AlarmManager.AlarmClockInfo(triggerAtMs, createOpenWorkoutPendingIntent(REQUEST_CODE_ALARM + requestCode)),
-                        pending,
-                    )
+                    // API 31+ without SCHEDULE_EXACT_ALARM: setAlarmClock() also throws SecurityException,
+                    // so degrade directly to an idle-allowed inexact alarm.
+                    alarmManager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMs, pending)
                 }
 
                 else -> {
-                    alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMs, pending)
+                    alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMs, pending)
                 }
             }
         } catch (_: SecurityException) {
-            // Last-resort fallback: inexact alarm doesn't require any permission.
-            alarmManager.set(AlarmManager.RTC_WAKEUP, triggerAtMs, pending)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setAndAllowWhileIdle(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMs, pending)
+            } else {
+                alarmManager.set(AlarmManager.ELAPSED_REALTIME_WAKEUP, triggerAtMs, pending)
+            }
         }
-    }
-
-    private fun createOpenWorkoutPendingIntent(requestCode: Int): PendingIntent {
-        return KpknDeepLinks.pendingActivityIntent(
-            context = appContext,
-            requestCode = requestCode,
-            path = currentWorkoutNotificationPath(),
-        )
     }
 
     private fun cancelAlarm(requestCode: Int) {
@@ -345,35 +347,41 @@ class WorkoutRestAlertManager(private val context: Context) {
         }
     }
 
-    private fun playToneSequenceAsync(steps: List<WorkoutRestToneStep>, onComplete: () -> Unit = {}) {
+    private fun playToneSequenceAsync(
+        steps: List<WorkoutRestToneStep>,
+        stillCurrent: () -> Boolean = { true },
+        onComplete: (Boolean) -> Unit = {},
+    ) {
         playExecutor.execute {
             val wakeLock = (appContext.getSystemService(Context.POWER_SERVICE) as? PowerManager)
                 ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "kpkn:workoutRestAlertTone")
             runCatching { wakeLock?.acquire(10_000L) }
+            var played = false
             try {
-                playToneSequence(steps)
+                if (stillCurrent()) played = playToneSequence(steps, stillCurrent)
             } finally {
                 runCatching {
                     if (wakeLock?.isHeld == true) {
                         wakeLock.release()
                     }
                 }
-                onComplete()
+                onComplete(played)
             }
         }
     }
 
-    private fun deliverPrealertCue() {
-        val settings = runCatching { ProgramRepository.getInstance().settings.value }.getOrNull()
-        val soundsEnabled = settings?.soundsEnabled ?: true
-        val hapticEnabled = settings?.hapticFeedbackEnabled ?: true
+    private fun deliverPrealertCue(stillCurrent: () -> Boolean = { true }) {
+        val settings = runCatching { ProgramRepository.getInstance().takeIf { it.isReady.value }?.settings?.value }.getOrNull()
+        val soundsEnabled = settings?.soundsEnabled ?: prefs.getBoolean(KEY_SOUND_ENABLED, false)
+        val hapticEnabled = settings?.hapticFeedbackEnabled ?: prefs.getBoolean(KEY_HAPTICS_ENABLED, false)
 
-        if (SystemAudioHelper.shouldVibrate(appContext, hapticEnabled)) {
+        if (stillCurrent() && SystemAudioHelper.shouldVibrate(appContext, hapticEnabled)) {
             vibratePattern(workoutPrealertVibrationPattern())
         }
         if (soundsEnabled && SystemAudioHelper.isNormalRinger(appContext)) {
             playToneSequenceAsync(
                 steps = workoutPrealertTonePlan(),
+                stillCurrent = stillCurrent,
             )
         }
     }
@@ -384,12 +392,25 @@ class WorkoutRestAlertManager(private val context: Context) {
         expectedTimerId: String,
         expectedRevision: Long,
     ) {
-        val settings = runCatching { ProgramRepository.getInstance().settings.value }.getOrNull()
-        val soundsEnabled = settings?.soundsEnabled ?: true
-        val hapticEnabled = settings?.hapticFeedbackEnabled ?: true
-        val hapticIntensity = settings?.hapticIntensity ?: HapticIntensity.MEDIUM
+        fun isCurrent(): Boolean = synchronized(timerPreferencesLock) {
+            activeTimerId == expectedTimerId && timerPreferencesRevision == expectedRevision
+        }
+        synchronized(timerPreferencesLock) {
+            if (!isCurrent() || completionClaimedTimerId == expectedTimerId) return
+            completionClaimedTimerId = expectedTimerId
+            WorkoutRestForegroundService.stop(appContext)
+            cancelAlarm(REQUEST_CODE_ALARM)
+            cancelAlarm(REQUEST_CODE_PREALERT)
+            notificationManager.cancel(NOTIF_ID_ONGOING)
+        }
+        val settings = runCatching { ProgramRepository.getInstance().takeIf { it.isReady.value }?.settings?.value }.getOrNull()
+        val soundsEnabled = settings?.soundsEnabled ?: prefs.getBoolean(KEY_SOUND_ENABLED, false)
+        val hapticEnabled = settings?.hapticFeedbackEnabled ?: prefs.getBoolean(KEY_HAPTICS_ENABLED, false)
+        val hapticIntensity = settings?.hapticIntensity
+            ?: HapticIntensity.entries.firstOrNull { it.name == prefs.getString(KEY_HAPTIC_INTENSITY, null) }
+            ?: HapticIntensity.MEDIUM
 
-        if (SystemAudioHelper.shouldVibrate(appContext, hapticEnabled)) {
+        if (isCurrent() && SystemAudioHelper.shouldVibrate(appContext, hapticEnabled)) {
             vibratePattern(
                 pattern = workoutCompletionVibrationPattern(hapticIntensity),
                 amplitudes = workoutCompletionVibrationAmplitudes(hapticIntensity),
@@ -398,7 +419,7 @@ class WorkoutRestAlertManager(private val context: Context) {
 
         val shouldAttemptManualSound = soundsEnabled && SystemAudioHelper.isNormalRinger(appContext)
 
-        val onFinishAlert: () -> Unit = {
+        val onFinishAlert: (Boolean) -> Unit = { played ->
             synchronized(timerPreferencesLock) {
                 if (activeTimerId != expectedTimerId || timerPreferencesRevision != expectedRevision) {
                     return@synchronized
@@ -406,10 +427,9 @@ class WorkoutRestAlertManager(private val context: Context) {
                 activeTimerId = null
                 timerPreferencesRevision += 1L
                 val clearRevision = timerPreferencesRevision
-                WorkoutRestForegroundService.stop(appContext)
-                notificationManager.cancel(NOTIF_ID_ONGOING)
-
-                val preferAudibleNotification = soundsEnabled && SystemAudioHelper.isNormalRinger(appContext)
+                val preferAudibleNotification = !played && soundsEnabled && SystemAudioHelper.isNormalRinger(appContext) &&
+                    (hapticEnabled || Build.VERSION.SDK_INT < Build.VERSION_CODES.O ||
+                        !notificationManager.getNotificationChannel(CHANNEL_REST_FINISHED).let { it?.shouldVibrate() == true })
                 postFinishedNotification(
                     sessionName = sessionName,
                     exerciseName = exerciseName,
@@ -423,10 +443,11 @@ class WorkoutRestAlertManager(private val context: Context) {
         if (shouldAttemptManualSound) {
             playToneSequenceAsync(
                 steps = workoutCompletionTonePlan(),
+                stillCurrent = ::isCurrent,
                 onComplete = onFinishAlert
             )
         } else {
-            onFinishAlert()
+            onFinishAlert(false)
         }
     }
 
@@ -482,7 +503,7 @@ class WorkoutRestAlertManager(private val context: Context) {
 
         if (preferAudibleFallback) {
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-                builder.setDefaults(NotificationCompat.DEFAULT_ALL)
+                builder.setDefaults(NotificationCompat.DEFAULT_SOUND)
             }
         } else {
             builder.setSilent(true)
@@ -511,22 +532,26 @@ class WorkoutRestAlertManager(private val context: Context) {
         }
     }
 
-    private fun playToneSequence(steps: List<WorkoutRestToneStep>): Boolean {
+    private fun playToneSequence(
+        steps: List<WorkoutRestToneStep>,
+        stillCurrent: () -> Boolean,
+    ): Boolean {
         val duckHandle = SystemAudioHelper.requestTransientDuckFocus(appContext)
         return try {
-            steps.forEach { step ->
+            for (step in steps) {
+                if (!stillCurrent()) return false
                 playSoftTone(step)
                 if (step.pauseAfterMs > 0L) {
                     Thread.sleep(step.pauseAfterMs)
                 }
             }
-            SystemAudioHelper.abandonTransientDuckFocus(duckHandle)
             clearAudioFailure()
             true
         } catch (_: Exception) {
-            SystemAudioHelper.abandonTransientDuckFocus(duckHandle)
             markAudioFailure()
             false
+        } finally {
+            SystemAudioHelper.abandonTransientDuckFocus(duckHandle)
         }
     }
 

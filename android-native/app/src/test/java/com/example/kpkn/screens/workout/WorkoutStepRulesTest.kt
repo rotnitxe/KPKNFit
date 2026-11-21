@@ -10,6 +10,7 @@ import com.example.kpkn.data.models.MobilityMode
 import com.example.kpkn.data.models.Session
 import com.example.kpkn.data.models.WarmupExercise
 import com.example.kpkn.data.models.SessionPart
+import com.example.kpkn.data.models.SupersetGroup
 import com.example.kpkn.data.models.UnilateralMode
 import com.example.kpkn.data.models.UnilateralSideOrder
 import com.example.kpkn.data.models.UnilateralTarget
@@ -22,6 +23,23 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class WorkoutStepRulesTest {
+    @Test
+    fun extraSupersetSetAppearsInThirdRoundWithoutAnExtraSetForTheOtherMember() {
+        val a = Exercise(id = "a", name = "Press", sets = List(3) { ExerciseSet("a-$it") }, supersetGroupRef = "group")
+        val b = Exercise(id = "b", name = "Remo", sets = List(2) { ExerciseSet("b-$it") }, supersetGroupRef = "group")
+        val session = Session(
+            id = "s",
+            name = "Sesión",
+            exercises = listOf(a, b),
+            supersetGroups = listOf(SupersetGroup(id = "group", exerciseOrder = listOf("a", "b"), rounds = 2)),
+        )
+
+        val steps = WorkoutStepRules.buildSteps(session)
+
+        assertEquals(listOf("a_0", "b_0", "a_1", "b_1", "a_2"), steps.map { it.stepKey })
+        assertEquals(2, steps.last().supersetRoundIndex)
+    }
+
     @Test
     fun buildSteps_emitsDedicatedCardioStep_andIgnoresLegacySyntheticSets() {
         val cardio = Exercise(
@@ -115,6 +133,19 @@ class WorkoutStepRulesTest {
 
         val steps = WorkoutStepRules.buildSteps(session)
         assertEquals(listOf("run_cardio", "run_cardio_set_1", "press_0", "press_1"), steps.map { it.stepKey })
+        assertEquals(listOf("run_cardio_set_1", "press_0", "press_1"), WorkoutStepRules.buildSteps(
+            session,
+            omittedSetKeys = setOf(WorkoutStepRules.omittedSetKey("run", 0)),
+        ).map { it.stepKey })
+    }
+
+    @Test fun emptySlotsNeverCreatePendingStepsOrRoadmapProgress() {
+        val a = Exercise(id = "a", name = "A", sets = List(3) { ExerciseSet("a-$it") }, supersetGroupRef = "g")
+        val b = Exercise(id = "b", name = "B", sets = listOf(ExerciseSet("b-0"), ExerciseSet("b-1"), ExerciseSet("b-2", isEmptySlot = true)), supersetGroupRef = "g")
+        val session = Session(id = "s", name = "S", exercises = listOf(a, b),
+            supersetGroups = listOf(SupersetGroup(id = "g", exerciseOrder = listOf("a", "b"), rounds = 3)))
+        assertEquals(listOf("a_0", "b_0", "a_1", "b_1", "a_2"), WorkoutStepRules.buildSteps(session).map { it.stepKey })
+        assertEquals(2, WorkoutStepRules.totalRoadmapSlotsForExercise(b))
     }
 
     @Test

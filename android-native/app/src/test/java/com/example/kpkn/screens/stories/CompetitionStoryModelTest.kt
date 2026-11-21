@@ -19,7 +19,51 @@ import java.time.LocalDate
 /** Pruebas puras del modelo de las historias de competencia (textos del lienzo Registros v4 y decisiones H-D4/H-D5). */
 class CompetitionStoryModelTest {
 
+    @Test fun `carrera usa unidad de intento valido y compara distancias equivalentes`() {
+        fun carrera(id: String, date: String, unit: String, distance: Double, seconds: Double, status: CompetitionRecordStatus = CompetitionRecordStatus.COMPLETED) = CompetitionRecord(
+            id = id, title = id, eventDate = date, sportType = CompetitionTemplateType.RUNNING, status = status,
+            technicalBlocks = listOf(CompetitionTechnicalBlock(id = id, title = id, resultUnit = unit, attempts = listOf(
+                CompetitionAttempt(id = "valid", attemptNumber = 1, distance = distance, timeSeconds = seconds, resultType = CompetitionAttemptResult.GOOD_LIFT),
+                CompetitionAttempt(id = "pending", attemptNumber = 2, distance = distance, timeSeconds = 1.0, resultType = CompetitionAttemptResult.PENDING),
+            ))))
+        val actual = carrera("a", "2026-10-20", "m", 5000.0, 1500.0)
+        val previous = carrera("b", "2026-09-20", "km", 5.0, 1600.0)
+        val archived = carrera("c", "2026-08-20", "km", 5.0, 1510.0, CompetitionRecordStatus.ARCHIVED)
+        val page = competitionStoryPage(CompetitionStoryTemplate.TIEMPO, actual, listOf(previous, archived), LocalDate.of(2026, 10, 28))
+        assertEquals("25:00", page.title)
+        assertTrue(page.sub.orEmpty().contains("5.000 m"))
+        assertTrue(page.rows.any { it.label == "Marca personal" && it.value.contains("1:40") })
+    }
+
     private val hoy = LocalDate.of(2026, 10, 28)
+
+    @Test
+    fun `medalla oculta tambien se excluye del resumen y la celebracion`() {
+        val record = CompetitionRecord(
+            id = "c",
+            title = "Copa final",
+            eventDate = "2026-09-21",
+            sportType = CompetitionTemplateType.RUNNING,
+            status = CompetitionRecordStatus.COMPLETED,
+            medal = "gold",
+            resultSummary = "Medalla de oro",
+        )
+        val options = CompetitionStoryOptions(medal = false)
+        for (template in CompetitionStoryTemplate.entries.filter { it != CompetitionStoryTemplate.PROXIMA }) {
+            val page = competitionStoryPage(template, record, listOf(record), hoy, options)
+            assertNull(page.medal)
+            assertFalse(page.title.contains("oro", ignoreCase = true))
+            assertFalse(page.sub.orEmpty().contains("oro", ignoreCase = true))
+        }
+        val celebration = checkNotNull(competitionCelebration(record, listOf(record), hoy, options))
+        assertNull(celebration.medal)
+        assertFalse(celebration.headline.contains("oro", ignoreCase = true))
+        assertFalse(celebration.eyebrow.contains("oro", ignoreCase = true))
+        val placement = competitionStoryPage(
+            CompetitionStoryTemplate.FOTO, record.copy(placement = "1"), listOf(record), hoy, options,
+        )
+        assertEquals("1.º puesto", placement.title)
+    }
 
     /** Un bloque con un solo intento válido de [kg]. */
     private fun bloque(id: String, tipo: CompetitionMovementType, kg: Double): CompetitionTechnicalBlock = CompetitionTechnicalBlock(

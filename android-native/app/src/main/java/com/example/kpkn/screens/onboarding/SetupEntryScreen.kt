@@ -1,6 +1,8 @@
 package com.example.kpkn.screens.onboarding
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -38,13 +40,15 @@ fun SetupEntryScreen(
     onCompleted: () -> Unit,
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
+    val repoReady by ProgramRepository.getInstance().isReady.collectAsStateWithLifecycle()
     val settings by ProgramRepository.getInstance().settings.collectAsStateWithLifecycle()
     var candidates by remember { mutableStateOf<List<SetupDraftCandidate>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
     var loadError by remember { mutableStateOf(false) }
     var retry by remember { mutableStateOf(0) }
     var pendingStart by remember { mutableStateOf(false) }
-    LaunchedEffect(settings.onboardingCompleted, retry) {
+    LaunchedEffect(repoReady, settings.onboardingCompleted, retry) {
+        if (!repoReady) return@LaunchedEffect
         if (settings.onboardingCompleted) { onCompleted(); return@LaunchedEffect }
         loading = true
         val recovered = runCatching { withContext(Dispatchers.IO) { SetupDraftResolver(persistenceFactory(context).database).listRecoverable() } }
@@ -58,6 +62,10 @@ fun SetupEntryScreen(
         val saved = candidates.maxByOrNull { it.updatedAtEpochMs }
         if (saved != null) onStart("RESUME", saved.draftId)
         else onStart("FULL", "setup-wizard:full:${UUID.randomUUID()}")
+    }
+    if (!repoReady) {
+        Box(Modifier.fillMaxSize().background(WizardColors.background))
+        return
     }
     if (settings.onboardingCompleted) return
     if (loadError) {

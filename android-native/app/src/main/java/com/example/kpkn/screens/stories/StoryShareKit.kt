@@ -300,8 +300,12 @@ internal suspend fun loadStoryPhoto(context: Context, path: String): Bitmap? = w
         }.getOrNull() ?: 1
         val matrix = android.graphics.Matrix()
         when (orientation) {
+            2 -> matrix.postScale(-1f, 1f)
             3 -> matrix.postRotate(180f)
+            4 -> matrix.postScale(1f, -1f)
+            5 -> { matrix.postRotate(90f); matrix.postScale(-1f, 1f) }
             6 -> matrix.postRotate(90f)
+            7 -> { matrix.postRotate(270f); matrix.postScale(-1f, 1f) }
             8 -> matrix.postRotate(270f)
         }
         if (matrix.isIdentity) {

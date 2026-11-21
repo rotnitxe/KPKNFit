@@ -133,6 +133,7 @@ internal fun WorkoutV2Body(
     onOpenExerciseOptions: (exerciseId: String) -> Unit = {},
     onOpenSupersetSettings: (groupId: String) -> Unit = {},
     sessionTimeRequest: Int = 0,
+    onOpenTechniqueInCards: () -> Unit = {},
 ) {
     val videoAnalysis by viewModel.videoAnalysisBySetKey.collectAsStateWithLifecycle()
     val videoThumbBadges by viewModel.videoThumbBadgeByMediaId.collectAsStateWithLifecycle()
@@ -604,13 +605,14 @@ internal fun WorkoutV2Body(
                     onRequestCardioStart = { target ->
                         onRequestCardioStart(target)
                     },
+                    onOpenTechniqueInCards = onOpenTechniqueInCards,
                     // `.island` flota sobre la Lista (prototipo 02): la lista sube bajo la cabecera y empieza 14 por debajo de ella.
                     modifier = Modifier.fillMaxSize().extendUnderHeader(headerHeightPx),
                     topInset = with(density) { headerHeightPx.toDp() } + 14.dp,
                     hazeState = cardsHazeState,
                     warmupRestRemaining = if (warmupRestActive) restTimerRemaining else null,
                     warmupRestTotal = if (warmupRestActive) {
-                        uiState.restModalState?.let { rest -> rest.activeSeconds.takeIf { it > 0 } ?: rest.plannedSeconds.takeIf { it > 0 } } ?: 60
+                        uiState.restModalState?.totalRestSeconds() ?: 60
                     } else null,
                     warmupRestIsMobility = warmupRestActive && uiState.restModalState?.warmupSetId.isNullOrBlank(),
                     onEndWarmupRest = { viewModel.stopRestTimer() },
@@ -660,7 +662,7 @@ internal fun WorkoutV2Body(
                             workingSetVisualHeightPx.intValue = 0
                         }
                         val cardioDetails = currentExercise.cardioDetails
-                        val cardioSetIndices = WorkoutStepRules.cardioSetIndices(currentExercise)
+                        val cardioSetIndices = WorkoutStepRules.cardioSetIndices(currentExercise, uiState.omittedSetKeys)
                         val currentCardioSetIndex = uiState.currentSetIdx
                             .takeIf { it in cardioSetIndices }
                             ?: cardioSetIndices.firstOrNull()
@@ -815,12 +817,10 @@ internal fun WorkoutV2Body(
                         }
                     } else {
 
-                    val currentSupersetGroupId = currentExercise.supersetGroupRefOrLegacyId()
-                    val currentSupersetMembers = remember(currentSupersetGroupId, visibleExercises) {
-                        currentSupersetGroupId
-                            ?.let { groupId -> visibleExercises.filter { it.supersetGroupRefOrLegacyId() == groupId } }
-                            .orEmpty()
+                    val canonicalSteps = remember(uiState.session, uiState.activeMode, visibleExercises, uiState.omittedSetKeys) {
+                        viewModel.workoutStepPositions(uiState)
                     }
+                    val currentSupersetGroupId = canonicalSteps.firstOrNull { it.exerciseId == currentExercise.id }?.supersetGroupId
                     val restAnchorExercise = remember(uiState.setJustLoggedKey, visibleExercises, currentExercise) {
                         uiState.setJustLoggedKey
                             ?.let(::parseCompletedSetKey)
@@ -829,11 +829,13 @@ internal fun WorkoutV2Body(
                             ?: currentExercise
                     }
                     val pagerExercise = if (workingRestActive) restAnchorExercise else currentExercise
-                    val pagerSupersetGroupId = pagerExercise.supersetGroupRefOrLegacyId()
-                    val pagerSupersetMembers = remember(pagerSupersetGroupId, visibleExercises) {
-                        pagerSupersetGroupId
-                            ?.let { groupId -> visibleExercises.filter { it.supersetGroupRefOrLegacyId() == groupId } }
-                            .orEmpty()
+                    val pagerSupersetGroupId = canonicalSteps.firstOrNull { it.exerciseId == pagerExercise.id }?.supersetGroupId
+                    val pagerSupersetSteps = remember(pagerSupersetGroupId, canonicalSteps) {
+                        pagerSupersetGroupId?.let { id -> canonicalSteps.filter { it.supersetGroupId == id } }.orEmpty()
+                    }
+                    val pagerSupersetMembers = remember(pagerSupersetSteps, visibleExercises) {
+                        val visibleById = visibleExercises.associateBy(Exercise::id)
+                        pagerSupersetSteps.map { it.exerciseId }.distinct().mapNotNull(visibleById::get)
                     }
 
                     val isSupersetForPager = pagerSupersetMembers.size > 1 && pagerSupersetGroupId != null
@@ -882,6 +884,7 @@ internal fun WorkoutV2Body(
                         pagerExercise.id,
                         pagerSupersetGroupId,
                         pagerSupersetMembers,
+                         pagerSupersetSteps,
                         pagerExercise.sets,
                         pagerExercise.isEffectivelyUnilateral(),
                         pagerExercise.unilateralSideOrder,
@@ -929,41 +932,18 @@ internal fun WorkoutV2Body(
                             )
                             }
                         }
-                        if (pagerSupersetMembers.size > 1) {
-                            val rounds = pagerSupersetMembers.maxOfOrNull { it.sets.size }?.coerceAtLeast(1) ?: 1
-                            for (roundIdx in 0 until rounds) {
-                                for (member in pagerSupersetMembers) {
-                                    if (roundIdx in member.sets.indices &&
-                                        member.sets.getOrNull(roundIdx)?.isEmptySlot != true &&
-                                        !WorkoutStepRules.isSetOmitted(member.id, roundIdx, uiState.omittedSetKeys)
-                                    ) {
-                                        if (member.isEffectivelyUnilateral()) {
-                                            val expectedSides = member.expectedSidesForSet(roundIdx)
-                                            expectedSides.forEach { side ->
-                                                list.add(
-                                                    WorkoutSetSwipePage(
-                                                        type = LivePageType.NORMAL,
-                                                        setIndex = roundIdx,
-                                                        side = side,
-                                                        exerciseId = member.id,
-                                                    ),
-                                                )
-                                            }
-                                        } else {
-                                            list.add(
-                                                WorkoutSetSwipePage(
-                                                    type = LivePageType.NORMAL,
-                                                    setIndex = roundIdx,
-                                                    side = null,
-                                                    exerciseId = member.id,
-                                                ),
-                                            )
-                                        }
-                                    }
+                        if (isSupersetForPager) {
+                            pagerSupersetSteps.forEach { step ->
+                                val setIndex = step.setIndex ?: return@forEach
+                                val type = when (step.type) {
+                                    WorkoutStepType.WORKING_SET -> LivePageType.NORMAL
+                                    WorkoutStepType.CARDIO -> LivePageType.CARDIO
+                                    else -> return@forEach
                                 }
+                                list.add(WorkoutSetSwipePage(type, setIndex, step.side, step.exerciseId, stepKey = step.stepKey))
                             }
                         } else if (pagerExercise.isCardio) {
-                            WorkoutStepRules.cardioSetIndices(pagerExercise).forEach { setIndex ->
+                            WorkoutStepRules.cardioSetIndices(pagerExercise, uiState.omittedSetKeys).forEach { setIndex ->
                                 list.add(
                                     WorkoutSetSwipePage(
                                         type = LivePageType.CARDIO,
@@ -1385,31 +1365,35 @@ internal fun WorkoutV2Body(
                             }
 
                             // Stepper: MOV, APROX and effective working sets only (no M1/A1).
-                            if (pagerSupersetMembers.size > 1 && pagerSupersetGroupId != null) {
-                                val roundCount = pagerSupersetMembers.maxOfOrNull { it.sets.size }?.coerceAtLeast(1) ?: 1
-                                for (roundIdx in 0 until roundCount) {
-                                    val roundKeys = pagerSupersetMembers.flatMap { it.completionKeysForSet(roundIdx) }
+                            if (isSupersetForPager) {
+                                setPagerPages.forEachIndexed { index, page ->
+                                    if (page.type != LivePageType.CARDIO) return@forEachIndexed
+                                    val id = page.exerciseId ?: return@forEachIndexed
+                                    val completionKey = WorkoutStepRules.cardioCompletionKey(id, page.setIndex)
+                                    val state = if (completionKey in uiState.completedSets) WorkoutSetCardVisualState.COMPLETED
+                                        else WorkoutSetCardVisualState.FUTURE
+                                    list.add(TimelineElement.BilateralSet(pageIndex = index, label = "C${page.setIndex + 1}", state = state))
+                                }
+                                val roundPages = setPagerPages.withIndex().filter { it.value.type == LivePageType.NORMAL }
+                                    .groupBy { it.value.setIndex }
+                                for ((roundIdx, pages) in roundPages) {
+                                    val roundKeys = pages.mapNotNull { (_, page) ->
+                                        page.exerciseId?.let { workoutSetKey(it, roundIdx, page.side) }
+                                    }
                                     val roundDone = roundKeys.isNotEmpty() && roundKeys.all { uiState.completedSets.containsKey(it) }
                                     val isCurrentRound = (uiState.currentSetIdx == roundIdx) && !isAnyMobilityActive && !isAnyWarmupActive
-                                    val firstPageIdx = setPagerPages.indexOfFirst {
-                                        it.type == LivePageType.NORMAL &&
-                                            it.setIndex == roundIdx &&
-                                            it.exerciseId == pagerSupersetMembers.firstOrNull()?.id
-                                    }.coerceAtLeast(0)
-
                                     list.add(
                                         TimelineElement.RoundBadge(
                                             roundIndex = roundIdx,
                                             isCurrentRound = isCurrentRound,
                                             isAllDone = roundDone,
-                                            firstPageIndex = firstPageIdx,
+                                            firstPageIndex = pages.first().index,
                                         )
                                     )
 
-                                    pagerSupersetMembers.filter { roundIdx in it.sets.indices }.forEachIndexed { exIdx, member ->
-                                        if (WorkoutStepRules.isSetOmitted(member.id, roundIdx, uiState.omittedSetKeys)) {
-                                            return@forEachIndexed
-                                        }
+                                    val roundMemberIds = pages.mapNotNull { it.value.exerciseId }.distinct()
+                                    roundMemberIds.forEachIndexed { exIdx, memberId ->
+                                        val member = pagerSupersetMembers.firstOrNull { it.id == memberId } ?: return@forEachIndexed
                                         if (member.isEffectivelyUnilateral()) {
                                             val leftPageIdx = setPagerPages.indexOfFirst {
                                                 it.type == LivePageType.NORMAL &&
@@ -1470,7 +1454,7 @@ internal fun WorkoutV2Body(
                                     }
                                 }
                             } else if (pagerExercise.isCardio) {
-                                WorkoutStepRules.cardioSetIndices(pagerExercise).forEach { setIndex ->
+                                WorkoutStepRules.cardioSetIndices(pagerExercise, uiState.omittedSetKeys).forEach { setIndex ->
                                     val isDone = WorkoutStepRules.cardioCompletionKey(pagerExercise.id, setIndex) in uiState.completedSets
                                     val isActive = !isAnyMobilityActive && !isAnyWarmupActive && (
                                         uiState.activeStepKey == WorkoutStepRules.cardioStepKey(pagerExercise.id, setIndex) ||
@@ -1495,7 +1479,9 @@ internal fun WorkoutV2Body(
                                 }
                             } else {
                                 pagerExercise.sets.forEachIndexed { setIdx, _ ->
-                                    if (WorkoutStepRules.isSetOmitted(pagerExercise.id, setIdx, uiState.omittedSetKeys)) {
+                                    if (pagerExercise.sets[setIdx].isEmptySlot ||
+                                        WorkoutStepRules.isSetOmitted(pagerExercise.id, setIdx, uiState.omittedSetKeys)
+                                    ) {
                                         return@forEachIndexed
                                     }
                                     if (pagerExercise.isEffectivelyUnilateral()) {
@@ -1601,23 +1587,20 @@ internal fun WorkoutV2Body(
                             if (idx >= 0) idx else 0
                         }
 
-                        val totalTimelineCompletedCount = remember(currentExercise, currentSupersetMembers, currentSupersetGroupId, uiState.completedSets) {
-                            val members = if (currentSupersetMembers.size > 1 && currentSupersetGroupId != null) currentSupersetMembers else listOf(currentExercise)
-                            members.sumOf { member ->
-                                member.sets.indices.sumOf { setIdx ->
-                                    member.completionKeysForSet(setIdx).count { key -> uiState.completedSets.containsKey(key) }
-                                }
-                            }
-                        }
-
-                        val totalTimelineSetsCount = remember(currentExercise, currentSupersetMembers, currentSupersetGroupId) {
-                            val members = if (currentSupersetMembers.size > 1 && currentSupersetGroupId != null) currentSupersetMembers else listOf(currentExercise)
-                            members.sumOf { member ->
-                                member.sets.indices.sumOf { setIdx ->
-                                    member.completionKeysForSet(setIdx).size
-                                }
-                            }.coerceAtLeast(1)
-                        }
+                         val timelineSets = remember(canonicalSteps, currentExercise.id, currentSupersetGroupId) {
+                             canonicalSteps.filter { step ->
+                                 val owned = if (currentSupersetGroupId != null) step.supersetGroupId == currentSupersetGroupId
+                                     else step.exerciseId == currentExercise.id
+                                 owned && (step.type == WorkoutStepType.WORKING_SET || step.type == WorkoutStepType.CARDIO)
+                             }
+                         }
+                         val totalTimelineCompletedCount = timelineSets.count { step ->
+                             val key = if (step.type == WorkoutStepType.CARDIO) {
+                                 WorkoutStepRules.cardioCompletionKey(step.exerciseId, step.setIndex ?: 0)
+                             } else step.stepKey
+                             key in uiState.completedSets
+                         }
+                         val totalTimelineSetsCount = timelineSets.size.coerceAtLeast(1)
 
                     val currentPart = remember(uiState.currentExerciseIdx, uiState.session?.parts, visibleExercises) {
                         val exId = visibleExercises.getOrNull(uiState.currentExerciseIdx)?.id ?: return@remember null
@@ -1932,9 +1915,7 @@ internal fun WorkoutV2Body(
                                         null
                                     },
                                     inlineRestTotalSeconds = if (warmupRestActive && uiState.restModalState?.warmupSetId.isNullOrBlank()) {
-                                        (uiState.restModalState?.activeSeconds
-                                            ?: uiState.restModalState?.plannedSeconds
-                                            ?: 60).coerceAtLeast(1)
+                                        (uiState.restModalState?.totalRestSeconds() ?: 60).coerceAtLeast(1)
                                     } else {
                                         null
                                     },
@@ -2049,9 +2030,7 @@ internal fun WorkoutV2Body(
                                         null
                                     },
                                     inlineRestTotalSeconds = if (warmupRestActive && !uiState.restModalState?.warmupSetId.isNullOrBlank()) {
-                                        (uiState.restModalState?.activeSeconds
-                                            ?: uiState.restModalState?.plannedSeconds
-                                            ?: 60).coerceAtLeast(1)
+                                        (uiState.restModalState?.totalRestSeconds() ?: 60).coerceAtLeast(1)
                                     } else {
                                         null
                                     },

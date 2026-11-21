@@ -325,6 +325,7 @@ class WorkoutVoiceController(
         }
         updateStage(VoicePipelineStage.DISABLED)
         resetState()
+        WorkoutVoiceForegroundService.stop(context)
     }
 
     /** Cambio de modo de captura en caliente (switch del header / tarjeta). */
@@ -2560,7 +2561,6 @@ class WorkoutVoiceController(
                 return
             }
             is VoiceSessionCommand.StartVideoCapture,
-            is VoiceSessionCommand.StartVideoCapture,
             is VoiceSessionCommand.StartVideoCaptureAnyway -> {
                 val forced = command is VoiceSessionCommand.StartVideoCaptureAnyway
                 val result = if (forced) TechniqueCaptureVoiceLink.tryStartAnyway() else TechniqueCaptureVoiceLink.tryStart()
@@ -3632,7 +3632,8 @@ class WorkoutVoiceController(
         continuousEngine.stop()
         ttsManager.stop()
         ttsManager.shutdown()
-        releaseDucking()
+        releaseDucking(immediate = true)
+        WorkoutVoiceForegroundService.stop(context)
         _state.update {
             it.copy(
                 stage = VoicePipelineStage.DISABLED,
