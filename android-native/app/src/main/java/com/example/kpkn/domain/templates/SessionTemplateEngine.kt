@@ -465,12 +465,20 @@ object SessionTemplateEngine {
             val newGroup = source.supersetGroupRefOrLegacyId()?.let { old ->
                 groupIdMap.getOrPut(old, ::fresh)
             }
+            val clonedSets = source.sets.map(::cloneSet)
+            val setIdMap = source.sets.indices.associate { idx -> source.sets[idx].id to clonedSets[idx].id }
+            val remappedApre = source.apreBlock?.let { apre ->
+                apre.copy(
+                    setIds = apre.setIds.map { oldSetId -> setIdMap[oldSetId] ?: oldSetId },
+                )
+            }
             return source.copy(
                 id = newId,
                 occurrenceId = fresh(),
                 supersetId = newGroup,
                 supersetGroupRef = newGroup,
-                sets = source.sets.map(::cloneSet),
+                sets = clonedSets,
+                apreBlock = remappedApre,
                 warmupSets = source.warmupSets.map(::cloneWarmupSet),
                 mobilitySeries = source.mobilitySeries.map(::cloneMobilitySeries),
                 cardioDetails = source.cardioDetails?.let(::cloneCardio),

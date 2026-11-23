@@ -244,8 +244,7 @@
               "movementPatternId": "lateral_trunk_flexion",
               "performanceProfileId": "side_plank__default__plancha_lateral",
               "primaryMuscles": [
-                "abdominals",
-                "gluteus_medius"
+                "core"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -289,13 +288,13 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "abdominals",
-                    "gluteus_medius"
-                  ],
-                  "secondaryMuscles": [
                     "core"
                   ],
+                  "secondaryMuscles": [
+                    "abdominals"
+                  ],
                   "stabilizerMuscles": [
+                    "gluteus_medius",
                     "deltoid"
                   ],
                   "volumeContribution": "direct"
@@ -353,15 +352,14 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "lateral_trunk_flexion:abdominals",
-                    "lateral_trunk_flexion:gluteus_medius"
+                    "lateral_trunk_flexion:core"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "core"
+                "abdominals"
               ],
               "setupCues": [
                 "Túmbate de lado con el codo justo bajo el hombro y las piernas estiradas, un pie sobre el otro.",
@@ -369,6 +367,7 @@
               ],
               "setupTimeSeconds": 10,
               "stabilizerMuscles": [
+                "gluteus_medius",
                 "deltoid"
               ],
               "technicalDifficulty": 4.0

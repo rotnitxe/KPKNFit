@@ -73,6 +73,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "gm_load",
@@ -82,6 +83,7 @@
           },
           {
             "id": "core",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "abdominal_wall"
@@ -515,6 +517,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "gm_kinetics",
@@ -524,6 +527,7 @@
           },
           {
             "id": "core",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "abdominal_wall"
@@ -532,6 +536,7 @@
           },
           {
             "id": "biceps",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "biceps_anatomy"

@@ -77,8 +77,7 @@
               "movementPatternId": "lateral_knee_dominant",
               "performanceProfileId": "quads_sentadilla_cosaca__bodyweight__sentadilla_cosaca",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -140,14 +139,14 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "adductors",
-                    "calves"
+                    "gluteus_maximus",
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "calves",
                     "gluteus_medius",
                     "core",
                     "erector_spinae"
@@ -205,16 +204,15 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "lateral_knee_dominant:quadriceps",
-                    "lateral_knee_dominant:gluteus_maximus"
+                    "lateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "adductors",
-                "calves"
+                "gluteus_maximus",
+                "adductors"
               ],
               "setupCues": [
                 "Separa los pies más allá de los hombros y deja espacio para bajar hacia ambos lados.",
@@ -222,6 +220,7 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
+                "calves",
                 "gluteus_medius",
                 "core",
                 "erector_spinae"

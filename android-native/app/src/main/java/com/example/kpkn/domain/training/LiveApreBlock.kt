@@ -19,9 +19,14 @@ fun resolveLiveApreBlock(
     hasApreProgression: Boolean = false,
 ): LiveApreBlock? {
     val marker = exercise.apreBlock
-    val ids = marker?.setIds ?: run {
+    val rawIds = marker?.setIds ?: run {
         if (sourceProtocolId != "apre-mann" || !hasApreProgression || exercise.sets.size != 4) return null
         exercise.sets.map { it.id }
+    }
+    val ids = if (rawIds.size == 4 && rawIds.all { id -> exercise.sets.count { it.id == id } == 1 }) {
+        rawIds
+    } else {
+        return null
     }
     if (ids.size != 4 || ids.any { it.isBlank() } || ids.distinct().size != 4) return null
     // Ni un ID duplicado en el ejercicio ni una serie intercalada pueden cambiar la identidad de S3/S4.

@@ -70,7 +70,16 @@ internal fun CyclesSection(
             ),
         )
     }
-    val model = remember(program, currentCycle, legacyEvents, hasLegacy, actionableOccurrences, loopCollisions) {
+    val apreExercises = remember(program) {
+        com.example.kpkn.domain.training.LoopWaveModulator.apreExercisesInProgram(program)
+    }
+    val apreExerciseNames = remember(apreExercises) {
+        apreExercises.map { it.name.trim() }.filter { it.isNotEmpty() }.distinct()
+    }
+    val apreExerciseIds = remember(apreExercises) {
+        apreExercises.map { it.id }.distinct()
+    }
+    val model = remember(program, currentCycle, legacyEvents, hasLegacy, actionableOccurrences, loopCollisions, apreExerciseNames) {
         ProgramCyclesModel(
             currentCycle = currentCycle,
             loops = programCycleLoops(program),
@@ -97,6 +106,7 @@ internal fun CyclesSection(
                 "C$cycle: ${items.joinToString(" + ") { it.loop.title.ifBlank { LoopEngine.getLoopTypeLabel(it.loop.type) } }}"
             },
             canAddLoops = canAddLoops(program),
+            apreExerciseNames = apreExerciseNames,
         )
     }
 
@@ -106,7 +116,32 @@ internal fun CyclesSection(
         onSaveLoop = { draft: ProgramCycleDraft -> onUpdateProgram(saveCycleDraft(program, draft)) },
         onLoopAction = { loopId: String, action: ProgramCycleAction -> onUpdateProgram(applyCycleAction(program, loopId, action)) },
         onAddTemplate = { templateId: String ->
-            if (canAddLoops(program)) presetPreview = LoopPresetEngine.preview(program, templateId, equipmentInventory)
+            if (canAddLoops(program)) {
+                val wavePresetId = templateId.removePrefix("wave:")
+                if (wavePresetId == "onda-apre-10-6-3" && apreExercises.isEmpty()) {
+                    return@ProgramCyclesSheet
+                }
+                val wavePreset = com.example.kpkn.domain.training.LoopWaveModulator.wavePresets()
+                    .firstOrNull { it.id == wavePresetId }
+                if (wavePreset != null) {
+                    val created = wavePreset.loop.copy(
+                        id = "loop_wave_${wavePreset.id}_${System.nanoTime()}",
+                        modulationScope = if (wavePreset.id == "onda-apre-10-6-3") {
+                            com.example.kpkn.data.models.LoopModulationScope.APRE_EXERCISES
+                        } else {
+                            wavePreset.loop.modulationScope
+                        },
+                        targetExerciseIds = if (wavePreset.id == "onda-apre-10-6-3") {
+                            apreExerciseIds
+                        } else {
+                            wavePreset.loop.targetExerciseIds
+                        },
+                    )
+                    onUpdateProgram(LoopEngine.upsertLoop(program, created))
+                } else {
+                    presetPreview = LoopPresetEngine.preview(program, templateId, equipmentInventory)
+                }
+            }
         },
         onMigrateLegacy = { onUpdateProgram(LoopEngine.migrateEventsToLoops(program)) },
         onPostponeWeek = { occurrenceId: String -> onUpdateProgram(LoopEngine.postponeOccurrence(program, occurrenceId)) },
@@ -142,6 +177,9 @@ internal fun programCycleLoops(program: Program): List<ProgramCycleLoop> {
             type = loop.type,
             cadence = loop.repeatEveryXLoops,
             cancelled = loop.id in cancelled,
+            mode = loop.mode,
+            waveSteps = loop.waveSteps,
+            modulationScope = loop.modulationScope,
         )
     }
 }
@@ -150,7 +188,13 @@ internal fun programCycleLoops(program: Program): List<ProgramCycleLoop> {
 internal fun saveCycleDraft(program: Program, draft: ProgramCycleDraft): Program {
     if (draft.loopId == null && !canAddLoops(program)) return program
     if (draft.type == LoopType.COMPETITION) return program
-    if (program.loops.any { it.id != draft.loopId && it.repeatEveryXLoops.coerceAtLeast(1) == draft.cadence.coerceAtLeast(1) }) return program
+    if (draft.mode == com.example.kpkn.data.models.LoopMode.RECURRING_WEEK &&
+        program.loops.any {
+            it.id != draft.loopId &&
+                it.mode != com.example.kpkn.data.models.LoopMode.PROGRESSIVE_WAVE &&
+                it.repeatEveryXLoops.coerceAtLeast(1) == draft.cadence.coerceAtLeast(1)
+        }
+    ) return program
     val base = draft.loopId?.let { id -> program.loops.firstOrNull { it.id == id } }
         ?: Loop(
             id = "loop_${System.nanoTime()}",
@@ -159,7 +203,14 @@ internal fun saveCycleDraft(program: Program, draft: ProgramCycleDraft): Program
             repeatEveryXLoops = 4,
             durationType = DurationType.WEEK,
         )
-    val loop = base.copy(title = draft.title, type = draft.type, repeatEveryXLoops = draft.cadence.coerceAtLeast(1))
+    val loop = base.copy(
+        title = draft.title,
+        type = draft.type,
+        repeatEveryXLoops = draft.cadence.coerceAtLeast(1),
+        mode = draft.mode,
+        waveSteps = draft.waveSteps,
+        modulationScope = draft.modulationScope,
+    )
     return LoopEngine.upsertLoop(program, loop)
 }
 

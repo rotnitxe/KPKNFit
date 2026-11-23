@@ -1,6 +1,7 @@
 package com.example.kpkn.data.exercises
 
 import com.example.kpkn.R
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseDefinitionV2
 
 data class ExerciseTechniqueImageVariant(
     val implementation: String,
@@ -1242,5 +1243,136 @@ object ExerciseTechniqueImageLookup {
         val joined = parts.filter { it !in NON_IMPLEMENT_TOKENS }.joinToString("__")
         if (joined in keys) return joined
         return parts.lastOrNull { it !in NON_IMPLEMENT_TOKENS }
+    }
+
+    /**
+     * #2 · Miniatura más representativa en catálogo SIN asumir ni mutar variante por defecto:
+     * Nivel 1: variante confirmada ([resolvedConfigurationId]).
+     * Nivel 2: configuración mejor emparejada con [selectedOptions] (en vivo al elegir implemento).
+     * Nivel 3: imagen de `defaultConfigurationId` o hermana con el mismo implemento (228/228).
+     */
+    fun resolveRepresentativeImageResId(
+        definition: ExerciseDefinitionV2,
+        resolvedConfigurationId: String?,
+        selectedOptions: Map<String, String> = emptyMap(),
+    ): Int? {
+        val selectedImplementation = selectedOptions["implement"]
+        if (!resolvedConfigurationId.isNullOrBlank()) {
+            resolveImageResId(
+                catalogDefinitionId = definition.id,
+                exerciseDbId = null,
+                exerciseId = definition.id,
+                catalogConfigurationId = resolvedConfigurationId,
+                selectedImplementation = selectedImplementation,
+            )?.let { return it }
+            val resolvedConfig = definition.configurations.firstOrNull { it.id == resolvedConfigurationId }
+            val resolvedImplement = selectedImplementation ?: resolvedConfig?.selectedOptions?.get("implement")
+            val resolvedStation = selectedOptions["station"] ?: resolvedConfig?.selectedOptions?.get("station")
+            if (!resolvedImplement.isNullOrBlank()) {
+                return definition.configurations
+                    .filter { sibling ->
+                        sibling.selectedOptions["implement"] == resolvedImplement &&
+                            (resolvedStation == null || sibling.selectedOptions["station"] == resolvedStation)
+                    }
+                    .firstNotNullOfOrNull { sibling ->
+                        resolveImageResId(
+                            catalogDefinitionId = definition.id,
+                            exerciseDbId = null,
+                            exerciseId = definition.id,
+                            catalogConfigurationId = sibling.id,
+                            selectedImplementation = resolvedImplement,
+                        )
+                    }
+                    ?: if (resolvedStation == null) {
+                        resolveImageResId(
+                            catalogDefinitionId = definition.id,
+                            exerciseDbId = null,
+                            exerciseId = definition.id,
+                            catalogConfigurationId = null,
+                            selectedImplementation = resolvedImplement,
+                        )
+                    } else {
+                        null
+                    }
+            }
+            return null
+        }
+        if (selectedOptions.isNotEmpty()) {
+            val matchingConfigs = definition.configurations.filter { config ->
+                selectedOptions.all { (axis, value) -> config.selectedOptions[axis] == value }
+            }
+            matchingConfigs.firstNotNullOfOrNull { matchingConfig ->
+                resolveImageResId(
+                    catalogDefinitionId = definition.id,
+                    exerciseDbId = null,
+                    exerciseId = definition.id,
+                    catalogConfigurationId = matchingConfig.id,
+                    selectedImplementation = selectedImplementation ?: matchingConfig.selectedOptions["implement"],
+                )
+            }?.let { return it }
+            val resolvedStation = selectedOptions["station"]
+            if (!selectedImplementation.isNullOrBlank()) {
+                return definition.configurations
+                    .filter { sibling ->
+                        sibling.selectedOptions["implement"] == selectedImplementation &&
+                            (resolvedStation == null || sibling.selectedOptions["station"] == resolvedStation)
+                    }
+                    .firstNotNullOfOrNull { sibling ->
+                        resolveImageResId(
+                            catalogDefinitionId = definition.id,
+                            exerciseDbId = null,
+                            exerciseId = definition.id,
+                            catalogConfigurationId = sibling.id,
+                            selectedImplementation = selectedImplementation,
+                        )
+                    }
+                    ?: if (resolvedStation == null) {
+                        resolveImageResId(
+                            catalogDefinitionId = definition.id,
+                            exerciseDbId = null,
+                            exerciseId = definition.id,
+                            catalogConfigurationId = null,
+                            selectedImplementation = selectedImplementation,
+                        )
+                    } else {
+                        null
+                    }
+            }
+            return null
+        }
+        val defaultConfig = definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+            ?: definition.configurations.firstOrNull()
+        if (defaultConfig != null) {
+            resolveImageResId(
+                catalogDefinitionId = definition.id,
+                exerciseDbId = null,
+                exerciseId = definition.id,
+                catalogConfigurationId = defaultConfig.id,
+                selectedImplementation = defaultConfig.selectedOptions["implement"],
+            )?.let { return it }
+            val defaultImplement = defaultConfig.selectedOptions["implement"]
+            if (!defaultImplement.isNullOrBlank()) {
+                definition.configurations
+                    .filter { it.selectedOptions["implement"] == defaultImplement }
+                    .firstNotNullOfOrNull { sibling ->
+                        resolveImageResId(
+                            catalogDefinitionId = definition.id,
+                            exerciseDbId = null,
+                            exerciseId = definition.id,
+                            catalogConfigurationId = sibling.id,
+                            selectedImplementation = defaultImplement,
+                        )
+                    }?.let { return it }
+            }
+        }
+        return definition.configurations.firstNotNullOfOrNull { config ->
+            resolveImageResId(
+                catalogDefinitionId = definition.id,
+                exerciseDbId = null,
+                exerciseId = definition.id,
+                catalogConfigurationId = config.id,
+                selectedImplementation = config.selectedOptions["implement"],
+            )
+        }
     }
 }

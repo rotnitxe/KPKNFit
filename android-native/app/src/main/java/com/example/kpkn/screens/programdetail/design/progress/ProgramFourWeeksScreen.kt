@@ -275,6 +275,7 @@ internal fun ProgramFourWeeksScreen(
     modifier: Modifier = Modifier,
 ) {
     val haze = remember { HazeState() }
+    val bottomOcclusion = com.example.kpkn.screens.home.LocalConceptsBottomOcclusion.current
     Box(modifier.fillMaxSize().background(Color.Black).testTag("cuatro_semanas")) {
         Column(
             modifier = Modifier
@@ -283,7 +284,12 @@ internal fun ProgramFourWeeksScreen(
                 .verticalScroll(rememberScrollState())
                 .statusBarsPadding()
                 .navigationBarsPadding()
-                .padding(start = 16.dp, top = FourWeeksTopInset, end = 16.dp, bottom = 40.dp),
+                .padding(
+                    start = 16.dp,
+                    top = FourWeeksTopInset,
+                    end = 16.dp,
+                    bottom = maxOf(bottomOcclusion + 28.dp, 120.dp),
+                ),
         ) {
             if (model != null) FourWeeksContent(model, phaseColorOf, onShare)
         }

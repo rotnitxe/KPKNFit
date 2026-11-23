@@ -859,7 +859,14 @@ private fun relatorRecordedApreSet4(
             !record.loadIncrementKg.isFinite() || record.loadIncrementKg <= 0.0 ||
             !calibration.set4LoadKg.isFinite() || calibration.set4LoadKg <= 0.0
         ) return@firstNotNullOfOrNull null
-        val recalculated = Apre.set4LoadKg(sourceLoad, validReps, block.variant, record.loadIncrementKg)
+        val sideTarget = when (done.side) {
+            "left" -> sourceSet.leftTarget
+            "right" -> sourceSet.rightTarget
+            else -> null
+        }
+        val actualRir = done.rir ?: if (done.rpe == null && !done.isFailure) (sideTarget?.targetRIR ?: sourceSet.targetRIR) else null
+        val actualRpe = done.rpe ?: if (done.rir == null && !done.isFailure) (sideTarget?.targetRPE ?: sourceSet.targetRPE) else null
+        val recalculated = Apre.nextLoadKg(sourceLoad, validReps, block.variant, actualRir, actualRpe, record.loadIncrementKg)
         if (recalculated != calibration.set4LoadKg) return@firstNotNullOfOrNull null
         val plannedTargetKg = when (done.side) {
             "left" -> targetSet.leftTarget?.weight ?: targetSet.weight

@@ -29,12 +29,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /**
  * ED-D · C3: rondas y descansos de la superserie. El panel muestra el «descanso base» de las rondas sin el suyo, cada ronda avisa
  * cuando tiene descanso propio y puede volver al base sin reescribir los valores.
  */
 @RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h900dp-xxhdpi")
 class SupersetRoundsC3ComposeTest {
 
@@ -117,8 +119,7 @@ class SupersetRoundsC3ComposeTest {
         rule.onNodeWithText("DESCANSO BASE").assertIsDisplayed()
         rule.onNodeWithText("Para las rondas sin el suyo").assertIsDisplayed()
         rule.onNodeWithText("Rondas").assertIsDisplayed()
-        rule.onNodeWithText("Entre ejercicios").assertIsDisplayed()
-        rule.onNodeWithText("Tras la ronda").assertIsDisplayed()
+        rule.onNodeWithText("Entre ejercicios · Tras la ronda").assertIsDisplayed()
         rule.onNodeWithText("POR RONDA · TOCA UNA PARA ABRIRLA").assertExists()
     }
 
@@ -126,19 +127,27 @@ class SupersetRoundsC3ComposeTest {
     fun losPasosDelDescansoBaseEscribenLosValoresReales() {
         val calls = mutableListOf<Triple<Int?, Int?, Int?>>()
         rule.setContent {
-            Card(
-                baseGroup(),
-                onUpdateSupersetRest = { _, between, after, rounds ->
-                    calls += Triple(between, after, rounds)
-                },
-            )
+            EditorOverlayTestHost {
+                Card(
+                    baseGroup(),
+                    onUpdateSupersetRest = { _, between, after, rounds ->
+                        calls += Triple(between, after, rounds)
+                    },
+                )
+            }
         }
 
         rule.onNodeWithText("3 rondas").performClick()
         rule.waitForIdle()
 
-        rule.onNodeWithContentDescription("Añadir 15 segundos a Entre ejercicios").performScrollTo().performClick()
-        rule.onNodeWithContentDescription("Quitar 15 segundos a Tras la ronda").performScrollTo().performClick()
+        rule.onNodeWithContentDescription("Abrir reloj de descanso base").performScrollTo().performClick()
+        rule.mainClock.advanceTimeBy(3_000)
+        rule.waitForIdle()
+        rule.onNodeWithContentDescription("Sumar 15 segundos a Entre ejercicios").performClick()
+        rule.onNodeWithContentDescription("Quitar 15 segundos a Tras la ronda").performClick()
+        rule.onNodeWithText("Listo").performClick()
+        rule.mainClock.advanceTimeBy(1_000)
+        rule.waitForIdle()
         rule.onNodeWithContentDescription("Añadir una ronda").performScrollTo().performClick()
         rule.waitForIdle()
 

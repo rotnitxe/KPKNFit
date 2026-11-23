@@ -6,15 +6,23 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -31,6 +39,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.paint
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
@@ -238,171 +247,226 @@ internal fun ExerciseQuickActionsSheet(
         exercise.restTime?.takeIf { it > 0 }?.let { add(com.example.kpkn.ui.design.KpknSetFormat.rest(it)) }
     }.joinToString(" · ")
 
+    var descriptionExpanded by remember(exercise.id) { mutableStateOf(false) }
+    val selectedImplementation = exercise.selectedExecutionOption ?: exercise.selectedAspects?.values?.firstOrNull()
+    val thumbnailRes = remember(
+        exercise.id,
+        exercise.catalogDefinitionId,
+        exercise.catalogConfigurationId,
+        exercise.exerciseDbId,
+        exercise.exerciseId,
+        selectedImplementation,
+        resolvedV2?.definition?.id,
+        resolvedV2?.configuration?.id,
+    ) {
+        quickActionThumbnailRes(exercise, resolvedV2)
+    }
+    val thumbnailPattern = remember(exercise.name) { exercisePatternOf(exercise.name) }
+    val supersetLabel = if (exercise.isInSuperset()) "Gestionar superserie" else "Superserie"
+    val heroActions = listOf(
+        QuickAction(KpknLineIcons.Info, "Ficha", "quick-action-ficha") { onOpenExerciseDetail(exercise.id) },
+        QuickAction(KpknLineIcons.Swap, "Cambiar", "quick-action-cambiar", onOpenPicker),
+        QuickAction(KpknLineIcons.Flame, "Aproximación", "quick-action-aproximacion", onOpenWarmup),
+        QuickAction(KpknLineIcons.Joint, "Movilidad", "quick-action-movilidad", onOpenMobility),
+        QuickAction(KpknLineIcons.Link, supersetLabel, "quick-action-superserie", onManageSuperset),
+        QuickAction(KpknLineIcons.Layers, "Duplicar", "quick-action-duplicar", onDuplicate),
+    )
+
+    val heroShape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)
+    val heroGradient = remember {
+        androidx.compose.ui.graphics.Brush.verticalGradient(
+            0.0f to Color.Black.copy(alpha = 0.25f),
+            0.45f to Color(0xFF141414).copy(alpha = 0.58f),
+            1.0f to Color(0xFF141414),
+        )
+    }
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .heightIn(max = 620.dp)
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp),
+            .heightIn(max = 640.dp)
+            .verticalScroll(rememberScrollState()),
     ) {
-        // D1: la cabecera del tablero: ficha de 52 dp con la imagen real del catálogo, el nombre y el resumen de la prescripción.
-        val selectedImplementation = exercise.selectedExecutionOption ?: exercise.selectedAspects?.values?.firstOrNull()
-        val thumbnailRes = remember(
-            exercise.id,
-            exercise.catalogDefinitionId,
-            exercise.catalogConfigurationId,
-            exercise.exerciseDbId,
-            exercise.exerciseId,
-            selectedImplementation,
+        // #4 · Hero edge-to-edge con min 236 dp, alto adaptable por contenido, esquinas superiores de 28 dp, degradado multicapa y chips glass
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(Color(0xFF141414), heroShape),
         ) {
-            quickActionThumbnailRes(exercise)
-        }
-        val thumbnailPattern = remember(exercise.name) { exercisePatternOf(exercise.name) }
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-            Thumbnail(
-                cardio = exercise.cardioDetails?.type,
-                imageRes = thumbnailRes,
-                pattern = thumbnailPattern,
-                dimension = 52.dp,
-            )
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    exercise.name,
-                    style = KpknType.bodyStrong.copy(fontSize = 17.sp),
-                    color = WizardColors.text,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+            if (thumbnailRes != null) {
+                androidx.compose.foundation.Image(
+                    painter = androidx.compose.ui.res.painterResource(thumbnailRes),
+                    contentDescription = exercise.name,
+                    contentScale = androidx.compose.ui.layout.ContentScale.Crop,
+                    alignment = Alignment.TopCenter,
+                    modifier = Modifier
+                        .matchParentSize()
+                        .clip(heroShape),
                 )
-                if (quickSummary.isNotEmpty()) {
-                    Text(quickSummary, style = KpknType.caption, color = WizardColors.textMuted)
-                }
             }
-        }
-        if (tags.isNotEmpty()) {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                items(tags, key = { it }) { tag ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 236.dp)
+                    .background(heroGradient, heroShape)
+                    .padding(start = 16.dp, end = 16.dp, top = 10.dp, bottom = 14.dp),
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
+                // Drag handle translúcido encima del hero
+                Box(
+                    modifier = Modifier
+                        .align(Alignment.CenterHorizontally)
+                        .size(width = 36.dp, height = 4.dp)
+                        .background(Color.White.copy(alpha = 0.35f), RoundedCornerShape(2.dp)),
+                )
+                if (thumbnailRes == null) {
                     Box(
                         modifier = Modifier
-                            .clip(KpknShape.pill)
-                            .background(KpknSurface.inset, KpknShape.pill)
-                            .border(1.dp, Color.White.copy(alpha = 0.12f), KpknShape.pill)
-                            .padding(horizontal = 12.dp, vertical = 6.dp),
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        contentAlignment = Alignment.Center,
                     ) {
-                        Text(tag, style = KpknType.chip, color = WizardColors.text)
+                        PatternGlyph(thumbnailPattern, SymbolPalette.musculo, Modifier.size(56.dp))
                     }
+                } else {
+                    Spacer(Modifier.height(24.dp))
                 }
-            }
-        }
-
-        // D1: seis accesos en cuadrícula y la acción destructiva separada.
-        ExerciseQuickActionRows(
-                isInSuperset = exercise.isInSuperset(),
-                onOpenExerciseDetail = { onOpenExerciseDetail(exercise.id) },
-                onOpenPicker = onOpenPicker,
-                onOpenWarmup = onOpenWarmup,
-                onOpenMobility = onOpenMobility,
-                onManageSuperset = onManageSuperset,
-                onDuplicate = onDuplicate,
-                // ER1f: sin diálogo; el borrado es blando, con «Deshacer» en la lista (como deslizar un ejercicio).
-                onRequestDelete = onDelete,
-        )
-
-        // Descripción exacta del catálogo (o del catálogo de cardio)
-        val exactDescription = if (exercise.cardioDetails != null) {
-            com.example.kpkn.data.models.CardioCatalog.items.firstOrNull { it.type == exercise.cardioDetails.type || it.id == exercise.exerciseDbId }?.description
-        } else {
-            resolvedV2?.definition?.description?.takeIf { it.isNotBlank() }
-                ?: selectedInfo?.description?.takeIf { it.isNotBlank() }
-        }
-
-        KpknModule(contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp)) {
-            KpknModuleHeader(label = "Descripción del ejercicio")
-            Spacer(Modifier.height(8.dp))
-            Text(
-                exactDescription ?: "No hay una descripción editorial disponible para este ejercicio.",
-                style = KpknType.body,
-                color = WizardColors.text,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-            )
-            if (exactDescription != null) {
-                KpknTextAction(text = "Ver más", onClick = { onOpenExerciseDetail(exercise.id) })
-            }
-        }
-
-        // Involucramiento muscular y articular con jerarquía visual de alto contraste
-        val infoForInvolvement = resolvedV2?.legacyInfo?.takeIf { it.involvedMuscles.isNotEmpty() }
-            ?: selectedInfo?.takeIf { it.involvedMuscles.isNotEmpty() }
-        val jointsForInvolvement = resolvedV2?.configuration?.profile?.jointInvolvement.orEmpty()
-
-        if (infoForInvolvement != null || jointsForInvolvement.isNotEmpty()) {
-            CatalogInvolvementAccordions(
-                info = infoForInvolvement,
-                joints = jointsForInvolvement,
-            )
-        }
-    }
-}
-
-/**
- * Las siete acciones de la hoja, en el orden del original y con su icono (ER1c2). «Crear superserie» pasa a «Gestionar superserie»
- * cuando el ejercicio ya es miembro; el llamador decide a qué lleva cada una.
- */
-@Composable
-internal fun ExerciseQuickActionRows(
-    isInSuperset: Boolean,
-    onOpenExerciseDetail: () -> Unit,
-    onOpenPicker: () -> Unit,
-    onOpenWarmup: () -> Unit,
-    onOpenMobility: () -> Unit,
-    onManageSuperset: () -> Unit,
-    onDuplicate: () -> Unit,
-    onRequestDelete: () -> Unit,
-) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        // Con la letra grande, dos columnas: «+ Aproximación» no cabe en una celda de un tercio sin cortarse.
-        val columns = if (androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.15f) 2 else 3
-        listOf(
-            QuickAction(KpknLineIcons.Info, "Ficha", "quick-action-ficha", onOpenExerciseDetail),
-            QuickAction(KpknLineIcons.Swap, "Cambiar", "quick-action-cambiar", onOpenPicker),
-            QuickAction(KpknLineIcons.Flame, "+ Aproximación", "quick-action-aproximacion", onOpenWarmup),
-            QuickAction(KpknLineIcons.Joint, "+ Movilidad", "quick-action-movilidad", onOpenMobility),
-            QuickAction(KpknLineIcons.Link, if (isInSuperset) "Gestionar superserie" else "Crear superserie", "quick-action-superserie", onManageSuperset),
-            QuickAction(KpknLineIcons.Layers, "Duplicar ejercicio", "quick-action-duplicar", onDuplicate),
-        ).chunked(columns).forEach { actions ->
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
-                actions.forEach { action ->
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
+                        Text(
+                            text = exercise.name,
+                            style = KpknType.title.copy(
+                                fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.display,
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 21.sp,
+                                lineHeight = 25.sp,
+                            ),
+                            color = WizardColors.text,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        if (quickSummary.isNotEmpty()) {
+                            Text(quickSummary, style = KpknType.caption, color = WizardColors.textMuted, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                        }
+                    }
+                    val columns = if (androidx.compose.ui.platform.LocalDensity.current.fontScale > 1.15f) 2 else 3
                     Column(
-                        modifier = Modifier.weight(1f).heightIn(min = 80.dp)
-                            .clip(androidx.compose.foundation.shape.RoundedCornerShape(18.dp))
-                            .background(KpknSurface.inset)
-                            .clickable(role = Role.Button, onClick = action.onClick)
-                            .testTag(action.tag)
-                            .padding(horizontal = 4.dp, vertical = 6.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center,
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        androidx.compose.material3.Icon(action.icon, contentDescription = null, tint = WizardColors.text)
-                        Spacer(Modifier.height(6.dp))
-                        Text(action.label, style = KpknType.caption, color = WizardColors.text, maxLines = 2,
-                            textAlign = androidx.compose.ui.text.style.TextAlign.Center)
+                        heroActions.chunked(columns).forEach { rowActions ->
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            ) {
+                                rowActions.forEach { action ->
+                                    Row(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .heightIn(min = 48.dp)
+                                            .testTag(action.tag)
+                                            .clip(KpknShape.pill)
+                                            .background(Color(0xCC161616), KpknShape.pill)
+                                            .border(1.dp, Color.White.copy(alpha = 0.16f), KpknShape.pill)
+                                            .clickable(role = Role.Button, onClick = action.onClick)
+                                            .padding(horizontal = 8.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.Center,
+                                    ) {
+                                        androidx.compose.material3.Icon(action.icon, contentDescription = null, tint = WizardColors.text, modifier = Modifier.size(15.dp))
+                                        Spacer(Modifier.width(5.dp))
+                                        Text(action.label, style = KpknType.chip, color = WizardColors.text, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
-        Row(
-            modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
-                .clip(KpknShape.pill)
-                .border(1.dp, WizardColors.danger.copy(alpha = 0.4f), KpknShape.pill)
-                .clickable(role = Role.Button, onClick = onRequestDelete)
-                .testTag("quick-action-eliminar"),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
-            androidx.compose.material3.Icon(KpknLineIcons.Trash, contentDescription = null, tint = WizardColors.danger)
-            Spacer(Modifier.width(8.dp))
-            Text("Eliminar", style = KpknType.bodyStrong, color = WizardColors.danger)
+            // Descripción exacta del catálogo (o del catálogo de cardio) con filete vertical cálido
+            val exactDescription = if (exercise.cardioDetails != null) {
+                com.example.kpkn.data.models.CardioCatalog.items.firstOrNull { it.type == exercise.cardioDetails.type || it.id == exercise.exerciseDbId }?.description
+            } else {
+                resolvedV2?.definition?.description?.takeIf { it.isNotBlank() }
+                    ?: selectedInfo?.description?.takeIf { it.isNotBlank() }
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(androidx.compose.foundation.layout.IntrinsicSize.Min),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(1.dp))
+                        .background(SymbolPalette.energia),
+                )
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text(
+                        text = "SOBRE EL EJERCICIO",
+                        style = KpknType.eyebrow,
+                        color = SymbolPalette.energia,
+                    )
+                    Text(
+                        text = exactDescription ?: "No hay una descripción editorial disponible para este ejercicio.",
+                        style = KpknType.body.copy(fontSize = 14.5.sp, lineHeight = 22.sp),
+                        color = WizardColors.text,
+                        maxLines = if (descriptionExpanded) Int.MAX_VALUE else 5,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (exactDescription != null && exactDescription.length > 160) {
+                        KpknTextAction(
+                            text = if (descriptionExpanded) "Ver menos" else "Leer completa",
+                            onClick = { descriptionExpanded = !descriptionExpanded },
+                        )
+                    }
+                }
+            }
+
+            // Involucramiento muscular y articular con jerarquía visual de alto contraste
+            val infoForInvolvement = resolvedV2?.legacyInfo?.takeIf { it.involvedMuscles.isNotEmpty() }
+                ?: selectedInfo?.takeIf { it.involvedMuscles.isNotEmpty() }
+            val jointsForInvolvement = resolvedV2?.configuration?.profile?.jointInvolvement.orEmpty()
+
+            if (infoForInvolvement != null || jointsForInvolvement.isNotEmpty()) {
+                CatalogInvolvementAccordions(
+                    info = infoForInvolvement,
+                    joints = jointsForInvolvement,
+                )
+            }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 48.dp)
+                    .testTag("quick-action-eliminar")
+                    .clip(KpknShape.pill)
+                    .border(1.dp, WizardColors.danger.copy(alpha = 0.4f), KpknShape.pill)
+                    .clickable(role = Role.Button, onClick = onDelete),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                androidx.compose.material3.Icon(KpknLineIcons.Trash, contentDescription = null, tint = WizardColors.danger)
+                Spacer(Modifier.width(8.dp))
+                Text("Eliminar", style = KpknType.bodyStrong, color = WizardColors.danger)
+            }
         }
     }
 }
@@ -605,11 +669,6 @@ internal fun MobilityPickerSheet(
                             color = WizardColors.textMuted,
                         )
                         Text(
-                            "Cómo hacerlo: ${mobility.instructions.orEmpty()}",
-                            style = KpknType.caption,
-                            color = WizardColors.textMuted,
-                        )
-                        Text(
                             "Material: ${mobility.equipment} · Nivel: ${mobility.level}",
                             style = KpknType.caption,
                             color = WizardColors.textMuted,
@@ -669,11 +728,22 @@ private fun MobilityPickerActions(
     }
 }
 
-internal fun quickActionThumbnailRes(exercise: Exercise): Int? =
-    ExerciseTechniqueImageLookup.resolveImageResId(
-        catalogDefinitionId = exercise.catalogDefinitionId,
-        catalogConfigurationId = exercise.catalogConfigurationId,
+internal fun quickActionThumbnailRes(
+    exercise: Exercise,
+    resolvedV2: com.example.kpkn.screens.sessioneditor.components.ResolvedCatalogExerciseV2? = null,
+): Int? {
+    val selectedImplementation = exercise.selectedExecutionOption ?: exercise.selectedAspects?.values?.firstOrNull()
+    return ExerciseTechniqueImageLookup.resolveImageResId(
+        catalogDefinitionId = exercise.catalogDefinitionId ?: resolvedV2?.definition?.id,
+        catalogConfigurationId = exercise.catalogConfigurationId ?: resolvedV2?.configuration?.id,
         exerciseDbId = exercise.exerciseDbId,
         exerciseId = exercise.exerciseId ?: exercise.id,
-        selectedImplementation = exercise.selectedExecutionOption ?: exercise.selectedAspects?.values?.firstOrNull(),
-    )
+        selectedImplementation = selectedImplementation,
+    ) ?: resolvedV2?.let {
+        ExerciseTechniqueImageLookup.resolveRepresentativeImageResId(
+            definition = it.definition,
+            resolvedConfigurationId = exercise.catalogConfigurationId ?: it.configuration.id,
+            selectedOptions = it.configuration.selectedOptions,
+        )
+    }
+}

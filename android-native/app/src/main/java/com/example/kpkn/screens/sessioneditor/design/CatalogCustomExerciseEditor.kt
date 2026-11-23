@@ -512,6 +512,6 @@ private fun stepVolume(current: Float, direction: Int): Double =
 private fun defaultMuscleContribution(role: MuscleRole): Double = when (role) {
     MuscleRole.PRIMARY -> 1.0
     MuscleRole.SECONDARY -> 0.5
-    MuscleRole.STABILIZER -> 0.4
+    MuscleRole.STABILIZER -> 0.0
     else -> VOLUME_CONTRIBUTION_FALLBACKS[role] ?: 0.5
 }

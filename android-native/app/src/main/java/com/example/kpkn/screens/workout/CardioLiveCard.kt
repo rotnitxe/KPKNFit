@@ -172,6 +172,7 @@ internal fun CardioLiveCard(
     onRecordWithRpe: (suspend (durationSeconds: Int, distanceKm: Double?, averageHeartRate: Int?, rpe: Double) -> Boolean)? = null,
     transitionIn: CardioTransitionInfo? = null,
     transitionOut: CardioTransitionOutInfo? = null,
+    onNavigatePreviousExercise: (() -> Unit)? = null,
     onSkipCountdown: (() -> Unit)? = null,
     onLockedChanged: (Boolean) -> Unit = {},
     onShowExerciseContextChanged: (Boolean) -> Unit = {},
@@ -462,19 +463,31 @@ internal fun CardioLiveCard(
                 },
                 onBack = if (status == CardioExecutionStatus.RECORDED) ({ finishing = false }) else ({ finishing = false; onCancelRecord() }),
             )
-            CardioScreenKind.TRANS_IN -> CardioTransitionIn(
-                title = "Ahora vamos\ncon cardio",
-                lead = transitionIn!!.lead,
-                exerciseName = exerciseName,
-                meta = "Cardio · ${cardioClock(plannedDurationSeconds)} · ${steps.size} ${if (steps.size == 1) "paso" else "pasos"}",
-                firstStep = steps.firstOrNull(),
-                steps = steps,
-                totalLabel = "Total ${cardioClock(plannedDurationSeconds)}" + (estimatedTotalKm(details)?.let { " · ≈ ${cardioDecimal(it)} km" } ?: ""),
-                onSwipeStart = { transitionSeen = true; onRequestStart(gpsMode) },
-                onSeePlan = { transitionSeen = true; page = 1 },
-                cardioType = details.type,
-                hazeState = cardioHaze,
-            )
+            CardioScreenKind.TRANS_IN -> Box(
+                Modifier.fillMaxSize().pointerInput(onNavigatePreviousExercise) {
+                    if (onNavigatePreviousExercise == null) return@pointerInput
+                    var totalDx = 0f
+                    val threshold = 56.dp.toPx()
+                    detectHorizontalDragGestures(
+                        onDragStart = { totalDx = 0f },
+                        onDragEnd = { if (totalDx > threshold) onNavigatePreviousExercise() },
+                    ) { _, dx -> totalDx += dx }
+                }
+            ) {
+                CardioTransitionIn(
+                    title = "Ahora vamos\ncon cardio",
+                    lead = transitionIn!!.lead,
+                    exerciseName = exerciseName,
+                    meta = "Cardio · ${cardioClock(plannedDurationSeconds)} · ${steps.size} ${if (steps.size == 1) "paso" else "pasos"}",
+                    firstStep = steps.firstOrNull(),
+                    steps = steps,
+                    totalLabel = "Total ${cardioClock(plannedDurationSeconds)}" + (estimatedTotalKm(details)?.let { " · ≈ ${cardioDecimal(it)} km" } ?: ""),
+                    onSwipeStart = { transitionSeen = true; onRequestStart(gpsMode) },
+                    onSeePlan = { transitionSeen = true; page = 1 },
+                    cardioType = details.type,
+                    hazeState = cardioHaze,
+                )
+            }
             CardioScreenKind.LIVE -> Box(Modifier.fillMaxSize()) {
               val compact = LocalConfiguration.current.screenHeightDp < 800
               val dockBottomMargin = if (compact) 14.dp else 20.dp
@@ -526,6 +539,12 @@ internal fun CardioLiveCard(
                                 },
                                 onDragEnd = {
                                     val startIdx = visiblePages.indexOf(visiblePage).coerceAtLeast(0)
+                                    if (startIdx == 0 && totalDx > swipeThresholdPx && onNavigatePreviousExercise != null) {
+                                        isDraggingPager = false
+                                        scope.launch { pagerPos.snapTo(0f) }
+                                        onNavigatePreviousExercise()
+                                        return@detectHorizontalDragGestures
+                                    }
                                     val nextIdx = when {
                                         totalDx < -swipeThresholdPx -> minOf(visiblePages.lastIndex, startIdx + 1)
                                         totalDx > swipeThresholdPx -> maxOf(0, startIdx - 1)

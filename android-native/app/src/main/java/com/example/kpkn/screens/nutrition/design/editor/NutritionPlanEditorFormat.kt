@@ -41,9 +41,9 @@ fun editorChangeText(originalKcal: Int?, currentKcal: Int?, dirty: Boolean, isNe
     else -> "${formatKcalEs(originalKcal)} → ${currentKcal?.let { formatKcalEs(it) } ?: "—"} kcal"
 }
 
-/** Unidad de la meta de peso a partir del código del borrador («kg» o «lb»). */
+/** Unidad de la meta de peso a partir del código del borrador («kg» o «lb» / «lbs»). */
 fun editorWeightUnit(code: String): WizardMassUnit =
-    if (code.equals(WizardMassUnit.LB.code, ignoreCase = true)) WizardMassUnit.LB else WizardMassUnit.KG
+    if (code.equals(WizardMassUnit.LB.code, ignoreCase = true) || code.equals("lbs", ignoreCase = true)) WizardMassUnit.LB else WizardMassUnit.KG
 
 /** Meta de peso (kg) en la unidad del borrador, con una décima y coma decimal: «72,6» kg o «160,0» lb. */
 fun editorWeightTargetText(kg: Double, unit: WizardMassUnit): String =

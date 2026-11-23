@@ -101,9 +101,9 @@ object KpknGlassCalibration {
     const val LumB = 0.072f
 }
 
-/** El estilo de Haze del [preset]: solo desenfoque (sin tinte ni ruido), con el velo de respaldo de `KpknGlass` donde no hay desenfoque. */
+/** El estilo de Haze del [preset]: fondo de lienzo oscuro para que el desenfoque nunca desvanezca texto sobre alfa 0. */
 fun kpknGlassPresetStyle(preset: KpknGlassPreset, tint: Color = Color.Transparent): HazeStyle = HazeStyle(
-    backgroundColor = Color.Transparent,
+    backgroundColor = com.example.kpkn.ui.design.KpknSurface.canvas,
     tints = if (tint.alpha > 0f) listOf(HazeTint(tint)) else emptyList(),
     blurRadius = (preset.blur.value * KpknGlassCalibration.HazeBlurPerCssBlur).dp,
     noiseFactor = 0f,

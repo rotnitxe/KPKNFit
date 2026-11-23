@@ -1347,11 +1347,18 @@ class SetupWizardViewModel @JvmOverloads constructor(
             // El adaptador real se resuelve solo aquí: las tests inyectan el
             // suyo y la construcción del VM nunca toca Room.
             val port = commits ?: realSetupWizardCommits(getApplication())
+            val resolvedProfile = draft.resolvedVolumeCalibrationProfile()
+            val effectiveScore = draft.athleteProfileScore ?: resolvedProfile?.athleteProfileScore
+            val effectiveRecs = draft.volumeRecommendations.ifEmpty { resolvedProfile?.recommendations.orEmpty() }
             val result = port.commit(SetupCommitRequest(
                 commitId = draft.commitId,
                 draftId = draft.draftId,
                 settings = base,
-                program = program?.copy(avoidedExerciseGroups = draft.avoidedExercises.map { it.name }.toSet()),
+                program = program?.copy(
+                    avoidedExerciseGroups = draft.avoidedExercises.map { it.name }.toSet(),
+                    athleteProfileScore = program.athleteProfileScore ?: effectiveScore,
+                    volumeRecommendations = program.volumeRecommendations.ifEmpty { effectiveRecs },
+                ),
                 nutritionPlan = nutrition,
                 // Instancia «Nuevo programa»: nada se activa al guardar; lo decide «Listo para empezar» después (cr-listo).
                 activateProgram = !draft.newProgramInstance &&
@@ -3506,7 +3513,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
             val block = Block("$id-block", "Bloque inicial", mesocycles = listOf(mesocycle))
             val macrocycle = Macrocycle("$id-macro", "Mi programa", blocks = listOf(block))
             val program = Program(id = id, name = "Mi plan de entrenamiento",
-                startDay = draft.effectiveWeekStart(), weekDays = draft.daysPerWeek,
+                startDay = draft.effectiveWeekStart(),
+                highEnergyDay = draft.freshestDay ?: draft.effectiveWeekStart(),
+                weekDays = draft.daysPerWeek,
                 macrocycles = listOf(macrocycle), volumeRecommendations = draft.volumeRecommendations,
                 athleteProfileScore = draft.athleteProfileScore,
                 schedulePlan = ProgramSchedulePlan(
@@ -3539,6 +3548,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     weekdays = draft.selectedWeekdays.sorted(),
                     // Inicio de semana del alta: el programa propio empieza ahí y su rotación sale de él.
                     weekStartDay = draft.effectiveWeekStart(),
+                    freshestDay = draft.freshestDay,
                     equipment = effectiveEquipmentIds(draft),
                     level = draft.experience.toCatalogLevel(),
                     // Entreno v2: el alta acepta hasta 180 min, pero los planes propios no se estiran más allá de su
@@ -3559,7 +3569,14 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 // usuario (inventario, prioridades, calentamientos, autorreg.)
                 options = draft.trainingOptions,
             )
-            return SetupPreview(result.program?.copy(id = draft.commitId)
+            val resolvedProfile = draft.resolvedVolumeCalibrationProfile()
+            val effectiveScore = draft.athleteProfileScore ?: resolvedProfile?.athleteProfileScore
+            val effectiveRecs = draft.volumeRecommendations.ifEmpty { resolvedProfile?.recommendations.orEmpty() }
+            return SetupPreview(result.program?.copy(
+                id = draft.commitId,
+                athleteProfileScore = result.program.athleteProfileScore ?: effectiveScore,
+                volumeRecommendations = result.program.volumeRecommendations.ifEmpty { effectiveRecs },
+            )
                 // F-A2: el fitter rellena `reasonCode`/`maxSessionMinutes`; la razón
                 // TIPADA (y los minutos mínimos del TIME_BUDGET) viajan al evaluador.
                 // Solo sin `reasonCode` conocido se conserva la clasificación por texto.
@@ -3585,13 +3602,19 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val options = draft.trainingOptions
         // C.P6: el programa se llama como su plan (ficha editorial) y toma el modo de su disciplina; antes salía como
         // «Plan de {nombre de la persona}», con el modo de hipertrofia por defecto aunque el método fuera de powerlifting.
+        val resolvedProfile = draft.resolvedVolumeCalibrationProfile()
+        val effectiveScore = draft.athleteProfileScore ?: resolvedProfile?.athleteProfileScore
+        val effectiveRecs = draft.volumeRecommendations.ifEmpty { resolvedProfile?.recommendations.orEmpty() }
         val base = options.applyTo(
             Program(
                 id = draft.commitId,
                 name = programNameFor(entry),
                 mode = programModeFor(entry),
                 startDay = draft.effectiveWeekStart(),
+                highEnergyDay = draft.freshestDay ?: draft.effectiveWeekStart(),
                 powerliftingProfile = draft.powerliftingProfile,
+                athleteProfileScore = effectiveScore,
+                volumeRecommendations = effectiveRecs,
             ),
         )
         // Q5-F2 / §10.1: PHUL y PHAT originales y adaptados (entradas PROTOCOL con
@@ -3622,7 +3645,13 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 defaultOptions = options,
             ).program
             CatalogSource.NATIVE -> error("Ruta nativa no válida")
-        }.copy(id = draft.commitId)
+        }.let { materialized ->
+            materialized.copy(
+                id = draft.commitId,
+                athleteProfileScore = materialized.athleteProfileScore ?: effectiveScore,
+                volumeRecommendations = materialized.volumeRecommendations.ifEmpty { effectiveRecs },
+            )
+        }
         // Guardia de material real (helper de M7) DESPUÉS de aplicar la receta
         // fija y ANTES del preview: si la receta exige material no declarado, el
         // error es honesto en lugar de presentarla como compatible. Así los
@@ -3728,7 +3757,15 @@ class SetupWizardViewModel @JvmOverloads constructor(
             planId = draft.nutritionPlanId ?: draft.commitId,
             ageText = wizard.ageText.ifBlank { draft.ageYears?.toString().orEmpty() },
             heightText = wizard.heightText.ifBlank { draft.heightCm?.toString().orEmpty() },
-            weightText = wizard.weightText.ifBlank { draft.weightKg?.toString().orEmpty() },
+            weightText = wizard.weightText.ifBlank {
+                draft.weightKg?.let { kg ->
+                    if (wizard.weightUnit.equals("lb", ignoreCase = true) || wizard.weightUnit.equals("lbs", ignoreCase = true)) {
+                        (kg * 2.2046226218487757).toString()
+                    } else {
+                        kg.toString()
+                    }
+                }.orEmpty()
+            },
             bodyFatText = wizard.bodyFatText.ifBlank {
                 currentBodyFat?.let { String.format(java.util.Locale.ROOT, "%.1f", it) }.orEmpty()
             },
@@ -3916,6 +3953,21 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 environment.activeNutritionPlanId() == null -> NutritionTrackingChoice.SKIPPED
             else -> null
         }
+        val resolvedGender = draft.profileGender ?: when (draft.nutritionDraft?.equationSex) {
+            com.example.kpkn.domain.nutrition.EerSex.MALE -> Gender.MALE
+            com.example.kpkn.domain.nutrition.EerSex.FEMALE -> Gender.FEMALE
+            com.example.kpkn.domain.nutrition.EerSex.AVERAGE,
+            null -> null
+        }
+        val activityLevel = draft.nutritionDraft?.activity?.let { act ->
+            when (act) {
+                com.example.kpkn.domain.nutrition.EerActivity.INACTIVE -> 1
+                com.example.kpkn.domain.nutrition.EerActivity.LOW_ACTIVE -> 2
+                com.example.kpkn.domain.nutrition.EerActivity.ACTIVE -> 3
+                com.example.kpkn.domain.nutrition.EerActivity.VERY_ACTIVE -> 4
+            }
+        }
+        val resolvedVolumeProfile = draft.resolvedVolumeCalibrationProfile()
         return SetupSettingsPatch(
             username = setOrKeep(declaredName),
             age = setIf(age, provided(SetupStepId.AGE, WizChatQuestionId.P_AGE) && age != null),
@@ -3923,13 +3975,23 @@ class SetupWizardViewModel @JvmOverloads constructor(
                 age = setIf(age, provided(SetupStepId.AGE, WizChatQuestionId.P_AGE) && age != null),
                 height = setIf(draft.heightCm, provided(SetupStepId.HEIGHT, WizChatQuestionId.P_HEIGHT) && draft.heightCm != null),
                 weight = setIf(draft.weightKg, provided(SetupStepId.WEIGHT, WizChatQuestionId.P_WEIGHT) && draft.weightKg != null),
-                gender = setIf(draft.profileGender, provided(SetupStepId.GENDER, WizChatQuestionId.P_GENDER) && draft.profileGender != null),
+                gender = setIf(
+                    resolvedGender,
+                    (provided(SetupStepId.GENDER, WizChatQuestionId.P_GENDER) || provided(SetupStepId.EQUATION_SEX, WizChatQuestionId.P_GENDER)) &&
+                        resolvedGender != null,
+                ),
             ),
             weightUnit = weightUnitField,
             dailyCalorieGoal = setIf(goals?.calorieTarget, goals != null),
             dailyProteinGoal = setIf(goals?.proteinGoal, goals != null),
             dailyCarbGoal = setIf(goals?.carbGoal, goals != null),
             dailyFatGoal = setIf(goals?.fatGoal, goals != null),
+            nutritionActivityLevel = setOrKeep(
+                activityLevel.takeIf {
+                    provided(SetupStepId.NUTRITION_ACTIVITY, WizChatQuestionId.N_ACTIVITY)
+                },
+            ),
+            defaultHighEnergyDay = setOrKeep(draft.freshestDay),
             onboardingCompleted = setIf(
                 true,
                 draft.draftScope == "full" &&
@@ -3952,8 +4014,7 @@ class SetupWizardViewModel @JvmOverloads constructor(
                     (!draft.includeNutrition || nutrition != null || trackingOnly),
             ),
             nutritionTrackingChoice = setOrKeep(trackingChoice),
-
-            volumeCalibrationProfile = setIf(draft.volumeCalibrationProfile, draft.volumeCalibrationProfile != null),
+            volumeCalibrationProfile = setIf(resolvedVolumeProfile, resolvedVolumeProfile != null),
             // Inventario declarado en el wizard (`trainingOptions.inventory`);
             // sin datos se conserva el actual, nunca se limpia por accidente.
             equipmentInventory = setIf(draft.trainingOptions.inventory, draft.trainingOptions.inventory != null),

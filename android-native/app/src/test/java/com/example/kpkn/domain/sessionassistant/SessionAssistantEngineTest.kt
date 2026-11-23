@@ -1,5 +1,6 @@
 package com.example.kpkn.domain.sessionassistant
 
+import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.ExerciseSet
@@ -149,5 +150,53 @@ class SessionAssistantEngineTest {
             programId = "p1",
 
         )
+    }
+
+    @Test
+    fun computeProposedDiscounts_collapses_unilateral_lr_and_deduplicates_primary_groups() {
+        val shoulderInfo = ExerciseMuscleInfo(
+            id = "arnold",
+            name = "Press unilateral",
+            involvedMuscles = listOf(
+                InvolvedMuscle("Deltoides", MuscleRole.PRIMARY, 1.0, emphasis = "anterior"),
+                InvolvedMuscle("Deltoides", MuscleRole.PRIMARY, 1.0, emphasis = "medio"),
+            ),
+        )
+        val ex1 = Exercise(
+            id = "ex1",
+            name = "Press unilateral",
+            exerciseDbId = "arnold",
+            sets = listOf(
+                ExerciseSet("p1", targetReps = 10),
+                ExerciseSet("p2", targetReps = 10),
+            ),
+        )
+        val nextEx = Exercise(
+            id = "next-1",
+            name = "Elevaciones",
+            exerciseDbId = "arnold",
+            sets = List(4) { ExerciseSet("n$it", targetReps = 12) },
+        )
+        val currentSession = Session(id = "cur", name = "Hoy", exercises = listOf(ex1))
+        val nextSession = Session(id = "next", name = "Siguiente", exercises = listOf(nextEx))
+        // 3 logical unilateral sets (6 L+R sides) vs 2 planned sets -> excess = 1.0 set (not 4.0)
+        val completed = mapOf(
+            "ex1_0_L" to CompletedSet("l0", reps = 10),
+            "ex1_0_R" to CompletedSet("r0", reps = 10),
+            "ex1_1_L" to CompletedSet("l1", reps = 10),
+            "ex1_1_R" to CompletedSet("r1", reps = 10),
+            "ex1_2_L" to CompletedSet("l2", reps = 10),
+            "ex1_2_R" to CompletedSet("r2", reps = 10),
+        )
+        val advances = SessionAssistantEngine.computeProposedDiscounts(
+            currentSession = currentSession,
+            nextSession = nextSession,
+            targetMuscles = listOf("Deltoides"),
+            completedSets = completed,
+            exerciseIndex = mapOf("arnold" to shoulderInfo),
+        )
+        assertEquals(1, advances.size)
+        assertEquals(1.0, advances.single().deficitSets, 1e-9)
+        assertEquals(1.0, advances.single().discountProposals.single().discountSets, 1e-9)
     }
 }

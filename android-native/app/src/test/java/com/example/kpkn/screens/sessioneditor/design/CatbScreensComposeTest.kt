@@ -158,20 +158,15 @@ class CatbScreensComposeTest {
             rule.waitForIdle()
             save("${if (ficha == "catalog") "f1" else "f2"}_${height}_${(font * 100).toInt()}")
             rule.onNodeWithText("Imagen técnica del catálogo").assertDoesNotExist()
-            rule.onNodeWithTag("exercise-ficha-image-provenance").assertExists()
-            rule.onNodeWithTag("exercise-ficha-image-abstention").assertExists()
+            rule.onNodeWithTag("exercise-ficha-image-provenance").assertDoesNotExist()
             val info = state.value.preview!!.exercise
             val description = requireNotNull(info.description)
             assertFalse(description, description.contains("knee_dominant"))
             assertFalse(description, Regex("[a-z]+_[a-z_]+").containsMatchIn(description))
             rule.onNode(hasText(description) and hasAnyAncestor(hasTestTag("exercise-ficha-description")), useUnmergedTree = true)
                 .performScrollTo().assertIsDisplayed()
-            assertTrue(info.setupCues.orEmpty().isNotEmpty())
-            assertTrue(info.executionCues.orEmpty().isNotEmpty())
-            info.setupCues.orEmpty().forEach { cue -> rule.onNode(hasText(cue) and hasAnyAncestor(hasTestTag("exercise-ficha-setup"))).assertExists() }
-            info.executionCues.orEmpty().forEach { cue -> rule.onNode(hasText(cue) and hasAnyAncestor(hasTestTag("exercise-ficha-execution"))).assertExists() }
-            rule.onNodeWithTag("exercise-ficha-setup").performScrollTo().assertIsDisplayed()
-            fullText(info.setupCues!!.first(), "exercise-ficha-setup")
+            rule.onNodeWithTag("exercise-ficha-setup").assertDoesNotExist()
+            rule.onNodeWithTag("exercise-ficha-execution").assertDoesNotExist()
             save("${if (ficha == "catalog") "f1" else "f2"}_detalle_${height}_${(font * 100).toInt()}")
             rule.onNodeWithText("Mejor serie", substring = true).assertDoesNotExist()
             if (ficha == "catalog") {

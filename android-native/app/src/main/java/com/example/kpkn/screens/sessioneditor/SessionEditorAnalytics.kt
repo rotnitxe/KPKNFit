@@ -152,7 +152,9 @@ internal fun buildDisplayContributions(
     val grouped = linkedMapOf<String, Double>()
     involvedMuscles.forEach { involvement ->
         val isMatch = if (countIndirect) {
-            involvement.role == com.example.kpkn.data.models.MuscleRole.SECONDARY || involvement.role == com.example.kpkn.data.models.MuscleRole.STABILIZER
+            involvement.role == com.example.kpkn.data.models.MuscleRole.SECONDARY ||
+                (involvement.role == com.example.kpkn.data.models.MuscleRole.STABILIZER &&
+                    com.example.kpkn.data.models.resolveMuscleVolumeContribution(involvement) > 0.0)
         } else {
             involvement.role == com.example.kpkn.data.models.MuscleRole.PRIMARY
         }
@@ -210,9 +212,11 @@ internal fun calculateSubMuscleBreakdown(
                     val map = subMuscleVolumes[subMuscle]
                     if (map != null) {
                         val contribution = com.example.kpkn.data.models.resolveMuscleVolumeContribution(involvement)
-                        val current = map[exercise.name] ?: 0.0
-                        if (effectiveSets * contribution > current) {
-                            map[exercise.name] = effectiveSets * contribution
+                        if (contribution > 0.0) {
+                            val current = map[exercise.name] ?: 0.0
+                            if (effectiveSets * contribution > current) {
+                                map[exercise.name] = effectiveSets * contribution
+                            }
                         }
                     }
                 }

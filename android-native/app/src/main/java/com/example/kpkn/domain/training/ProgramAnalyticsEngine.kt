@@ -15,6 +15,7 @@ import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.performance.StrengthModel
+import com.example.kpkn.domain.training.insights.RecordedSetAccounting
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -227,7 +228,6 @@ object ProgramAnalyticsEngine {
             val pattern = movementPatternFor(info)
             patternMap[pattern] = patternMap.orZero(pattern) + sets
             val forceLower = info.force.normalizeForAnalytics()
-            val chainLower = info.chain.normalizeForAnalytics()
             val bodyPart = info.bodyPart.normalizeForAnalytics()
             when (pattern) {
                 "Empuje horizontal" -> {
@@ -254,11 +254,10 @@ object ProgramAnalyticsEngine {
             if (bodyPart == "upper") upper += sets
             if (bodyPart == "lower") lower += sets
             val muscles = effectiveVolumeMuscles(row.exercise.effectiveMuscles, info)
-            muscles.forEach { muscle ->
-                val canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, muscle.emphasis)
-                val contribution = resolveMuscleVolumeContribution(muscle)
-                if (canonical == "Cuádriceps" || chainLower == "anterior") quads += sets * contribution
-                if (canonical in setOf("Isquiosurales", "Glúteos", "Erectores Espinales") || chainLower == "posterior") {
+            val contributions = VolumeCalculator.buildPerExerciseMuscleContributions(muscles)
+            contributions.forEach { (canonical, contribution) ->
+                if (canonical == "Cuádriceps") quads += sets * contribution
+                if (canonical in setOf("Isquiosurales", "Glúteos")) {
                     posterior += sets * contribution
                 }
             }
@@ -287,11 +286,11 @@ object ProgramAnalyticsEngine {
         completedRows: List<CompletedExerciseRow>,
         logs: List<WorkoutLog>,
     ): EfficiencyAnalytics {
-        val completedSets = completedRows.sumOf { it.exercise.sets.count { set -> !set.skipped } }
+        val completedSets = completedRows.sumOf { RecordedSetAccounting.logicalWorkingSets(it.exercise).size }
         val durationHours = logs.sumOf { it.durationMinutes }.coerceAtLeast(1) / 60.0
         val densityBySession = logs
             .map { log ->
-                val sets = log.completedExercises.sumOf { ex -> ex.sets.count { !it.skipped } }
+                val sets = log.completedExercises.sumOf { ex -> RecordedSetAccounting.logicalWorkingSets(ex).size }
                 val density = sets / (log.durationMinutes.coerceAtLeast(1) / 60.0)
                 NamedMetric(log.id, log.sessionName, density.round1(), "series completadas por hora")
             }
@@ -435,8 +434,14 @@ object ProgramAnalyticsEngine {
     private fun effectiveVolumeMuscles(
         effectiveMuscles: List<InvolvedMuscle>?,
         info: ExerciseMuscleInfo?,
-    ): List<InvolvedMuscle> = (effectiveMuscles?.takeIf { it.isNotEmpty() } ?: info?.involvedMuscles.orEmpty())
-        .filter { it.role != MuscleRole.NEUTRALIZER }
+    ): List<InvolvedMuscle> {
+        val resolved = if (ExerciseMuscleResolver.isLiveCatalogV2Info(info)) {
+            info!!.involvedMuscles
+        } else {
+            effectiveMuscles?.takeIf { it.isNotEmpty() } ?: info?.involvedMuscles.orEmpty()
+        }
+        return resolved.filter { it.role != MuscleRole.NEUTRALIZER }
+    }
 
     private fun Program.plannedExercises(): List<PlannedExerciseRow> =
         macrocycles.flatMap { it.blocks }

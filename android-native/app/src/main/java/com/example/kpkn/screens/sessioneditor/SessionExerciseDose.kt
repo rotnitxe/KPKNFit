@@ -102,20 +102,55 @@ private fun repsLabel(sets: List<ExerciseSet>, mode: TrainingMode, customUnit: S
     return if (low == high) low.toString() else low.toString() + "–" + high
 }
 
-/** Rango de repeticiones de una serie: el [com.example.kpkn.data.models.RepRange] o el número exacto. */
+/** Rango de repeticiones de una serie: prioriza targets unilaterales (`leftTarget`/`rightTarget`), o el [com.example.kpkn.data.models.RepRange] o el número exacto. */
 private fun repRangeOf(set: ExerciseSet): Pair<Int, Int>? {
+    val sideRanges = listOfNotNull(set.leftTarget, set.rightTarget).mapNotNull { target ->
+        target.targetRepsRange?.let { it.min to it.max } ?: target.targetReps?.let { it to it }
+    }
+    if (sideRanges.isNotEmpty()) {
+        return sideRanges.minOf { it.first } to sideRanges.maxOf { it.second }
+    }
     set.targetRepsRange?.let { return it.min to it.max }
     return set.targetReps?.let { it to it }
 }
 
 /** Intensidad común: «hasta el fallo», o RIR, RPE o % del 1RM si todas las series lo tienen (con rango si difieren). */
 private fun intensityLabel(sets: List<ExerciseSet>, mode: TrainingMode): String? {
-    if (sets.all { it.isFailure }) return "hasta el fallo"
+    val allFailure = sets.all { set ->
+        val sides = listOfNotNull(set.leftTarget, set.rightTarget)
+        if (sides.isNotEmpty()) {
+            sides.all { target ->
+                (target.intensityMode ?: set.intensityMode) == com.example.kpkn.data.models.IntensityMode.FAILURE ||
+                    (target.intensityMode == null && set.isFailure)
+            }
+        } else {
+            set.isFailure || set.intensityMode == com.example.kpkn.data.models.IntensityMode.FAILURE
+        }
+    }
+    if (allFailure) return "hasta el fallo"
     if (mode == TrainingMode.RM) return percentAndEffortLabel(sets)
-    val rir = sets.mapNotNull { it.targetRIR?.toDouble() }
-    if (rir.size == sets.size) return valueRange(rir, prefix = "RIR", suffix = "")
-    val rpe = sets.mapNotNull { it.targetRPE }
-    if (rpe.size == sets.size) return valueRange(rpe, prefix = "RPE", suffix = "")
+    val rir = sets.flatMap { set ->
+        val sides = listOfNotNull(set.leftTarget, set.rightTarget)
+        if (sides.isNotEmpty()) sides.mapNotNull { it.targetRIR?.toDouble() }.ifEmpty { listOfNotNull(set.targetRIR?.toDouble()) }
+        else listOfNotNull(set.targetRIR?.toDouble())
+    }
+    val hasRirOnEverySet = sets.all { set ->
+        val sides = listOfNotNull(set.leftTarget, set.rightTarget)
+        if (sides.isNotEmpty()) sides.all { it.targetRIR != null } || (sides.all { it.targetRIR == null && it.targetRPE == null } && set.targetRIR != null)
+        else set.targetRIR != null
+    }
+    if (hasRirOnEverySet && rir.isNotEmpty()) return valueRange(rir, prefix = "RIR", suffix = "")
+    val rpe = sets.flatMap { set ->
+        val sides = listOfNotNull(set.leftTarget, set.rightTarget)
+        if (sides.isNotEmpty()) sides.mapNotNull { it.targetRPE }.ifEmpty { listOfNotNull(set.targetRPE) }
+        else listOfNotNull(set.targetRPE)
+    }
+    val hasRpeOnEverySet = sets.all { set ->
+        val sides = listOfNotNull(set.leftTarget, set.rightTarget)
+        if (sides.isNotEmpty()) sides.all { it.targetRPE != null } || (sides.all { it.targetRPE == null && it.targetRIR == null } && set.targetRPE != null)
+        else set.targetRPE != null
+    }
+    if (hasRpeOnEverySet && rpe.isNotEmpty()) return valueRange(rpe, prefix = "RPE", suffix = "")
     val pct = sets.mapNotNull { it.targetPercentageRM }
     if (pct.size == sets.size) return valueRange(pct, prefix = "", suffix = " % 1RM")
     return null
@@ -169,7 +204,10 @@ internal fun sessionExerciseListDose(exercise: com.example.kpkn.data.models.Exer
     }
     val base = sessionExerciseDose(exercise.sets, exercise.trainingMode, exercise.restTime, includeRest, exercise.customUnit) ?: "Sin series"
     val side = if (exercise.isEffectivelyUnilateral() && exercise.sets.any { !it.isEmptySlot }) " · por\u00A0lado" else ""
-    return hardUnitSpaces(base + side)
+    val rom = if (exercise.trackRom && exercise.plannedRom != null) {
+        " · ROM\u00A0${com.example.kpkn.domain.workout.RomTargetCatalog.format(exercise.plannedRom)}"
+    } else ""
+    return hardUnitSpaces(base + side + rom)
 }
 
 /** Espacio inseparable entre una cifra y su unidad o su «%»; el resto del texto no cambia. */

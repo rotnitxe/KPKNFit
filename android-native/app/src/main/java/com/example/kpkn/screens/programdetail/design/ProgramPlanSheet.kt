@@ -1,7 +1,23 @@
 package com.example.kpkn.screens.programdetail.design
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramWeek
@@ -73,8 +89,13 @@ internal fun ProgramPlanSheet(
     program: Program? = null,
     isActive: Boolean = true,
     currentWeekId: String? = null,
+    onSaveDescription: ((String) -> Unit)? = null,
 ) {
     val canOpen = onOpenPlanInfo != null
+    var editingDescription by androidx.compose.runtime.remember { androidx.compose.runtime.mutableStateOf(false) }
+    var draftDescription by androidx.compose.runtime.remember(description) {
+        androidx.compose.runtime.mutableStateOf(description.orEmpty())
+    }
     val ficha = remember(summary, program, description, calendarRange, isActive, currentWeekId, canOpen) {
         programPlanFicha(
             summary = summary,
@@ -87,10 +108,92 @@ internal fun ProgramPlanSheet(
         )
     }
     val entryId = summary.catalogEntry?.id
+    val isManual = entryId == null
     PlanFichaOverlay(
         ficha = ficha,
         onClose = onDismiss,
-        onSecondary = if (entryId != null && onOpenPlanInfo != null) ({ onOpenPlanInfo(entryId) }) else null,
+        onSecondary = when {
+            entryId != null && onOpenPlanInfo != null -> ({ onOpenPlanInfo(entryId) })
+            else -> null
+        },
+        descriptionHeaderSlot = if (isManual && onSaveDescription != null) {
+            {
+                val currentText = description?.trim().orEmpty()
+                com.example.kpkn.ui.design.KpknModule(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Text(
+                                text = "Sobre el programa",
+                                style = com.example.kpkn.ui.design.KpknType.bodyStrong,
+                                color = com.example.kpkn.screens.onboarding.design.WizardColors.text,
+                            )
+                            if (!editingDescription) {
+                                com.example.kpkn.ui.design.KpknTextAction(
+                                    text = if (currentText.isNotEmpty()) "Editar descripción" else "Añadir descripción",
+                                    onClick = {
+                                        draftDescription = currentText
+                                        editingDescription = true
+                                    },
+                                )
+                            }
+                        }
+                        if (editingDescription) {
+                            com.example.kpkn.ui.design.KpknTextField(
+                                value = draftDescription,
+                                onValueChange = { draftDescription = it },
+                                label = "Descripción",
+                                placeholder = "Describe el objetivo, enfoque o notas clave…",
+                                singleLine = false,
+                                minLines = 3,
+                                maxLines = 6,
+                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp, Alignment.End),
+                            ) {
+                                com.example.kpkn.ui.design.KpknTextAction(
+                                    text = "Cancelar",
+                                    onClick = { editingDescription = false },
+                                )
+                                com.example.kpkn.ui.design.KpknTextAction(
+                                    text = "Guardar",
+                                    onClick = {
+                                        onSaveDescription(draftDescription.trim())
+                                        editingDescription = false
+                                    },
+                                )
+                            }
+                        } else if (currentText.isNotEmpty()) {
+                            Text(
+                                text = currentText,
+                                style = com.example.kpkn.ui.design.KpknType.body,
+                                color = com.example.kpkn.screens.onboarding.design.WizardColors.text,
+                            )
+                        } else {
+                            Text(
+                                text = ficha.detail.description.ifBlank {
+                                    "Añade el objetivo, enfoque o notas clave de tu programa."
+                                },
+                                style = com.example.kpkn.ui.design.KpknType.body,
+                                color = com.example.kpkn.screens.onboarding.design.WizardColors.textMuted,
+                            )
+                        }
+                    }
+                }
+            }
+        } else {
+            null
+        },
     )
 }
 
@@ -117,13 +220,14 @@ internal fun programPlanFicha(
     val manualStructure = when {
         program == null || entry != null -> null
         allSessions.isEmpty() -> "Todavía no hay sesiones. Añade semanas, días y ejercicios para dar forma a tu programa."
-        else -> "${totalWeeks} semanas · ${allSessions.size} sesiones · $exerciseCount ejercicios"
+        else -> "${SpanishPlurals.weeks(totalWeeks)} · ${SpanishPlurals.sessions(allSessions.size)} · ${SpanishPlurals.exercises(exerciseCount)}"
     }
     val week = program?.let { shownWeekOf(it, currentWeekId, today) }
+    val weekStart = program?.startDay ?: program?.highEnergyDay ?: 1
     val sessions = week?.sessions.orEmpty()
         .mapIndexed { index, session -> (SetupPlanReveals.dayOf(session) ?: (index % 7 + 1)) to session }
-        .sortedBy { it.first }
-    val days = if (sessions.isEmpty()) emptyList() else planFichaWeek(sessions.groupBy({ it.first }) { sessionOf(it.second) })
+        .sortedBy { ((it.first - weekStart + 7) % 7) }
+    val days = if (sessions.isEmpty()) emptyList() else planFichaWeek(sessions.groupBy({ it.first }) { sessionOf(it.second) }, weekStart = weekStart)
     val card = PlanCardModel(
         id = entry?.id ?: program?.id ?: summary.planName,
         title = program?.name?.trim()?.takeIf { it.isNotEmpty() } ?: summary.planName,
@@ -138,7 +242,8 @@ internal fun programPlanFicha(
         coverIdentity = program?.let { com.example.kpkn.screens.onboarding.design.entreno.plan.cover.coverIdentityForProgram(it) },
         coverImage = program?.coverImage,
     )
-    val body = summary.summary ?: description?.lines()?.map { it.trim() }?.firstOrNull { it.isNotEmpty() } ?: manualStructure
+    val cleanDescription = description?.trim()?.takeIf { it.isNotEmpty() }
+    val body = summary.summary ?: cleanDescription ?: manualStructure
     val detail = PlanDetailModel(
         card = card,
         description = body.orEmpty(),
@@ -147,11 +252,11 @@ internal fun programPlanFicha(
             .map { block -> PlanBlockModel(label = block.label, weeksLabel = block.weeksLabel, detail = block.detail) },
         week = emptyList(),
         reasons = emptyList(),
-        notes = summary.planNotes,
+        notes = if (entry == null) emptyList() else summary.planNotes,
         attribution = planOriginLine(summary).ifBlank { null },
     )
     val chips = listOfNotNull(
-        summary.requiredMaterial.trim().takeIf { it.isNotEmpty() }?.replaceFirstChar { it.uppercase() },
+        if (entry != null) summary.requiredMaterial.trim().takeIf { it.isNotEmpty() }?.replaceFirstChar { it.uppercase() } else null,
         summary.maxSessionMinutes?.let { "Sesión más larga ≈ $it min" },
         calendarRange?.takeIf { it.isNotBlank() },
     )
@@ -171,7 +276,7 @@ internal fun programPlanFicha(
         openDay = days.firstOrNull { it.day == todayDay && !it.rest }?.day ?: days.firstOrNull { !it.rest }?.day,
         sections = if (rows.isEmpty()) emptyList() else listOf(PlanFichaSection(PlanFichaCopy.LOADS_AND_CHANGES, rows)),
         primaryLabel = null,
-        secondaryLabel = PlanFichaCopy.HOW_IT_WORKS.takeIf { canOpenPlanInfo && entry != null },
+        secondaryLabel = if (canOpenPlanInfo && entry != null) PlanFichaCopy.HOW_IT_WORKS else null,
     )
     return PlanFicha(detail, content)
 }

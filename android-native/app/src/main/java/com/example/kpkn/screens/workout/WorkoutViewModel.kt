@@ -1134,6 +1134,7 @@ class WorkoutViewModel(
                     lastSet: CompletedSet?,
                     advancedFeedback: SetAdvancedFeedback?,
                 ) = this@WorkoutViewModel.startRestTimer(seconds, advanceOnFinish, lastSet, advancedFeedback)
+                override fun stopRestTimer() = this@WorkoutViewModel.stopRestTimer()
             },
         )
     }
@@ -1762,6 +1763,8 @@ class WorkoutViewModel(
 
 
     fun toggleSubTagActive(exerciseId: String, subTagId: String) = tagsContextController.toggleSubTagActive(exerciseId, subTagId)
+
+    fun toggleSubTagForSet(setKey: String, subTagId: String) = tagsContextController.toggleSubTagForSet(setKey, subTagId)
 
 
     fun clearAllTags(exerciseId: String) = tagsContextController.clearAllTags(exerciseId)
@@ -6926,14 +6929,32 @@ class WorkoutViewModel(
         stepNavigator.selectSupersetGroup(groupId)
     }
 
-    fun selectWorkoutStep(stepKey: String) {
+    fun selectWorkoutStep(stepKey: String, preserveRestForNextStep: Boolean = false) {
         lastRelatorLoadUndo = null
-        stepNavigator.selectWorkoutStep(stepKey)
+        stepNavigator.selectWorkoutStep(stepKey, preserveRestForNextStep)
     }
 
     fun navigateAdjacentWorkingStep(forward: Boolean) {
         lastRelatorLoadUndo = null
         stepNavigator.navigateAdjacentWorkingStep(forward)
+    }
+
+    fun navigateAdjacentExerciseGroup(forward: Boolean) {
+        lastRelatorLoadUndo = null
+        stepNavigator.navigateAdjacentExerciseGroup(forward)
+    }
+
+    fun persistLoadModeForSet(exerciseId: String, setIdx: Int, mode: LoadModeV2) {
+        val state = _uiState.value
+        val ctxKey = workoutSetContextKey(exerciseId, setIdx, state.exerciseTags[exerciseId])
+        val exKey = workoutExerciseContextKey(exerciseId, state.exerciseTags[exerciseId])
+        updateUiState {
+            it.copy(
+                persistedLoadModeBySet = it.persistedLoadModeBySet + (ctxKey to mode),
+                persistedLoadModeByExercise = it.persistedLoadModeByExercise + (exKey to mode),
+            )
+        }
+        persistOngoingState(immediate = false)
     }
 
     fun selectSupersetRound(roundIdx: Int) {
@@ -7204,9 +7225,9 @@ class WorkoutViewModel(
         viewModelScope.launch {
             try {
                 val observations = com.example.kpkn.data.repository.TrainingObservationRepository.getInstance(appContext)
-                observations.recordWellbeing(log)
-                val original = observations.getWellbeingLogs().firstOrNull { it.date == log.date }
-                updateUiState { it.copy(todayWellbeing = original) }
+                observations.upsertWellbeing(log)
+                val saved = observations.getWellbeingLogs().firstOrNull { it.date == log.date } ?: log
+                updateUiState { it.copy(todayWellbeing = saved) }
                 onSaved()
             } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
               catch (_: Exception) { onError() }

@@ -60,14 +60,25 @@ fun VolumeCalibrationSheet(
     onDismiss: () -> Unit,
     onSave: (VolumeCalibrationResult) -> Unit,
     initialScore: AthleteProfileScore? = null,
+    initialNotes: String = "",
 ) {
     val onOriginalsSaved = LocalVolumeCalibrationSaved.current
-    var selectedStyle by rememberSaveable { mutableStateOf(initialScore?.trainingStyle ?: currentMode.toTrainingStyle()) }
-    var technique by rememberSaveable { mutableIntStateOf(initialScore?.technicalScore?.coerceIn(1, 3) ?: 2) }
-    var consistency by rememberSaveable { mutableIntStateOf(initialScore?.consistencyScore?.coerceIn(1, 3) ?: 2) }
-    var strength by rememberSaveable { mutableIntStateOf(initialScore?.strengthScore?.coerceIn(1, 3) ?: 2) }
-    var mobility by rememberSaveable { mutableIntStateOf(initialScore?.mobilityScore?.coerceIn(1, 3) ?: 2) }
-    var notes by rememberSaveable { mutableStateOf("") }
+    var selectedStyle by rememberSaveable(initialScore, currentMode) {
+        mutableStateOf(initialScore?.trainingStyle ?: currentMode.toTrainingStyle())
+    }
+    var technique by rememberSaveable(initialScore) {
+        mutableIntStateOf(initialScore?.technicalScore?.coerceIn(1, 3) ?: 2)
+    }
+    var consistency by rememberSaveable(initialScore) {
+        mutableIntStateOf(initialScore?.consistencyScore?.coerceIn(1, 3) ?: 2)
+    }
+    var strength by rememberSaveable(initialScore) {
+        mutableIntStateOf(initialScore?.strengthScore?.coerceIn(1, 3) ?: 2)
+    }
+    var mobility by rememberSaveable(initialScore) {
+        mutableIntStateOf(initialScore?.mobilityScore?.coerceIn(1, 3) ?: 2)
+    }
+    var notes by rememberSaveable(initialNotes) { mutableStateOf(initialNotes) }
 
     val preview = remember(selectedStyle, technique, consistency, strength, mobility) {
         buildVolumeCalibration(

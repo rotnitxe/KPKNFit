@@ -68,8 +68,7 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "bulgarian_split_squat__barbell__sentadilla_bulgara",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -119,15 +118,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "adductors",
-                    "calves"
+                    "gluteus_maximus",
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "core",
                     "erector_spinae"
@@ -187,17 +186,15 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps",
-                    "unilateral_knee_dominant:gluteus_maximus"
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "adductors",
-                "calves"
+                "gluteus_maximus",
+                "adductors"
               ],
               "setupCues": [
                 "Saca la barra del soporte cruzada sobre la parte superior de la espalda y retrocede hasta el banco.",
@@ -205,6 +202,8 @@
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
@@ -276,8 +275,7 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "bulgarian_split_squat__smith_machine__sentadilla_bulgara",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -327,15 +325,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "adductors",
-                    "calves"
+                    "gluteus_maximus",
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "core",
                     "erector_spinae"
@@ -395,17 +393,15 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps",
-                    "unilateral_knee_dominant:gluteus_maximus"
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "adductors",
-                "calves"
+                "gluteus_maximus",
+                "adductors"
               ],
               "setupCues": [
                 "Coloca un banco plano detrás de la Smith, sin pegarlo a la estructura, y apoya la barra en la parte superior de la espalda.",
@@ -413,6 +409,8 @@
               ],
               "setupTimeSeconds": 50,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
@@ -499,8 +497,7 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "bulgarian_split_squat__machine__sentadilla_bulgara",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -566,15 +563,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "adductors",
-                    "calves"
+                    "gluteus_maximus",
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "core",
                     "erector_spinae",
@@ -638,17 +635,15 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps",
-                    "unilateral_knee_dominant:gluteus_maximus"
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "adductors",
-                "calves"
+                "gluteus_maximus",
+                "adductors"
               ],
               "setupCues": [
                 "Ponte entre los brazos de la palanca y apoya el empeine trasero en el rodillo de la máquina.",
@@ -656,6 +651,8 @@
               ],
               "setupTimeSeconds": 55,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "core",
                 "erector_spinae",
@@ -744,8 +741,7 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "bulgarian_split_squat__dumbbells__sentadilla_bulgara",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -811,15 +807,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "adductors",
-                    "calves"
+                    "gluteus_maximus",
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "core",
                     "erector_spinae",
@@ -883,17 +879,15 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps",
-                    "unilateral_knee_dominant:gluteus_maximus"
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "adductors",
-                "calves"
+                "gluteus_maximus",
+                "adductors"
               ],
               "setupCues": [
                 "Toma una mancuerna en cada mano y déjalas colgar a los lados.",
@@ -901,6 +895,8 @@
               ],
               "setupTimeSeconds": 30,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "core",
                 "erector_spinae",
@@ -989,8 +985,7 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "bulgarian_split_squat__cable__sentadilla_bulgara",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -1056,15 +1051,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "adductors",
-                    "calves"
+                    "gluteus_maximus",
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "core",
                     "erector_spinae",
@@ -1128,17 +1123,15 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps",
-                    "unilateral_knee_dominant:gluteus_maximus"
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "adductors",
-                "calves"
+                "gluteus_maximus",
+                "adductors"
               ],
               "setupCues": [
                 "Baja las dos poleas al punto más bajo y toma un mango en cada mano.",
@@ -1146,6 +1139,8 @@
               ],
               "setupTimeSeconds": 35,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "core",
                 "erector_spinae",
@@ -1241,8 +1236,7 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "bulgarian_split_squat__kettlebell__sentadilla_bulgara",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -1316,15 +1310,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "adductors",
-                    "calves"
+                    "gluteus_maximus",
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "core",
                     "erector_spinae",
@@ -1390,17 +1384,15 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps",
-                    "unilateral_knee_dominant:gluteus_maximus"
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "adductors",
-                "calves"
+                "gluteus_maximus",
+                "adductors"
               ],
               "setupCues": [
                 "Sujeta una kettlebell por los cuernos del asa delante del pecho, con los codos hacia abajo.",
@@ -1408,6 +1400,8 @@
               ],
               "setupTimeSeconds": 30,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "core",
                 "erector_spinae",
@@ -1483,8 +1477,7 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "bulgarian_split_squat__bodyweight__sentadilla_bulgara",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -1534,15 +1527,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "adductors",
-                    "calves"
+                    "gluteus_maximus",
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "core",
                     "erector_spinae"
@@ -1602,17 +1595,15 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps",
-                    "unilateral_knee_dominant:gluteus_maximus"
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "adductors",
-                "calves"
+                "gluteus_maximus",
+                "adductors"
               ],
               "setupCues": [
                 "Colócate de espaldas a un banco estable y apoya el empeine de un pie sobre él.",
@@ -1620,6 +1611,8 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "core",
                 "erector_spinae"
@@ -1727,12 +1720,14 @@
               ],
               "kineticChain": "ANTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "biceps"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "bulgarian_zercher__barbell__sentadilla_bulgara_zercher",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": 999,
@@ -1797,16 +1792,19 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "biceps"
+                  ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "adductors",
-                    "calves"
+                    "gluteus_maximus",
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "core",
                     "biceps",
@@ -1868,17 +1866,15 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps",
-                    "unilateral_knee_dominant:gluteus_maximus"
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "adductors",
-                "calves"
+                "gluteus_maximus",
+                "adductors"
               ],
               "setupCues": [
                 "Coloca la barra en el soporte a la altura del ombligo y sácala encajada en el pliegue de los codos.",
@@ -1886,6 +1882,8 @@
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "core",
                 "biceps",

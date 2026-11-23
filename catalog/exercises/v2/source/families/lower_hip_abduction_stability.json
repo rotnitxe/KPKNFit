@@ -56,7 +56,7 @@
               "movementPatternId": "hip_abduction_stability",
               "performanceProfileId": "glutes_monster_walk_banda__band__caminata_del_monstruo_monster_walk_con_banda",
               "primaryMuscles": [
-                "gluteus_maximus"
+                "gluteus_medius"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -92,9 +92,11 @@
                     }
                   ],
                   "primaryMuscles": [
+                    "gluteus_medius"
+                  ],
+                  "secondaryMuscles": [
                     "gluteus_maximus"
                   ],
-                  "secondaryMuscles": [],
                   "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
@@ -146,13 +148,15 @@
                     "band"
                   ],
                   "preservesIntent": [
-                    "hip_abduction_stability:gluteus_maximus"
+                    "hip_abduction_stability:gluteus_medius"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "gluteus_maximus"
+              ],
               "setupCues": [
                 "Preparación: Banda en los tobillos y pasos laterales: caminas de lado sin dejar que la banda cierre las piernas."
               ],

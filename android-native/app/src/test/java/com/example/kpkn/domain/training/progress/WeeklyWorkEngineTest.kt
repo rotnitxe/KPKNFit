@@ -84,4 +84,42 @@ class WeeklyWorkEngineTest {
         assertEquals(1, row.hardSets)
         assertEquals(50, row.minutes)
     }
+
+    @Test
+    fun colapsaSeriesUnilateralesEnHardSetsYExcluyeCardio() {
+        val unilateral = CompletedExercise(
+            exerciseId = "bulgarian",
+            exerciseName = "Sentadilla búlgara",
+            sets = listOf(
+                CompletedSet("l1", weight = 20.0, reps = 8, setIndex = 0, side = "left"),
+                CompletedSet("r1", weight = 20.0, reps = 8, setIndex = 0, side = "right"),
+                CompletedSet("l2", weight = 20.0, reps = 8, side = "left"),
+                CompletedSet("r2", weight = 20.0, reps = 8, side = "right"),
+            ),
+        )
+        val cardio = CompletedExercise(
+            exerciseId = "bike",
+            exerciseName = "Bicicleta",
+            cardioDetails = com.example.kpkn.data.models.CardioDetails(
+                type = com.example.kpkn.data.models.CardioType.BIKE_STATIONARY,
+                targetDistanceKm = 10.0,
+                targetDurationSeconds = 1800,
+            ),
+            sets = listOf(CompletedSet("c1", weight = 100.0, reps = 20)),
+        )
+        val log = WorkoutLog(
+            id = "u1",
+            programId = "p",
+            sessionId = "s",
+            sessionName = "Pierna",
+            date = "2026-01-05T10:00:00.000Z",
+            durationMinutes = 50,
+            completedExercises = listOf(unilateral, cardio),
+            weekId = "w1",
+        )
+        val row = WeeklyWorkEngine.byWeek(listOf(log), weekOrder = listOf("w1")).single()
+        assertEquals(2, row.hardSets)
+        assertEquals(640.0, row.tonnageKg, 1e-9)
+        assertEquals(32, row.reps)
+    }
 }

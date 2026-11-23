@@ -33,6 +33,7 @@ class WorkoutFeedbackController(
             lastSet: CompletedSet?,
             advancedFeedback: SetAdvancedFeedback?,
         )
+        fun stopRestTimer()
     }
 
     fun requestPostExerciseFeedback(exerciseIdx: Int) {
@@ -144,17 +145,25 @@ class WorkoutFeedbackController(
                 val nextExercise = allExercises.getOrNull(pending)
                 val nextStep = nextExercise?.let { ports.firstIncompleteStepForExercise(state, it) }
                 val nextSetIdx = nextStep?.setIndex ?: 0
+                val isNextCardio = nextExercise?.cardioDetails != null
                 updateState {
                     it.copy(
                         currentExerciseIdx = pending,
                         currentSetIdx = nextSetIdx,
-                        activeStepKey = nextStep?.stepKey,
+                        activeStepKey = nextStep?.stepKey ?: if (isNextCardio && nextExercise != null) WorkoutStepRules.cardioStepKey(nextExercise.id, nextSetIdx) else null,
                         pendingPostExerciseIdx = -1,
+                        showPostExerciseSheet = false,
+                        postExerciseTargetIdx = -1,
+                        postExerciseFeedbackTarget = null,
+                        isRestTimerRunning = if (isNextCardio) false else it.isRestTimerRunning,
+                        isRestMinimized = if (isNextCardio) false else it.isRestMinimized,
+                        restModalState = if (isNextCardio) null else it.restModalState,
                         editingState = if (nextExercise != null && nextStep?.type == WorkoutStepType.WORKING_SET)
                             ports.buildEditingStateForPosition(it.completedSets, nextExercise, nextSetIdx)
                         else null,
                     )
                 }
+                if (isNextCardio) ports.stopRestTimer()
             }
             pending == -2 && state.isRestTimerRunning -> {
                 updateState { it.copy(showPostExerciseSheet = false, postExerciseTargetIdx = -1, postExerciseFeedbackTarget = null) }

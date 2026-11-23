@@ -88,7 +88,7 @@ class AprendeCatalogAuditTest {
         assertEquals(0, report.duplicateDescriptionCount)
         assertEquals(0, report.desynchronizedMetadataCount)
         assertEquals(0, report.reverseLinkConsistencyIssueCount)
-        assertEquals("c9d234c1a384fc7da59f58308ff3f86f27b3018e6158eaa2b302e362f2ecc73d", report.sourceSha256)
+        assertEquals("2611cfdfb3068fff4f3a3f0bdfc91fabab3339d25f7d0d241be2351cd2fc464d", report.sourceSha256)
         assertTrue("músculos sin puente: ${report.unmappedMuscleIds}", report.unmappedMuscleIds.isEmpty())
         assertTrue("patrones sin puente: ${report.unmappedPatternIds}", report.unmappedPatternIds.isEmpty())
         assertTrue(report.unknownJointIds.isEmpty())

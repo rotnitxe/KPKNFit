@@ -1,14 +1,23 @@
 package com.example.kpkn.screens.sessioneditor.components
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.semantics.toggleableState
@@ -30,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.Exercise
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.domain.training.resolveLiveApreBlock
 import com.example.kpkn.data.models.UnilateralIntensityMode
@@ -43,6 +53,7 @@ import com.example.kpkn.screens.sessioneditor.trainingModeLabel
 import com.example.kpkn.screens.sessioneditor.withTrainingMode
 import com.example.kpkn.screens.sessioneditor.withoutApreBlock
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.ui.design.KpknSetFormat
@@ -69,6 +80,7 @@ internal fun ExerciseOptionsBar(
     onOpenSmartLoad: () -> Unit,
     onOpenGoal: (() -> Unit)?,
     onOpenRest: () -> Unit,
+    onOpenTags: (() -> Unit)? = null,
 ) {
     var restSelectionSeconds by local.restSelectionSeconds
     var showExerciseOptionsMenu by local.showExerciseOptionsMenu
@@ -94,12 +106,14 @@ internal fun ExerciseOptionsBar(
             description = "Modo del ejercicio: $modeLabel",
         )
         if (!suppressIndividualRest) {
+            val sideRestSeconds = exercise.restBetweenSidesSeconds ?: 0
+            val restChipText = if (chainWithSides && sideRestSeconds > 0) {
+                "${KpknSetFormat.rest(restSelectionSeconds)} · ${KpknSetFormat.rest(sideRestSeconds)}"
+            } else {
+                KpknSetFormat.rest(restSelectionSeconds)
+            }
             EdChip(
-                text = if (chainWithSides) {
-                    "Series ${KpknSetFormat.rest(restSelectionSeconds)} · Lados ${KpknSetFormat.rest(exercise.restBetweenSidesSeconds ?: 0)}"
-                } else {
-                    KpknSetFormat.rest(restSelectionSeconds)
-                },
+                text = restChipText,
                 icon = KpknLineIcons.Timer,
                 onClick = onOpenRest,
                 modifier = Modifier.edFlex(autoStart = true),
@@ -139,7 +153,19 @@ internal fun ExerciseOptionsBar(
                 // lleva el deslizador de ROM al 100 %; apagado, sin ROM.
                 RomSwitchMenuRow(
                     checked = exercise.trackRom,
-                    onToggle = { onUpdateExercise { current -> current.copy(trackRom = !current.trackRom) } },
+                    onToggle = {
+                        onUpdateExercise { current ->
+                            val nextTrackRom = !current.trackRom
+                            val defaultRom = if (nextTrackRom && current.plannedRom == null) {
+                                com.example.kpkn.domain.workout.RomTargetCatalog.defaultForMode(
+                                    com.example.kpkn.data.models.RomScaleMode.QUALITATIVE,
+                                )
+                            } else {
+                                current.plannedRom
+                            }
+                            current.copy(trackRom = nextTrackRom, plannedRom = defaultRom)
+                        }
+                    },
                 )
                 EdMenuRow(
                     title = relationshipAnchorName?.let { "Ancla: $it" } ?: "Relacionar ejercicio",
@@ -190,6 +216,18 @@ internal fun ExerciseOptionsBar(
                             closeExerciseMenu {
                                 showExerciseOptionsMenu = false
                                 onOpenSmartLoad()
+                            }
+                        },
+                    )
+                }
+                if (onOpenTags != null) {
+                    EdMenuRow(
+                        title = "Etiquetas y sub-etiquetas",
+                        icon = KpknLineIcons.Tag,
+                        onClick = {
+                            closeExerciseMenu {
+                                showExerciseOptionsMenu = false
+                                onOpenTags()
                             }
                         },
                     )
@@ -272,6 +310,9 @@ internal fun ExerciseRestChain(
             onUpdateExercise { draft ->
                 draft.copy(
                     restTime = primary,
+                    sets = draft.sets.map { set ->
+                        if (set.restAfterSeconds != null) set.copy(restAfterSeconds = null) else set
+                    },
                     restBetweenSidesSeconds = if (draft.isEffectivelyUnilateral()) {
                         side ?: draft.restBetweenSidesSeconds
                     } else {
@@ -471,51 +512,130 @@ internal fun LateralitySheetBody(
 }
 
 /**
- * `ed-unilateral` · Fila «Lados» de un ejercicio unilateral (R1 §4.2): orden L → R / R → L, lados iguales o aparte y el descanso entre
- * lados, tres píldoras bajo las opciones. Si son iguales, lo que editas en un lado se copia al otro.
+ * `ed-unilateral` · Barra unificada «Lados» de un ejercicio unilateral: un único contenedor compacto (`40.dp`, radio `14.dp`)
+ * dividido por un filete vertical en 2 controles: Orden (`L → R` / `R → L`) e Igualdad de lados (`Lados iguales` / `Independientes`).
+ * Al pasar de `INDEPENDENT` a `SHARED`, espeja automáticamente el lado activo al lado opuesto existente en todas las series.
  */
 @Composable
 internal fun SideOptionsModule(
     exercise: Exercise,
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
-    onOpenSideRest: () -> Unit,
+    onOpenSideRest: () -> Unit = {},
 ) {
     val shared = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED
-    EdFlexRow(modifier = Modifier.fillMaxWidth(), gap = 8.dp, lineGap = 8.dp) {
-        EdChip(
-            text = if (exercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) "Orden L → R" else "Orden R → L",
-            onClick = {
-                onUpdateExercise { current ->
-                    current.copy(
-                        unilateralSideOrder = if (current.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) {
-                            UnilateralSideOrder.RIGHT_LEFT
-                        } else {
-                            UnilateralSideOrder.LEFT_RIGHT
-                        },
-                    )
-                }
-            },
-            description = "Orden de los lados",
+    val orderLabel = if (exercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) "Orden L → R" else "Orden R → L"
+    val sidesLabel = if (shared) "Lados iguales" else "Independientes"
+    val shape = RoundedCornerShape(14.dp)
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .clip(shape)
+            .background(KpknSurface.inset, shape)
+            .border(1.dp, KpknSurface.moduleBorder, shape),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clickable(
+                    role = Role.Button,
+                    onClick = {
+                        onUpdateExercise { current ->
+                            current.copy(
+                                unilateralSideOrder = if (current.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT) {
+                                    UnilateralSideOrder.RIGHT_LEFT
+                                } else {
+                                    UnilateralSideOrder.LEFT_RIGHT
+                                },
+                            )
+                        }
+                    },
+                )
+                .semantics { contentDescription = "Orden de los lados" }
+                .padding(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            EdIcon(EdIcons.SideLR, 15.dp, EdColors.muted)
+            Text(
+                text = orderLabel,
+                style = edText(12.5f, FontWeight.SemiBold, EdColors.ink, 16f, true),
+                maxLines = 1,
+            )
+        }
+
+        Box(
+            modifier = Modifier
+                .width(1.dp)
+                .fillMaxHeight()
+                .padding(vertical = 8.dp)
+                .background(KpknSurface.moduleBorder),
         )
-        EdChip(
-            text = if (shared) "Lados iguales" else "Lados aparte",
-            on = shared,
-            onClick = {
-                onUpdateExercise { current ->
-                    current.copy(
-                        unilateralIntensityMode = if (current.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
-                            UnilateralIntensityMode.INDEPENDENT
-                        } else {
-                            UnilateralIntensityMode.SHARED
-                        },
-                    )
-                }
-            },
-        )
-        EdChip(
-            text = "Entre lados ${KpknSetFormat.rest(exercise.restBetweenSidesSeconds ?: 0)}",
-            onClick = onOpenSideRest,
-        )
+
+        Row(
+            modifier = Modifier
+                .weight(1f)
+                .fillMaxHeight()
+                .clickable(
+                    role = Role.Button,
+                    onClick = {
+                        onUpdateExercise { current ->
+                            val switchingToShared = current.unilateralIntensityMode != UnilateralIntensityMode.SHARED
+                            val nextSets = if (switchingToShared) {
+                                val preferLeft = current.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT
+                                current.sets.map { set ->
+                                    val source = if (preferLeft) (set.leftTarget ?: set.rightTarget) else (set.rightTarget ?: set.leftTarget)
+                                    if (source == null) {
+                                        set
+                                    } else {
+                                        val isFailure = source.intensityMode == IntensityMode.FAILURE
+                                        set.copy(
+                                            leftTarget = if (set.leftTarget != null) source else null,
+                                            rightTarget = if (set.rightTarget != null) source else null,
+                                            weight = source.weight ?: set.weight,
+                                            targetReps = source.targetReps,
+                                            targetRepsRange = source.targetRepsRange,
+                                            intensityMode = source.intensityMode,
+                                            targetRPE = if (isFailure) null else source.targetRPE,
+                                            targetRIR = if (isFailure) null else source.targetRIR,
+                                            isFailure = isFailure,
+                                        )
+                                    }
+                                }
+                            } else {
+                                current.sets
+                            }
+                            current.copy(
+                                unilateralIntensityMode = if (switchingToShared) {
+                                    UnilateralIntensityMode.SHARED
+                                } else {
+                                    UnilateralIntensityMode.INDEPENDENT
+                                },
+                                sets = nextSets,
+                            )
+                        }
+                    },
+                )
+                .semantics { contentDescription = "Modo de lados: $sidesLabel" }
+                .padding(horizontal = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(7.dp)
+                    .clip(CircleShape)
+                    .background(if (shared) EdColors.ink else EdColors.faint.copy(alpha = 0.45f)),
+            )
+            Text(
+                text = sidesLabel,
+                style = edText(12.5f, FontWeight.SemiBold, if (shared) EdColors.ink else EdColors.muted, 16f),
+                maxLines = 1,
+            )
+        }
     }
 }
 

@@ -133,55 +133,26 @@ internal fun ExerciseFicha(
         onDispose { KpknModalTracker.onClosed() }
     }
     BackHandler { dismiss() }
-    val repository = remember(model.context) { if (model.context == ExerciseFichaContext.WIZARD) null else runCatching { ProgramRepository.getInstance() }.getOrNull() }
-    val empty = remember { MutableStateFlow<List<WorkoutLog>>(emptyList()) }
-    val history by (repository?.history ?: empty).collectAsStateWithLifecycle()
-    val mediaRepository = remember(model.context) { if (model.context == ExerciseFichaContext.WIZARD) null else runCatching { WorkoutMediaRepository.getInstance() }.getOrNull() }
-    var resolved by remember(model.identityKeys) { mutableStateOf(model.historySummary) }
-    var media by remember(model.identityKeys) { mutableStateOf(model.media) }
-    var album by remember { mutableStateOf(false) }
-    var mediaVersion by remember { mutableStateOf(0) }
-    LaunchedEffect(history, model.identityKeys, model.context) {
-        resolved = if (model.context == ExerciseFichaContext.WIZARD) null else withContext(Dispatchers.Default) {
-            exerciseHistorySummary(history, model.identityKeys) ?: model.historySummary
-        }
-    }
-    LaunchedEffect(model.identityKeys, model.context, mediaVersion) {
-        if (model.context != ExerciseFichaContext.WIZARD && mediaRepository != null && model.identityKeys.isNotEmpty()) {
-            try {
-                media = mediaRepository.listForExerciseKeys(model.identityKeys.toList())
-            } catch (cancelled: CancellationException) {
-                throw cancelled
-            } catch (_: Exception) { /* Conserva la última lectura. */ }
-        }
-    }
     val coverContext = LocalContext.current
     var customCover by remember(model.muscleInfo, model.customCover) {
         mutableStateOf(model.customCover ?: model.muscleInfo?.takeIf { it.isCustom }?.let { com.example.kpkn.screens.sessioneditor.design.CustomCoverModel() })
     }
-    LaunchedEffect(model.muscleInfo, mediaVersion) {
+    LaunchedEffect(model.muscleInfo) {
         model.muscleInfo?.takeIf { it.isCustom || it.id.startsWith("custom:") }?.let {
             customCover = customExerciseCoverModel(coverContext, it)
         }
     }
     KpknPortal {
         ExerciseFichaContent(
-            model = model.copy(historySummary = resolved, media = media, customCover = customCover),
+            model = model.copy(customCover = customCover),
             onDismiss = dismiss,
             onToggleSelection = onToggleSelection,
             onSelectOption = onSelectOption,
             onImplementationSettled = onImplementationSettled,
             showFooter = showFooter,
             onShowHistory = onShowHistory?.let { action -> { onDismiss(); action() } },
-            onOpenAlbum = if (mediaRepository != null) ({ album = true }) else null,
+            onOpenAlbum = null,
             modifier = Modifier.graphicsLayer { translationY = entry.value * size.height },
-        )
-    }
-    if (album) {
-        ExerciseAlbumSheet(
-            exerciseName = model.name,
-            keys = model.identityKeys.toList(),
-            onDismiss = { album = false; mediaVersion += 1 },
         )
     }
 }
@@ -209,11 +180,14 @@ internal fun ExerciseFichaContent(
     // Reserva fuera del viewport el espacio del título fijo para evitar que el cuerpo pase debajo.
     val fixedHeadingSpace = (insets.calculateTopPadding() + 60.dp) * effects.headerAlpha
     val implement = model.axes.firstOrNull { it.axis == "implement" }?.options.orEmpty()
-    val config = model.axes.filter { it.axis != "implement" }
     val footer = exerciseFichaFooter(model.context, model.isSelected, showFooter)?.let { default -> model.selectionLabel ?: default }
-    val openProgress = com.example.kpkn.screens.progress.LocalExerciseProgressOpener.current
     val wizard = model.context == ExerciseFichaContext.WIZARD
-    val catalogHero = selectedCatalogImageVariantIndex(model.imageVariants, model.selectedImplementation ?: model.initialImageImplementation) != null
+    val effectiveInitialImplementation = model.initialImageImplementation
+        ?.takeIf { initImpl -> model.imageVariants.any { it.implementation == initImpl } }
+    val catalogHero = selectedCatalogImageVariantIndex(
+        model.imageVariants,
+        model.selectedImplementation ?: effectiveInitialImplementation,
+    ) != null
     val hasHero = model.customCover != null || catalogHero
     val heroHeight = 400.dp
     var knowledge by remember { mutableStateOf<CanonicalKnowledge?>(null) }
@@ -252,7 +226,7 @@ internal fun ExerciseFichaContent(
                         } else CatalogExerciseImageCarousel(
                             variants = model.imageVariants,
                             selectedImplementation = model.selectedImplementation,
-                            initialImplementation = model.initialImageImplementation,
+                            initialImplementation = effectiveInitialImplementation,
                             onImplementationSettled = onImplementationSettled,
                             implementOptions = implement,
                             onSelectImplementation = { onSelectOption("implement", it) },
@@ -264,13 +238,6 @@ internal fun ExerciseFichaContent(
                     }
                 }
             } else Spacer(Modifier.height(insets.calculateTopPadding() + 56.dp))
-            if (implement.size > 1) {
-                CatalogImplementPills(
-                    options = implement, shownValue = model.selectedImplementation, haze = remember { HazeState() },
-                    onSelect = { onSelectOption("implement", it) },
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                )
-            }
             Column(
                 modifier = Modifier.fillMaxWidth().shadow(20.dp, RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp))
                     .clip(RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp)).background(Color(0xFF0E0E0E))
@@ -282,70 +249,15 @@ internal fun ExerciseFichaContent(
                     verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     Text(model.name, style = KpknType.title, color = WizardColors.text,
                         modifier = Modifier.testTag("exercise-ficha-large-title"))
-                    model.caption?.takeIf { it.isNotBlank() }?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
-                    model.contextLine?.takeIf { it.isNotBlank() }?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
-                }
-                if (!wizard) {
-                    Text(model.customCover?.provenance ?: if (catalogHero) "Imagen técnica del catálogo" else "Sin imagen revisada para esta configuración.",
-                        style = KpknType.caption, color = WizardColors.textMuted, modifier = Modifier.testTag("exercise-ficha-image-provenance"))
-                    model.customCover?.unavailableReason?.let {
-                        Text(it, style = KpknType.caption, color = SymbolPalette.energia, modifier = Modifier.testTag("exercise-ficha-image-abstention"))
-                    }
-                    if (model.muscleInfo?.isCustom == true) {
-                        Text(if (model.muscleInfo.creationReference?.confirmed == true)
-                            "Referencia de creación confirmada; puede incluir ajustes tuyos."
-                            else "Datos propios sin una configuración de referencia confirmada.",
-                            style = KpknType.caption, color = WizardColors.textMuted,
-                            modifier = Modifier.testTag("exercise-ficha-data-provenance"))
-                    }
-                }
-                if (!wizard) com.example.kpkn.ui.design.KpknTextAction("Ver progreso", {
-                    val key = if (model.identityKeys.isNotEmpty()) "keys:${model.identityKeys.joinToString(",")}" else
-                        "name:${com.example.kpkn.domain.exercises.normalizeExerciseIdentityToken(model.name)}"
-                    onDismiss(); openProgress(key)
-                }, Modifier.testTag("exercise-open-progress"))
-                model.patternId?.let(::canonicalPatternKnowledge)?.let { pattern ->
-                    KpknChip(text = "Patrón · ${pattern.name}", selected = false, onClick = { knowledge = pattern })
-                }
-                if (!wizard && (model.historySummary != null || model.media.isNotEmpty())) {
-                    FichaHistory(model, onShowHistory, onOpenAlbum)
-                }
-                model.muscleInfo?.takeIf { it.involvedMuscles.isNotEmpty() }?.let { info ->
-                    Box(Modifier.testTag(if (wizard) "setup-exercise-info-muscles" else "exercise-ficha-muscles")) {
-                        CatalogMusclesModule(exercise = info, onKnowledge = { knowledge = it })
-                    }
                 }
                 model.description?.takeIf { it.isNotBlank() }?.let { description ->
                     Box(Modifier.testTag(if (wizard) "setup-exercise-info-description" else "exercise-ficha-description")) {
                         CatalogDescription(description)
                     }
                 }
-                if (model.setupCues.isNotEmpty()) {
-                    Column(Modifier.testTag("exercise-ficha-setup"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Preparación", style = KpknType.bodyStrong, color = WizardColors.text)
-                        FichaCues(model.setupCues)
-                    }
-                }
-                if (model.executionCues.isNotEmpty()) {
-                    Column(Modifier.testTag("exercise-ficha-execution"), verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        Text("Ejecución", style = KpknType.bodyStrong, color = WizardColors.text)
-                        FichaCues(model.executionCues)
-                    }
-                }
-                if (config.isNotEmpty() || !model.configurationLine.isNullOrBlank()) {
-                    KpknModule {
-                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text("Configuración", style = KpknType.bodyStrong, color = WizardColors.text)
-                            config.forEach { axis ->
-                                Text(axis.label, style = KpknType.caption, color = WizardColors.textMuted)
-                                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    axis.options.forEach { option ->
-                                        KpknChip(text = option.label, selected = option.selected, enabled = option.enabled, onClick = { onSelectOption(axis.axis, option.value) })
-                                    }
-                                }
-                            }
-                            model.configurationLine?.let { Text(it, style = KpknType.caption, color = if (model.configurationIncomplete) SymbolPalette.energia else WizardColors.textMuted) }
-                        }
+                model.muscleInfo?.takeIf { it.involvedMuscles.isNotEmpty() }?.let { info ->
+                    Box(Modifier.testTag(if (wizard) "setup-exercise-info-muscles" else "exercise-ficha-muscles")) {
+                        CatalogMusclesModule(exercise = info, onKnowledge = { knowledge = it })
                     }
                 }
                 if (model.joints.isNotEmpty()) {
@@ -378,48 +290,4 @@ internal fun ExerciseFichaContent(
         }
     }
     knowledge?.let { CanonicalKnowledgeOverlay(knowledge = it, onDismiss = { knowledge = null }) }
-}
-
-@Composable
-private fun FichaCues(cues: List<String>) {
-    cues.forEachIndexed { index, cue ->
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-            Text("${index + 1}", style = KpknType.chip, color = SymbolPalette.musculo, modifier = Modifier.size(26.dp))
-            Text(cue, style = KpknType.body, color = WizardColors.textMuted, modifier = Modifier.weight(1f))
-        }
-    }
-}
-
-@Composable
-private fun FichaHistory(model: CatalogDetailModel, onShowHistory: (() -> Unit)?, onOpenAlbum: (() -> Unit)?) {
-    KpknModule {
-        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("Tu historial", style = KpknType.bodyStrong, color = WizardColors.text, modifier = Modifier.weight(1f))
-                if (onShowHistory != null) KpknTextAction("Ver historial", onClick = onShowHistory)
-            }
-            model.historySummary?.let { history ->
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    history.bestSet?.let { Text("Mejor serie · ${com.example.kpkn.domain.workout.CompletedSetLoadSemantics.displaySet(it)}", style = KpknType.body, color = WizardColors.text) }
-                    history.estimatedRmKg?.let { Text("1RM estimado · ${NativeProgressionText.formatKg(it)} kg", style = KpknType.caption, color = WizardColors.textMuted) }
-                    val days = ChronoUnit.DAYS.between(history.lastDate, LocalDate.now()).coerceAtLeast(0)
-                    Text("Última vez · " + when (days) { 0L -> "hoy"; 1L -> "ayer"; else -> "hace $days días" }, style = KpknType.caption, color = WizardColors.textMuted)
-                }
-            }
-            val mediaItems = model.media
-            if (mediaItems.isNotEmpty()) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    mediaItems.take(3).forEach { media ->
-                        WorkoutMediaThumb(media = media, modifier = Modifier.size(52.dp).clip(RoundedCornerShape(12.dp)), onClick = onOpenAlbum ?: {})
-                    }
-                    val label = when {
-                        mediaItems.all { it.kind == com.example.kpkn.data.models.WorkoutMediaKind.PHOTO } -> "Tus fotos"
-                        mediaItems.all { it.kind == com.example.kpkn.data.models.WorkoutMediaKind.VIDEO } -> "Tus vídeos"
-                        else -> "Tus archivos"
-                    }
-                    if (onOpenAlbum != null) KpknTextAction("$label · ${mediaItems.size}", onClick = onOpenAlbum, modifier = Modifier.weight(1f))
-                }
-            }
-        }
-    }
 }

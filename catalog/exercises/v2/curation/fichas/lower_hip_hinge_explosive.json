@@ -103,7 +103,7 @@
           },
           {
             "id": "quadriceps",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "geisler2023",
               "joffe2026",
@@ -132,7 +132,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "suchomel2015",
               "anat_gastroc"
@@ -141,6 +141,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "geisler2023",
@@ -476,7 +477,7 @@
           },
           {
             "id": "quadriceps",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "mcgill2012",
               "quadriceps_anatomy"
@@ -485,7 +486,7 @@
           },
           {
             "id": "deltoid",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "abuwarda2024"
             ],
@@ -773,7 +774,7 @@
           },
           {
             "id": "quadriceps",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "mcgill2012",
               "quadriceps_anatomy"
@@ -782,7 +783,7 @@
           },
           {
             "id": "deltoid",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "abuwarda2024"
             ],
@@ -1081,7 +1082,7 @@
           },
           {
             "id": "quadriceps",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "geisler2023",
               "moolyk2013",
@@ -1111,7 +1112,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "hayashi2023",
               "anat_gastroc"
@@ -1138,6 +1139,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "geisler2023",
@@ -1528,7 +1530,7 @@
           },
           {
             "id": "quadriceps",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "geisler2023",
               "anat_quadriceps"
@@ -1573,7 +1575,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "arauz2025",
               "anat_gastroc"
@@ -1582,6 +1584,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "geisler2023",
@@ -1945,7 +1948,7 @@
           },
           {
             "id": "quadriceps",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "geisler2023",
               "moolyk2013",
@@ -1976,7 +1979,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "arauz2026",
               "kipp2011",
@@ -2004,6 +2007,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "geisler2023",
@@ -2403,7 +2407,7 @@
           },
           {
             "id": "quadriceps",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "geisler2023",
               "arauz2025",
@@ -2450,7 +2454,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "arauz2025",
               "anat_gastroc"
@@ -2459,6 +2463,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "geisler2023",
@@ -2821,7 +2826,7 @@
           },
           {
             "id": "quadriceps",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "geisler2023",
               "arauz2026",
@@ -2849,7 +2854,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "suchomel2015",
               "anat_gastroc"
@@ -2858,6 +2863,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "geisler2023",
@@ -3229,7 +3235,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "arauz2026",
               "anat_gastroc"
@@ -3256,6 +3262,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "roth2020",
@@ -3718,7 +3725,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "arauz2026",
               "anat_gastroc"
@@ -3736,6 +3743,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "roth2020",

@@ -1,5 +1,10 @@
 package com.example.kpkn.screens.workout.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.semantics.semantics
@@ -11,14 +16,20 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.kpkn.data.models.*
 import com.example.kpkn.domain.calibration.CalibrationDecisionType
+import com.example.kpkn.domain.training.Apre
+import com.example.kpkn.domain.training.resolveLiveApreBlock
+import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.workout.*
 
 /** V7 occupies the existing card, with a scrollable body and fixed, accessible actions. */
@@ -74,7 +85,11 @@ internal fun LiveCalibrationResult(
         record?.apre != null && d?.type != CalibrationDecisionType.NOT_APPLIED -> record.apre.set4LoadKg
         else -> d?.affectedSets?.firstOrNull { it.setId in compatible }?.afterKg ?: d?.capacityKg
     }
-    val kicker = when { record?.apre != null -> "APRE"; d == null -> "AMRAP"; else -> "CALIBRACIÓN" }
+    val kicker = when {
+        record?.apre != null || completed.apreXrm != null -> "APRE"
+        d == null -> "AMRAP"
+        else -> "CALIBRACIÓN"
+    }
     val status = when (record?.status) {
         CalibrationStatus.APPLIED -> "Aplicada"
         CalibrationStatus.KEPT -> "Plan conservado"
@@ -85,6 +100,49 @@ internal fun LiveCalibrationResult(
         fontWeight = weight, fontSize = size.sp, fontFeatureSettings = "'tnum' 1") }
     val body = { size: Int -> androidx.compose.ui.text.TextStyle(fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.body,
         fontSize = size.sp, lineHeight = (size * 1.6f).sp) }
+    val apreBlock = remember(exercise.id, exercise.apreBlock, exercise.sets) { resolveLiveApreBlock(exercise) }
+    val plannedSet = exercise.sets.getOrNull(sourceIndex)
+    val actualRir = completed.rir ?: if (completed.rpe == null && !completed.isFailure) plannedSet?.targetRIR else null
+    val actualRpe = completed.rpe ?: if (completed.rir == null && !completed.isFailure) plannedSet?.targetRPE else null
+    val apreBand = apreBlock?.takeIf { record?.apre != null || completed.apreXrm != null }?.let { block ->
+        val effReps = Apre.effectiveRepsForTable(Apre.validReps(completed.reps), actualRir, actualRpe)
+        Apre.band(block.variant, effReps)
+    }
+    val outcomeTier = when (apreBand) {
+        Apre.Band.DROP_LARGE, Apre.Band.DROP_SMALL -> -1
+        Apre.Band.HOLD -> 0
+        Apre.Band.RAISE_SMALL -> 1
+        Apre.Band.RAISE_LARGE -> 2
+        null -> when {
+            minimum != null && completed.reps < minimum -> -1
+            minimum != null && completed.reps >= minimum + 2 -> 2
+            minimum != null && completed.reps >= minimum -> 1
+            else -> null
+        }
+    }
+    val reducedMotion = wizardReducedMotion()
+    val heroScale = remember(completed.id, outcomeTier) { Animatable(if (reducedMotion || outcomeTier == null) 1f else 0.86f) }
+    val heroShakeX = remember(completed.id, outcomeTier) { Animatable(0f) }
+    LaunchedEffect(completed.id, outcomeTier, reducedMotion) {
+        if (reducedMotion || outcomeTier == null) {
+            heroScale.snapTo(1f)
+            heroShakeX.snapTo(0f)
+        } else if (outcomeTier < 0) {
+            heroScale.snapTo(1f)
+            listOf(-6f, 6f, -4f, 4f, 0f).forEach { target ->
+                heroShakeX.animateTo(target, tween(48, easing = FastOutSlowInEasing))
+            }
+        } else {
+            heroScale.snapTo(0.86f)
+            heroScale.animateTo(
+                1f,
+                spring(
+                    dampingRatio = if (outcomeTier >= 2) Spring.DampingRatioLowBouncy else Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessMediumLow,
+                ),
+            )
+        }
+    }
     Column(Modifier.fillMaxSize().background(Color(0xFF111111)).testTag("calibration-result")) {
         Column(Modifier.weight(1f).fillMaxWidth().padding(start = inset, end = inset, top = if (compact) 9.dp else 13.dp)) {
             Row(Modifier.fillMaxWidth().height(if (compact) 27.dp else 29.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
@@ -93,16 +151,42 @@ internal fun LiveCalibrationResult(
             }
             Column(Modifier.weight(1f).fillMaxWidth().testTag("calibration-result-body"),
                 horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(7.dp, androidx.compose.ui.Alignment.CenterVertically)) {
+                verticalArrangement = Arrangement.spacedBy(if (compact) 4.dp else 7.dp, androidx.compose.ui.Alignment.CenterVertically)) {
                 state.calibrationError?.takeIf { it.decisionId == record?.id }?.let {
                     Text(it.message, color = Color(0xFFFFB5AD), style = body(10), modifier = Modifier.testTag("calibration-error"))
                 }
-                Text("RESULTADO", style = body(9).copy(letterSpacing = 1.sp, lineHeight = 12.sp), color = faint)
+                val outcomeTierColor = when (outcomeTier) {
+                    -1 -> Color(0xFFFFB5AD)
+                    0, 1 -> Color(0xFF5CE1B8)
+                    2 -> Color(0xFFF7CF73)
+                    else -> ink
+                }
+                val outcomeTierBadge = when (outcomeTier) {
+                    -1 -> "↓ Ajuste descendente"
+                    0 -> "→ Mantener carga"
+                    1 -> "✓ Objetivo cumplido"
+                    2 -> "⚡ Rendimiento excepcional"
+                    else -> null
+                }
+                Text(
+                    text = outcomeTierBadge ?: "RESULTADO",
+                    style = if (outcomeTierBadge != null) {
+                        body(10).copy(fontWeight = FontWeight.SemiBold, lineHeight = 13.sp)
+                    } else {
+                        body(9).copy(letterSpacing = 1.sp, lineHeight = 12.sp)
+                    },
+                    color = if (outcomeTierBadge != null) outcomeTierColor else faint,
+                )
                 Text(androidx.compose.ui.text.buildAnnotatedString {
                     append(completed.reps.toString())
                     withStyle(androidx.compose.ui.text.SpanStyle(fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.body,
                         fontSize = 12.sp, fontWeight = FontWeight.Normal)) { append(" reps") }
-                }, style = syne(43, FontWeight.ExtraBold), color = ink)
+                }, style = syne(43, FontWeight.ExtraBold), color = outcomeTierColor,
+                    modifier = Modifier.graphicsLayer {
+                        scaleX = heroScale.value
+                        scaleY = heroScale.value
+                        translationX = heroShakeX.value
+                    })
                 Text(listOfNotNull("${finishNumber(completed.weight)} kg", effort).joinToString(" · "), Modifier.fillMaxWidth(), style = body(12), color = muted,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center)
                 if (d == null) {

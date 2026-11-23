@@ -44,6 +44,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
@@ -99,6 +101,7 @@ internal fun SupersetExerciseConfigOverlay(
     relationshipAnchorName: String?,
     availableTags: List<WorkoutTag> = emptyList(),
     onSaveTag: (WorkoutTag) -> Unit = {},
+    onDeleteTag: (String) -> Unit = {},
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onOpenRelationshipPicker: () -> Unit,
@@ -107,6 +110,7 @@ internal fun SupersetExerciseConfigOverlay(
 ) {
     var showSmartLoadSheet by remember { mutableStateOf(false) }
     var showGoalSheet by remember { mutableStateOf(false) }
+    var showTagManagerSheet by remember { mutableStateOf(false) }
     // ER1f: el estado de la barra de opciones (ER1c1) y de la unidad personalizada, como en el ejercicio desplegado.
     val local = rememberExerciseEditorLocalState(exercise)
     var showCustomUnitModal by local.showCustomUnitModal
@@ -178,7 +182,16 @@ internal fun SupersetExerciseConfigOverlay(
             onOpenSmartLoad = { showSmartLoadSheet = true },
             onOpenGoal = { showGoalSheet = true },
             onOpenRest = {},
+            onOpenTags = { showTagManagerSheet = true },
         )
+        if (exercise.trackRom) {
+            com.example.kpkn.ui.design.KpknRomEditorSection(
+                target = exercise.plannedRom,
+                onChange = { nextRom ->
+                    onUpdateExercise { current -> current.copy(plannedRom = nextRom) }
+                },
+            )
+        }
         if (exercise.isEffectivelyUnilateral()) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SideOrderChip(
@@ -236,12 +249,32 @@ internal fun SupersetExerciseConfigOverlay(
             prRepsInput = prRepsInput,
             onPrRepsInputChange = { prRepsInput = it },
             customUnitInput = customUnitInput,
-            localPrEstimatedRm = exercise.prFor1RM?.let { StrengthModel.estimate1RM(it.weight, it.reps) },
+            localPrEstimatedRm = exercise.prFor1RM?.let {
+                StrengthModel.estimate1RM(
+                    weight = it.weight,
+                    reps = it.reps,
+                    rir = it.effortValue?.toInt()?.takeIf { _ -> it.effortMode == com.example.kpkn.data.models.PrEffortMode.RIR },
+                    rpe = it.effortValue?.takeIf { _ -> it.effortMode == com.example.kpkn.data.models.PrEffortMode.RPE },
+                    toFailure = it.effortMode == com.example.kpkn.data.models.PrEffortMode.FAILURE,
+                )
+            },
             resolved1RM = resolveReferenceCapacity(exercise),
             onUpdateExercise = onUpdateExercise,
             availableTags = availableTags,
             onSaveTag = onSaveTag,
+            onOpenTagManager = { showTagManagerSheet = true },
             onDismiss = { showSmartLoadSheet = false },
+        )
+    }
+
+    if (showTagManagerSheet) {
+        com.example.kpkn.screens.sessioneditor.components.sheets.ExerciseTagManagerSheet(
+            exercise = exercise,
+            availableTags = availableTags,
+            onSelectTag = { tagId -> onUpdateExercise { it.copy(workoutTagId = tagId) } },
+            onSaveTag = onSaveTag,
+            onDeleteTag = onDeleteTag,
+            onDismiss = { showTagManagerSheet = false },
         )
     }
 
@@ -323,6 +356,8 @@ internal fun SupersetBaseRestModule(
     onRestAfterChange: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    var showRestClock by remember { mutableStateOf(false) }
+
     Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text("DESCANSO BASE", style = KpknType.eyebrow, color = WizardColors.textMuted)
@@ -339,16 +374,50 @@ internal fun SupersetBaseRestModule(
             onStep = { delta -> onRoundsStep(delta) },
         )
         SessionBaseRestDivider()
-        SupersetBaseRestStepperRow(
-            label = "Entre ejercicios",
-            seconds = restBetweenSeconds,
-            onChange = onRestBetweenChange,
-        )
-        SessionBaseRestDivider()
-        SupersetBaseRestStepperRow(
-            label = "Tras la ronda",
-            seconds = restAfterSeconds,
-            onChange = onRestAfterChange,
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .defaultMinSize(minHeight = 48.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .clickable(role = Role.Button, onClick = { showRestClock = true })
+                .semantics { contentDescription = "Configurar descanso base de la superserie" }
+                .padding(vertical = 6.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                Text("Entre ejercicios · Tras la ronda", style = KpknType.bodyStrong, color = WizardColors.text)
+                Text(
+                    "Entre ejercicios ${formatRestSummary(restBetweenSeconds)} · Tras la ronda ${formatRestSummary(restAfterSeconds)}",
+                    style = KpknType.caption,
+                    color = WizardColors.textMuted,
+                )
+            }
+            EdChip(
+                text = "${formatRestSummary(restBetweenSeconds)} · ${formatRestSummary(restAfterSeconds)}",
+                icon = KpknLineIcons.Timer,
+                onClick = { showRestClock = true },
+                description = "Abrir reloj de descanso base",
+            )
+        }
+    }
+
+    if (showRestClock) {
+        com.example.kpkn.ui.components.KpknRestClockSheet(
+            title = "Descanso base",
+            primaryLabel = "Entre ejercicios",
+            initialPrimarySeconds = restBetweenSeconds,
+            secondaryLabel = "Tras la ronda",
+            initialSecondarySeconds = restAfterSeconds,
+            primaryStepSeconds = 15,
+            secondaryStepSeconds = 15,
+            onDismiss = { showRestClock = false },
+            onConfirm = { between, after ->
+                if (between != restBetweenSeconds) onRestBetweenChange(between)
+                val resolvedAfter = after ?: restAfterSeconds
+                if (resolvedAfter != restAfterSeconds) onRestAfterChange(resolvedAfter)
+                showRestClock = false
+            },
         )
     }
 }
@@ -447,6 +516,7 @@ internal fun SupersetRoundsCarousel(
     onAddRound: () -> Unit,
     onRemoveRound: (Int) -> Unit,
     onUpdateExercise: ((String, (Exercise) -> Exercise) -> Unit)? = null,
+    availableTagsForExercise: (Exercise) -> List<WorkoutTag> = { emptyList() },
 ) {
     var openRound by rememberSaveable(group.id) { mutableStateOf<Int?>(null) }
     var restPickerRound by remember { mutableStateOf<Int?>(null) }
@@ -560,6 +630,7 @@ internal fun SupersetRoundsCarousel(
                                     set = set,
                                     roundIndex = roundIndex,
                                     accentColor = accentColor,
+                                    availableTags = availableTagsForExercise(exercise),
                                     onUpdateSet = { setId, updater -> onUpdateSet(exercise.id, setId, updater) },
                                     onRemoveSet = { setId -> onRemoveSet(exercise.id, setId) },
                                     onDuplicateSet = onUpdateExercise?.let { update ->
@@ -714,6 +785,7 @@ private fun RoundExerciseSetCard(
     set: ExerciseSet,
     roundIndex: Int,
     accentColor: Color,
+    availableTags: List<WorkoutTag> = emptyList(),
     onUpdateSet: (String, (ExerciseSet) -> ExerciseSet) -> Unit,
     onRemoveSet: (String) -> Unit,
     onDuplicateSet: ((String) -> Unit)?,
@@ -925,6 +997,33 @@ private fun RoundExerciseSetCard(
                     }
                 } else {
                     RoundSetBlock(side = null, showActions = true)
+                }
+                val selectedTag = availableTags.firstOrNull { it.id == exercise.workoutTagId }
+                val subTags = selectedTag?.subTags.orEmpty()
+                if (subTags.isNotEmpty() && !set.isEmptySlot) {
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+                    ) {
+                        subTags.forEach { sub ->
+                            val active = sub.id in set.subTagIds
+                            com.example.kpkn.ui.design.KpknChip(
+                                text = sub.name,
+                                selected = active,
+                                onClick = {
+                                    onUpdateSet(set.id) { current ->
+                                        val next = if (sub.id in current.subTagIds) {
+                                            current.subTagIds - sub.id
+                                        } else {
+                                            current.subTagIds + sub.id
+                                        }
+                                        current.copy(subTagIds = next)
+                                    }
+                                },
+                            )
+                        }
+                    }
                 }
             }
         }

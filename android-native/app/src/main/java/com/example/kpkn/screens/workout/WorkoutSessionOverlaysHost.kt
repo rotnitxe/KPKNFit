@@ -71,7 +71,7 @@ internal fun WorkoutSessionOverlaysHost(
     var showContext by remember { mutableStateOf(false) }
     LaunchedEffect(session.id) { viewModel.loadReadiness() }
     if (showReadinessSheet) {
-        WorkoutReadinessSheet(
+        PreWorkoutCheckInSheet(
             session = session,
             weekLabel = null,
             initial = uiState.todayWellbeing,

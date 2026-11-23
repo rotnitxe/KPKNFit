@@ -143,6 +143,7 @@ internal fun ExerciseEditorExpanded(
     onUpdateRelationshipNotes: (String?) -> Unit,
     tagOptions: List<WorkoutTag> = emptyList(),
     onSaveTag: (WorkoutTag) -> Unit = {},
+    onDeleteTag: (String) -> Unit = {},
 ) {
     var mobilityBlockExpanded by local.mobilityBlockExpanded
     var warmupBlockExpanded by local.warmupBlockExpanded
@@ -154,6 +155,7 @@ internal fun ExerciseEditorExpanded(
     var prRepsInput by local.prRepsInput
     val customUnitInput by local.customUnitInput
     var showRestChain by remember { mutableStateOf(false) }
+    var showTagManagerSheet by remember { mutableStateOf(false) }
     val goalLambda: () -> Unit = { local.showGoalSheet.value = true }
     val openGoal: (() -> Unit)? = if (exercise.cardioDetails == null) goalLambda else null
 
@@ -227,7 +229,22 @@ internal fun ExerciseEditorExpanded(
                 onOpenSmartLoad = { showSmartLoadSheet = true },
                 onOpenGoal = openGoal,
                 onOpenRest = { showRestChain = true },
+                onOpenTags = { showTagManagerSheet = true },
             )
+            if (exercise.trackRom) {
+                KpknModule(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 12.dp),
+                ) {
+                    com.example.kpkn.ui.design.KpknRomEditorSection(
+                        target = exercise.plannedRom,
+                        onChange = { nextRom ->
+                            onUpdateExercise { current -> current.copy(plannedRom = nextRom) }
+                        },
+                        title = "ROM programado",
+                    )
+                }
+            }
             if (exercise.isEffectivelyUnilateral()) {
                 SideOptionsModule(
                     exercise = exercise,
@@ -277,7 +294,19 @@ internal fun ExerciseEditorExpanded(
                     onUpdateExercise = onUpdateExercise,
                     availableTags = tagOptions,
                     onSaveTag = onSaveTag,
+                    onOpenTagManager = { showTagManagerSheet = true },
                     onDismiss = { showSmartLoadSheet = false },
+                )
+            }
+
+            if (showTagManagerSheet) {
+                com.example.kpkn.screens.sessioneditor.components.sheets.ExerciseTagManagerSheet(
+                    exercise = exercise,
+                    availableTags = tagOptions,
+                    onSelectTag = { tagId -> onUpdateExercise { it.copy(workoutTagId = tagId) } },
+                    onSaveTag = onSaveTag,
+                    onDeleteTag = onDeleteTag,
+                    onDismiss = { showTagManagerSheet = false },
                 )
             }
 
@@ -323,6 +352,8 @@ internal fun ExerciseEditorExpanded(
                     onMoveSet = onMoveSet,
                     onTransformExercise = onUpdateExercise,
                     onOpenSmartLoad = { showSmartLoadSheet = true },
+                    availableTags = tagOptions,
+                    onOpenTagManager = { showTagManagerSheet = true },
                 )
             }
 

@@ -410,26 +410,40 @@ internal fun EdStepperField(
     scrubbable: Boolean = true,
     /** Sin − ni + (el valor «Hasta el fallo» de la intensidad). */
     showSteppers: Boolean = true,
+    stateKey: Any = label,
 ) {
     val shape = RoundedCornerShape(16.dp)
     val haptic = LocalHapticFeedback.current
     val density = LocalDensity.current
     val currentStep by rememberUpdatedState(onStep)
+    val currentOnCommitText by rememberUpdatedState(onCommitText)
     // pulido:ed-A15 / ed-J06 `stepField`: la cifra rebota 0,24 s (`.ed-stv.bump b`) con cada paso o arrastre, no al aparecer
     val bumps = remember { mutableIntStateOf(0) }
-    val stepAndBump: (Int) -> Unit = { direction ->
-        bumps.intValue += 1
-        currentStep(direction)
-    }
-    var editing by remember { mutableStateOf(false) }
-    var draft by remember { mutableStateOf(TextFieldValue()) }
-    var sawFocus by remember { mutableStateOf(false) }
-    val focus = remember { FocusRequester() }
+    var editing by remember(stateKey) { mutableStateOf(false) }
+    var draft by remember(stateKey) { mutableStateOf(TextFieldValue()) }
+    var sawFocus by remember(stateKey) { mutableStateOf(false) }
+    val focus = remember(stateKey) { FocusRequester() }
     val editable = keyboard != null && onCommitText != null && centerContent == null
     fun commit() {
         if (!editing) return
         editing = false
-        onCommitText?.invoke(draft.text)
+        currentOnCommitText?.invoke(draft.text)
+    }
+    val stepAndBump: (Int) -> Unit = { direction ->
+        if (editing) {
+            editing = false
+            currentOnCommitText?.invoke(draft.text)
+        }
+        bumps.intValue += 1
+        currentStep(direction)
+    }
+    androidx.compose.runtime.DisposableEffect(stateKey) {
+        onDispose {
+            if (editing) {
+                editing = false
+                currentOnCommitText?.invoke(draft.text)
+            }
+        }
     }
     androidx.compose.runtime.LaunchedEffect(editing) { if (editing) focus.requestFocus() }
     // pulido:ed-T27 .ed-st borde 0,16 s ease (.edit = #f2eee6aa)

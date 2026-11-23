@@ -313,6 +313,7 @@ data class Exercise(
     val isStarTarget: Boolean = false,
     val trackHeartRate: Boolean = false,
     val trackRom: Boolean = false,
+    val plannedRom: PlannedRomTarget? = null,
     val setupDetails: ExerciseSetupDetails? = null,
     val supersetId: String? = null,
     val supersetRestBetween: Int? = null,
@@ -719,6 +720,10 @@ data class ExerciseSet(
     val manualLoadRequiredSides: Set<String> = emptySet(),
     /** Stable prescription slot within a recipe exercise; null for legacy/ad-hoc sets without a verified slot. */
     val plannedSlotId: String? = null,
+    /** Sub-tag IDs assigned specifically to this set (#12). */
+    val subTagIds: List<String> = emptyList(),
+    /** Optional per-set ROM target override (#13). */
+    val plannedRom: PlannedRomTarget? = null,
 )
 
 enum class IntensityMode { RPE, RIR, FAILURE, AMRAP, LOAD, SOLO_RM }
@@ -748,12 +753,23 @@ data class ExerciseSetupDetails(
 )
 
 @Serializable
+enum class RomScaleMode { DEGREES, QUALITATIVE, SCALE_1_10, PERCENT }
+
+@Serializable
+data class PlannedRomTarget(
+    val mode: RomScaleMode = RomScaleMode.QUALITATIVE,
+    val numericValue: Int? = null,
+    val label: String? = null,
+)
+
+@Serializable
 data class PrReference(
     val weight: Double,
     val reps: Int,
     /** Null preserves historical PRs whose effort was not recorded. */
     val effortMode: PrEffortMode? = null,
     val effortValue: Double? = null,
+    val romTarget: PlannedRomTarget? = null,
 )
 
 @Serializable

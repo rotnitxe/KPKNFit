@@ -114,19 +114,12 @@ class ExerciseSetListComposeTest {
     }
 
     @Test
-    fun elDescansoEsDeLaSerieYSePuedeVolverAlDelEjercicio() {
-        var saved: ExerciseSet? = null
+    fun elDescansoViveSoloEnLaBarraDelEjercicioYNoEnElFocoDeSerie() {
         val set = ExerciseSet(id = "s1", restAfterSeconds = 60)
-        renderList(exerciseWith(set), onUpdateSet = { _, transform -> saved = transform(set) })
+        renderList(exerciseWith(set))
         openRow("s1")
-        rule.onNodeWithText("DESCANSO").assertExists()
-        rule.onNodeWithText("Propio").assertExists()
-        rule.onNodeWithContentDescription("Sumar 15 segundos").performClick()
-        rule.waitForIdle()
-        assertEquals(75, saved?.restAfterSeconds)
-        rule.onNodeWithContentDescription("Usar el descanso del ejercicio").performClick()
-        rule.waitForIdle()
-        assertEquals(null, saved?.restAfterSeconds)
+        rule.onNodeWithText("DESCANSO").assertDoesNotExist()
+        rule.onNodeWithText("Igual que el ejercicio").assertDoesNotExist()
     }
 
     @Test

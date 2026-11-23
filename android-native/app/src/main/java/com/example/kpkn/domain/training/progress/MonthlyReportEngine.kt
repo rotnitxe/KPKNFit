@@ -1,10 +1,15 @@
 package com.example.kpkn.domain.training.progress
 
+import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.models.CompletedExercise
 import com.example.kpkn.data.models.CompletedSet
+import com.example.kpkn.data.models.ExerciseMuscleInfo
 import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.domain.exercises.ExerciseMuscleResolver
 import com.example.kpkn.domain.performance.StrengthModel
+import com.example.kpkn.domain.training.VolumeCalculator
+import com.example.kpkn.domain.training.insights.RecordedSetAccounting
 import java.time.LocalDate
 import java.time.YearMonth
 import java.time.temporal.ChronoUnit
@@ -78,6 +83,7 @@ object MonthlyReportEngine {
         month: YearMonth,
         programId: String? = null,
         trackedMuscles: List<String> = emptyList(),
+        exerciseIndex: Map<String, ExerciseMuscleInfo> = catalogExerciseIndex(),
     ): MonthlyReport {
         val dated = logs
             .asSequence()
@@ -88,8 +94,9 @@ object MonthlyReportEngine {
         val previousLogs = dated.filter { YearMonth.from(it.date) == month.minusMonths(1) }
 
         val sets = workingSetsOf(monthLogs)
+        val logicalSets = logicalWorkingSetsOf(monthLogs)
         val tonnageKg = tonnageOf(sets)
-        val muscles = musclesOf(sets)
+        val muscles = musclesOf(logicalSets, exerciseIndex)
         val trained = muscles.mapTo(HashSet()) { it.muscle }
 
         return MonthlyReport(
@@ -98,13 +105,15 @@ object MonthlyReportEngine {
             trainedDays = monthLogs.map { it.date.dayOfMonth }.distinct().sorted(),
             minutes = monthLogs.sumOf { it.log.durationMinutes },
             tonnageKg = tonnageKg,
-            hardSets = sets.size,
+            hardSets = logicalSets.size,
             reps = sets.sumOf { it.set.reps },
             tonnageVsPreviousPct = tonnageVsPrevious(tonnageKg, tonnageOf(workingSetsOf(previousLogs))),
             gains = gainsOf(monthLogs),
             bestMark = bestMarkOf(sets),
             muscles = muscles,
-            untrainedMuscles = trackedMuscles.distinct().filter { it !in trained },
+            untrainedMuscles = trackedMuscles.distinct().filter {
+                VolumeCalculator.normalizeCanonicalMuscleGroup(it) !in trained
+            },
             rirMean = rirMeanOf(sets),
             longestStreak = longestStreak(monthLogs.map { it.date }),
             eligible = monthLogs.size >= MIN_SESSIONS,
@@ -141,10 +150,13 @@ object MonthlyReportEngine {
     }
 
     /** Series de trabajo por músculo principal; ordenado por series descendentes y luego por nombre. */
-    private fun musclesOf(sets: List<WorkingSetRef>): List<MonthlyMuscleSets> {
+    private fun musclesOf(
+        sets: List<WorkingSetRef>,
+        exerciseIndex: Map<String, ExerciseMuscleInfo>,
+    ): List<MonthlyMuscleSets> {
         val counts = LinkedHashMap<String, Int>()
         for (ref in sets) {
-            for (muscle in primaryMuscles(ref.exercise)) counts[muscle] = (counts[muscle] ?: 0) + 1
+            for (muscle in primaryMuscles(ref.exercise, exerciseIndex)) counts[muscle] = (counts[muscle] ?: 0) + 1
         }
         return counts
             .map { (muscle, count) -> MonthlyMuscleSets(muscle, count) }
@@ -155,9 +167,12 @@ object MonthlyReportEngine {
             )
     }
 
-    private fun primaryMuscles(exercise: CompletedExercise): List<String> = exercise.effectiveMuscles.orEmpty()
+    private fun primaryMuscles(
+        exercise: CompletedExercise,
+        exerciseIndex: Map<String, ExerciseMuscleInfo>,
+    ): List<String> = ExerciseMuscleResolver.resolveCompletedExerciseMuscles(exercise, exerciseIndex)
         .filter { it.role == MuscleRole.PRIMARY }
-        .map { it.muscle }
+        .map { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) }
         .distinct()
 
     /** Tirada más larga de sesiones contiguas. [sortedDates] llega ordenada; vacía = 0. */
@@ -186,9 +201,20 @@ object MonthlyReportEngine {
         .sumOf { com.example.kpkn.domain.workout.CompletedSetLoadSemantics.totalExternalTonnageKg(it.set) }
 
     private fun workingSetsOf(entries: List<DatedLog>): List<WorkingSetRef> = entries.flatMap { entry ->
-        entry.log.completedExercises.flatMap { exercise ->
-            exercise.sets.filter { it.isWorkingSet() }.map { WorkingSetRef(it, exercise, entry.date) }
-        }
+        entry.log.completedExercises
+            .filter { it.cardioDetails == null }
+            .flatMap { exercise ->
+                exercise.sets.filter { it.isWorkingSet() }.map { WorkingSetRef(it, exercise, entry.date) }
+            }
+    }
+
+    private fun logicalWorkingSetsOf(entries: List<DatedLog>): List<WorkingSetRef> = entries.flatMap { entry ->
+        entry.log.completedExercises
+            .filter { it.cardioDetails == null }
+            .flatMap { exercise ->
+                RecordedSetAccounting.logicalWorkingSets(exercise, requirePositiveReps = true)
+                    .map { WorkingSetRef(it, exercise, entry.date) }
+            }
     }
 
     private fun logDate(log: WorkoutLog): LocalDate? = runCatching { LocalDate.parse(log.date.take(10)) }.getOrNull()

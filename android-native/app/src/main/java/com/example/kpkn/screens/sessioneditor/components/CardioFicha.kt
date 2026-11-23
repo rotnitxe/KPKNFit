@@ -168,9 +168,6 @@ internal fun CardioFichaContent(
                         guide.formats.forEach { id -> FormatCard(id, Modifier.weight(1f)) }
                     }
                 }
-                Section("Técnica y seguridad") {
-                    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) { guide.tips.forEach { Tip(it) } }
-                }
             }
         }
         // `.ce-x`: el cierre, un círculo de vidrio de 48 dp arriba a la derecha.

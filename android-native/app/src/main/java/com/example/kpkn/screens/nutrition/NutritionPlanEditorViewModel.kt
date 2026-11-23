@@ -41,6 +41,7 @@ import com.example.kpkn.domain.nutrition.NutritionEditorDayTarget
 import com.example.kpkn.domain.nutrition.WEEKLY_FORECAST_KEY
 import com.example.kpkn.domain.nutrition.NutritionTrainingCalendarAdapter
 import com.example.kpkn.domain.nutrition.NutritionTrainingCalendarInput
+import com.example.kpkn.domain.nutrition.NutritionDistributionStatus
 import com.example.kpkn.domain.nutrition.WeeklyForecastDay
 import com.example.kpkn.domain.nutrition.WeeklyForecastDocument
 import com.example.kpkn.domain.nutrition.calorieBoundsFor
@@ -90,6 +91,7 @@ data class NutritionPlanEditorUiState(
     val activeCommitId: String? = null,
     /** Base del plan tal como se cargó (null si es un plan nuevo): el «antes» del cambio que muestra «Guardar». */
     val originalBase: NutritionEditorBase? = null,
+    val distributionStatus: NutritionDistributionStatus? = null,
 )
 
 /**
@@ -118,6 +120,8 @@ class NutritionPlanEditorViewModel(
     private var revision: Int = 0
     /** Idempotencia por operación de edición (la 0 es el alta). */
     private val commitIds = NutritionEditCommitIds()
+    private var calorieEditAnchor: com.example.kpkn.domain.nutrition.NutritionEditorBase? = null
+    private var userExplicitlyZeroedCarbs: Boolean = false
 
     /**
      * Consumidor REAL del calendario de entrenamiento (no un simple setter): el
@@ -159,20 +163,22 @@ class NutritionPlanEditorViewModel(
             }
             val draft = when {
                 wizardDraft != null -> draftFromWizard(wizardDraft, pendingDraftId)
-                existingPlan != null -> draftFromPlan(existingPlan, settings.userVitals.age?.toString().orEmpty())
+                existingPlan != null -> draftFromPlan(existingPlan, settings)
                 else -> NutritionPlanEditorDraft(
                     mode = if (settings.nutritionTrackingOnly) {
                         NutritionPlanEditorMode.TRACKING_ONLY
                     } else {
                         NutritionPlanEditorMode.ACTIVE_PLAN
                     },
+                    activity = eerActivityFromSettingsLevel(settings.nutritionActivityLevel),
+                    weightUnit = weightUnitCode(settings.weightUnit),
                 )
             }.let { base ->
                 val vitals = settings.userVitals
                 base.copy(
                     ageText = base.ageText.ifBlank { vitals.age?.toString().orEmpty() },
-                    heightText = base.heightText.ifBlank { vitals.height?.toString().orEmpty() },
-                    weightText = base.weightText.ifBlank { vitals.weight?.toString().orEmpty() },
+                    heightText = base.heightText.ifBlank { formatCleanNumber(vitals.height) },
+                    weightText = base.weightText.ifBlank { formatWeightForUnit(vitals.weight, base.weightUnit) },
                     equationSex = base.equationSex ?: when (vitals.gender) {
                         Gender.MALE -> EerSex.MALE
                         Gender.FEMALE -> EerSex.FEMALE
@@ -180,11 +186,16 @@ class NutritionPlanEditorViewModel(
                     },
                 )
             }
+            calorieEditAnchor = null
+            userExplicitlyZeroedCarbs = false
             _uiState.update {
                 it.copy(
                     isLoading = false,
                     draft = draft,
-                    originalBase = draft.base.takeIf { draft.planId != null },
+                    originalBase = existingPlan
+                        ?.takeIf { p -> p.calorieTarget > 0 || p.proteinGoal > 0 || p.carbGoal > 0 || p.fatGoal > 0 }
+                        ?.let { p -> NutritionEditorBase(p.calorieTarget, p.proteinGoal, p.carbGoal, p.fatGoal) }
+                        ?: draft.base.takeIf { draft.planId != null },
                 )
             }
             refreshCalendarExpenditures()
@@ -224,25 +235,94 @@ class NutritionPlanEditorViewModel(
 
     // ─── Ediciones de sección (sin pasos; todas editables en cualquier orden) ─
 
-    fun setDirection(direction: PlanDirection) = mutate { it.copy(direction = direction) }
+    fun setDirection(direction: PlanDirection) {
+        calorieEditAnchor = null
+        mutate {
+            val next = it.copy(direction = direction)
+            if (next.provenance == NutritionEditorProvenance.AUTOMATIC) next.copy(base = null, baseEdited = false) else next
+        }
+    }
     fun setGoalMetric(metric: GoalMetric) = mutate { it.copy(goalMetric = metric) }
     fun setTargetValue(text: String) = mutate { it.copy(targetValueText = text) }
-    fun setAge(text: String) = mutate { it.copy(ageText = text) }
-    fun setHeight(text: String) = mutate { it.copy(heightText = text) }
-    fun setWeight(text: String) = mutate { it.copy(weightText = text) }
-    fun setEquationSex(sex: EerSex?) = mutate { it.copy(equationSex = sex) }
-    fun setActivity(activity: com.example.kpkn.domain.nutrition.EerActivity) = mutate { it.copy(activity = activity) }
+    fun setAge(text: String) {
+        calorieEditAnchor = null
+        mutate {
+            val next = it.copy(ageText = text)
+            if (next.provenance == NutritionEditorProvenance.AUTOMATIC) next.copy(base = null, baseEdited = false) else next
+        }
+    }
+    fun setHeight(text: String) {
+        calorieEditAnchor = null
+        mutate {
+            val next = it.copy(heightText = text)
+            if (next.provenance == NutritionEditorProvenance.AUTOMATIC) next.copy(base = null, baseEdited = false) else next
+        }
+    }
+    fun setWeight(text: String) {
+        calorieEditAnchor = null
+        mutate {
+            val next = it.copy(weightText = text)
+            if (next.provenance == NutritionEditorProvenance.AUTOMATIC) next.copy(base = null, baseEdited = false) else next
+        }
+    }
+    fun setEquationSex(sex: EerSex?) {
+        calorieEditAnchor = null
+        mutate {
+            val next = it.copy(equationSex = sex)
+            if (next.provenance == NutritionEditorProvenance.AUTOMATIC) next.copy(base = null, baseEdited = false) else next
+        }
+    }
+    fun setActivity(activity: com.example.kpkn.domain.nutrition.EerActivity) {
+        calorieEditAnchor = null
+        mutate {
+            val next = it.copy(activity = activity)
+            if (next.provenance == NutritionEditorProvenance.AUTOMATIC) next.copy(base = null, baseEdited = false) else next
+        }
+    }
     fun setEligibilityUnknown(value: Boolean) = mutate { it.copy(eligibilityUnknown = value) }
     fun setMedicalRestriction(value: Boolean) = mutate { it.copy(medicalRestriction = value) }
     fun setPregnant(value: Boolean) = mutate { it.copy(pregnant = value) }
     fun setLactating(value: Boolean) = mutate { it.copy(lactating = value) }
 
-    /** Edición de calorías: escalan los TRES macros preservando ceros manuales. */
-    fun setCalories(kcal: Int) = mutate { it.withCalories(kcal) }
+    /** Edición de calorías: escala proporcionalmente desde el ancla sin colapsar macros a 0. */
+    fun setCalories(kcal: Int) {
+        val currentState = _uiState.value
+        val fallback = currentState.base ?: reviewedBaseOf(currentState.draft, currentState.recommendation)
+        val candidate = currentState.draft.base ?: fallback
+        val anchor = calorieEditAnchor ?: if (
+            candidate != null &&
+            (candidate.carbsG > 0 || userExplicitlyZeroedCarbs) &&
+            (candidate.proteinG > 0 || candidate.fatG > 0 || candidate.caloriesKcal > 0)
+        ) {
+            candidate
+        } else {
+            NutritionEditorBase(caloriesKcal = 2000, proteinG = 150, carbsG = 225, fatG = 56)
+        }.also { calorieEditAnchor = it }
+        mutate { it.withCalories(kcal, fallbackBase = fallback, anchor = anchor) }
+    }
 
     /** Edición de un macro: el total energético mostrado se actualiza con Atwater. */
-    fun setMacro(protein: Double? = null, carbs: Double? = null, fat: Double? = null) =
-        mutate { it.withMacro(protein = protein, carbs = carbs, fat = fat) }
+    fun setMacro(protein: Double? = null, carbs: Double? = null, fat: Double? = null) {
+        calorieEditAnchor = null
+        if (carbs != null) {
+            userExplicitlyZeroedCarbs = carbs <= 0.0
+        }
+        val currentState = _uiState.value
+        val fallback = currentState.base ?: reviewedBaseOf(currentState.draft, currentState.recommendation)
+        mutate { it.withMacro(protein = protein, carbs = carbs, fat = fat, fallbackBase = fallback) }
+    }
+
+    fun resetToRecommendation() {
+        calorieEditAnchor = null
+        userExplicitlyZeroedCarbs = false
+        mutate {
+            it.copy(
+                provenance = if (it.provenance == NutritionEditorProvenance.PROFESSIONAL) it.provenance else NutritionEditorProvenance.AUTOMATIC,
+                base = null,
+                baseEdited = false,
+            )
+        }
+    }
 
     fun setWeeklyDistribution(mode: NutritionWeeklyDistributionMode) =
         mutate { it.copy(weeklyDistribution = mode) }
@@ -251,7 +331,14 @@ class NutritionPlanEditorViewModel(
     fun setMode(mode: NutritionPlanEditorMode) = mutate { it.copy(mode = mode) }
 
     /** Procedencia: recomendación automática, objetivos propios o pauta de tercero. */
-    fun setProvenance(provenance: NutritionEditorProvenance) = mutate { it.withProvenance(provenance) }
+    fun setProvenance(provenance: NutritionEditorProvenance) {
+        calorieEditAnchor = null
+        userExplicitlyZeroedCarbs = false
+        mutate {
+            val next = it.withProvenance(provenance)
+            if (provenance == NutritionEditorProvenance.AUTOMATIC) next.copy(base = null, baseEdited = false) else next
+        }
+    }
 
     // ─── Guardado ────────────────────────────────────────────────────────────
 
@@ -334,7 +421,7 @@ class NutritionPlanEditorViewModel(
         if (base != null && !matchesReviewedBase(reviewed, base)) {
             throw IllegalArgumentException("La preparación no conserva la base revisada; no se guardó nada")
         }
-        return commits.commit(
+        val result = commits.commit(
             NutritionPlanCommitRequest(
                 commitId = commitId,
                 plan = reviewed,
@@ -349,8 +436,34 @@ class NutritionPlanEditorViewModel(
                 ),
                 pendingDraftId = draft.pendingDraftId,
                 captureTodaySnapshot = true,
+                updateTodaySnapshot = true,
             ),
         )
+        // Persistir también los vitales y actividad editados en Settings (#9)
+        val editedAge = parseLocalizedNumber(draft.ageText)?.toInt()?.takeIf { it > 0 }
+        val editedHeight = parseLocalizedNumber(draft.heightText)?.takeIf { it > 0 }
+        val editedWeight = parseLocalizedNumber(draft.weightText)
+            ?.let { com.example.kpkn.domain.nutrition.kilogramsFromInput(it, draft.weightUnit) }
+            ?.takeIf { it > 0 }
+        val editedGender = when (draft.equationSex) {
+            EerSex.MALE -> Gender.MALE
+            EerSex.FEMALE -> Gender.FEMALE
+            EerSex.AVERAGE, null -> null
+        }
+        val editedActivityLevel = settingsLevelFromEerActivity(draft.activity)
+        programRepository.updateSettings { current ->
+            current.copy(
+                age = editedAge ?: current.age,
+                nutritionActivityLevel = editedActivityLevel,
+                userVitals = current.userVitals.copy(
+                    age = editedAge ?: current.userVitals.age,
+                    height = editedHeight ?: current.userVitals.height,
+                    weight = editedWeight ?: current.userVitals.weight,
+                    gender = editedGender ?: current.userVitals.gender,
+                ),
+            )
+        }
+        return result
     }
 
     /**
@@ -395,7 +508,7 @@ class NutritionPlanEditorViewModel(
             period = window,
             snapshots = nutritionRepository.dailyGoalSnapshots.value,
             planId = plan?.id,
-        )
+        ).filterKeys { it.isBefore(today) }
         val fixed = fixedEvidence.mapValues { it.value.calorieTargetKcal }
         // Nunca se mueven y consumen presupuesto; el futuro se redistribuye.
         val future = window.filterNot { it in fixed }
@@ -426,14 +539,20 @@ class NutritionPlanEditorViewModel(
                 base = base,
             )
         }
+        val ownErrors = editorErrorsOf(draft, base)
+        val prepErrors = if (draft.mode == NutritionPlanEditorMode.ACTIVE_PLAN && ownErrors.isEmpty()) {
+            NutritionPlanPreparation.prepare(preparationInputOf(draft, draft.planId ?: "preview", plan)).errors
+        } else {
+            emptyMap()
+        }
         _uiState.update {
             it.copy(
                 recommendation = recommendation,
                 base = base,
                 weeklyTargets = targets,
-                todayGoalFixedKcal = fixedEvidence[today]?.calorieTargetKcal
-                    ?.takeIf { draft.mode == NutritionPlanEditorMode.ACTIVE_PLAN },
-                errors = if (it.errors.containsKey("commit")) it.errors else editorErrorsOf(draft, base),
+                todayGoalFixedKcal = null,
+                distributionStatus = distribution?.status,
+                errors = if (it.errors.containsKey("commit")) it.errors else ownErrors + prepErrors,
             )
         }
     }
@@ -472,38 +591,101 @@ class NutritionPlanEditorViewModel(
         )
     }
 
-    private fun draftFromPlan(plan: NutritionPlan, fallbackAge: String): NutritionPlanEditorDraft {
+    private fun draftFromPlan(plan: NutritionPlan, settings: com.example.kpkn.data.models.Settings): NutritionPlanEditorDraft {
         val goalMetric = plan.typedBodyGoal?.metric ?: plan.goalType
         val target = plan.typedBodyGoal?.targetValueSi
             ?: plan.primaryGoal?.value?.takeIf { it > 0 }
-        return NutritionPlanEditorDraft(
+        val inputs = plan.calculationSnapshot?.inputs.orEmpty()
+        val activity = inputs["activity"]
+            ?.let { raw -> runCatching { com.example.kpkn.domain.nutrition.EerActivity.valueOf(raw) }.getOrNull() }
+            ?: eerActivityFromSettingsLevel(settings.nutritionActivityLevel)
+        val isAuto = plan.calculationOrigin != com.example.kpkn.data.models.CalculationOrigin.MANUAL &&
+            plan.calculationOrigin != com.example.kpkn.data.models.CalculationOrigin.PROFESSIONAL
+        val unitName = weightUnitCode(settings.weightUnit)
+        val snapAge = inputs["ageYears"]?.let { formatCleanNumber(it.toDoubleOrNull()) }.orEmpty()
+        val snapHeight = inputs["heightCm"]?.let { formatCleanNumber(it.toDoubleOrNull()) }.orEmpty()
+        val snapWeightKg = inputs["weightKg"]?.toDoubleOrNull() ?: settings.userVitals.weight
+        val resolvedTargetText = if (goalMetric == GoalMetric.WEIGHT) {
+            formatWeightForUnit(target, unitName)
+        } else {
+            formatCleanNumber(target)
+        }
+        val initialDraft = NutritionPlanEditorDraft(
             planId = plan.id,
             direction = plan.direction,
             goalMetric = goalMetric,
-            targetValueText = target?.toString().orEmpty(),
-            ageText = fallbackAge,
-            // La base con la que se calculó el plan (también «Promedio»): sin ella, editar un plan automático
-            // obligaba a volver a elegirla y, si no, quedaba la del perfil.
+            targetValueText = resolvedTargetText,
+            ageText = snapAge.ifBlank { settings.userVitals.age?.toString().orEmpty() },
+            heightText = snapHeight.ifBlank { formatCleanNumber(settings.userVitals.height) },
+            weightText = formatWeightForUnit(snapWeightKg, unitName),
+            weightUnit = unitName,
             equationSex = equationSexOfPlan(plan),
-            bodyFatText = plan.startValue?.takeIf { goalMetric == GoalMetric.BODY_FAT }?.toString().orEmpty(),
-            muscleText = plan.startValue?.takeIf { goalMetric == GoalMetric.MUSCLE_MASS }?.toString().orEmpty(),
-            base = NutritionEditorBase(
+            activity = activity,
+            bodyFatText = formatCleanNumber(plan.startValue?.takeIf { goalMetric == GoalMetric.BODY_FAT }),
+            muscleText = formatCleanNumber(plan.startValue?.takeIf { goalMetric == GoalMetric.MUSCLE_MASS }),
+            base = if (isAuto) null else NutritionEditorBase(
                 caloriesKcal = plan.calorieTarget,
                 proteinG = plan.proteinGoal,
                 carbsG = plan.carbGoal,
                 fatG = plan.fatGoal,
             ),
-            baseEdited = true,
+            baseEdited = !isAuto,
             provenance = when (plan.calculationOrigin) {
                 com.example.kpkn.data.models.CalculationOrigin.PROFESSIONAL -> NutritionEditorProvenance.PROFESSIONAL
                 com.example.kpkn.data.models.CalculationOrigin.MANUAL -> NutritionEditorProvenance.SELF_DEFINED
                 else -> NutritionEditorProvenance.AUTOMATIC
             },
-            weeklyDistribution = plan.calculationSnapshot?.inputs
-                ?.get("weeklyDistribution")
+            weeklyDistribution = inputs["weeklyDistribution"]
                 ?.let { value -> runCatching { NutritionWeeklyDistributionMode.valueOf(value) }.getOrNull() }
                 ?: NutritionWeeklyDistributionMode.VARIABLE,
         )
+        if (!isAuto) return initialDraft
+        val savedBase = NutritionEditorBase(
+            caloriesKcal = plan.calorieTarget,
+            proteinG = plan.proteinGoal,
+            carbsG = plan.carbGoal,
+            fatG = plan.fatGoal,
+        )
+        val defaultAutoBase = reviewedBaseOf(initialDraft, recommendationFor(initialDraft))
+        return if (savedBase.hasAnyValue && savedBase != defaultAutoBase) {
+            initialDraft.copy(base = savedBase, baseEdited = true)
+        } else {
+            initialDraft
+        }
+    }
+
+    private fun weightUnitCode(unit: com.example.kpkn.data.models.WeightUnit): String =
+        if (unit == com.example.kpkn.data.models.WeightUnit.LBS) "lb" else "kg"
+
+    private fun formatWeightForUnit(weightKg: Double?, unit: String): String {
+        val kg = weightKg?.takeIf { it.isFinite() && it > 0.0 } ?: return ""
+        val value = if (unit.lowercase().startsWith("lb")) kg * 2.20462262185 else kg
+        return formatCleanNumber(value)
+    }
+
+    private fun formatCleanNumber(value: Double?): String {
+        if (value == null || !value.isFinite() || value <= 0.0) return ""
+        val rounded = kotlin.math.round(value)
+        return if (kotlin.math.abs(value - rounded) < 0.05) {
+            rounded.toInt().toString()
+        } else {
+            String.format(java.util.Locale.US, "%.1f", value)
+        }
+    }
+
+    private fun eerActivityFromSettingsLevel(level: Int): com.example.kpkn.domain.nutrition.EerActivity = when (level) {
+        1 -> com.example.kpkn.domain.nutrition.EerActivity.INACTIVE
+        2 -> com.example.kpkn.domain.nutrition.EerActivity.LOW_ACTIVE
+        3 -> com.example.kpkn.domain.nutrition.EerActivity.ACTIVE
+        4, 5 -> com.example.kpkn.domain.nutrition.EerActivity.VERY_ACTIVE
+        else -> com.example.kpkn.domain.nutrition.EerActivity.ACTIVE
+    }
+
+    private fun settingsLevelFromEerActivity(activity: com.example.kpkn.domain.nutrition.EerActivity): Int = when (activity) {
+        com.example.kpkn.domain.nutrition.EerActivity.INACTIVE -> 1
+        com.example.kpkn.domain.nutrition.EerActivity.LOW_ACTIVE -> 2
+        com.example.kpkn.domain.nutrition.EerActivity.ACTIVE -> 3
+        com.example.kpkn.domain.nutrition.EerActivity.VERY_ACTIVE -> 4
     }
 
     private fun draftFromWizard(wizard: NutritionWizardDraft, pendingDraftId: String?): NutritionPlanEditorDraft =

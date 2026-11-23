@@ -634,6 +634,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "saeterbakken2015",
@@ -737,6 +738,7 @@
               },
               {
                 "id": "erector_spinae",
+                "limiting": true,
                 "role": "STABILIZER",
                 "sources": [
                   "fenwick2009"
@@ -1376,7 +1378,8 @@
           },
           {
             "id": "core",
-            "role": "SECONDARY",
+            "limiting": true,
+            "role": "STABILIZER",
             "sources": [
               "garciavaquero2012",
               "fenwick2009"
@@ -1391,15 +1394,6 @@
               "statpearls_triceps"
             ],
             "why": "Mantiene estirado el codo del brazo de apoyo, que soporta él solo la carga que en la plancha comparten las dos manos: en la salida de la flexión, las manos soportan cerca de dos tercios del peso corporal. Es trabajo isométrico; el codo de apoyo no se dobla."
-          },
-          {
-            "id": "pectoralis",
-            "role": "STABILIZER",
-            "sources": [
-              "statpearls_pectoral",
-              "gouvali2005"
-            ],
-            "why": "Junto con el serrato anterior, que también forma parte del grupo pectoral, fija el hombro y la escápula del brazo de apoyo para que el tronco no se hunda entre los hombros. Lo hace en isometría: el pectoral no acerca ni aleja ninguna carga en este ejercicio."
           },
           {
             "id": "forearm",
@@ -1465,7 +1459,7 @@
             ]
           }
         },
-        "description": "En el Remo Renegado (renegade row) se rema desde una plancha alta: cada mano descansa sobre una carga apoyada en el suelo y un brazo sube la suya hacia la cadera mientras el otro brazo y los pies sostienen el cuerpo. El dorsal ancho tira del codo hacia atrás con ayuda del trapecio, los romboides, el bíceps y la porción posterior del deltoides. Los oblicuos y el resto del core frenan el giro de la pelvis hacia el lado que rema, y en el brazo de apoyo el pectoral y el tríceps fijan hombro y codo. Abrir los pies más que la cadera ensancha la base y facilita no rotar. Une espalda y estabilidad del tronco en la misma serie, con cargas modestas y mucha exigencia de postura."
+        "description": "En el Remo Renegado (renegade row) se rema desde una plancha alta: cada mano descansa sobre una carga apoyada en el suelo y un brazo sube la suya hacia la cadera mientras el otro brazo y los pies sostienen el cuerpo. El dorsal ancho tira del codo hacia atrás con ayuda del trapecio, los romboides, el bíceps y la porción posterior del deltoides. Los oblicuos y el resto del core frenan el giro de la pelvis hacia el lado que rema, y en el brazo de apoyo el deltoides y el tríceps fijan hombro y codo. Abrir los pies más que la cadera ensancha la base y facilita no rotar. Une espalda y estabilidad del tronco en la misma serie, con cargas modestas y mucha exigencia de postura."
       },
       "sources": [
         {
@@ -1712,7 +1706,7 @@
           },
           {
             "id": "biceps",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "statpearls_biceps"
             ],

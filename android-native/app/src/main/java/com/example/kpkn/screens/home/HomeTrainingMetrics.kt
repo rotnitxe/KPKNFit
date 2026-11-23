@@ -199,6 +199,7 @@ object HomeTrainingMetricsBuilder {
                 com.example.kpkn.domain.training.ExerciseProgressMetric.BEST_SET ->
                     if (latest.mode == com.example.kpkn.data.models.LoadModeV2.ASSISTED) "kg" else ""
                 com.example.kpkn.domain.training.ExerciseProgressMetric.MAX_REPS -> "reps"
+                com.example.kpkn.domain.training.ExerciseProgressMetric.EFFORT -> "RIR"
                 com.example.kpkn.domain.training.ExerciseProgressMetric.SETS -> "series"
                 com.example.kpkn.domain.training.ExerciseProgressMetric.DURATION -> "s"
                 com.example.kpkn.domain.training.ExerciseProgressMetric.DISTANCE -> "m"

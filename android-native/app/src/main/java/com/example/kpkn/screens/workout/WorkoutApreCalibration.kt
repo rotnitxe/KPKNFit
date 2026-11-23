@@ -102,20 +102,37 @@ internal fun buildRecordedApreCalibration(
         !sourceLoad.isFinite() || sourceLoad <= 0.0 -> CalibrationEligibility.NO_EXTERNAL_LOAD
         else -> CalibrationEligibility.OK
     }
+    val plannedS3 = exercise.sets.getOrNull(block.thirdIndex)
+    val sideTarget = when (completed.side) {
+        "left" -> plannedS3?.leftTarget
+        "right" -> plannedS3?.rightTarget
+        else -> null
+    }
+    val actualRir = completed.rir ?: if (completed.rpe == null && !completed.isFailure) (sideTarget?.targetRIR ?: plannedS3?.targetRIR) else null
+    val actualRpe = completed.rpe ?: if (completed.rir == null && !completed.isFailure) (sideTarget?.targetRPE ?: plannedS3?.targetRPE) else null
+    val effectiveReps = Apre.effectiveRepsForTable(valid, actualRir, actualRpe)
     val targetKg = if (eligibility == CalibrationEligibility.OK)
-        Apre.set4LoadKg(sourceLoad, valid, block.variant, increment) else 0.0
+        Apre.nextLoadKg(
+            loadKg = sourceLoad,
+            validReps = valid,
+            variant = block.variant,
+            targetRir = actualRir,
+            targetRpe = actualRpe,
+            incrementKg = increment,
+        ) else 0.0
     val targetId = calibrationSetId(exercise.sets[block.fourthIndex], completed.side)
     val pending = pendingCalibrationSets(state, exercise, index, context).filter { it.setId == targetId }
     val target = pending.singleOrNull()
     val compatible = target != null && target.context == context && !target.isCompleted && !target.isManuallyFixed
     val canApply = eligibility == CalibrationEligibility.OK && compatible
+    val effectiveSuffix = if (effectiveReps != valid) " ($effectiveReps efectivas)" else ""
     val reason = when {
         eligibility == CalibrationEligibility.BODYWEIGHT -> "APRE se registra; corporal y asistida no se ajustan en kg."
         eligibility == CalibrationEligibility.NO_EXTERNAL_LOAD -> "APRE se registra; falta una carga externa válida."
         target?.isCompleted == true -> "S4 ya está hecha: se conserva su carga registrada."
         target?.isManuallyFixed == true -> "S4 tiene una carga fijada: se conserva."
         !compatible -> "S4 cambió de contexto o de identidad: se conserva."
-        else -> "${block.variant.label} · $valid reps válidas: S4 según la tabla de Mann."
+        else -> "${block.variant.label} · $valid reps válidas$effectiveSuffix: S4 según la tabla de Mann."
     }
     val changes = target?.takeIf { it.context == context && eligibility == CalibrationEligibility.OK }
         ?.let { listOf(CalibrationLoadChange(it.setId, it.baseLoadKg, targetKg)) }.orEmpty()

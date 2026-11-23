@@ -134,9 +134,8 @@ class SessionEditorSheetWiringTest {
 
     @Test
     fun accionesRapidasTienenSeisCeldasTactilesYEliminarSeparado() {
-        rule.setContent {
-            ExerciseQuickActionRows(false, {}, {}, {}, {}, {}, {}, {})
-        }
+        rule.setContent { QuickActions() }
+        rule.waitForIdle()
         val tags = listOf("ficha", "cambiar", "aproximacion", "movilidad", "superserie", "duplicar")
         tags.forEach { name ->
             val bounds = rule.onNodeWithTag("quick-action-$name").fetchSemanticsNode().boundsInRoot

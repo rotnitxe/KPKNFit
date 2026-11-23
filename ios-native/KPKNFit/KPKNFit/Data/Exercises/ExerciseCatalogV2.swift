@@ -55,6 +55,7 @@ public struct ExerciseCatalogProfileV2: Codable {
     public let primaryMuscles: [String]
     public let secondaryMuscles: [String]
     public let stabilizerMuscles: [String]
+    public let limitingStabilizerMuscles: [String]
     public let technicalDifficulty: Double
     public let resistanceProfile: String
     public let setupCues: [String]
@@ -64,6 +65,51 @@ public struct ExerciseCatalogProfileV2: Codable {
     public let replacementPriority: Int?
     public let automationEligible: Bool
     public let richMetadata: ExerciseCatalogRichMetadataV2
+
+    private enum CodingKeys: String, CodingKey {
+        case movementPatternId
+        case bodyRegion
+        case kineticChain
+        case laterality
+        case equipmentId
+        case loadMode
+        case primaryMuscles
+        case secondaryMuscles
+        case stabilizerMuscles
+        case limitingStabilizerMuscles
+        case technicalDifficulty
+        case resistanceProfile
+        case setupCues
+        case executionCues
+        case performanceProfileId
+        case replacementGroup
+        case replacementPriority
+        case automationEligible
+        case richMetadata
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        movementPatternId = try container.decode(String.self, forKey: .movementPatternId)
+        bodyRegion = try container.decode(String.self, forKey: .bodyRegion)
+        kineticChain = try container.decode(String.self, forKey: .kineticChain)
+        laterality = try container.decode(String.self, forKey: .laterality)
+        equipmentId = try container.decode(String.self, forKey: .equipmentId)
+        loadMode = try container.decode(String.self, forKey: .loadMode)
+        primaryMuscles = try container.decode([String].self, forKey: .primaryMuscles)
+        secondaryMuscles = try container.decode([String].self, forKey: .secondaryMuscles)
+        stabilizerMuscles = try container.decode([String].self, forKey: .stabilizerMuscles)
+        limitingStabilizerMuscles = try container.decodeIfPresent([String].self, forKey: .limitingStabilizerMuscles) ?? []
+        technicalDifficulty = try container.decode(Double.self, forKey: .technicalDifficulty)
+        resistanceProfile = try container.decode(String.self, forKey: .resistanceProfile)
+        setupCues = try container.decode([String].self, forKey: .setupCues)
+        executionCues = try container.decode([String].self, forKey: .executionCues)
+        performanceProfileId = try container.decode(String.self, forKey: .performanceProfileId)
+        replacementGroup = try container.decodeIfPresent(String.self, forKey: .replacementGroup)
+        replacementPriority = try container.decodeIfPresent(Int.self, forKey: .replacementPriority)
+        automationEligible = try container.decode(Bool.self, forKey: .automationEligible)
+        richMetadata = try container.decode(ExerciseCatalogRichMetadataV2.self, forKey: .richMetadata)
+    }
 }
 
 public struct ExerciseCatalogRichMetadataV2: Codable {
@@ -92,7 +138,27 @@ public struct ExerciseCatalogAnatomyV2: Codable {
     public let primaryMuscles: [String]
     public let secondaryMuscles: [String]
     public let stabilizerMuscles: [String]
+    public let limitingStabilizerMuscles: [String]
     public let volumeContribution: String
+
+    private enum CodingKeys: String, CodingKey {
+        case jointActions
+        case primaryMuscles
+        case secondaryMuscles
+        case stabilizerMuscles
+        case limitingStabilizerMuscles
+        case volumeContribution
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        jointActions = try container.decode([String].self, forKey: .jointActions)
+        primaryMuscles = try container.decode([String].self, forKey: .primaryMuscles)
+        secondaryMuscles = try container.decode([String].self, forKey: .secondaryMuscles)
+        stabilizerMuscles = try container.decode([String].self, forKey: .stabilizerMuscles)
+        limitingStabilizerMuscles = try container.decodeIfPresent([String].self, forKey: .limitingStabilizerMuscles) ?? []
+        volumeContribution = try container.decode(String.self, forKey: .volumeContribution)
+    }
 }
 
 public struct ExerciseCatalogBiomechanicsV2: Codable {

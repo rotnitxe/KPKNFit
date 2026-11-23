@@ -80,6 +80,8 @@ internal fun ExerciseSetList(
     onTransformExercise: (((Exercise) -> Exercise) -> Unit)? = null,
     /** Abre la hoja de la carga inteligente: la cifra de carga de cada serie es su botón. */
     onOpenSmartLoad: (() -> Unit)? = null,
+    availableTags: List<WorkoutTag> = emptyList(),
+    onOpenTagManager: (() -> Unit)? = null,
 ) {
     if (exercise.sets.isEmpty()) {
         Column(
@@ -104,7 +106,13 @@ internal fun ExerciseSetList(
     val orderedSides = if (exercise.unilateralSideOrder == UnilateralSideOrder.RIGHT_LEFT) listOf("R", "L") else listOf("L", "R")
     val sharedSides = exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED
     val predictedWeights = remember(exercise.trainingMode, exercise.reference1RM, exercise.referenceTrainingMax, exercise.smartLoadBasis, exercise.loadReference, exercise.prFor1RM, exercise.sets) {
-        exercise.sets.associate { set -> set.id to calculateSuggestedLoad(exercise, set) }
+        buildMap<Pair<String, String?>, Double?> {
+            exercise.sets.forEach { set ->
+                put(set.id to null, com.example.kpkn.domain.calculations.calculateSuggestedLoadForTarget(exercise, set, null))
+                put(set.id to "L", com.example.kpkn.domain.calculations.calculateSuggestedLoadForTarget(exercise, set, set.leftTarget))
+                put(set.id to "R", com.example.kpkn.domain.calculations.calculateSuggestedLoadForTarget(exercise, set, set.rightTarget))
+            }
+        }
     }
 
     /** Pide copiar la configuración de [set] (o de su lado [side]) al resto; si hay series distintas, antes pregunta. */
@@ -152,7 +160,7 @@ internal fun ExerciseSetList(
     @Composable
     fun SetFocus(set: ExerciseSet, index: Int, side: String?) {
         val rowKey = keyOf(set, side)
-        val predictedWeight = predictedWeights[set.id]
+        val predictedWeight = predictedWeights[set.id to side] ?: predictedWeights[set.id to null]
         val estimatedMetric = predictedMetrics[set.id]
         val lineColor = Color.White.copy(alpha = 0.063f)
         Column(
@@ -215,14 +223,39 @@ internal fun ExerciseSetList(
                 presentation = SetRowPresentation.List,
                 onOpenSmartLoad = onOpenSmartLoad,
             )
-            SetRestControl(
-                seconds = set.restAfterSeconds ?: exercise.restTime ?: 90,
-                inherited = set.restAfterSeconds == null,
-                onChange = { seconds -> onUpdateSet(set.id) { it.copy(restAfterSeconds = seconds) } },
-                onReset = { onUpdateSet(set.id) { it.copy(restAfterSeconds = null) } },
-                exerciseSeconds = exercise.restTime ?: 90,
-                stateKey = "set-rest-${exercise.id}-$rowKey",
-            )
+            val selectedTag = availableTags.firstOrNull { it.id == exercise.workoutTagId }
+            val subTags = selectedTag?.subTags.orEmpty()
+            if (subTags.isNotEmpty()) {
+                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    subTags.forEach { sub ->
+                        val active = sub.id in set.subTagIds
+                        com.example.kpkn.ui.design.KpknChip(
+                            text = sub.name,
+                            selected = active,
+                            onClick = {
+                                onUpdateSet(set.id) { current ->
+                                    val next = if (sub.id in current.subTagIds) {
+                                        current.subTagIds - sub.id
+                                    } else {
+                                        current.subTagIds + sub.id
+                                    }
+                                    current.copy(subTagIds = next)
+                                }
+                            },
+                        )
+                    }
+                }
+            } else if (onOpenTagManager != null) {
+                com.example.kpkn.ui.design.KpknTextAction(
+                    text = if (selectedTag != null) "+ Sub-etiquetas (${selectedTag.name})" else "+ Etiquetas y sub-etiquetas",
+                    onClick = onOpenTagManager,
+                )
+            }
             val activeSetCount = exercise.sets.count { !it.isEmptySlot }
             SetActions(
                 canApply = activeSetCount > 1,
@@ -251,10 +284,11 @@ internal fun ExerciseSetList(
         ) {
             items(slots, key = { (set, _, side) -> keyOf(set, side) }) { (set, index, side) ->
                 val rowKey = keyOf(set, side)
-                val summary = setRowSummary(set, side, trainingMode, customUnit, predictedWeights[set.id], predictedMetrics[set.id])
+                val sidePredicted = predictedWeights[set.id to side] ?: predictedWeights[set.id to null]
+                val summary = setRowSummary(set, side, trainingMode, customUnit, sidePredicted, predictedMetrics[set.id])
                 EffectiveSeriesChip(
                     label = if (side == null) "S${index + 1}" else "${sideLetter(side)}${index + 1}",
-                    load = if (set.isEmptySlot) "Hueco" else seriesChipValue(set, side, trainingMode, customUnit, predictedWeights[set.id]),
+                    load = if (set.isEmptySlot) "Hueco" else seriesChipValue(set, side, trainingMode, customUnit, sidePredicted),
                     dose = if (set.isEmptySlot) "vacío" else seriesChipDetail(set, side, trainingMode, customUnit, summary),
                     description = listOfNotNull("Serie ${index + 1}", summary.load, summary.dose, summary.intensity, summary.technique).joinToString(" · "),
                     enabled = !set.isEmptySlot,
@@ -303,7 +337,11 @@ internal fun ExerciseSetList(
                 deletedSet = null
             })
         }
-        selectedSlot?.let { (set, index, side) -> SetFocus(set, index, side) }
+        selectedSlot?.let { (set, index, side) ->
+            androidx.compose.runtime.key(keyOf(set, side)) {
+                SetFocus(set, index, side)
+            }
+        }
     }
 
     pendingApply?.let { request ->
@@ -422,11 +460,16 @@ internal fun buildSetApplyRequest(
         side == null -> current.withPlannedConfigOf(set)
         else -> current.withSideConfigOf(set, side, sharedSides)
     }
+    val selfChanged = side != null && sharedSides && applyTo(set) != set
     val changed = exercise.sets
         .filter { it.id != set.id && !it.isEmptySlot }
         .filter { applyTo(it) != it }
-    if (changed.isEmpty()) return null
-    return PendingApply(count = changed.size) {
+    if (changed.isEmpty() && !selfChanged) return null
+    val totalCount = changed.size + if (selfChanged) 1 else 0
+    return PendingApply(count = totalCount) {
+        if (selfChanged) {
+            onUpdateSet(set.id) { current -> applyTo(current) }
+        }
         changed.forEach { target ->
             onUpdateSet(target.id) { current -> applyTo(current) }
         }

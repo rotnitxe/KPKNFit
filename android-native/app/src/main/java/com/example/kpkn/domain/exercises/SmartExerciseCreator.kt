@@ -244,7 +244,7 @@ object SmartExerciseCreator {
                 muscle.copy(volumeContribution = resolveMuscleVolumeContribution(muscle))
             }
         }
-        // De UNA referencia: sus músculos con su rol y su aporte (explícito o el de respaldo 1/0,5/0,4), nada de otros ejercicios.
+        // De UNA referencia: sus músculos con su rol y su aporte (explícito o respaldo: 1.0 primario, 0.5 secundario, 0.3 estabilizador limitante, 0.0 postural), nada de otros ejercicios.
         return reference?.involvedMuscles.orEmpty().map { muscle ->
             muscle.copy(
                 volumeContribution = resolveMuscleVolumeContribution(muscle),

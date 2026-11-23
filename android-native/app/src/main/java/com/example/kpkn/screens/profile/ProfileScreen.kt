@@ -63,6 +63,7 @@ import com.example.kpkn.ui.components.LocalKpknOverlayHost
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
 import com.example.kpkn.ui.design.KpknTopIsland
+import com.example.kpkn.ui.tour.TourAnchorScroller
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.TourIds
 import com.example.kpkn.ui.tour.TourScripts
@@ -261,6 +262,8 @@ fun ProfileScreen(
     val choosePhoto = { photoPicker.launch(arrayOf("image/*")) }
 
     val scroll = rememberScrollState()
+    TourAnchorScroller(TourAnchors.PROFILE_AJUSTES) { scroll.animateScrollTo(0) }
+    TourAnchorScroller(TourAnchors.PROFILE_COMPETICION) { scroll.animateScrollTo(scroll.maxValue) }
     val islandThreshold = with(LocalDensity.current) { 190.dp.toPx() }
     val scrolled by remember { derivedStateOf { scroll.value > islandThreshold } }
 

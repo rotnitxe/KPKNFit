@@ -53,8 +53,17 @@
         ],
         "muscles": [
           {
-            "id": "erector_spinae",
+            "id": "core",
             "role": "PRIMARY",
+            "sources": [
+              "kim2016",
+              "statpearls_abdominal_wall"
+            ],
+            "why": "Los músculos profundos del tronco, como el multífido y el transverso del abdomen, acompañan a los erectores en la estabilización: en el bird dog graduado de Kim et al. el multífido aumentó su actividad al subir la intensidad. La pared abdominal fija el tronco al generar presión intraabdominal."
+          },
+          {
+            "id": "erector_spinae",
+            "role": "SECONDARY",
             "sources": [
               "souza2001",
               "garcia2012",
@@ -65,7 +74,7 @@
           },
           {
             "id": "abdominals",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "souza2001",
               "garcia2012"
@@ -74,21 +83,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "ekstrom2007",
               "souza2001"
             ],
             "why": "Extiende la cadera de la pierna que sube. Ekstrom et al. señalan la elevación de brazo y pierna en cuadrupedia como útil para reforzar el glúteo mayor, y Souza et al. lo registraron entre los más activos con la pierna elevada. Es secundario porque solo levanta el peso de una pierna, sin carga añadida."
-          },
-          {
-            "id": "core",
-            "role": "SECONDARY",
-            "sources": [
-              "kim2016",
-              "statpearls_abdominal_wall"
-            ],
-            "why": "Los músculos profundos del tronco, como el multífido y el transverso del abdomen, acompañan a los erectores en la estabilización: en el bird dog graduado de Kim et al. el multífido aumentó su actividad al subir la intensidad. La pared abdominal fija el tronco al generar presión intraabdominal."
           },
           {
             "id": "deltoid",

@@ -43,6 +43,7 @@ try:
     from catalog_v2_derived import (
         derive_joint_actions,
         derive_joint_involvement,
+        derive_limiting_stabilizer_muscles,
         derive_muscle_lists,
         derive_preserves_intent,
         derive_relevant_joints,
@@ -53,6 +54,7 @@ except ModuleNotFoundError:  # loaded by file path (tests) without scripts/ on s
     from catalog_v2_derived import (
         derive_joint_actions,
         derive_joint_involvement,
+        derive_limiting_stabilizer_muscles,
         derive_muscle_lists,
         derive_preserves_intent,
         derive_relevant_joints,
@@ -173,6 +175,11 @@ def _check_entries(
             errors.append(f"{where}: invalid role {role!r}")
         if joints and role != OVERRIDE_REMOVE and not _is_text_list(entry.get("actions")):
             errors.append(f"{where}: a joint needs a non-empty actions list")
+        if not joints and "limiting" in entry:
+            if not isinstance(entry["limiting"], bool):
+                errors.append(f"{where}: limiting must be a boolean")
+            elif entry["limiting"] is True and role != "STABILIZER":
+                errors.append(f"{where}: limiting=true is only allowed when role is STABILIZER")
 
 
 def _check_anatomy(definition_id: str, anatomy: Any, configuration_ids: set[str], errors: list[str]) -> None:
@@ -342,11 +349,18 @@ def _apply_pattern(profile: dict[str, Any], pattern: dict[str, Any] | None) -> N
 def _apply_anatomy(profile: dict[str, Any], anatomy: dict[str, Any], configuration_id: str) -> None:
     muscles, joints = effective_anatomy(anatomy, configuration_id)
     lists = derive_muscle_lists(muscles)
+    limiting = derive_limiting_stabilizer_muscles(muscles)
     involvement = derive_joint_involvement(joints)
     rich = profile["richMetadata"]
     for field_name, muscle_ids in lists.items():
         profile[field_name] = list(muscle_ids)
         rich["anatomy"][field_name] = list(muscle_ids)
+    if limiting:
+        profile["limitingStabilizerMuscles"] = list(limiting)
+        rich["anatomy"]["limitingStabilizerMuscles"] = list(limiting)
+    else:
+        profile.pop("limitingStabilizerMuscles", None)
+        rich["anatomy"].pop("limitingStabilizerMuscles", None)
     profile["jointInvolvement"] = copy.deepcopy(involvement)
     rich["anatomy"]["jointInvolvement"] = copy.deepcopy(involvement)
     rich["anatomy"]["jointActions"] = derive_joint_actions(involvement)

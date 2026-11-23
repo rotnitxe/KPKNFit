@@ -609,7 +609,14 @@ class NativeProfileRecipeAndFitterTest {
                 val id = expectedGluteConfigurations.getValue(slot.key.name)
                 val configuration = catalog.families.flatMap { it.definitions }
                     .flatMap { it.configurations }.single { it.id == id }
-                assertTrue("$id debe contar glúteo real", "gluteus_maximus" in configuration.profile.primaryMuscles)
+                if (slot.key == NativeSlotKey.BG) {
+                    assertTrue("$id debe contar glúteo primario", "gluteus_maximus" in configuration.profile.primaryMuscles)
+                } else {
+                    assertTrue(
+                        "$id debe contar glúteo en primario o secundario",
+                        "gluteus_maximus" in (configuration.profile.primaryMuscles + configuration.profile.secondaryMuscles),
+                    )
+                }
             }
             gluteDays.filter { day -> day.slots.any { it.key == NativeSlotKey.B } }.forEach { day ->
                 assertEquals(1, day.slots.count { it.key == NativeSlotKey.B && it.intent == SlotIntent.H })
@@ -659,7 +666,14 @@ class NativeProfileRecipeAndFitterTest {
             .flatMap { it.configurations }.associateBy { it.id }
         gluteConfigurationByKey.forEach { (key, id) ->
             val configuration = requireNotNull(configurationsById[id]) { "$key: $id no existe en el catálogo" }
-            assertTrue("$key/$id debe contar glúteo real", "gluteus_maximus" in configuration.profile.primaryMuscles)
+            if (key == "BG") {
+                assertTrue("$key/$id debe contar glúteo primario", "gluteus_maximus" in configuration.profile.primaryMuscles)
+            } else {
+                assertTrue(
+                    "$key/$id debe contar glúteo en primario o secundario",
+                    "gluteus_maximus" in (configuration.profile.primaryMuscles + configuration.profile.secondaryMuscles),
+                )
+            }
         }
         val kneePushUp = requireNotNull(configurationsById["knee_push_up__default"])
         assertFalse("la flexión de rodillas no suma glúteos", "gluteus_maximus" in kneePushUp.profile.primaryMuscles)
@@ -1545,12 +1559,25 @@ class NativeProfileRecipeAndFitterTest {
 
     @Test
     fun extra_secondary_glute_total_is_allowed_without_consuming_the_primary_band() {
-        val control = personalizerFor(catalog).personalize("np-indirect", muscleBodyweightSixDaysInput)
+        val input = muscleBodyweightSixDaysInput.copy(level = CatalogLevel.INTERMEDIATE)
+        val control = personalizerFor(catalog).personalize("np-indirect", input)
         val controlProgram = requireProgram(control, "control Músculo corporal 6d")
-        val targets = arrayOf(NativeCandidateTable.GLUTE_BRIDGE_BODYWEIGHT, "reverse_lunge__bodyweight")
+        val originalRecipe = requireNotNull(controlProgram.sourceRecipe)
+        val gluteIds = setOf("gluteus_maximus", "gluteus_medius", "glutes")
+        val configsById = catalog.families.flatMap { it.definitions }.flatMap { it.configurations }.associateBy { it.id }
+        val targets = originalRecipe.weeks.flatMap { it.days }.flatMap { it.slots }
+            .map { it.lift.configurationId }
+            .distinct()
+            .filter { id ->
+                val profile = configsById[id]?.profile
+                profile != null &&
+                    profile.primaryMuscles.none { it in gluteIds } &&
+                    profile.secondaryMuscles.none { it in gluteIds }
+            }
+            .toTypedArray()
+        assertTrue("deben existir ejercicios sin glúteo en la receta", targets.isNotEmpty())
         val boosted = catalogWithExtraGluteSecondary(*targets)
         val boostedMetadata = CatalogCompositionMetadataProvider.fromCatalog(boosted)
-        val originalRecipe = requireNotNull(controlProgram.sourceRecipe)
         val originalPrimary = originalRecipe.weeks.maxOf { week ->
             SessionCompositionPolicy.weeklyPrimaryGroupSets(week, metadata)[com.example.kpkn.data.programs.KpknMuscleGroup.GLUTES] ?: 0.0
         }
@@ -1558,7 +1585,7 @@ class NativeProfileRecipeAndFitterTest {
             targets.sumOf { id -> weeklySetsOf(originalRecipe, id) * 0.5 }
         assertTrue("la premisa excede incluso 17,5 por trabajo secundario: $expectedTotal", expectedTotal > 17.5)
         listOf(0.0, GLUTES_SOFT_BAND).forEach { band ->
-            val result = personalizerFor(boosted, band).personalize("np-indirect", muscleBodyweightSixDaysInput)
+            val result = personalizerFor(boosted, band).personalize("np-indirect", input)
             val program = requireProgram(result, "total indirecto alto con banda=$band")
             assertEquals("el total indirecto no cambia dosis ni retiradas", originalRecipe, program.sourceRecipe)
             assertEquals(expectedTotal, peakGluteTotalSets(program, boosted), 0.001)
@@ -1587,6 +1614,7 @@ class NativeProfileRecipeAndFitterTest {
                         primaryMuscles = (profile.primaryMuscles.filterNot { it == muscle } + if (primary) listOf(muscle) else emptyList()).distinct(),
                         secondaryMuscles = profile.secondaryMuscles.filterNot { it == muscle },
                         stabilizerMuscles = (profile.stabilizerMuscles.filterNot { it == muscle } + if (primary) emptyList() else listOf(muscle)).distinct(),
+                        limitingStabilizerMuscles = (profile.limitingStabilizerMuscles.filterNot { it == muscle } + if (primary) emptyList() else listOf(muscle)).distinct(),
                     ))
                 },
             ) },
@@ -1609,7 +1637,7 @@ class NativeProfileRecipeAndFitterTest {
         assertTrue("el total real supera el límite solo por estabilización", row.indirectSets > row.mrv)
         val firstWeek = weeksOf(program).first()
         val workSets = firstWeek.sessions.sumOf { session -> session.allExercises().sumOf { VolumeCalculator.countEffectiveSets(it.sets) } }
-        assertEquals("peso STABILIZER 0,4 intacto", workSets * 0.4, row.indirectSets, 0.001)
+        assertEquals("peso STABILIZER limitante 0,3 intacto", workSets * 0.3, row.indirectSets, 0.001)
         assertTrue("aviso informativo sin banda", allowed.report.highVolume.isEmpty())
         assertTrue(allowed.report.planNotes.any { it.startsWith("Cuello:") && "0 principales" in it })
         val overflowCatalog = catalogWithAddedRole("neck", primary = true)

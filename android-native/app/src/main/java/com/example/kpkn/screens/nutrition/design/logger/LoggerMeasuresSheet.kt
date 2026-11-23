@@ -93,7 +93,6 @@ fun LoggerMeasuresSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .verticalScroll(rememberScrollState())
-                .imePadding()
                 .padding(start = 18.dp, end = 18.dp, bottom = 30.dp),
         ) {
             LoggerSheetTitle(

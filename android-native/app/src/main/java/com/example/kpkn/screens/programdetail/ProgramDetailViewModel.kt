@@ -740,9 +740,9 @@ class ProgramDetailViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
 
-    val currentWeeks: StateFlow<List<WeekWithMeta>> = combine(_uiState, roadmapBlocks, program) { state, blocks, p ->
+    val currentWeeks: StateFlow<List<WeekWithMeta>> = combine(_uiState, roadmapBlocks, program, history) { state, blocks, p, logs ->
         if (p == null) emptyList()
-        else ProgramDetailHelpers.getWeeksForBlock(state.selectedBlockId, blocks, p)
+        else ProgramDetailHelpers.getWeeksForBlock(state.selectedBlockId, blocks, p, logs)
     }
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, emptyList())
@@ -1440,6 +1440,29 @@ class ProgramDetailViewModel(
         )
     }
 
+    fun updateHighEnergyDay(
+        dayOfWeek: Int,
+        startWeekOnThisDay: Boolean,
+    ) {
+        val normalized = dayOfWeek.coerceIn(1, 7)
+        val current = program.value ?: return
+        val baseUpdated = if (startWeekOnThisDay) {
+            SplitApplicationEngine.applyStartDayChange(
+                program = current,
+                selectedWeekId = _uiState.value.selectedWeekId,
+                newStartDay = normalized,
+                temporalScope = StartDayTemporalScope.FROM_SELECTED_WEEK,
+                sessionMode = StartDaySessionMode.KEEP_DAYS,
+            )
+        } else {
+            current
+        }
+        repository.updateProgram(baseUpdated.copy(highEnergyDay = normalized))
+        repository.updateSettings { settings ->
+            settings.copy(defaultHighEnergyDay = normalized)
+        }
+    }
+
     fun addWeekToSimpleProgram(sourceWeekId: String? = null, name: String? = null, description: String? = null) {
         val current = program.value ?: return
         if (!current.isSimpleTemporalProgram && current.structure != ProgramStructure.SIMPLE) return
@@ -1658,7 +1681,28 @@ class ProgramDetailViewModel(
                                 meso.copy(
                                     weeks = meso.weeks.map { week ->
                                         if (week.id == resolvedWeekId) {
-                                            week.copy(sessions = normalizeMainSessions(sessions))
+                                            val hasActiveProgressiveWaves = ProgramDetailHelpers.isSimpleProgram(current) &&
+                                                current.simpleProgramKind == com.example.kpkn.data.models.SimpleProgramKind.CYCLIC &&
+                                                current.loops.any { it.mode == com.example.kpkn.data.models.LoopMode.PROGRESSIVE_WAVE }
+                                            val baseSessionsById = week.sessions.associateBy { it.id }
+                                            val unmodulatedSessions = if (hasActiveProgressiveWaves) {
+                                                sessions.map { incoming ->
+                                                    val base = baseSessionsById[incoming.id]
+                                                    if (base != null) {
+                                                        incoming.copy(
+                                                            exercises = base.exercises,
+                                                            parts = base.parts,
+                                                            sessionB = base.sessionB,
+                                                            description = base.description,
+                                                        )
+                                                    } else {
+                                                        incoming
+                                                    }
+                                                }
+                                            } else {
+                                                sessions
+                                            }
+                                            week.copy(sessions = normalizeMainSessions(unmodulatedSessions))
                                         } else {
                                             week
                                         }

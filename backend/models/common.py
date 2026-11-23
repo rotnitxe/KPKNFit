@@ -55,6 +55,7 @@ class InvolvedMuscle(BaseModel):
     muscle: str
     role: MuscleRole
     activation: Optional[float] = None
+    volumeContribution: Optional[float] = None
 
 
 class ExerciseMuscleInfo(BaseModel):

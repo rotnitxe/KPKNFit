@@ -32,6 +32,7 @@ data class SharedExerciseLoadReference(
     val prReps: Int? = null,
     val effortMode: PrEffortMode? = null,
     val effortValue: Double? = null,
+    val romTarget: PlannedRomTarget? = null,
     val comparableObservations: List<ComparableCapacityObservation> = emptyList(),
 ) {
     fun suggestedValueKg(): Double {

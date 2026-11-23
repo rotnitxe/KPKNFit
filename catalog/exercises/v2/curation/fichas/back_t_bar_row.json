@@ -122,6 +122,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "saeterbakken2015",

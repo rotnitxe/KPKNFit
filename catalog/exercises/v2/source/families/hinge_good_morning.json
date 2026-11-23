@@ -62,6 +62,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
               "performanceProfileId": "good_morning__bilateral__barbell",
@@ -111,6 +115,10 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -261,6 +269,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
               "performanceProfileId": "good_morning__unilateral__barbell",
@@ -310,6 +322,10 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -462,6 +478,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
               "performanceProfileId": "good_morning__bilateral__safety_bar",
@@ -511,6 +531,10 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -661,6 +685,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
               "performanceProfileId": "good_morning__unilateral__safety_bar",
@@ -710,6 +738,10 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -862,6 +894,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
               "performanceProfileId": "good_morning__bilateral__smith_machine",
@@ -911,6 +947,10 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -1061,6 +1101,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
               "performanceProfileId": "good_morning__unilateral__smith_machine",
@@ -1110,6 +1154,10 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -1261,6 +1309,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
               "performanceProfileId": "good_morning__bilateral__machine",
@@ -1310,6 +1362,10 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -1460,6 +1516,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
               "performanceProfileId": "good_morning__unilateral__machine",
@@ -1509,6 +1569,10 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -1661,6 +1725,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
               "loadMode": "bodyweight",
               "movementPatternId": "hip_hinge",
               "performanceProfileId": "good_morning__bilateral__bodyweight",
@@ -1710,6 +1778,10 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -1881,6 +1953,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
               "performanceProfileId": "good_morning_seated__barbell",
@@ -1927,6 +2003,10 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
                   ],
                   "primaryMuscles": [
                     "hamstrings"
@@ -2070,6 +2150,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge",
               "performanceProfileId": "good_morning_seated__smith_machine",
@@ -2116,6 +2200,10 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
                   ],
                   "primaryMuscles": [
                     "hamstrings"
@@ -2259,6 +2347,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
               "performanceProfileId": "good_morning_seated__safety_bar",
@@ -2305,6 +2397,10 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
                   ],
                   "primaryMuscles": [
                     "hamstrings"
@@ -2482,6 +2578,11 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "biceps"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge",
               "performanceProfileId": "good_morning_zercher__barbell__buenos_dias_zercher",
@@ -2539,6 +2640,11 @@
                       "jointId": "codo",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "biceps"
                   ],
                   "primaryMuscles": [
                     "hamstrings",

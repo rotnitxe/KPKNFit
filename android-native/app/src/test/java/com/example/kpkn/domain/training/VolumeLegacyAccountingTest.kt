@@ -22,15 +22,15 @@ class VolumeLegacyAccountingTest {
     )
 
     @Test
-    fun `las contabilidades son intencionalmente distintas entre roles heredados y maximo canonico`() {
+    fun `calculateRoleSeparated y calculateVolume deduplican ganador canonico unico para Gluteos`() {
         val sessions = listOf(session(listOf(
             InvolvedMuscle("Glúteo Mayor", MuscleRole.PRIMARY, 1.0),
             InvolvedMuscle("Glúteo Medio", MuscleRole.SECONDARY, 0.5),
         )))
-        val legacy = VolumeCalculator.calculateRoleSeparatedMuscleVolume(sessions, emptyList()).getValue("Glúteos")
-        assertEquals(3.0, legacy.directSets, 0.0)
-        assertEquals(1.5, legacy.secondarySets, 0.0)
-        assertEquals(4.5, legacy.totalSets, 0.0)
+        val roleSeparated = VolumeCalculator.calculateRoleSeparatedMuscleVolume(sessions, emptyList()).getValue("Glúteos")
+        assertEquals(3.0, roleSeparated.directSets, 0.0)
+        assertEquals(0.0, roleSeparated.secondarySets, 0.0)
+        assertEquals(3.0, roleSeparated.totalSets, 0.0)
 
         val canonical = VolumeCalculator.calculateVolume(sessions, emptyMap()).muscles.getValue("Glúteos")
         assertEquals(3.0, canonical.sets, 0.0)

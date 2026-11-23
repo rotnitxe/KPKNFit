@@ -42,6 +42,7 @@ fun ExerciseMuscleInfo.toResolvedExerciseProfileV2(): ResolvedExerciseProfileV2?
         primaryMuscles = metadata.anatomy.primaryMuscles,
         secondaryMuscles = metadata.anatomy.secondaryMuscles,
         stabilizerMuscles = metadata.anatomy.stabilizerMuscles,
+        limitingStabilizerMuscles = metadata.anatomy.limitingStabilizerMuscles,
         technicalDifficulty = technicalDifficulty ?: return null,
         resistanceProfile = metadata.biomechanics.resistanceProfile,
         setupCues = setupCues.orEmpty(),

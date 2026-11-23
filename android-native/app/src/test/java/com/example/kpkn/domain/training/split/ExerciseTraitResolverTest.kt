@@ -77,7 +77,8 @@ class ExerciseTraitResolverTest {
     fun legs_hinges_and_calves_belong_to_the_leg_group_and_the_lower_region() {
         val squat = traits(CatalogIds.SQ_HIGH)
         assertEquals(PatternFamily.SQUAT, squat.pattern)
-        assertEquals(setOf(KpknMuscleGroup.QUADS, KpknMuscleGroup.GLUTES), squat.primaryMuscles)
+        assertEquals(setOf(KpknMuscleGroup.QUADS), squat.primaryMuscles)
+        assertEquals(ExerciseTraits.SECONDARY, squat.muscles.getValue(KpknMuscleGroup.GLUTES), 0.0)
         assertEquals(SplitGroup.LEGS, squat.group)
         assertEquals(BodyRegion.LOWER, squat.region)
 

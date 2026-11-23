@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.SmartLoadBasis
 import com.example.kpkn.data.models.TrainingMode
+import com.example.kpkn.data.models.UnilateralTarget
 import com.example.kpkn.data.models.supersetGroupRefOrLegacyId
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.plannedRepAnchor
@@ -162,16 +163,19 @@ fun resolveReferenceCapacity(exercise: Exercise): Double? {
     exercise.reference1RM?.takeIf { it > 0.0 }?.let { return it }
     val pr = exercise.prFor1RM ?: return null
     if (pr.weight <= 0 || pr.reps <= 0) return null
+    val rir = pr.effortValue?.toInt()?.takeIf { pr.effortMode == com.example.kpkn.data.models.PrEffortMode.RIR }
+    val rpe = pr.effortValue?.takeIf { pr.effortMode == com.example.kpkn.data.models.PrEffortMode.RPE }
+    val toFailure = pr.effortMode == com.example.kpkn.data.models.PrEffortMode.FAILURE
     return when (exercise.trainingMode) {
         TrainingMode.REPS,
         TrainingMode.RM,
-        -> StrengthModel.estimate1RM(pr.weight, pr.reps)
+        -> StrengthModel.estimate1RM(pr.weight, pr.reps, rir = rir, rpe = rpe, toFailure = toFailure)
         TrainingMode.TIME,
         TrainingMode.DISTANCE,
         TrainingMode.CUSTOM,
         -> calculateGeneralizedCapacity(pr.weight, pr.reps.toDouble())
         TrainingMode.SOLO_RPE -> null
-        TrainingMode.AMRAP -> StrengthModel.estimate1RM(pr.weight, pr.reps)
+        TrainingMode.AMRAP -> StrengthModel.estimate1RM(pr.weight, pr.reps, rir = rir, rpe = rpe, toFailure = toFailure)
     }
 }
 
@@ -340,6 +344,28 @@ fun calculateSuggestedLoad(exercise: Exercise, set: ExerciseSet): Double? {
         }
     } ?: return null
     return if (suggested > 0.0) roundSuggestedLoad(suggested) else null
+}
+
+fun calculateSuggestedLoadForTarget(
+    exercise: Exercise,
+    set: ExerciseSet,
+    sideTarget: UnilateralTarget?,
+): Double? {
+    if (sideTarget == null) return calculateSuggestedLoad(exercise, set)
+    val effectiveIntensityMode = sideTarget.intensityMode ?: set.intensityMode
+    val isFailure = effectiveIntensityMode == IntensityMode.FAILURE
+    val projectedSet = set.copy(
+        weight = sideTarget.weight,
+        targetReps = sideTarget.targetReps ?: set.targetReps,
+        targetRepsRange = sideTarget.targetRepsRange,
+        targetDuration = sideTarget.targetDuration ?: set.targetDuration,
+        plannedTargetV2 = sideTarget.targetValue ?: set.plannedTargetV2,
+        intensityMode = effectiveIntensityMode,
+        targetRPE = if (isFailure) null else sideTarget.targetRPE,
+        targetRIR = if (isFailure) null else sideTarget.targetRIR,
+        isFailure = isFailure,
+    )
+    return calculateSuggestedLoad(exercise, projectedSet)
 }
 
 fun calculateSuggestedLoad(

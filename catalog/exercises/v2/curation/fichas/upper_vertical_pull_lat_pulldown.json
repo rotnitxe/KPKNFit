@@ -88,7 +88,7 @@
           },
           {
             "id": "deltoid",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "statpearls_deltoid"
             ],
@@ -101,15 +101,6 @@
               "statpearls_back"
             ],
             "why": "Sostienen el tronco inclinado unos grados hacia atrás mientras el asa baja, con los muslos fijos bajo los apoyos. Su trabajo es isométrico, de modo que suman como estabilizador y no como motor."
-          },
-          {
-            "id": "pectoralis",
-            "role": "STABILIZER",
-            "sources": [
-              "sperandei2009",
-              "statpearls_pectoral"
-            ],
-            "why": "Con los codos cerrados sobre las costillas, su porción esternal acompaña el cierre del brazo hacia el tronco. Sperandei et al. (2009) lo midieron con el asa en V: más bajo que con la barra por delante de la cara y más alto que tras nuca, mientras el dorsal no cambió entre técnicas. Es una ayuda menor de la aducción, contada como estabilizador."
           },
           {
             "id": "core",
@@ -420,17 +411,6 @@
               "statpearls_abdominal_wall"
             ],
             "why": "La pared abdominal fija el tronco reclinado sobre la pelvis; en la vuelta del jalón el recto abdominal se activó más que en la de la dominada (Doma 2013). Es sostén isométrico: no mueve ninguna articulación del gesto."
-          },
-          {
-            "id": "pectoralis",
-            "role": "STABILIZER",
-            "sources": [
-              "youdas2010",
-              "padovan2024",
-              "doma2013",
-              "statpearls_pectoral"
-            ],
-            "why": "Su porción esternal ayuda a arrancar la aducción con el brazo arriba: en la dominada su pico llega al principio de la subida, junto con el del trapecio inferior (Youdas 2010), y aquí se extrapola a la misma tracción vertical. El jalón por delante de la cara lo excitó más que el tras nuca en la fase descendente (Padovan 2024), pero al tirar quedó por debajo del dorsal y del bíceps (Doma 2013): su aporte es pequeño y se cuenta como estabilizador."
           },
           {
             "id": "forearm",

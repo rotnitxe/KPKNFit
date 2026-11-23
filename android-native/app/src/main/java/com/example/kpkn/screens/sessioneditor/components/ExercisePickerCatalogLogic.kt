@@ -108,6 +108,16 @@ internal fun roleVolumeLabel(role: MuscleRole): String = when (role) {
     MuscleRole.NEUTRALIZER -> "Neutralizador · evita compensación"
 }
 
+internal fun roleVolumeSummaryLabel(role: MuscleRole, seriesEquivalent: Double): String = when (role) {
+    MuscleRole.STABILIZER -> if (seriesEquivalent > 0.0) "Estabilizador limitante" else "Estabilizador postural"
+    else -> roleVolumeLabel(role).substringBefore(" · ")
+}
+
+internal fun roleVolumeDetailLabel(role: MuscleRole, seriesEquivalent: Double): String = when {
+    role == MuscleRole.STABILIZER && seriesEquivalent <= 0.0 -> "Estabilizador postural"
+    else -> "${roleVolumeSummaryLabel(role, seriesEquivalent)} · ${formatSeriesEquivalent(seriesEquivalent)}"
+}
+
 internal fun formatSeriesEquivalent(value: Double): String {
     val normalized = value.coerceAtLeast(0.0)
     val text = "%.1f".format(normalized)

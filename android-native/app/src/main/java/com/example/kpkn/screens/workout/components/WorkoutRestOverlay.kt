@@ -49,6 +49,8 @@ import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknType
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.tourAnchor
 import dev.chrisbanes.haze.HazeState
 import java.util.Locale
 
@@ -124,7 +126,7 @@ internal fun RestTimerOverlay(
             hasFeedback -> RestRef02FullscreenScaffold(
                 eyebrow = if (running) "DESCANSO + FEEDBACK" else "FEEDBACK DEL EJERCICIO",
                 title = feedbackTitle ?: title,
-                onMinimize = onMinimize.takeIf { running },
+                onMinimize = null,
                 bottom = if (running) endRest else null,
             ) { _ ->
                 if (running) {
@@ -173,6 +175,7 @@ internal fun RestTimerOverlay(
                 eyebrow = if (state.kind == RestTimerKind.WARMUP) "PAUSA ENTRE APROXIMACIONES" else "PAUSA ENTRE SERIES",
                 title = title,
                 onMinimize = onMinimize,
+                contentModifier = Modifier.tourAnchor(TourAnchors.WORKOUT_DESCANSO),
                 bottom = endRest,
             ) { compact ->
                 RestRef02FullClockPanel(

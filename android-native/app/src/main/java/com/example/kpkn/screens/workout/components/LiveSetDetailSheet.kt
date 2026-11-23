@@ -98,6 +98,7 @@ private val FieldInset = KpknShadow.BordeInterior.spec.copyLayer(0) { it.copy(co
  * «Guardar también en el programa» (sin él, el ROM vale solo para esta sesión), y la nota de la serie (segunda página).
  * Edita el mismo borrador que la tarjeta. El ROM solo se anota y se muestra: no excluye la serie de ningún récord.
  */
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 internal fun LiveSetDetailSheet(
     exerciseName: String,
@@ -119,6 +120,12 @@ internal fun LiveSetDetailSheet(
     /** «Guardar también en el programa»: el estado y su cambio. Nulo (modo sin programa) oculta el interruptor. */
     saveToProgram: Boolean = false,
     onSaveToProgramChange: ((Boolean) -> Unit)? = null,
+    plannedRom: com.example.kpkn.data.models.PlannedRomTarget? = null,
+    recordedRomTarget: com.example.kpkn.data.models.PlannedRomTarget? = null,
+    onRecordedRomTargetChange: ((com.example.kpkn.data.models.PlannedRomTarget) -> Unit)? = null,
+    availableSubTags: List<com.example.kpkn.data.models.WorkoutSubTag> = emptyList(),
+    activeSubTagIds: List<String> = emptyList(),
+    onToggleSubTag: ((String) -> Unit)? = null,
 ) {
     var notePage by remember { mutableStateOf(false) }
     // pulido:lv-S21 (la hoja es `LiveSheetKit`: sombra `0 -14px 44px #000c` + filete superior; vive en el kit compartido)
@@ -153,15 +160,27 @@ internal fun LiveSetDetailSheet(
             ) {
                 val current = (rom ?: LiveRomFullPercent).coerceIn(LiveRom.MIN, LiveRom.MAX)
                 Column(Modifier.fillMaxWidth().padding(top = 12.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
-                        Text("ROM", style = DetailLabel, color = SheetInk)
-                        DetailRomField(current, onRom)
-                    }
-                    RomSlider(current, onRom, Modifier.fillMaxWidth())
-                    Row(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        val zone = LiveRom.zone(current)
-                        RomZone.entries.forEach { z ->
-                            ZoneButton(z, selected = z == zone, onClick = { onRom(z.representative) }, modifier = Modifier.weight(1f))
+                    if (plannedRom != null && onRecordedRomTargetChange != null) {
+                        com.example.kpkn.ui.design.KpknRomEditorSection(
+                            target = recordedRomTarget ?: plannedRom,
+                            onChange = { nextTarget ->
+                                onRecordedRomTargetChange(nextTarget)
+                                onRom(com.example.kpkn.domain.workout.RomTargetCatalog.toApproxPercent(nextTarget))
+                            },
+                            title = "ROM (objetivo: ${com.example.kpkn.domain.workout.RomTargetCatalog.format(plannedRom)})",
+                            planMarkerTarget = plannedRom,
+                        )
+                    } else {
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text("ROM", style = DetailLabel, color = SheetInk)
+                            DetailRomField(current, onRom)
+                        }
+                        RomSlider(current, onRom, Modifier.fillMaxWidth())
+                        Row(Modifier.fillMaxWidth().padding(top = 4.dp, bottom = 8.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            val zone = LiveRom.zone(current)
+                            RomZone.entries.forEach { z ->
+                                ZoneButton(z, selected = z == zone, onClick = { onRom(z.representative) }, modifier = Modifier.weight(1f))
+                            }
                         }
                     }
                     if (onSaveToProgramChange != null) {
@@ -172,6 +191,27 @@ internal fun LiveSetDetailSheet(
                             onToggle = onSaveToProgramChange,
                             tag = "live-set-detail-rom-program-toggle",
                         )
+                    }
+                }
+            }
+            if (availableSubTags.isNotEmpty() && onToggleSubTag != null) {
+                Column(
+                    Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Text("Sub-etiquetas de esta serie", style = DetailSmall, color = SheetMuted)
+                    androidx.compose.foundation.layout.FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        availableSubTags.forEach { sub ->
+                            val isSelected = sub.id in activeSubTagIds
+                            com.example.kpkn.ui.design.KpknChip(
+                                text = sub.name,
+                                selected = isSelected,
+                                onClick = { onToggleSubTag(sub.id) },
+                            )
+                        }
                     }
                 }
             }

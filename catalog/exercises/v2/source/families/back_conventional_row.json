@@ -76,12 +76,14 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "conventional_row__barbell__remo_convencional",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_barbell",
               "replacementPriority": 1,
@@ -142,11 +144,14 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
+                    "trapezius",
                     "rhomboids",
                     "deltoid",
                     "biceps"
@@ -219,14 +224,14 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi",
-                    "horizontal_pull:trapezius"
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_row_barbell",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "trapezius",
                 "rhomboids",
                 "deltoid",
                 "biceps"
@@ -319,12 +324,14 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "conventional_row__dumbbells__remo_convencional",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_barbell",
               "replacementPriority": 1,
@@ -383,11 +390,14 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
+                    "trapezius",
                     "rhomboids",
                     "deltoid",
                     "biceps"
@@ -460,14 +470,14 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi",
-                    "horizontal_pull:trapezius"
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_row_barbell",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "trapezius",
                 "rhomboids",
                 "deltoid",
                 "biceps"
@@ -563,8 +573,7 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "conventional_row__machine__remo_convencional",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_barbell",
               "replacementPriority": 1,
@@ -624,10 +633,10 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
+                    "trapezius",
                     "rhomboids",
                     "deltoid",
                     "biceps"
@@ -700,14 +709,14 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi",
-                    "horizontal_pull:trapezius"
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_row_barbell",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "trapezius",
                 "rhomboids",
                 "deltoid",
                 "biceps"
@@ -804,8 +813,7 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "conventional_row__smith_machine__remo_convencional",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_barbell",
               "replacementPriority": 1,
@@ -867,10 +875,10 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
+                    "trapezius",
                     "rhomboids",
                     "deltoid",
                     "biceps"
@@ -943,14 +951,14 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi",
-                    "horizontal_pull:trapezius"
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_row_barbell",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "trapezius",
                 "rhomboids",
                 "deltoid",
                 "biceps"
@@ -1043,12 +1051,14 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "conventional_row__kettlebell__remo_convencional",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_barbell",
               "replacementPriority": 1,
@@ -1107,11 +1117,14 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
+                    "trapezius",
                     "rhomboids",
                     "deltoid",
                     "biceps"
@@ -1184,14 +1197,14 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi",
-                    "horizontal_pull:trapezius"
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_row_barbell",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "trapezius",
                 "rhomboids",
                 "deltoid",
                 "biceps"

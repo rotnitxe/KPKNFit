@@ -182,9 +182,27 @@ class InMemoryExerciseCatalogRepositoryV2(
         val applicableAxes = matching.flatMap { configuration ->
             definition.optionAxes.filter { it in configuration.selectedOptions }
         }.toSet()
-        val exactConfigurationId = matching.singleOrNull()
-            ?.takeIf { configuration -> applicableAxes.all { selectedOptions[it] == configuration.selectedOptions[it] } }
-            ?.id
+        val requiredApplicableAxes = applicableAxes.filter(ExerciseCatalogAxisPolicy::isRequiredAxis)
+        val requiredComplete = requiredApplicableAxes.all { axis ->
+            val relevantConfigs = if (axis == "implement") definition.configurations else matching
+            val distinctValues = relevantConfigs.mapNotNull { it.selectedOptions[axis] }.distinct()
+            distinctValues.size <= 1 || !selectedOptions[axis].isNullOrBlank()
+        }
+        val exactConfigurationId = when {
+            matching.isEmpty() || !requiredComplete -> null
+            definition.optionAxes.isEmpty() -> matching.singleOrNull()?.id
+            else -> {
+                matching.singleOrNull()?.id ?: run {
+                    val defaultConfig = definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+                    matching.firstOrNull { it.id == defaultConfig?.id }?.id ?: run {
+                        val defaultOptions = defaultConfig?.selectedOptions.orEmpty()
+                        matching.minByOrNull { configuration ->
+                            configuration.selectedOptions.count { (axis, value) -> defaultOptions[axis] != value }
+                        }?.id
+                    }
+                }
+            }
+        }
         return ExerciseConfigurationCompatibilityV2(
             matchingConfigurationIds = matchingIds,
             axes = axes,

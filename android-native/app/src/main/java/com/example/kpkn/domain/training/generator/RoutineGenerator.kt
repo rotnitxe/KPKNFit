@@ -136,6 +136,7 @@ object RoutineGenerator {
                 ),
             ),
             startDay = weekStart,
+            highEnergyDay = normalized.freshestDay ?: weekStart,
             volumeRecommendations = budgets.recommendations,
             schedulePlan = ProgramSchedulePlan(weekStartDay = weekStart, trainingDays = days.toSet()),
             autoregulationMode = AutoregulationMode.PROPOSE,

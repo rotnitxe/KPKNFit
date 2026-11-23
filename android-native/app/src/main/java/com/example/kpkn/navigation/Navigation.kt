@@ -262,9 +262,11 @@ sealed class KpknRoute(val route: String) {
             "technique/compare/${Uri.encode(mediaA)}/${Uri.encode(mediaB)}"
     }
 
-    object ExerciseProgress : KpknRoute("progress/exercise?exerciseId={exerciseId}") {
+    object ExerciseProgress : KpknRoute("progress/exercise?exerciseId={exerciseId}&programId={programId}") {
         const val ARG_EXERCISE_ID = "exerciseId"
-        fun create(exerciseId: String? = null): String = "progress/exercise?exerciseId=${Uri.encode(exerciseId.orEmpty())}"
+        const val ARG_PROGRAM_ID = "programId"
+        fun create(exerciseId: String? = null, programId: String? = null): String =
+            "progress/exercise?exerciseId=${Uri.encode(exerciseId.orEmpty())}&programId=${Uri.encode(programId.orEmpty())}"
     }
 
     // ─── Progreso ─────────────────────────────────────────────────────

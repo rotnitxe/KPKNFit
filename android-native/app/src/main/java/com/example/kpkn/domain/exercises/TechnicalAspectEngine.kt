@@ -5,6 +5,7 @@ import com.example.kpkn.data.models.InvolvedMuscle
 import com.example.kpkn.data.models.ModifierType
 import com.example.kpkn.data.models.MuscleModifier
 import com.example.kpkn.data.models.MuscleRole
+import com.example.kpkn.data.models.resolveMuscleVolumeContribution
 
 object TechnicalAspectEngine {
 
@@ -90,7 +91,7 @@ object TechnicalAspectEngine {
             val key = modifier.muscle
             val existing = muscleMap[key]
             if (existing != null) {
-                val currentVC = existing.volumeContribution ?: 1.0
+                val currentVC = resolveMuscleVolumeContribution(existing)
                 muscleMap[key] = existing.copy(
                     role = modifier.role ?: existing.role,
                     volumeContribution = (currentVC + modifier.value).coerceIn(0.0, 1.0),
@@ -112,10 +113,10 @@ object TechnicalAspectEngine {
             val existing = muscleMap[key] ?: InvolvedMuscle(
                 muscle = key,
                 role = modifier.role ?: MuscleRole.PRIMARY,
-                volumeContribution = 1.0,
+                volumeContribution = null,
                 emphasis = modifier.emphasis,
             )
-            val currentVC = existing.volumeContribution ?: 1.0
+            val currentVC = resolveMuscleVolumeContribution(existing)
             muscleMap[key] = existing.copy(
                 role = modifier.role ?: existing.role,
                 volumeContribution = (currentVC * modifier.value).coerceIn(0.0, 1.0),

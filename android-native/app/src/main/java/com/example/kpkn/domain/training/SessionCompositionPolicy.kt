@@ -678,26 +678,29 @@ object SessionCompositionPolicy {
         week.days.forEach { day ->
             day.slots.forEach { slot ->
                 val meta = metadata.metadata(slot.lift.configurationId) ?: return@forEach
+                val workingSetCount = slot.workingSets().size.toDouble()
+                if (workingSetCount <= 0.0) return@forEach
                 // El techo cuenta todos los PRIMARY; varias cabezas del mismo grupo
                 // dentro del slot representan una sola serie principal de ese grupo.
-                meta.primaryMuscles.mapNotNull { muscle ->
+                val primaryGroups = meta.primaryMuscles.mapNotNull { muscle ->
                     CompositionTaxonomy.muscleGroup(muscle, meta.movementPatternId, meta.configurationId)
-                }.toSet().forEach { group ->
-                    primaryRoleSets[group] = (primaryRoleSets[group] ?: 0.0) + slot.workingSets().size
-                }
-                meta.primaryMuscles.forEachIndexed { muscleIndex, muscle ->
-                    val group = CompositionTaxonomy.muscleGroup(muscle, meta.movementPatternId, meta.configurationId)
-                        ?: return@forEach
+                }.toSet()
+                primaryGroups.forEach { group ->
                     groupsHit[group] = (groupsHit[group] ?: 0) + 1
-                    volumeSets[group] = (volumeSets[group] ?: 0.0) + slot.workingSets().size
-                    if (muscleIndex == 0) {
-                        primarySets[group] = (primarySets[group] ?: 0.0) + slot.workingSets().size
+                    volumeSets[group] = (volumeSets[group] ?: 0.0) + workingSetCount
+                    primaryRoleSets[group] = (primaryRoleSets[group] ?: 0.0) + workingSetCount
+                }
+                meta.primaryMuscles.firstOrNull()?.let { dominantMuscle ->
+                    val dominantGroup = CompositionTaxonomy.muscleGroup(dominantMuscle, meta.movementPatternId, meta.configurationId)
+                    if (dominantGroup != null) {
+                        primarySets[dominantGroup] = (primarySets[dominantGroup] ?: 0.0) + workingSetCount
                     }
                 }
-                meta.secondaryMuscles.forEach { muscle ->
-                    val group = CompositionTaxonomy.muscleGroup(muscle, meta.movementPatternId, meta.configurationId)
-                        ?: return@forEach
-                    val indirectSets = slot.workingSets().size * 0.5
+                val secondaryOnlyGroups = meta.secondaryMuscles.mapNotNull { muscle ->
+                    CompositionTaxonomy.muscleGroup(muscle, meta.movementPatternId, meta.configurationId)
+                }.toSet() - primaryGroups
+                secondaryOnlyGroups.forEach { group ->
+                    val indirectSets = workingSetCount * 0.5
                     volumeSets[group] = (volumeSets[group] ?: 0.0) + indirectSets
                     indirectRoleSets[group] = (indirectRoleSets[group] ?: 0.0) + indirectSets
                 }

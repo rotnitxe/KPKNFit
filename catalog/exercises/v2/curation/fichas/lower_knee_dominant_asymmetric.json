@@ -77,7 +77,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "paoli2009",
               "bryanton2012",
@@ -96,6 +96,7 @@
           },
           {
             "id": "core",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "aspe2014"
@@ -104,6 +105,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "hamlyn2007"

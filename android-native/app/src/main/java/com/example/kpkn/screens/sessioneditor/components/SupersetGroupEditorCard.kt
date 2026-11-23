@@ -120,6 +120,7 @@ internal fun SupersetGroupEditorCard(
     relationshipAnchorName: (Exercise) -> String? = { null },
     availableTagsForExercise: (Exercise) -> List<WorkoutTag> = { emptyList() },
     onSaveWorkoutTag: (WorkoutTag) -> Unit = {},
+    onDeleteWorkoutTag: (String) -> Unit = {},
     onOpenRelationshipPicker: (String) -> Unit = {},
     onClearRelationship: (String) -> Unit = {},
     onRemoveFromSuperset: (String, String) -> Unit,
@@ -376,6 +377,7 @@ internal fun SupersetGroupEditorCard(
                             relationshipAnchorName = relationshipAnchorName(selected),
                             availableTags = availableTagsForExercise(selected),
                             onSaveTag = onSaveWorkoutTag,
+                            onDeleteTag = onDeleteWorkoutTag,
                             onUpdateExercise = { updater -> onUpdateExercise(selected.id, updater) },
                             onUpdateSet = { setId, updater -> onUpdateSet(selected.id, setId, updater) },
                             onOpenRelationshipPicker = { onOpenRelationshipPicker(selected.id) },
@@ -401,6 +403,7 @@ internal fun SupersetGroupEditorCard(
 
                 SupersetRoundsCarousel(
                     onUpdateExercise = onUpdateExercise,
+                    availableTagsForExercise = availableTagsForExercise,
                     group = group,
                     exercises = exercises,
                     rounds = rounds,

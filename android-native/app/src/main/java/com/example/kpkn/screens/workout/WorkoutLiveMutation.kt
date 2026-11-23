@@ -65,6 +65,7 @@ internal fun mergeCommittedLiveMutation(base: WorkoutUiState, candidate: Workout
         exerciseTags = delta(base.exerciseTags, candidate.exerciseTags, current.exerciseTags),
         activeTagsByExercise = delta(base.activeTagsByExercise, candidate.activeTagsByExercise, current.activeTagsByExercise),
         activeSubTagsByExercise = delta(base.activeSubTagsByExercise, candidate.activeSubTagsByExercise, current.activeSubTagsByExercise),
+        activeSubTagsBySetKey = delta(base.activeSubTagsBySetKey, candidate.activeSubTagsBySetKey, current.activeSubTagsBySetKey),
         loadSuggestions = delta(base.loadSuggestions, candidate.loadSuggestions, current.loadSuggestions),
         loadSuggestionPulseTokens = delta(base.loadSuggestionPulseTokens, candidate.loadSuggestionPulseTokens, current.loadSuggestionPulseTokens),
         contextualPerformanceCache = candidate.contextualPerformanceCache,

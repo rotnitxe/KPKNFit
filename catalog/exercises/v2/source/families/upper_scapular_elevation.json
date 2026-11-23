@@ -61,6 +61,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "scapular_elevation",
               "performanceProfileId": "back_encogimientos__dumbbells",
@@ -107,6 +110,9 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "trapezius"
@@ -255,6 +261,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "scapular_elevation",
               "performanceProfileId": "back_encogimientos__smith_machine",
@@ -301,6 +310,9 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "trapezius"
@@ -449,6 +461,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "continuous_cable",
               "movementPatternId": "scapular_elevation",
               "performanceProfileId": "back_encogimientos__cable",
@@ -495,6 +510,9 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "trapezius"
@@ -642,6 +660,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "scapular_elevation",
               "performanceProfileId": "back_encogimientos__kettlebell",
@@ -688,6 +709,9 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "trapezius"
@@ -836,6 +860,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "scapular_elevation",
               "performanceProfileId": "back_encogimientos__barbell",
@@ -882,6 +909,9 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "trapezius"

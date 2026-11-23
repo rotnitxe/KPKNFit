@@ -45,7 +45,7 @@ import com.example.kpkn.data.models.MobilityConfig
 import com.example.kpkn.data.models.MobilitySeries
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.screens.onboarding.design.WizardColors
-import com.example.kpkn.screens.sessioneditor.design.SessionSwipeDeleteRow
+import com.example.kpkn.screens.sessioneditor.design.EdSwipeDeleteRow
 import com.example.kpkn.screens.sessioneditor.isEditorUncategorized
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknAlertDismissButton
@@ -126,130 +126,124 @@ internal fun GroupEditorCard(
             }
             .zIndex(if (isDragging) 100f else 0f),
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .defaultMinSize(minHeight = 64.dp)
-                .padding(start = 4.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        val headerShape = if (collapsed) RoundedCornerShape(24.dp) else RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp)
+        EdSwipeDeleteRow(
+            removal = EdRemoval(pending = false),
+            onCommit = {
+                if (shouldShowDeleteChoice) {
+                    showDeleteModeConfirm = true
+                } else {
+                    showDeleteConfirm = true
+                }
+            },
+            surfaceColor = KpknSurface.module,
+            surfaceShape = headerShape,
+            confirmViaRemovalOnly = true,
+            deleteActionLabel = "Eliminar grupo",
         ) {
-            // El asa va fuera del deslizamiento, para que borrar no cancele la pulsación larga.
-            var handleWindowOrigin by remember(part.id) { mutableStateOf(Offset.Zero) }
-            Box(
+            Row(
                 modifier = Modifier
-                    .size(48.dp)
-                    .onGloballyPositioned { coords ->
-                        val b = coords.boundsInWindow()
-                        handleWindowOrigin = Offset(b.left, b.top)
-                    }
-                    .pointerInput(part.id) {
-                        detectDragGesturesAfterLongPress(
-                            onDragStart = { offset ->
-                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                latestOnDragStart.value(cardBoundsInWindow, handleWindowOrigin + offset)
-                            },
-                            onDragCancel = {
-                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                latestOnDragCancel.value()
-                            },
-                            onDragEnd = {
-                                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                                latestOnDragEnd.value()
-                            },
-                            onDrag = { change, dragAmount ->
-                                change.consume()
-                                latestOnDrag.value(dragAmount.y)
-                            },
-                        )
-                    },
-                contentAlignment = Alignment.Center,
+                    .fillMaxWidth()
+                    .defaultMinSize(minHeight = 64.dp)
+                    .padding(start = 4.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    imageVector = KpknLineIcons.Grip,
-                    contentDescription = "Arrastra para reordenar grupo",
-                    tint = if (isDragging) WizardColors.text else WizardColors.textFaint,
-                    modifier = Modifier.size(24.dp),
+                // El asa va fuera del deslizamiento, para que borrar no cancele la pulsación larga.
+                var handleWindowOrigin by remember(part.id) { mutableStateOf(Offset.Zero) }
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .onGloballyPositioned { coords ->
+                            val b = coords.boundsInWindow()
+                            handleWindowOrigin = Offset(b.left, b.top)
+                        }
+                        .pointerInput(part.id) {
+                            detectDragGesturesAfterLongPress(
+                                onDragStart = { offset ->
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    latestOnDragStart.value(cardBoundsInWindow, handleWindowOrigin + offset)
+                                },
+                                onDragCancel = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    latestOnDragCancel.value()
+                                },
+                                onDragEnd = {
+                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    latestOnDragEnd.value()
+                                },
+                                onDrag = { change, dragAmount ->
+                                    change.consume()
+                                    latestOnDrag.value(dragAmount.y)
+                                },
+                            )
+                        },
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Icon(
+                        imageVector = KpknLineIcons.Grip,
+                        contentDescription = "Arrastra para reordenar grupo",
+                        tint = if (isDragging) WizardColors.text else WizardColors.textFaint,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+                Column(modifier = Modifier.weight(1f).padding(horizontal = 8.dp)) {
+                    if (part.isMobilityGroup) {
+                        Text(
+                            text = "MOVILIDAD",
+                            style = KpknType.eyebrow,
+                            color = WizardColors.textMuted,
+                        )
+                    }
+                    if (part.isEditorUncategorized()) {
+                        Text(
+                            text = "Sin grupo",
+                            style = KpknType.bodyStrong,
+                            color = WizardColors.text,
+                        )
+                    } else {
+                        // Tipo frase, como lo escribe la persona: sin mayúsculas forzadas ni recortes mientras escribe.
+                        BasicTextField(
+                            value = part.name,
+                            onValueChange = { onRename(it) },
+                            singleLine = true,
+                            cursorBrush = SolidColor(WizardColors.text),
+                            textStyle = KpknType.bodyStrong.copy(color = WizardColors.text),
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            decorationBox = { innerTextField ->
+                                Box(modifier = Modifier.fillMaxWidth()) {
+                                    if (normalizedName.isBlank()) {
+                                        Text(
+                                            text = "Grupo",
+                                            style = KpknType.bodyStrong,
+                                            color = WizardColors.textFaint,
+                                        )
+                                    }
+                                    innerTextField()
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .onFocusChanged { state ->
+                                    // Al salir del campo se quitan los espacios sobrantes del nombre.
+                                    if (!state.isFocused && part.name != normalizedName) onRename(normalizedName)
+                                }
+                                .testTag("session_group_name_field"),
+                        )
+                    }
+                    Text(
+                        text = summary,
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                KpknIconButton(
+                    icon = if (collapsed) KpknLineIcons.ChevronDown else KpknLineIcons.ChevronUp,
+                    contentDescription = if (collapsed) "Desplegar grupo" else "Plegar grupo",
+                    onClick = onToggleCollapse,
                 )
             }
-            // Deslizar abre el diálogo de borrar directamente, y al cancelar la cabecera vuelve con su nombre (ER2b).
-            SessionSwipeDeleteRow(
-                deleteOpen = showDeleteConfirm || showDeleteModeConfirm,
-                onRequestDelete = {
-                    if (shouldShowDeleteChoice) {
-                        showDeleteModeConfirm = true
-                    } else {
-                        showDeleteConfirm = true
-                    }
-                },
-                modifier = Modifier.weight(1f),
-                shape = RoundedCornerShape(16.dp),
-            ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(KpknSurface.module, RoundedCornerShape(16.dp))
-                        .padding(start = 8.dp, end = 4.dp, top = 4.dp, bottom = 4.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        if (part.isMobilityGroup) {
-                            Text(
-                                text = "MOVILIDAD",
-                                style = KpknType.eyebrow,
-                                color = WizardColors.textMuted,
-                            )
-                        }
-                        if (part.isEditorUncategorized()) {
-                            Text(
-                                text = "Sin grupo",
-                                style = KpknType.bodyStrong,
-                                color = WizardColors.text,
-                            )
-                        } else {
-                            // Tipo frase, como lo escribe la persona: sin mayúsculas forzadas ni recortes mientras escribe.
-                            BasicTextField(
-                                value = part.name,
-                                onValueChange = { onRename(it) },
-                                singleLine = true,
-                                cursorBrush = SolidColor(WizardColors.text),
-                                textStyle = KpknType.bodyStrong.copy(color = WizardColors.text),
-                                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                                decorationBox = { innerTextField ->
-                                    Box(modifier = Modifier.fillMaxWidth()) {
-                                        if (normalizedName.isBlank()) {
-                                            Text(
-                                                text = "Grupo",
-                                                style = KpknType.bodyStrong,
-                                                color = WizardColors.textFaint,
-                                            )
-                                        }
-                                        innerTextField()
-                                    }
-                                },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .onFocusChanged { state ->
-                                        // Al salir del campo se quitan los espacios sobrantes del nombre.
-                                        if (!state.isFocused && part.name != normalizedName) onRename(normalizedName)
-                                    }
-                                    .testTag("session_group_name_field"),
-                            )
-                        }
-                        Text(
-                            text = summary,
-                            style = KpknType.caption,
-                            color = WizardColors.textMuted,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                        )
-                    }
-                }
-            }
-            KpknIconButton(
-                icon = if (collapsed) KpknLineIcons.ChevronDown else KpknLineIcons.ChevronUp,
-                contentDescription = if (collapsed) "Desplegar grupo" else "Plegar grupo",
-                onClick = onToggleCollapse,
-            )
         }
 
         if (part.isMobilityGroup && !collapsed) {

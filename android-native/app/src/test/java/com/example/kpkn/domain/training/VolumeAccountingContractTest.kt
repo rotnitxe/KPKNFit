@@ -28,7 +28,7 @@ class VolumeAccountingContractTest {
         val exercises = listOf(
             f.exercise("directo", 3, heads).copy(exerciseDbId = "directo"),
             f.exercise("secundario", 2, listOf(heads[1])).copy(exerciseDbId = "secundario"),
-            f.exercise("estabilizador", 1, listOf(heads[2])).copy(exerciseDbId = "estabilizador"),
+            f.exercise("estabilizador_limitante", 1, listOf(heads[2])).copy(exerciseDbId = "estabilizador_limitante"),
         )
         VolumeCountingMode.entries.forEach { mode ->
             listOf(false, true).forEach { intensity ->
@@ -38,7 +38,7 @@ class VolumeAccountingContractTest {
                 ).muscles.getValue("Deltoides")
                 val sets = when (mode) {
                     VolumeCountingMode.DIRECT -> 3.0
-                    VolumeCountingMode.SECONDARY -> 4.0
+                    VolumeCountingMode.SECONDARY -> 4.4
                     VolumeCountingMode.STABILIZER -> 4.4
                 }
                 // POST-RINGS counts factual sets, independent of the legacy intensity preference.
@@ -47,11 +47,39 @@ class VolumeAccountingContractTest {
                 assertEquals(result.sets, result.exercises.sumOf { it.sets }, 1e-9)
                 assertEquals(result.sets, result.roles.totalSets, 1e-9)
                 result.portions.forEach { portion ->
-                    assertTrue(mode.includes(portion.role))
                     assertEquals(portion.sets, portion.exercises.sumOf { it.sets }, 1e-9)
                 }
             }
         }
+    }
+
+    @Test
+    fun `estabilizador postural vale cero por defecto en SECONDARY y cero coma uno diagnostico en STABILIZER`() {
+        val posturalHeads = listOf(
+            InvolvedMuscle("Deltoides", MuscleRole.PRIMARY, 1.0, "anterior"),
+            InvolvedMuscle("Deltoides", MuscleRole.SECONDARY, 0.5, "medio"),
+            InvolvedMuscle("Deltoides", MuscleRole.STABILIZER, null, "posterior"),
+        )
+        val exercises = listOf(
+            f.exercise("directo", 3, listOf(posturalHeads[0])).copy(exerciseDbId = "directo"),
+            f.exercise("secundario", 2, listOf(posturalHeads[1])).copy(exerciseDbId = "secundario"),
+            f.exercise("estabilizador_postural", 1, listOf(posturalHeads[2])).copy(exerciseDbId = "estabilizador_postural"),
+        )
+        val direct = VolumeCalculator.calculateVolume(
+            listOf(Session("s", "Sesión", exercises = exercises)), emptyMap(), mode = VolumeCountingMode.DIRECT,
+        ).muscles.getValue("Deltoides")
+        val secondary = VolumeCalculator.calculateVolume(
+            listOf(Session("s", "Sesión", exercises = exercises)), emptyMap(), mode = VolumeCountingMode.SECONDARY,
+        ).muscles.getValue("Deltoides")
+        val stabilizer = VolumeCalculator.calculateVolume(
+            listOf(Session("s", "Sesión", exercises = exercises)), emptyMap(), mode = VolumeCountingMode.STABILIZER,
+        ).muscles.getValue("Deltoides")
+
+        assertEquals(3.0, direct.sets, 1e-9)
+        assertEquals(4.0, secondary.sets, 1e-9)
+        assertEquals(4.1, stabilizer.sets, 1e-9)
+        assertTrue(secondary.portions.none { it.role == MuscleRole.STABILIZER })
+        assertEquals(0.1, stabilizer.portions.single { it.role == MuscleRole.STABILIZER }.sets, 1e-9)
     }
 
     @Test

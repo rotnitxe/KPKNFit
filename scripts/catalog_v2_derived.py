@@ -30,6 +30,15 @@ def derive_muscle_lists(muscles: Iterable[dict[str, Any]]) -> dict[str, list[str
     }
 
 
+def derive_limiting_stabilizer_muscles(muscles: Iterable[dict[str, Any]]) -> list[str]:
+    """Stabilizers marked ``limiting: true`` (2-tier stabilizer volume model)."""
+    return [
+        entry["id"]
+        for entry in muscles
+        if entry["role"] == "STABILIZER" and entry.get("limiting") is True
+    ]
+
+
 def derive_joint_involvement(joints: Iterable[dict[str, Any]]) -> list[dict[str, Any]]:
     return [
         {"jointId": joint["id"], "role": joint["role"], "actions": list(joint["actions"])}

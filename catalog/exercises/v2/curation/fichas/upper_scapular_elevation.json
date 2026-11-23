@@ -72,6 +72,7 @@
           },
           {
             "id": "forearm",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "statpearls_forearm_compartments"

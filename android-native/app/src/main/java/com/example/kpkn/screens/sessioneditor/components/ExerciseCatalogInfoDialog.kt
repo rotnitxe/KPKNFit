@@ -81,6 +81,7 @@ import com.example.kpkn.data.exercises.catalogv2.canonicalJointKnowledge
 import com.example.kpkn.data.exercises.catalogv2.canonicalMuscleKnowledgeForVolumeLabel
 import com.example.kpkn.data.exercises.catalogv2.canonicalPatternKnowledge
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.domain.exercises.catalogv2.JointInvolvementV2
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
@@ -558,18 +559,20 @@ private fun CatalogMuscleRow(
                     overflow = TextOverflow.Ellipsis,
                 )
                 Text(
-                    text = roleVolumeLabel(contribution.role).substringBefore(" · "),
+                    text = roleVolumeSummaryLabel(contribution.role, contribution.seriesEquivalent),
                     style = KpknType.caption,
                     color = WizardColors.textFaint,
                 )
             }
-            Spacer(Modifier.size(12.dp))
-            Text(
-                text = muscleFigures(contribution.seriesEquivalent),
-                style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
-                color = WizardColors.textMuted,
-                maxLines = 1,
-            )
+            if (!(contribution.role == MuscleRole.STABILIZER && contribution.seriesEquivalent <= 0.0)) {
+                Spacer(Modifier.size(12.dp))
+                Text(
+                    text = muscleFigures(contribution.seriesEquivalent),
+                    style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
+                    color = WizardColors.textMuted,
+                    maxLines = 1,
+                )
+            }
         }
         KpknProgressBar(
             progress = contribution.seriesEquivalent.toFloat(),
@@ -768,17 +771,19 @@ internal fun MuscleInvolvementSection(
                             overflow = TextOverflow.Ellipsis,
                         )
                         Text(
-                            text = roleVolumeLabel(contribution.role).substringBefore(" · "),
+                            text = roleVolumeSummaryLabel(contribution.role, contribution.seriesEquivalent),
                             style = KpknType.caption,
                             color = WizardColors.textFaint,
                         )
                     }
-                    Spacer(Modifier.size(12.dp))
-                    Text(
-                        text = "${formatSeriesEquivalent(contribution.seriesEquivalent)} · ${formatVolumePercent(contribution.seriesEquivalent)}",
-                        style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
-                        color = WizardColors.textMuted,
-                    )
+                    if (!(contribution.role == MuscleRole.STABILIZER && contribution.seriesEquivalent <= 0.0)) {
+                        Spacer(Modifier.size(12.dp))
+                        Text(
+                            text = "${formatSeriesEquivalent(contribution.seriesEquivalent)} · ${formatVolumePercent(contribution.seriesEquivalent)}",
+                            style = KpknType.caption.copy(fontFeatureSettings = "'tnum' 1"),
+                            color = WizardColors.textMuted,
+                        )
+                    }
                 }
                 KpknProgressBar(
                     progress = contribution.seriesEquivalent.toFloat(),

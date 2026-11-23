@@ -1,7 +1,7 @@
 package com.example.kpkn.domain.training
 
 import com.example.kpkn.data.models.ActiveProgramState
-import com.example.kpkn.data.models.Block
+import com.example.kpkn.data.models.*
 import com.example.kpkn.data.models.EquipmentInventory
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.LoopState
@@ -53,11 +53,15 @@ object ProgramProgressEngine {
         val autoregulationProposals: List<AutoregulationProposal> = emptyList(),
     )
 
-    fun resolveCurrentWeekInstances(program: Program, cycleNumber: Int): List<WeekInstance> =
+    fun resolveCurrentWeekInstances(
+        program: Program,
+        cycleNumber: Int,
+        workoutLogs: List<WorkoutLog> = emptyList(),
+    ): List<WeekInstance> =
         if (program.requiresNativeWeekInstances()) {
             ProgramCurrentWeekResolver.nativeComplexInstances(program, cycleNumber)
         } else {
-            ProgramCurrentWeekResolver.cyclicInstances(program, cycleNumber)
+            ProgramCurrentWeekResolver.cyclicInstances(program, cycleNumber, workoutLogs)
         }
 
     /**
@@ -91,15 +95,22 @@ object ProgramProgressEngine {
             val location = hierarchy.orderedWeeks()
                 .firstOrNull { it.week.isLoopWeek && it.week.loopId == occ.loopId }
                 ?: return@mapNotNull null
-            val week = location.week
-            val templateId = week.id
+            val loop = synced.loops.firstOrNull { it.id == occ.loopId }
+            val rawWeek = location.week
+            val modulatedWeek = if (loop != null && loop.mode == LoopMode.PROGRESSIVE_WAVE && loop.waveSteps.isNotEmpty()) {
+                LoopWaveModulator.applyWaveToWeek(rawWeek, loop, cycleNumber)
+            } else {
+                rawWeek
+            }
+            val stepLabel = loop?.let { LoopWaveModulator.stepForCycle(it, cycleNumber)?.label }?.takeIf { it.isNotBlank() }
+            val templateId = rawWeek.id
             WeekInstance(
                 instanceId = instanceIdFor(cycleNumber, templateId),
                 templateWeekId = templateId,
                 cycleNumber = cycleNumber,
-                week = week.copy(
+                week = modulatedWeek.copy(
                     id = instanceIdFor(cycleNumber, templateId),
-                    name = "${week.name} (C$cycleNumber)",
+                    name = stepLabel ?: "${modulatedWeek.name} (C$cycleNumber)",
                 ),
                 macroIndex = location.macroIndex,
                 blockIndex = location.blockIndex,

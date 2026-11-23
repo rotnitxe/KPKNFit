@@ -20,7 +20,7 @@ vigente es esto:
   de levantamientos olímpicos y acarreos añadió 13 definiciones y 14 configuraciones,
   ver «Lote OL-1»; el 2026-10-12 se retiró `conventional_row__cable`, con 228
   definiciones, 552 configuraciones y 443 pares). SHA-256 canónico compartido
-  `36079761be601f03caa85e3bed2f41bbf78ffa8fe7312bdb44e9282be26e8295`.
+  `2611cfdfb3068fff4f3a3f0bdfc91fabab3339d25f7d0d241be2351cd2fc464d`.
 
 ### Retiro solicitado — Remo Convencional en polea (2026-10-12)
 

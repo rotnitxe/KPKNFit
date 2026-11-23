@@ -51,11 +51,14 @@ internal data class ProgramEditDraft(
     fun canSave(program: Program): Boolean = trimmedName.isNotEmpty() && isChangedFrom(program)
 
     /** Nombre, descripción, modalidad o portada distintos de los del programa. */
-    fun isChangedFrom(program: Program): Boolean =
-        trimmedName != program.name ||
+    fun isChangedFrom(program: Program): Boolean {
+        val effectiveProgramMode = programModeFromIdentityLabel(program.identityLabel) ?: program.mode
+        return trimmedName != program.name ||
             trimmedDescription != program.description?.trim()?.takeIf { it.isNotEmpty() } ||
+            mode != effectiveProgramMode ||
             mode != program.mode ||
             cover != program.coverImage
+    }
 }
 
 /** Los estilos que se eligen en la rejilla («Sesión» es solo de las historias). */
@@ -76,8 +79,16 @@ internal fun programEditDraftOf(program: Program): ProgramEditDraft {
             ?: lines?.style?.takeIf { it != LineCoverStyle.SESION }
             ?: LineCoverStyle.PERFIL,
         background = studio?.palette?.let(::lineBackgroundForPalette) ?: lines?.background ?: LineCoverBackground.CARBON,
-        mode = program.mode,
+        mode = programModeFromIdentityLabel(program.identityLabel) ?: program.mode,
     )
+}
+
+/** Mapea una etiqueta de identidad estándar a su [ProgramMode] correspondiente, o null si es una etiqueta personalizada. */
+internal fun programModeFromIdentityLabel(label: String?): ProgramMode? = when (label?.trim()?.lowercase()) {
+    "hipertrofia", "culturismo", "hypertrophy" -> ProgramMode.HYPERTROPHY
+    "powerbuilding" -> ProgramMode.POWERBUILDING
+    "powerlifting" -> ProgramMode.POWERLIFTING
+    else -> null
 }
 
 /** Nombre en español de cada modalidad del programa. */

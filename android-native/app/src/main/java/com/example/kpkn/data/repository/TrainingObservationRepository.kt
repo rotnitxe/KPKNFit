@@ -43,6 +43,22 @@ class TrainingObservationRepository(
         Unit
     }
 
+    /** #5 · Edición explícita del check-in del día desde «Antes de entrenar». */
+    suspend fun upsertWellbeing(log: com.example.kpkn.data.models.DailyWellbeingLog) = withContext(Dispatchers.IO) {
+        dao.upsertWellbeing(
+            TrainingObservationEntity(
+                "wellbeing:${log.date}",
+                "wellbeing",
+                log.date,
+                com.example.kpkn.data.db.dbJson.encodeToString(
+                    com.example.kpkn.data.models.DailyWellbeingLog.serializer(), log,
+                ),
+                "explicit_self_report;optional;not_validated_scale",
+            ),
+        )
+        Unit
+    }
+
     suspend fun getWellbeingLogs(): List<com.example.kpkn.data.models.DailyWellbeingLog> = withContext(Dispatchers.IO) {
         dao.all().filter { it.kind == "wellbeing" }.mapNotNull { observation ->
             runCatching {

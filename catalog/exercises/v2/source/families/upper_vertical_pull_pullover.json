@@ -133,11 +133,11 @@
                     "pectoralis"
                   ],
                   "secondaryMuscles": [
-                    "latissimus_dorsi",
-                    "triceps",
-                    "deltoid"
+                    "latissimus_dorsi"
                   ],
                   "stabilizerMuscles": [
+                    "triceps",
+                    "deltoid",
                     "core",
                     "forearm"
                   ],
@@ -205,9 +205,7 @@
                 }
               },
               "secondaryMuscles": [
-                "latissimus_dorsi",
-                "triceps",
-                "deltoid"
+                "latissimus_dorsi"
               ],
               "setupCues": [
                 "Túmbate a lo largo del banco con la cabeza cerca del borde y los pies apoyados en el suelo.",
@@ -215,6 +213,8 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
+                "triceps",
+                "deltoid",
                 "core",
                 "forearm"
               ],
@@ -351,11 +351,11 @@
                     "pectoralis"
                   ],
                   "secondaryMuscles": [
-                    "latissimus_dorsi",
-                    "triceps",
-                    "deltoid"
+                    "latissimus_dorsi"
                   ],
                   "stabilizerMuscles": [
+                    "triceps",
+                    "deltoid",
                     "core",
                     "forearm"
                   ],
@@ -423,9 +423,7 @@
                 }
               },
               "secondaryMuscles": [
-                "latissimus_dorsi",
-                "triceps",
-                "deltoid"
+                "latissimus_dorsi"
               ],
               "setupCues": [
                 "Túmbate en el banco con los pies firmes en el suelo y la cabeza apoyada.",
@@ -433,6 +431,8 @@
               ],
               "setupTimeSeconds": 35,
               "stabilizerMuscles": [
+                "triceps",
+                "deltoid",
                 "core",
                 "forearm"
               ],
@@ -572,11 +572,11 @@
                     "pectoralis"
                   ],
                   "secondaryMuscles": [
-                    "latissimus_dorsi",
-                    "triceps",
-                    "deltoid"
+                    "latissimus_dorsi"
                   ],
                   "stabilizerMuscles": [
+                    "triceps",
+                    "deltoid",
                     "core",
                     "forearm"
                   ],
@@ -644,9 +644,7 @@
                 }
               },
               "secondaryMuscles": [
-                "latissimus_dorsi",
-                "triceps",
-                "deltoid"
+                "latissimus_dorsi"
               ],
               "setupCues": [
                 "Túmbate a lo largo del banco con los pies en el suelo.",
@@ -654,6 +652,8 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
+                "triceps",
+                "deltoid",
                 "core",
                 "forearm"
               ],
@@ -791,11 +791,11 @@
                     "pectoralis"
                   ],
                   "secondaryMuscles": [
-                    "latissimus_dorsi",
-                    "triceps",
-                    "deltoid"
+                    "latissimus_dorsi"
                   ],
                   "stabilizerMuscles": [
+                    "triceps",
+                    "deltoid",
                     "core",
                     "forearm"
                   ],
@@ -863,9 +863,7 @@
                 }
               },
               "secondaryMuscles": [
-                "latissimus_dorsi",
-                "triceps",
-                "deltoid"
+                "latissimus_dorsi"
               ],
               "setupCues": [
                 "Coloca el banco con la cabeza hacia una polea baja y engancha una barra corta.",
@@ -873,6 +871,8 @@
               ],
               "setupTimeSeconds": 25,
               "stabilizerMuscles": [
+                "triceps",
+                "deltoid",
                 "core",
                 "forearm"
               ],
@@ -1032,12 +1032,10 @@
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "secondaryMuscles": [
-                    "triceps",
-                    "pectoralis",
-                    "deltoid"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
+                    "triceps",
+                    "deltoid",
                     "core",
                     "erector_spinae",
                     "forearm"
@@ -1108,17 +1106,15 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "triceps",
-                "pectoralis",
-                "deltoid"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Engancha una barra recta o una cuerda en la polea alta y da uno o dos pasos hacia atrás.",
                 "Agarra con los brazos casi rectos a la altura de la cabeza y flexiona un poco caderas y rodillas."
               ],
               "setupTimeSeconds": 25,
               "stabilizerMuscles": [
+                "triceps",
+                "deltoid",
                 "core",
                 "erector_spinae",
                 "forearm"
@@ -1268,12 +1264,10 @@
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "secondaryMuscles": [
-                    "triceps",
-                    "pectoralis",
-                    "deltoid"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
+                    "triceps",
+                    "deltoid",
                     "core",
                     "erector_spinae",
                     "forearm"
@@ -1345,17 +1339,15 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "triceps",
-                "pectoralis",
-                "deltoid"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Cuelga un maneral de la polea alta y tómalo con una mano, con el brazo casi recto.",
                 "Retrocede un paso, inclina un poco el tronco y apoya la otra mano en el muslo."
               ],
               "setupTimeSeconds": 25,
               "stabilizerMuscles": [
+                "triceps",
+                "deltoid",
                 "core",
                 "erector_spinae",
                 "forearm"
@@ -1368,7 +1360,7 @@
           }
         ],
         "defaultConfigurationId": "pullover__bilateral__cable",
-        "description": "El Pull Over de Pie en Polea (straight-arm pulldown) se hace de pie frente a una polea alta, bajando un agarre en arco desde la altura de la cabeza hasta rozar los muslos con los brazos casi rectos. Es una extensión de hombro que lleva el dorsal ancho, con ayuda de la cabeza larga del tríceps, de la porción esternal del pectoral al principio del arco y del deltoides posterior al final. El tronco se inclina un poco hacia delante con una bisagra de cadera y no se mueve; como los codos no se doblan, el tirón no se convierte en un jalón. Trabaja el dorsal sin que los flexores del codo limiten la serie, por eso suele ir antes o después de las tracciones pesadas.",
+        "description": "El Pull Over de Pie en Polea (straight-arm pulldown) se hace de pie frente a una polea alta, bajando un agarre en arco desde la altura de la cabeza hasta rozar los muslos con los brazos casi rectos. Es una extensión de hombro que lleva el dorsal ancho, con el sostén de la cabeza larga del tríceps y del deltoides posterior a lo largo del arco. El tronco se inclina un poco hacia delante con una bisagra de cadera y no se mueve; como los codos no se doblan, el tirón no se convierte en un jalón. Trabaja el dorsal sin que los flexores del codo limiten la serie, por eso suele ir antes o después de las tracciones pesadas.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1489,12 +1481,11 @@
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "secondaryMuscles": [
-                    "pectoralis",
-                    "deltoid"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "triceps"
+                    "deltoid",
+                    "triceps",
+                    "core"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -1556,17 +1547,16 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "pectoralis",
-                "deltoid"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Sube o baja el asiento hasta que el centro de tu hombro coincida con el eje de giro y abróchate el cinturón.",
                 "Apoya la parte de atrás de los brazos en las almohadillas y deja las manos abiertas sobre la barra; si hay pedal, úsalo para acercarla."
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
-                "triceps"
+                "deltoid",
+                "triceps",
+                "core"
               ],
               "technicalDifficulty": 4.0
             },
@@ -1574,7 +1564,7 @@
           }
         ],
         "defaultConfigurationId": "seated_machine_pullover__machine",
-        "description": "El Pull Over Sentado en Máquina (machine pullover) cambia el punto de empuje: la fuerza entra por la parte de atrás del brazo, apoyada en unas almohadillas, y las manos solo descansan sobre la barra. Sentado con el hombro alineado con el eje de la máquina, los brazos bajan en arco desde detrás de la cabeza hasta la altura del vientre en una extensión de hombro. El dorsal ancho mueve el brazo; el pectoral ayuda en la parte alta del arco, y el deltoides posterior y la cabeza larga del tríceps acompañan en la mitad baja. Con el cinturón y el respaldo, el tronco queda sujeto y solo el hombro mueve la carga. Como ni el agarre ni el codo hacen de eslabón débil, la serie se acaba por el cansancio de la espalda.",
+        "description": "El Pull Over Sentado en Máquina (machine pullover) cambia el punto de empuje: la fuerza entra por la parte de atrás del brazo, apoyada en unas almohadillas, y las manos solo descansan sobre la barra. Sentado con el hombro alineado con el eje de la máquina, los brazos bajan en arco desde detrás de la cabeza hasta la altura del vientre en una extensión de hombro. El dorsal ancho mueve el brazo; mientras el deltoides posterior, la cabeza larga del tríceps y el core estabilizan el hombro, el codo apoyado y el tronco durante el arco. Con el cinturón y el respaldo, el tronco queda sujeto y solo el hombro mueve la carga. Como ni el agarre ni el codo hacen de eslabón débil, la serie se acaba por el cansancio de la espalda.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

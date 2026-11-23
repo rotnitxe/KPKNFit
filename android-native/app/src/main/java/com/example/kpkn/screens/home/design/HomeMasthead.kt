@@ -29,6 +29,8 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.WizardTypography
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.tourAnchor
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -80,7 +82,11 @@ fun HomeMasthead(
                 modifier = Modifier.weight(1f),
             )
             Spacer(Modifier.width(12.dp))
-            HomeProfileButton(initial = state.initial, onClick = onOpenProfile)
+            HomeProfileButton(
+                initial = state.initial,
+                onClick = onOpenProfile,
+                modifier = Modifier.tourAnchor(TourAnchors.HOME_PERFIL),
+            )
         }
         Spacer(Modifier.height(6.dp))
         MastheadGreeting(greeting = state.greeting, name = state.name)
@@ -149,9 +155,13 @@ private fun MastheadGreeting(greeting: String, name: String) {
 
 /** Botón de perfil: círculo de 48 dp con borde de 1 dp y la inicial en Syne. Se anuncia como «Abrir tu perfil». */
 @Composable
-private fun HomeProfileButton(initial: String, onClick: () -> Unit) {
+private fun HomeProfileButton(
+    initial: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     Box(
-        modifier = Modifier
+        modifier = modifier
             .testTag("home-profile")
             .size(48.dp)
             .clip(CircleShape)

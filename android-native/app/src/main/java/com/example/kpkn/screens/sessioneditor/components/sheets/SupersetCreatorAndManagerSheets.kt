@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.sessioneditor.components.sheets
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -50,6 +51,7 @@ import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknNumberCell
 import com.example.kpkn.ui.design.KpknPrimaryPill
 import com.example.kpkn.ui.design.KpknSetFormat
+import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.design.KpknModuleHeader
@@ -105,9 +107,11 @@ internal fun SupersetMemberPickerSheet(
     var rounds by rememberSaveable(draft.partId, draft.sourceGroupId, selectedCount) { mutableStateOf(draft.rounds ?: derivedRounds) }
     var restBetween by rememberSaveable(draft.partId, draft.sourceGroupId, selectedCount) { mutableStateOf(draft.restBetweenExercises) }
     var restAfter by rememberSaveable(draft.partId, draft.sourceGroupId, selectedCount) { mutableStateOf(draft.restAfterSuperset) }
+    var showRestClock by remember { mutableStateOf(false) }
 
     val effectiveRounds = rounds.coerceAtLeast(minimumRounds)
 
+    androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth()) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -196,29 +200,75 @@ internal fun SupersetMemberPickerSheet(
                     },
                 )
                 SessionSheetDivider()
-                SupersetConfigRestRow(
-                    title = "Descanso entre ejercicios",
-                    seconds = restBetween,
-                    presets = RestBetweenPresets,
-                    onChange = { seconds ->
-                        restBetween = seconds
-                        onUpdateDraft(draft.copy(restBetweenExercises = seconds))
-                    },
-                )
-                SessionSheetDivider()
-                SupersetConfigRestRow(
-                    title = "Descanso tras la ronda",
-                    seconds = restAfter,
-                    presets = RestAfterPresets,
-                    onChange = { seconds ->
-                        restAfter = seconds
-                        onUpdateDraft(draft.copy(restAfterSuperset = seconds))
-                    },
-                )
-                Spacer(Modifier.height(8.dp))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .defaultMinSize(minHeight = 52.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .clickable(role = Role.Button, onClick = { showRestClock = true })
+                        .padding(vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                        Text("Descanso entre ejercicios", style = KpknType.bodyStrong, color = WizardColors.text)
+                        Text("Descanso tras la ronda", style = KpknType.caption, color = WizardColors.textMuted)
+                    }
+                    Row(
+                        modifier = Modifier
+                            .height(40.dp)
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(KpknSurface.inset)
+                            .border(1.dp, KpknSurface.moduleBorder, RoundedCornerShape(20.dp))
+                            .padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Icon(
+                            imageVector = KpknLineIcons.Timer,
+                            contentDescription = "Abrir reloj de descansos",
+                            tint = WizardColors.text,
+                            modifier = Modifier.size(16.dp),
+                        )
+                        Text(
+                            text = "${KpknSetFormat.doseTime(restBetween)} · ${KpknSetFormat.doseTime(restAfter)}",
+                            style = KpknType.chip,
+                            color = WizardColors.text,
+                        )
+                    }
+                }
+                Spacer(Modifier.height(4.dp))
             }
         }
         SupersetPickerActions(selectedCount, onConfirm, onDismiss)
+    }
+
+    if (showRestClock) {
+        com.example.kpkn.ui.components.KpknRestClockSheet(
+            title = "Descansos de superserie",
+            primaryLabel = "Entre ejercicios",
+            initialPrimarySeconds = restBetween,
+            secondaryLabel = "Tras la ronda",
+            initialSecondarySeconds = restAfter,
+            primaryStepSeconds = 15,
+            secondaryStepSeconds = 15,
+            primaryPresets = RestBetweenPresets,
+            secondaryPresets = RestAfterPresets,
+            onDismiss = { showRestClock = false },
+            onConfirm = { between, after ->
+                val resolvedAfter = after ?: restAfter
+                restBetween = between
+                restAfter = resolvedAfter
+                onUpdateDraft(
+                    draft.copy(
+                        restBetweenExercises = between,
+                        restAfterSuperset = resolvedAfter,
+                    ),
+                )
+                showRestClock = false
+            },
+        )
+    }
     }
 }
 

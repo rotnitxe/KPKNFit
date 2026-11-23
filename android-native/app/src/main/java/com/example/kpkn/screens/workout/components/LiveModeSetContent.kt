@@ -216,6 +216,7 @@ internal fun LiveLoadModeButton(mode: LoadModeV2, expanded: Boolean, onOpen: () 
             val known = quickLoads.filter { option -> option.weight.isFinite() && (option.weight > 0 || option.targetLoadMode == LoadModeV2.BODYWEIGHT) }
             LiveSheetChoiceRow(known.map { option ->
                 option to when {
+                    option.targetLoadMode == LoadModeV2.BODYWEIGHT && option.weight <= 0.0 -> "Peso corporal"
                     option.isAuge -> "Sugerida · ${option.weight.toLiveNumberString()} kg"
                     option.label.startsWith("+") || option.label.startsWith("−") || option.label.startsWith("-") -> "${option.label} kg"
                     else -> "${option.label} · ${option.weight.toLiveNumberString()} kg"

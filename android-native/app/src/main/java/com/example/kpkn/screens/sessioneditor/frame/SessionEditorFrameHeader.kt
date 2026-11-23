@@ -33,6 +33,8 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Brush
@@ -71,6 +73,7 @@ internal fun SessionEditorFrameHeader(
     onDescriptionChange: (String) -> Unit,
     onDaySwipe: (Int) -> Boolean,
     importedContextLabel: String? = null,
+    nameFocusTrigger: Int = 0,
     modifier: Modifier = Modifier,
 ) {
     val scope = rememberCoroutineScope()
@@ -140,7 +143,7 @@ internal fun SessionEditorFrameHeader(
                 overflow = TextOverflow.Ellipsis,
             )
         }
-        NameField(sessionId = sessionId, name = name, onCommit = onNameChange)
+        NameField(sessionId = sessionId, name = name, focusTrigger = nameFocusTrigger, onCommit = onNameChange)
         DescriptionField(sessionId = sessionId, description = description, onCommit = onDescriptionChange)
         SummaryChips(chips = if (importedEditor) listOf("Editor KPKN") + summaryChips else summaryChips)
     }
@@ -182,10 +185,16 @@ private fun SummaryChips(chips: List<String>) {
  * 150 ms sin teclear o al perder el foco.
  */
 @Composable
-private fun NameField(sessionId: String, name: String, onCommit: (String) -> Unit) {
+private fun NameField(sessionId: String, name: String, focusTrigger: Int = 0, onCommit: (String) -> Unit) {
     var localName by remember(sessionId) { mutableStateOf(name) }
     var hadFocus by remember(sessionId) { mutableStateOf(false) }
+    val focusRequester = remember { FocusRequester() }
     val latestCommit by rememberUpdatedState(onCommit)
+    LaunchedEffect(focusTrigger) {
+        if (focusTrigger > 0) {
+            runCatching { focusRequester.requestFocus() }
+        }
+    }
     val sizeSp = when {
         localName.length < 15 -> 34
         localName.length < 25 -> 28
@@ -211,6 +220,7 @@ private fun NameField(sessionId: String, name: String, onCommit: (String) -> Uni
         modifier = Modifier
             .fillMaxWidth()
             .padding(top = 2.dp, bottom = 4.dp)
+            .focusRequester(focusRequester)
             .semantics { heading() }
             .onFocusChanged { state ->
                 if (state.isFocused) {

@@ -65,7 +65,11 @@ fun NutritionHeader(
                 modifier = Modifier.tourAnchor(TourAnchors.NUTRITION_PLAN),
             )
         } else {
-            KpknTextAction(text = "Crear plan", onClick = onCreatePlan)
+            KpknTextAction(
+                text = "Crear plan",
+                onClick = onCreatePlan,
+                modifier = Modifier.tourAnchor(TourAnchors.NUTRITION_PLAN),
+            )
         }
     }
 }

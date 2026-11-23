@@ -65,7 +65,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "mcallister2014",
               "chiu2017",

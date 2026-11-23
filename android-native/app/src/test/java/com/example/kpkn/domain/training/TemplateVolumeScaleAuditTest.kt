@@ -400,7 +400,14 @@ class TemplateVolumeScaleAuditTest {
             // Synthetic accounting fixtures: no new catalog identity or anatomy.
             val candidate = scaleFixtureExercise(
                 "candidate", 1,
-                listOf(InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY), InvolvedMuscle(collateralMuscle, role)),
+                listOf(
+                    InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY),
+                    InvolvedMuscle(
+                        collateralMuscle,
+                        role,
+                        volumeContribution = if (role == MuscleRole.STABILIZER) 0.4 else null,
+                    ),
+                ),
             )
             val sessions = listOf(
                 Session(id = "candidate-session", name = "Candidate", exercises = listOf(candidate)),

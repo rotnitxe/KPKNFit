@@ -38,6 +38,7 @@ class PersonalizedPlanCatalogTest {
                         primaryMuscles = (profile.primaryMuscles.filterNot { it == "neck" } + if (primary) listOf("neck") else emptyList()).distinct(),
                         secondaryMuscles = profile.secondaryMuscles.filterNot { it == "neck" },
                         stabilizerMuscles = (profile.stabilizerMuscles.filterNot { it == "neck" } + if (primary) emptyList() else listOf("neck")).distinct(),
+                        limitingStabilizerMuscles = (profile.limitingStabilizerMuscles.filterNot { it == "neck" } + if (primary) emptyList() else listOf("neck")).distinct(),
                     ))
                 })
             })

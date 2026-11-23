@@ -321,6 +321,14 @@ def validate_runtime_catalog(catalog: dict[str, Any]) -> None:
                 anatomy = rich.get("anatomy")
                 if not isinstance(anatomy, dict) or any(anatomy.get(key) != profile.get(key) for key in ("primaryMuscles", "secondaryMuscles", "stabilizerMuscles")):
                     raise CatalogV2Error(f"rich_anatomy_mismatch:{configuration_id}")
+                limiting_stabilizers = profile.get("limitingStabilizerMuscles") or []
+                if (
+                    not isinstance(limiting_stabilizers, list)
+                    or len(limiting_stabilizers) != len(set(limiting_stabilizers))
+                    or not set(limiting_stabilizers).issubset(profile.get("stabilizerMuscles") or [])
+                    or (anatomy.get("limitingStabilizerMuscles") or []) != limiting_stabilizers
+                ):
+                    raise CatalogV2Error(f"rich_anatomy_limiting_stabilizer_mismatch:{configuration_id}")
                 expected_joint_actions = list(dict.fromkeys(action for joint in joint_involvement for action in joint["actions"]))
                 if anatomy.get("jointActions") != expected_joint_actions:
                     raise CatalogV2Error(f"rich_anatomy_joint_actions_not_derived:{configuration_id}")

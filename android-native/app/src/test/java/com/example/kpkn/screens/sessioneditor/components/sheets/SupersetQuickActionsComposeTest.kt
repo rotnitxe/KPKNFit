@@ -51,20 +51,22 @@ class SupersetQuickActionsComposeTest {
         val calls = mutableListOf<String>()
         rule.setContent {
             Column {
-                ExerciseQuickActionRows(
-                    isInSuperset = false,
+                ExerciseQuickActionsSheet(
+                    exercise = members.first(),
+                    catalog = emptyList(),
+                    workoutLogs = emptyList(),
                     onOpenExerciseDetail = { calls += "ficha" },
                     onOpenPicker = { calls += "cambiar" },
                     onOpenWarmup = { calls += "aproximacion" },
                     onOpenMobility = { calls += "movilidad" },
+                    onDelete = { calls += "eliminar" },
                     onManageSuperset = { calls += "superserie" },
                     onDuplicate = { calls += "duplicar" },
-                    onRequestDelete = { calls += "eliminar" },
                 )
             }
         }
-        rule.onNodeWithText("Crear superserie").assertExists()
-        rule.onNodeWithText("Duplicar ejercicio").assertExists()
+        rule.onNodeWithText("Superserie").assertExists()
+        rule.onNodeWithText("Duplicar").assertExists()
         rule.onNodeWithText("Eliminar").assertExists()
 
         val tags = listOf(
@@ -88,20 +90,22 @@ class SupersetQuickActionsComposeTest {
     fun siElEjercicioYaEsMiembroLaAccionEsGestionarNoCrear() {
         rule.setContent {
             Column {
-                ExerciseQuickActionRows(
-                    isInSuperset = true,
+                ExerciseQuickActionsSheet(
+                    exercise = members.first().copy(supersetId = "sg-1"),
+                    catalog = emptyList(),
+                    workoutLogs = emptyList(),
                     onOpenExerciseDetail = {},
                     onOpenPicker = {},
                     onOpenWarmup = {},
                     onOpenMobility = {},
+                    onDelete = {},
                     onManageSuperset = {},
                     onDuplicate = {},
-                    onRequestDelete = {},
                 )
             }
         }
         rule.onNodeWithText("Gestionar superserie").assertExists()
-        rule.onNodeWithText("Crear superserie").assertDoesNotExist()
+        rule.onNodeWithText("Superserie").assertDoesNotExist()
     }
 
     @Test

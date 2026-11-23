@@ -242,6 +242,7 @@ internal fun switchRecordedWorkoutVariant(state: WorkoutUiState, mode: WeekVaria
         exerciseTags = progress.exerciseTags,
         activeTagsByExercise = progress.activeTagsByExercise,
         activeSubTagsByExercise = progress.activeSubTagsByExercise,
+        activeSubTagsBySetKey = progress.activeSubTagsBySetKey,
         activeContextProfileByExerciseId = progress.activeContextProfileByExerciseId,
  completedSets = frozen.filterKeys { it !in ownedKeys } + restored,
         archivedCompletedExercises = allArchived.mapNotNull { ex -> ex.copy(sets = ex.sets.filter { recordedObservationIdentity(it) !in restoredIds }).takeIf { it.sets.isNotEmpty() } },

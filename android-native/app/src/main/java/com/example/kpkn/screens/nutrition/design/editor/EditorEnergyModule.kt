@@ -14,10 +14,16 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -45,6 +51,7 @@ import com.example.kpkn.ui.design.KpknModule
 import com.example.kpkn.ui.design.KpknModuleHeader
 import com.example.kpkn.ui.design.KpknShape
 import com.example.kpkn.ui.design.KpknSurface
+import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.theme.MacroColors
 
@@ -72,50 +79,103 @@ fun EditorEnergyModule(
     onCarbs: (Double) -> Unit,
     onFat: (Double) -> Unit,
     modifier: Modifier = Modifier,
+    weightKg: Double? = null,
+    onResetRecommendation: (() -> Unit)? = null,
 ) {
+    var caloriesInput by remember { mutableStateOf(base?.caloriesKcal?.toString().orEmpty()) }
+    var caloriesFocused by remember { mutableStateOf(false) }
+    var caloriesHadFocus by remember { mutableStateOf(false) }
+    var caloriesUserTyped by remember { mutableStateOf(false) }
+    LaunchedEffect(base?.caloriesKcal, caloriesFocused) {
+        if (!caloriesFocused || !caloriesUserTyped) {
+            caloriesInput = base?.caloriesKcal?.toString().orEmpty()
+        }
+    }
+
+    val percents = editorEnergyPercents(base)
     KpknModule(modifier = modifier) {
-        KpknModuleHeader(label = "Calorías y macros")
+        KpknModuleHeader(
+            label = "Calorías y macros",
+            action = onResetRecommendation?.let {
+                {
+                    KpknTextAction(
+                        text = "Restablecer recomendación",
+                        onClick = {
+                            caloriesUserTyped = false
+                            it()
+                        },
+                    )
+                }
+            },
+        )
         Spacer(Modifier.height(16.dp))
         EditorEnergyHero(base = base, eerKcal = eerKcal)
         Spacer(Modifier.height(16.dp))
         EditorNumberField(
-            value = base?.caloriesKcal?.toString().orEmpty(),
-            onValueChange = { text -> editorCaloriesFromText(text)?.let(onCalories) },
-            label = "Calorías",
+            value = caloriesInput,
+            onValueChange = { text ->
+                caloriesUserTyped = true
+                caloriesInput = text
+                editorCaloriesFromText(text)?.let(onCalories)
+            },
+            label = "Calorías objetivo",
             unit = "kcal",
             placeholder = "—",
             keyboard = KeyboardType.Number,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { focus ->
+                    if (focus.hasFocus) {
+                        caloriesHadFocus = true
+                        caloriesFocused = true
+                    } else {
+                        caloriesFocused = false
+                        if (caloriesHadFocus) {
+                            val parsed = editorCaloriesFromText(caloriesInput)
+                            if (parsed != null) {
+                                if (caloriesUserTyped && parsed != base?.caloriesKcal) {
+                                    onCalories(parsed)
+                                }
+                            } else {
+                                caloriesInput = base?.caloriesKcal?.toString().orEmpty()
+                            }
+                            caloriesUserTyped = false
+                        }
+                    }
+                },
         )
         Spacer(Modifier.height(12.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            EditorMacroField(
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            EditorMacroCard(
                 label = "Proteína",
                 color = MacroColors.protein,
                 value = base?.proteinG,
+                percent = percents?.first,
+                gramsPerKg = weightKg?.takeIf { it > 0 }?.let { w -> base?.proteinG?.let { it / w } },
                 onValue = onProtein,
-                modifier = Modifier.weight(1f),
             )
-            EditorMacroField(
+            EditorMacroCard(
                 label = "Hidratos",
                 color = MacroColors.carbs,
                 value = base?.carbsG,
+                percent = percents?.second,
+                gramsPerKg = weightKg?.takeIf { it > 0 }?.let { w -> base?.carbsG?.let { it / w } },
                 onValue = onCarbs,
-                modifier = Modifier.weight(1f),
             )
-            EditorMacroField(
+            EditorMacroCard(
                 label = "Grasas",
                 color = MacroColors.fat,
                 value = base?.fatG,
+                percent = percents?.third,
+                gramsPerKg = weightKg?.takeIf { it > 0 }?.let { w -> base?.fatG?.let { it / w } },
                 onValue = onFat,
-                modifier = Modifier.weight(1f),
             )
         }
-        editorEnergyPercents(base)?.let { percents ->
+        percents?.let { p ->
             Spacer(Modifier.height(12.dp))
-            EditorShareBar(percents)
+            EditorShareBar(p)
             Spacer(Modifier.height(6.dp))
-            EditorCaption(editorEnergyLegend(percents), numeric = true)
+            EditorCaption(editorEnergyLegend(p), numeric = true)
         }
         // Solo si los macros se alejan de las calorías más de un 2 %: si no, el aviso sobra.
         base?.let { editorMacroGapLine(it) }?.let { line ->
@@ -216,36 +276,106 @@ private fun EditorFigure(base: NutritionEditorBase?, style: TextStyle) {
  * y el punto y el campo quedan alineados en la misma columna en cualquier escala de letra.
  */
 @Composable
-private fun EditorMacroField(
+private fun EditorMacroCard(
     label: String,
     color: Color,
     value: Int?,
+    percent: Int?,
+    gramsPerKg: Double?,
     onValue: (Double) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier) {
+    var inputText by remember { mutableStateOf(value?.toString().orEmpty()) }
+    var focused by remember { mutableStateOf(false) }
+    var hadFocus by remember { mutableStateOf(false) }
+    var userTyped by remember { mutableStateOf(false) }
+    LaunchedEffect(value, focused) {
+        if (!focused || !userTyped) {
+            inputText = value?.toString().orEmpty()
+        }
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(KpknSurface.inset)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
         Row(
-            modifier = Modifier.padding(bottom = 6.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
         ) {
-            Box(Modifier.size(8.dp).clip(CircleShape).background(color))
-            Spacer(Modifier.width(5.dp))
-            Text(
-                text = label,
-                style = KpknType.caption,
-                color = WizardColors.textMuted,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(Modifier.size(8.dp).clip(CircleShape).background(color))
+                Spacer(Modifier.width(6.dp))
+                Text(label, style = KpknType.bodyStrong, color = WizardColors.text)
+            }
+            val meta = listOfNotNull(
+                percent?.let { "$it %" },
+                gramsPerKg?.let { String.format(java.util.Locale.getDefault(), "%.1f g/kg", it) },
+            ).joinToString(" · ")
+            if (meta.isNotEmpty()) {
+                Text(meta, style = KpknType.caption, color = WizardColors.textMuted)
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            KpknTextAction(
+                text = "−5 g",
+                onClick = {
+                    val next = ((value ?: 0) - 5).coerceAtLeast(0)
+                    userTyped = false
+                    inputText = next.toString()
+                    onValue(next.toDouble())
+                },
+            )
+            EditorNumberField(
+                value = inputText,
+                onValueChange = { text ->
+                    userTyped = true
+                    inputText = text
+                    parseLocalizedNumber(text)?.takeIf { it >= 0 }?.let(onValue)
+                },
+                unit = "g",
+                placeholder = "—",
+                keyboard = KeyboardType.Number,
+                modifier = Modifier
+                    .weight(1f)
+                    .onFocusChanged { focus ->
+                        if (focus.hasFocus) {
+                            hadFocus = true
+                            focused = true
+                        } else {
+                            focused = false
+                            if (hadFocus) {
+                                val parsed = parseLocalizedNumber(inputText)?.takeIf { it >= 0 }
+                                if (parsed != null) {
+                                    if (userTyped && parsed.toInt() != value) {
+                                        onValue(parsed)
+                                    }
+                                } else {
+                                    inputText = value?.toString().orEmpty()
+                                }
+                                userTyped = false
+                            }
+                        }
+                    },
+            )
+            KpknTextAction(
+                text = "+5 g",
+                onClick = {
+                    val next = ((value ?: 0) + 5).coerceAtLeast(0)
+                    userTyped = false
+                    inputText = next.toString()
+                    onValue(next.toDouble())
+                },
             )
         }
-        EditorNumberField(
-            value = value?.toString().orEmpty(),
-            onValueChange = { text -> parseLocalizedNumber(text)?.takeIf { it >= 0 }?.let(onValue) },
-            unit = "g",
-            placeholder = "—",
-            keyboard = KeyboardType.Number,
-            modifier = Modifier.fillMaxWidth(),
-        )
     }
 }
 

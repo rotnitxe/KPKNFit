@@ -39,11 +39,14 @@ import androidx.compose.ui.zIndex
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.KpknPortal
 import com.example.kpkn.ui.components.LocalHazeState
-import com.example.kpkn.ui.components.kpknGlassOrFallback
-import com.example.kpkn.ui.design.depth.KpknGlassPreset
+import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.depth.KpknShadow
 import com.example.kpkn.ui.design.depth.kpknShadow
+import androidx.compose.ui.draw.clip
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
 import kotlin.math.max
 import kotlin.math.roundToInt
 
@@ -134,14 +137,29 @@ internal fun EdGlassPopover(
                 Layout(
                     modifier = Modifier.fillMaxSize(),
                     content = {
+                        val popoverHazeStyle = remember {
+                            HazeStyle(
+                                backgroundColor = KpknSurface.canvas,
+                                tints = listOf(HazeTint(Color(0xB818181A))),
+                                blurRadius = 24.dp,
+                                noiseFactor = 0.04f,
+                                fallbackTint = HazeTint(Color(0xF218181A)),
+                            )
+                        }
                         Column(
                             modifier = modifier
                                 .width(width)
                                 // pulido:sombra ed-S05 .ed-pop 0 18px 44px #000d (preset popover)
                                 .kpknShadow(KpknShadow.Popover, shape)
-                                // pulido:vidrio ed-V02 .ed-pop.glassy blur 22 · saturate 1,5
-                                .kpknGlassOrFallback(resolvedHazeState, shape, withBorder = false, preset = KpknGlassPreset.VidrioIsla)
-                                .background(Color(0xD91B1B1D))
+                                .clip(shape)
+                                // pulido:vidrio ed-V02 .ed-pop.glassy blur 24 con tinte translúcido integrado
+                                .then(
+                                    if (resolvedHazeState != null) {
+                                        Modifier.hazeEffect(state = resolvedHazeState, style = popoverHazeStyle) { alpha = 1f }
+                                    } else {
+                                        Modifier.background(Color(0xF218181A))
+                                    },
+                                )
                                 .border(1.dp, Color(0x1CFFFFFF), shape)
                                 .padding(6.dp),
                             content = content,

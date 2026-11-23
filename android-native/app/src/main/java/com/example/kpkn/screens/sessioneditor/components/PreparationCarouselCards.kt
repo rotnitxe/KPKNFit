@@ -390,13 +390,12 @@ private fun WarmupPreparationRow(
         }
     }
     if (showRestPicker) {
-        KpknNativeTimePickerDialog(
+        com.example.kpkn.ui.components.KpknRestClockSheet(
             title = "Descanso de aproximación",
-            initialHour = (restSeconds / 60).coerceIn(0, 23),
-            initialMinute = (restSeconds % 60).coerceIn(0, 59),
-            hint = "Minutos : segundos",
-            onConfirm = { minutes, seconds ->
-                onUpdate { it.copy(restBetween = (minutes * 60 + seconds).coerceAtLeast(0)) }
+            primaryLabel = "Aproximación",
+            initialPrimarySeconds = restSeconds.coerceAtLeast(0),
+            onConfirm = { seconds, _ ->
+                onUpdate { it.copy(restBetween = seconds.coerceAtLeast(0)) }
                 showRestPicker = false
             },
             onDismiss = { showRestPicker = false },

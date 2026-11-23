@@ -137,7 +137,7 @@
           },
           {
             "id": "abdominals",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "ellestad2024",
               "anat_abdominal"
@@ -164,21 +164,21 @@
             "why": "En cada paso el glúteo medio de la pierna que queda en apoyo, del lado contrario a la carga, sostiene la pelvis para que no caiga hacia la pesa. Graber et al. midieron más actividad del abductor de cadera contralateral al caminar con una pesa en una mano, con una carga del 15 al 20 % del peso corporal."
           },
           {
+            "id": "core",
+            "role": "SECONDARY",
+            "sources": [
+              "mcgill2009",
+              "anat_ql"
+            ],
+            "why": "Los músculos profundos del tronco, entre ellos el cuadrado lumbar, generan par en el plano frontal para sostener el tronco y la pelvis. McGill et al. lo describieron en el paseo del yugo, donde el apoyo alterno de las piernas exige el mismo control en el plano frontal; aquí se extrapola esa función, ya que la acción exacta del cuadrado lumbar es difícil de aislar y no se midió en el paseo del maletín."
+          },
+          {
             "id": "trapezius",
             "role": "STABILIZER",
             "sources": [
               "anat_trapezius"
             ],
             "why": "Las fibras superiores del trapecio sostienen la escápula del lado de la carga para que el hombro no se hunda bajo el peso; es una deducción de la función del músculo, sin medición en el paseo del maletín."
-          },
-          {
-            "id": "core",
-            "role": "STABILIZER",
-            "sources": [
-              "mcgill2009",
-              "anat_ql"
-            ],
-            "why": "Los músculos profundos del tronco, entre ellos el cuadrado lumbar, generan par en el plano frontal para sostener el tronco y la pelvis. McGill et al. lo describieron en el paseo del yugo, donde el apoyo alterno de las piernas exige el mismo control en el plano frontal; aquí se extrapola esa función, ya que la acción exacta del cuadrado lumbar es difícil de aislar y no se midió en el paseo del maletín."
           }
         ]
       },

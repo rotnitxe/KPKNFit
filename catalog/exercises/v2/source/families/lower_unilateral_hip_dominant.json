@@ -89,8 +89,7 @@
               "movementPatternId": "unilateral_hip_dominant",
               "performanceProfileId": "glutes_step_up_gluteo__dumbbells__step_up_de_gluteo",
               "primaryMuscles": [
-                "gluteus_maximus",
-                "quadriceps"
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -164,15 +163,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "gluteus_maximus",
-                    "quadriceps"
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "calves",
+                    "quadriceps",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "erector_spinae",
                     "core",
@@ -234,16 +233,14 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "unilateral_hip_dominant:gluteus_maximus",
-                    "unilateral_hip_dominant:quadriceps"
+                    "unilateral_hip_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "calves",
+                "quadriceps",
                 "adductors"
               ],
               "setupCues": [
@@ -253,6 +250,8 @@
               ],
               "setupTimeSeconds": 30,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "erector_spinae",
                 "core",
@@ -362,8 +361,7 @@
               "movementPatternId": "unilateral_hip_dominant",
               "performanceProfileId": "glutes_zancada_cruzada__dumbbells__zancada_cruzada",
               "primaryMuscles": [
-                "gluteus_maximus",
-                "quadriceps"
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -429,15 +427,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "gluteus_maximus",
-                    "quadriceps"
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "calves",
+                    "quadriceps",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "core",
                     "erector_spinae",
@@ -498,16 +496,14 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "unilateral_hip_dominant:gluteus_maximus",
-                    "unilateral_hip_dominant:quadriceps"
+                    "unilateral_hip_dominant:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "calves",
+                "quadriceps",
                 "adductors"
               ],
               "setupCues": [
@@ -516,6 +512,8 @@
               ],
               "setupTimeSeconds": 30,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "core",
                 "erector_spinae",

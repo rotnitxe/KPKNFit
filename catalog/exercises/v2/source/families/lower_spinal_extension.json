@@ -506,6 +506,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "biceps"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "spinal_extension",
               "performanceProfileId": "back_hiperextension_45_zercher_espalda_baja",
@@ -562,6 +565,9 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "biceps"
                   ],
                   "primaryMuscles": [
                     "erector_spinae"
@@ -742,6 +748,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "core",
+                "biceps"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "spinal_extension",
               "performanceProfileId": "zercher_carry__barbell__paseo_zercher",
@@ -804,6 +814,10 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "core",
+                    "biceps"
                   ],
                   "primaryMuscles": [
                     "erector_spinae"

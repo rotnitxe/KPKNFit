@@ -40,6 +40,7 @@ data class Program(
     val volumeSystem: VolumeSystem? = null,
     val autoVolumeEnabled: Boolean = false,
     val startDay: Int? = null,
+    val highEnergyDay: Int? = null,
     val weekDays: Int? = null,
     val selectedSplitId: String? = null,
     val customSplitPattern: List<String> = emptyList(),
@@ -506,6 +507,30 @@ enum class WeekVariant { A, B, C, D }
 enum class WeekExecutionKind { TRAINING, DELOAD, REST }
 
 @Serializable
+enum class LoopMode { RECURRING_WEEK, PROGRESSIVE_WAVE }
+
+@Serializable
+enum class LoopModulationScope { APRE_EXERCISES, MAIN_COMPOUNDS, ALL_EXERCISES, SELECTED_EXERCISES }
+
+@Serializable
+enum class LoopApreVariant { APRE_10, APRE_6, APRE_3 }
+
+@Serializable
+data class LoopWaveStep(
+    val weekNumber: Int,
+    val label: String = "",
+    val apreVariant: LoopApreVariant? = null,
+    val targetRirOverride: Int? = null,
+    val targetRpeOverride: Double? = null,
+    val repsDelta: Int? = null,
+    val repRangeOverride: Pair<Int, Int>? = null,
+    val loadPercentDelta: Double? = null,
+    val setsDelta: Int? = null,
+    val restDeltaSec: Int? = null,
+    val isDeload: Boolean = false,
+)
+
+@Serializable
 data class Loop(
     val id: String,
     val title: String,
@@ -517,6 +542,10 @@ data class Loop(
     val priority: Int? = null,
     val sessions: List<Session> = emptyList(),
     val color: String? = null,
+    val mode: LoopMode = LoopMode.RECURRING_WEEK,
+    val waveSteps: List<LoopWaveStep> = emptyList(),
+    val modulationScope: LoopModulationScope = LoopModulationScope.APRE_EXERCISES,
+    val targetExerciseIds: List<String> = emptyList(),
 )
 
 enum class LoopType { ONE_RM_TEST, DELOAD, COMPETITION, CUSTOM }

@@ -234,7 +234,6 @@ enum ProgramAnalyticsEngine {
             let pattern = movementPatternFor(info)
             patternMap[pattern, default: 0.0] += sets
             let forceLower = info.force?.normalizeForAnalytics() ?? ""
-            let chainLower = info.chain?.normalizeForAnalytics() ?? ""
             let bodyPart = info.bodyPart?.normalizeForAnalytics() ?? ""
             switch pattern {
             case "Empuje horizontal":
@@ -251,13 +250,12 @@ enum ProgramAnalyticsEngine {
             }
             if bodyPart == "upper" { upper += sets }
             if bodyPart == "lower" { lower += sets }
-            for muscle in info.involvedMuscles {
-                let canonical = VolumeCalculator.normalizeCanonicalMuscleGroup(muscle.muscle, emphasis: muscle.emphasis)
-                let contribution = VolumeCalculator.resolveMuscleVolumeContribution(muscle)
-                if canonical == "Cuádriceps" || chainLower == "anterior" {
+            let contributions = VolumeCalculator.buildPerExerciseMuscleContributions(info.involvedMuscles)
+            for (canonical, contribution) in contributions {
+                if canonical == "Cuádriceps" {
                     quads += sets * contribution
                 }
-                if ["Isquiosurales", "Glúteos", "Erectores Espinales"].contains(canonical) || chainLower == "posterior" {
+                if canonical == "Isquiosurales" || canonical == "Glúteos" {
                     posterior += sets * contribution
                 }
             }
@@ -287,11 +285,11 @@ enum ProgramAnalyticsEngine {
         completedRows: [CompletedRow],
         logs: [WorkoutLog]
     ) -> EfficiencyAnalytics {
-        let completedSets = completedRows.reduce(0) { $0 + $1.exercise.sets.filter { !$0.skipped }.count }
+        let completedSets = completedRows.reduce(0) { $0 + VolumeCalculator.logicalWorkingSets(for: $1.exercise).count }
         let durationHours = max(Double(logs.reduce(0) { $0 + $1.durationMinutes }) / 60.0, 1.0 / 60.0)
 
         let densityBySession: [NamedMetric] = logs.map { log -> NamedMetric in
-            let sets = log.completedExercises.reduce(0) { $0 + $1.sets.filter { !$0.skipped }.count }
+            let sets = log.completedExercises.reduce(0) { $0 + VolumeCalculator.logicalWorkingSets(for: $1).count }
             let density = Double(sets) / max(Double(log.durationMinutes) / 60.0, 1.0 / 60.0)
             return NamedMetric(id: log.id, label: log.sessionName, value: density.round1(), explanation: "series completadas por hora")
         }.sorted { $0.value > $1.value }

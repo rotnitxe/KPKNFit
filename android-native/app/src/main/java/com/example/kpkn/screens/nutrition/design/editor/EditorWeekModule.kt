@@ -35,6 +35,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.domain.nutrition.NutritionDistributionStatus
 import com.example.kpkn.domain.nutrition.NutritionEditorDayTarget
 import com.example.kpkn.domain.nutrition.NutritionWeeklyDistributionMode
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -75,6 +76,7 @@ fun EditorWeekModule(
     onWeeklyDistribution: (NutritionWeeklyDistributionMode) -> Unit,
     onSelectDay: (Int?) -> Unit,
     modifier: Modifier = Modifier,
+    distributionStatus: NutritionDistributionStatus? = null,
 ) {
     val reduced = wizardReducedMotion()
     KpknModule(modifier = modifier) {
@@ -107,6 +109,16 @@ fun EditorWeekModule(
         } else {
             val chosen = selectedDay?.takeIf { it in weeklyTargets.indices }
             EditorWeekBars(targets = weeklyTargets, selectedIndex = chosen, onSelect = onSelectDay)
+            if (distributionStatus == NutritionDistributionStatus.PROVISIONAL_UNIFORM ||
+                (distributionStatus == null &&
+                    weeklyDistribution == NutritionWeeklyDistributionMode.VARIABLE &&
+                    weeklyTargets.map { it.calorieTargetKcal }.distinct().size <= 1)
+            ) {
+                Spacer(Modifier.height(8.dp))
+                EditorCaption(
+                    "Reparto uniforme provisional: solo hay sesiones de fuerza sin gasto de cardio estimado.",
+                )
+            }
             Spacer(Modifier.height(12.dp))
             AnimatedContent(
                 targetState = chosen,
@@ -165,11 +177,18 @@ private fun EditorWeekBars(
             Canvas(modifier = Modifier.fillMaxSize()) {
                 val barWidth = BarWidth.toPx()
                 val bottom = size.height
+                val today = java.time.LocalDate.now()
                 fractions.forEachIndexed { index, fraction ->
                     val centerX = (index + 0.5f) * size.width / targets.size
                     val barHeight = bottom * fraction
+                    val isToday = targets[index].date == today
+                    val barColor = when {
+                        index == selectedIndex -> WizardColors.text
+                        isToday -> SymbolPalette.energia
+                        else -> SymbolPalette.energia.copy(alpha = 0.55f)
+                    }
                     drawRoundRect(
-                        color = if (index == selectedIndex) WizardColors.text else SymbolPalette.energia.copy(alpha = 0.7f),
+                        color = barColor,
                         topLeft = Offset(centerX - barWidth / 2f, bottom - barHeight),
                         size = Size(barWidth, barHeight),
                         cornerRadius = CornerRadius(barWidth / 2f),
@@ -198,12 +217,19 @@ private fun EditorWeekBars(
             }
         }
         Spacer(Modifier.height(4.dp))
+        val today = java.time.LocalDate.now()
         Row(modifier = Modifier.fillMaxWidth()) {
             targets.forEachIndexed { index, day ->
+                val isToday = day.date == today
                 Text(
-                    text = weekdayInitialEs(day.date.dayOfWeek),
+                    text = if (isToday) "Hoy" else weekdayInitialEs(day.date.dayOfWeek),
                     style = KpknType.caption,
-                    color = if (index == selectedIndex) WizardColors.text else WizardColors.textMuted,
+                    fontWeight = if (isToday || index == selectedIndex) androidx.compose.ui.text.font.FontWeight.SemiBold else null,
+                    color = when {
+                        index == selectedIndex -> WizardColors.text
+                        isToday -> SymbolPalette.energia
+                        else -> WizardColors.textMuted
+                    },
                     maxLines = 1,
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f),

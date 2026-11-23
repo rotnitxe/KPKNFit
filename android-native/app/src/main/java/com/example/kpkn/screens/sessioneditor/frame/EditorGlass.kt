@@ -34,13 +34,16 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.PathParser
 import androidx.compose.ui.unit.dp
-import com.example.kpkn.ui.components.kpknGlassOrFallback
-import com.example.kpkn.ui.design.depth.KpknGlassPreset
+import com.example.kpkn.ui.components.KpknGlass
+import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.depth.KpknShadow
 import com.example.kpkn.ui.design.depth.KpknShadowSpec
 import com.example.kpkn.ui.design.depth.kpknInset
 import com.example.kpkn.ui.design.depth.kpknShadow
 import dev.chrisbanes.haze.HazeState
+import dev.chrisbanes.haze.HazeStyle
+import dev.chrisbanes.haze.HazeTint
+import dev.chrisbanes.haze.hazeEffect
 
 /*
  * Piezas comunes de la lista, la isla superior y la barra inferior del editor (Pulido v1 · EDITOR · tanda A2).
@@ -111,15 +114,29 @@ internal val EdGlassInset: KpknShadowSpec = KpknShadowSpec(
     KpknShadow.IslaVidrio.spec.layers.first { it.inset }.copy(color = Color(0x18FFFFFF)),
 )
 
+private val EdGlassHazeStyle = HazeStyle(
+    backgroundColor = KpknSurface.canvas,
+    tints = listOf(HazeTint(Color(0x8C161618))),
+    blurRadius = 28.dp,
+    noiseFactor = 0.04f,
+    fallbackTint = HazeTint(KpknGlass.VeilFallback),
+)
+
 /**
- * `.ed-glass`: vidrio del editor (isla de arriba y barra de abajo). Caída `0 10 30 #000a`, desenfoque 24 / saturación 1,7 (`vidrio-editor`),
- * relleno #1b1b1d99, realce interior de 1 dp y filete blanco al 13 %. Sin [hazeState] (Robolectric, sin fuente de desenfoque) cae al velo.
+ * `.ed-glass`: vidrio del editor (isla de arriba y barra de abajo). Caída `0 10 30 #000a`, desenfoque real de Haze sobre
+ * `KpknSurface.canvas` con tinte translúcido integrado (sin `saveLayer` ni relleno opaco encima), realce interior de 1 dp y filete blanco.
  */
 internal fun Modifier.edGlass(hazeState: HazeState?, shape: Shape): Modifier = this
-    // pulido:vidrio ed-V01 .ed-glass blur 24 · saturate 1,7
+    // pulido:vidrio ed-V01 .ed-glass blur 28
     .kpknShadow(EdGlassDrop, shape)
-    .kpknGlassOrFallback(hazeState, shape, withBorder = false, preset = KpknGlassPreset.VidrioEditor)
-    .background(EdGlassFill)
+    .clip(shape)
+    .then(
+        if (hazeState != null) {
+            Modifier.hazeEffect(state = hazeState, style = EdGlassHazeStyle) { alpha = 1f }
+        } else {
+            Modifier.background(KpknGlass.VeilFallback)
+        },
+    )
     .kpknInset(EdGlassInset, shape)
     .border(1.dp, EdGlassStroke, shape)
 

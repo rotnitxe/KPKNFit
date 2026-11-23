@@ -163,6 +163,12 @@ object ExerciseCatalogV2Loader {
                     require(listedMuscles.size == listedMuscles.toSet().size) {
                         "Muscle listed in more than one role: ${configuration.id}"
                     }
+                    require(profile.limitingStabilizerMuscles.size == profile.limitingStabilizerMuscles.toSet().size) {
+                        "Duplicate muscle in limitingStabilizerMuscles: ${configuration.id}"
+                    }
+                    require(profile.limitingStabilizerMuscles.all { it in profile.stabilizerMuscles }) {
+                        "limitingStabilizerMuscles must be a subset of stabilizerMuscles: ${configuration.id}"
+                    }
                     require(profile.jointInvolvement.isNotEmpty()) {
                         "jointInvolvement cannot be empty: ${configuration.id}"
                     }
@@ -195,6 +201,9 @@ object ExerciseCatalogV2Loader {
                     require(rich.anatomy.primaryMuscles == profile.primaryMuscles)
                     require(rich.anatomy.secondaryMuscles == profile.secondaryMuscles)
                     require(rich.anatomy.stabilizerMuscles == profile.stabilizerMuscles)
+                    require(rich.anatomy.limitingStabilizerMuscles == profile.limitingStabilizerMuscles) {
+                        "rich.anatomy.limitingStabilizerMuscles mismatch: ${configuration.id}"
+                    }
                     require(rich.anatomy.jointInvolvement == profile.jointInvolvement)
                     require(rich.biomechanics.movementPatternId == profile.movementPatternId)
                     require(rich.biomechanics.bodyRegion == profile.bodyRegion)

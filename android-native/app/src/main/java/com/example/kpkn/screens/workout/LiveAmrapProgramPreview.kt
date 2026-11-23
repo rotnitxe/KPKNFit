@@ -10,8 +10,10 @@ internal data class LiveAmrapProgramPreview(
     val proposals: List<AutoregulationProposal> = emptyList(),
     val beforeTm: Double? = null,
     val afterTm: Double? = null,
+    val apreNextXrmMessage: String? = null,
 ) {
     val message: String get() = when {
+        apreNextXrmMessage != null -> apreNextXrmMessage
         !hasRule -> "Sin regla de progresión: queda registrado"
         mode == AutoregulationMode.OFF -> "Autorregulación OFF: queda registrado"
         proposals.isEmpty() -> "La regla del programa no propone cambios de TM"
@@ -22,6 +24,24 @@ internal data class LiveAmrapProgramPreview(
 
 internal fun liveAmrapProgramPreview(program: Program?, exercise: Exercise, set: ExerciseSet,
     completed: CompletedSet, weekId: String): LiveAmrapProgramPreview {
+    val apreXrm = completed.apreXrm
+    if (apreXrm != null) {
+        val nextKg = apreXrm.reference.capturedLoadKg
+        if (nextKg != null && nextKg > 0.0) {
+            val prevKg = completed.weight
+            val arrow = when {
+                nextKg > prevKg -> "↑ +${finishNumber(nextKg - prevKg)} kg"
+                nextKg < prevKg -> "↓ ${finishNumber(nextKg - prevKg)} kg"
+                else -> "Mantiene"
+            }
+            val xrmLabel = apreXrm.reference.capturedTargetReps?.let { "${it}RM" } ?: "XRM"
+            return LiveAmrapProgramPreview(
+                mode = program?.autoregulationMode ?: AutoregulationMode.PROPOSE,
+                hasRule = true,
+                apreNextXrmMessage = "Próximo $xrmLabel · ${finishNumber(nextKg)} kg ($arrow)",
+            )
+        }
+    }
     val mode = program?.autoregulationMode ?: AutoregulationMode.OFF
     val recipe = program?.sourceRecipe ?: return LiveAmrapProgramPreview(mode, false)
     if (!ProgramAutoregulationEngine.amrapMovesTm(recipe)) return LiveAmrapProgramPreview(mode, false)

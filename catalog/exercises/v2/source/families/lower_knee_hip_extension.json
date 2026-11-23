@@ -114,10 +114,9 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
-                    "calves"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
+                    "calves",
                     "gluteus_maximus",
                     "erector_spinae"
                   ],
@@ -180,15 +179,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Ajusta la plataforma para que la parte baja de los muslos, justo encima de las rodillas, quede sobre el cojín.",
                 "Apoya las plantas contra la plataforma con los tobillos bajo los rodillos y cruza los brazos sobre el pecho."
               ],
               "setupTimeSeconds": 55,
               "stabilizerMuscles": [
+                "calves",
                 "gluteus_maximus",
                 "erector_spinae"
               ],

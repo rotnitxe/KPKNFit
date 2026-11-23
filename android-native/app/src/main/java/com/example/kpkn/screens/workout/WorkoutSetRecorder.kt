@@ -179,7 +179,14 @@ class WorkoutSetRecorder(
         // Pulido v1 (15): el ROM solo se anota si el ejercicio lo registra (`Exercise.trackRom`, la única verdad). Un ROM que la serie ya
         // traía registrado se conserva aunque el ejercicio haya dejado de medirlo: editar nunca borra un dato guardado.
         val recordedRom = LiveRom.recordable(exercise.trackRom, report.rom, state.completedSets[recordingKey]?.rom)
-        if (recordedRom != report.rom) report = report.copy(rom = recordedRom)
+        val recordedRomTarget = if (exercise.trackRom) {
+            report.recordedRomTarget ?: state.completedSets[recordingKey]?.recordedRomTarget
+        } else {
+            state.completedSets[recordingKey]?.recordedRomTarget
+        }
+        if (recordedRom != report.rom || recordedRomTarget != report.recordedRomTarget) {
+            report = report.copy(rom = recordedRom, recordedRomTarget = recordedRomTarget)
+        }
         if (requiresEffort) {
             recordingEffortError(intensity, report)?.let { message ->
                 ports.onRecordingRejected(message)
@@ -279,7 +286,8 @@ class WorkoutSetRecorder(
             val resolvedTagName = activeTagObj?.name
                 ?: state.exerciseTags[exercise.id]
                 ?: tagId?.takeUnless { WorkoutTagResolver.isInternalId(it) }
-            val resolvedSubTagIds = state.activeSubTagsByExercise[exercise.id].orEmpty()
+            val resolvedSubTagIds = state.activeSubTagsBySetKey[recordingKey]
+                ?: plannedSet?.subTagIds.orEmpty()
             val resolvedSetupId = setupId ?: activeProfile?.setupProfileId ?: plannedSet?.defaultSetupProfileIdV3 ?: plannedSet?.setupId
             val resolvedMachineBrand = machineBrand ?: activeProfile?.machineBrand ?: plannedSet?.machineBrand
             val isUnilateralExercise = exercise.isEffectivelyUnilateral()
@@ -1062,54 +1070,61 @@ class WorkoutSetRecorder(
     }
 
     private fun counterpartSide(side: String): String = if (side == "left") "right" else "left"
+}
 
-    private fun completedSetContentMatches(
-        existing: CompletedSet,
-        next: CompletedSet,
-        requestedNotes: String?,
-    ): Boolean {
-        val oldPayload = existing.recordedPayloadV3
-        val newPayload = next.recordedPayloadV3
-        if (oldPayload != null && newPayload != null) {
-            val oldFacts = oldPayload.copy(actualValue = oldPayload.actualValue ?: completedLiveQuantity(existing, oldPayload.unitMode),
-                plannedRepRange = null, plannedTargetSnapshot = null)
-            val newFacts = newPayload.copy(plannedRepRange = null, plannedTargetSnapshot = null)
-            return oldFacts == newFacts &&
-                (existing.techniqueStatus ?: com.example.kpkn.data.models.RecordedTechniqueStatus.COMPLETED) == next.techniqueStatus &&
-                existing.dropSets == next.dropSets &&
-                existing.restPauses == next.restPauses &&
-                existing.isPartial == next.isPartial &&
-                existing.partialReps == next.partialReps &&
-                existing.skipped == next.skipped &&
-                existing.notes == (requestedNotes ?: existing.notes)
-        }
-        // Legacy logs may not carry recordedPayloadV3.  Compare every user
-        // visible field that can be edited so an old set cannot accept a
-        // no-op replacement merely because its compact payload is absent.
-        return existing.weight == next.weight &&
-            existing.side == next.side &&
-            existing.reps == next.reps &&
-            existing.timeSeconds == next.timeSeconds &&
-            existing.rpe == next.rpe &&
-            existing.rir == next.rir &&
-            existing.isFailure == next.isFailure &&
-            existing.isFailedSet == next.isFailedSet &&
-            existing.failureReason == next.failureReason &&
-            existing.actualIntensityMode == next.actualIntensityMode &&
-            existing.actualIntensityValue == next.actualIntensityValue &&
-            existing.purpose == next.purpose &&
-            existing.loadMode == next.loadMode &&
-            existing.originalLoad == next.originalLoad &&
-            existing.contextKey == next.contextKey &&
-            existing.amrapPerformed == next.amrapPerformed &&
-            existing.amrapMinimumReps == next.amrapMinimumReps &&
-            existing.amrapBelowMinimum == next.amrapBelowMinimum &&
-            existing.techniqueStatus == next.techniqueStatus &&
-                existing.dropSets == next.dropSets &&
+internal fun completedSetContentMatches(
+    existing: CompletedSet,
+    next: CompletedSet,
+    requestedNotes: String?,
+): Boolean {
+    val oldPayload = existing.recordedPayloadV3
+    val newPayload = next.recordedPayloadV3
+    if (oldPayload != null && newPayload != null) {
+        val oldFacts = oldPayload.copy(
+            actualValue = oldPayload.actualValue ?: completedLiveQuantity(existing, oldPayload.unitMode),
+            plannedRepRange = null,
+            plannedTargetSnapshot = null,
+        )
+        val newFacts = newPayload.copy(plannedRepRange = null, plannedTargetSnapshot = null)
+        return oldFacts == newFacts &&
+            (existing.techniqueStatus ?: com.example.kpkn.data.models.RecordedTechniqueStatus.COMPLETED) == next.techniqueStatus &&
+            existing.dropSets == next.dropSets &&
             existing.restPauses == next.restPauses &&
             existing.isPartial == next.isPartial &&
             existing.partialReps == next.partialReps &&
             existing.skipped == next.skipped &&
+            existing.subTagIds == next.subTagIds &&
+            existing.recordedRomTarget == next.recordedRomTarget &&
             existing.notes == (requestedNotes ?: existing.notes)
     }
+    // Legacy logs may not carry recordedPayloadV3.  Compare every user
+    // visible field that can be edited so an old set cannot accept a
+    // no-op replacement merely because its compact payload is absent.
+    return existing.weight == next.weight &&
+        existing.side == next.side &&
+        existing.reps == next.reps &&
+        existing.timeSeconds == next.timeSeconds &&
+        existing.rpe == next.rpe &&
+        existing.rir == next.rir &&
+        existing.isFailure == next.isFailure &&
+        existing.isFailedSet == next.isFailedSet &&
+        existing.failureReason == next.failureReason &&
+        existing.actualIntensityMode == next.actualIntensityMode &&
+        existing.actualIntensityValue == next.actualIntensityValue &&
+        existing.purpose == next.purpose &&
+        existing.loadMode == next.loadMode &&
+        existing.originalLoad == next.originalLoad &&
+        existing.contextKey == next.contextKey &&
+        existing.amrapPerformed == next.amrapPerformed &&
+        existing.amrapMinimumReps == next.amrapMinimumReps &&
+        existing.amrapBelowMinimum == next.amrapBelowMinimum &&
+        existing.techniqueStatus == next.techniqueStatus &&
+        existing.dropSets == next.dropSets &&
+        existing.restPauses == next.restPauses &&
+        existing.isPartial == next.isPartial &&
+        existing.partialReps == next.partialReps &&
+        existing.skipped == next.skipped &&
+        existing.subTagIds == next.subTagIds &&
+        existing.recordedRomTarget == next.recordedRomTarget &&
+        existing.notes == (requestedNotes ?: existing.notes)
 }

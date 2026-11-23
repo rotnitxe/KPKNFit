@@ -517,10 +517,10 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "calves"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -583,16 +583,16 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Ajusta el rodillo para que quede sobre la parte baja de las pantorrillas, justo encima de los talones.",
                 "Túmbate boca abajo con las rodillas en el borde del banco, a la altura del eje de la máquina.",
                 "Agarra los asideros y apoya bien la pelvis en el banco."
               ],
               "setupTimeSeconds": 45,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "calves"
+              ],
               "technicalDifficulty": 4.2
             },
             "selectedOptions": {
@@ -692,10 +692,10 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "calves"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -758,16 +758,16 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Coloca el rodillo sobre la parte baja de la pantorrilla que va a trabajar.",
                 "Deja la otra pierna estirada sobre el banco, por fuera del rodillo.",
                 "Agarra los asideros con las rodillas en el borde del banco."
               ],
               "setupTimeSeconds": 45,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "calves"
+              ],
               "technicalDifficulty": 4.2
             },
             "selectedOptions": {
@@ -867,10 +867,10 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "calves"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -933,16 +933,16 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Baja la polea a la altura del banco o algo más abajo y alinea el banco con ella, con los pies hacia la columna.",
                 "Abrocha una tobillera en cada tobillo y engancha las dos al mismo mosquetón.",
                 "Túmbate boca abajo con las rodillas en el extremo del banco y agárralo por delante."
               ],
               "setupTimeSeconds": 25,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "calves"
+              ],
               "technicalDifficulty": 4.2
             },
             "selectedOptions": {
@@ -1042,10 +1042,10 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "calves"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1108,15 +1108,15 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Baja la polea a la altura del banco o algo más abajo y alinéala con la pierna que va a trabajar.",
                 "Abrocha la tobillera en ese tobillo y túmbate con las rodillas en el extremo del banco."
               ],
               "setupTimeSeconds": 25,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "calves"
+              ],
               "technicalDifficulty": 4.2
             },
             "selectedOptions": {
@@ -1216,10 +1216,10 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "calves"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1282,15 +1282,15 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Túmbate boca abajo con las rodillas en el extremo del banco y pide que te coloquen la mancuerna.",
                 "Aprieta el asa entre los arcos de los pies y apoya el disco de arriba en las plantas."
               ],
               "setupTimeSeconds": 20,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "calves"
+              ],
               "technicalDifficulty": 4.2
             },
             "selectedOptions": {
@@ -1390,10 +1390,10 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "calves"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1456,15 +1456,15 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Usa una mancuerna ligera y pide que te la apoyen en la planta con la rodilla doblada en ángulo recto.",
                 "Deja la otra pierna estirada sobre el banco."
               ],
               "setupTimeSeconds": 20,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "calves"
+              ],
               "technicalDifficulty": 4.2
             },
             "selectedOptions": {
@@ -1592,10 +1592,10 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "calves"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1658,16 +1658,16 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Ajusta el respaldo hasta que las rodillas queden a la altura del eje de la máquina.",
                 "Baja la almohadilla superior hasta que apriete los muslos justo encima de las rodillas.",
                 "Apoya la parte baja de las pantorrillas en el rodillo, por encima de los talones."
               ],
               "setupTimeSeconds": 45,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "calves"
+              ],
               "technicalDifficulty": 4.2
             },
             "selectedOptions": {
@@ -1767,10 +1767,10 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "calves"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1833,15 +1833,15 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Ajusta el respaldo y baja la almohadilla sobre los dos muslos.",
                 "Pon solo la pierna que trabaja sobre el rodillo y recoge la otra por fuera."
               ],
               "setupTimeSeconds": 45,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "calves"
+              ],
               "technicalDifficulty": 4.2
             },
             "selectedOptions": {
@@ -1941,10 +1941,10 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "calves"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -2007,15 +2007,15 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Coloca un banco plano frente a la polea y baja la polea al mínimo.",
                 "Abrocha una tobillera en cada tobillo, engánchalas al mismo mosquetón y siéntate con las rodillas en el borde."
               ],
               "setupTimeSeconds": 25,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "calves"
+              ],
               "technicalDifficulty": 4.2
             },
             "selectedOptions": {
@@ -2115,10 +2115,10 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "calves"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -2181,15 +2181,15 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Siéntate en el banco frente a la polea baja con la tobillera en el tobillo que va a trabajar.",
                 "Apoya el otro pie en el suelo, por delante, y agarra el borde del banco."
               ],
               "setupTimeSeconds": 25,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "calves"
+              ],
               "technicalDifficulty": 4.2
             },
             "selectedOptions": {
@@ -2337,10 +2337,9 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
-                    "calves"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
+                    "calves",
                     "gluteus_medius",
                     "core"
                   ],
@@ -2407,15 +2406,14 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Recuesta el pecho en el soporte, agarra los asideros y pisa la plataforma con un pie.",
                 "Coloca el rodillo detrás de la otra pierna, justo encima del talón, con el muslo contra su almohadilla."
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
+                "calves",
                 "gluteus_medius",
                 "core"
               ],
@@ -2539,10 +2537,9 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
-                    "calves"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
+                    "calves",
                     "gluteus_medius",
                     "core"
                   ],
@@ -2609,15 +2606,14 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Ajusta el rodillo a la altura del tobillo, justo por encima del talón.",
                 "Apoya el muslo contra su almohadilla y el pecho en el soporte, con las manos en los asideros."
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
+                "calves",
                 "gluteus_medius",
                 "core"
               ],
@@ -2741,10 +2737,9 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
-                    "calves"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
+                    "calves",
                     "gluteus_medius",
                     "core"
                   ],
@@ -2811,15 +2806,14 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Pon la polea abajo del todo y abrocha la tobillera en el primer tobillo.",
                 "Ponte de cara a la columna, a un paso, con una mano apoyada en ella."
               ],
               "setupTimeSeconds": 25,
               "stabilizerMuscles": [
+                "calves",
                 "gluteus_medius",
                 "core"
               ],
@@ -2943,10 +2937,9 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
-                    "calves"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
+                    "calves",
                     "gluteus_medius",
                     "core"
                   ],
@@ -3013,15 +3006,14 @@
                   "replacementPriority": 5
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Baja la polea al mínimo y abrocha la tobillera en el tobillo que va a trabajar.",
                 "Ponte de cara a la columna, a un paso de ella, y apoya una mano en ella."
               ],
               "setupTimeSeconds": 25,
               "stabilizerMuscles": [
+                "calves",
                 "gluteus_medius",
                 "core"
               ],

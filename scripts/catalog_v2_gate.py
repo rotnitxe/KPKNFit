@@ -525,6 +525,15 @@ def source_gate() -> list[str]:
                     failures.append(f"instructional_configuration_description:{configuration['id']}")
                 if profile.get("catalogRevision") != source.get("catalogRevision"):
                     failures.append(f"profile_revision_mismatch:{configuration['id']}")
+                limiting = profile.get("limitingStabilizerMuscles", [])
+                stabilizers = profile.get("stabilizerMuscles") or []
+                if (
+                    not isinstance(limiting, list)
+                    or any(not isinstance(item, str) or not item.strip() for item in limiting)
+                    or len(limiting) != len(set(limiting))
+                    or not set(limiting).issubset(stabilizers)
+                ):
+                    failures.append(f"invalid_limiting_stabilizer_muscles:{configuration['id']}")
                 joints = profile.get("jointInvolvement")
                 if not isinstance(joints, list) or not joints:
                     failures.append(f"missing_joint_involvement:{configuration['id']}")
@@ -561,6 +570,8 @@ def source_gate() -> list[str]:
                     anatomy = rich.get("anatomy")
                     if not isinstance(anatomy, dict) or anatomy.get("jointInvolvement") != joints:
                         failures.append(f"rich_anatomy_joint_mismatch:{configuration['id']}")
+                    if isinstance(anatomy, dict) and (anatomy.get("limitingStabilizerMuscles") or []) != (profile.get("limitingStabilizerMuscles") or []):
+                        failures.append(f"rich_anatomy_limiting_stabilizer_mismatch:{configuration['id']}")
                     biomechanics = rich.get("biomechanics")
                     relevant_joints = biomechanics.get("relevantJoints") if isinstance(biomechanics, dict) else None
                     if not isinstance(relevant_joints, list) or set(relevant_joints) != set(joint_ids):

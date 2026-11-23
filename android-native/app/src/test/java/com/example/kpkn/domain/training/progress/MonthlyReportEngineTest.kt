@@ -198,13 +198,45 @@ class MonthlyReportEngineTest {
         )
         assertEquals(
             listOf(
-                MonthlyMuscleSets("Pecho", 3),
+                MonthlyMuscleSets("Pectorales", 3),
                 MonthlyMuscleSets("Cuádriceps", 2),
-                MonthlyMuscleSets("Glúteo", 2),
-                MonthlyMuscleSets("Dorsal", 1),
+                MonthlyMuscleSets("Glúteos", 2),
+                MonthlyMuscleSets("Dorsales", 1),
             ),
             reportOf(logs).muscles,
         )
+    }
+
+    @Test
+    fun colapsaSeriesUnilateralesYExcluyeCardio() {
+        val unilateralSets = listOf(
+            CompletedSet("l1", weight = 20.0, reps = 10, setIndex = 0, side = "left"),
+            CompletedSet("r1", weight = 20.0, reps = 10, setIndex = 0, side = "right"),
+            CompletedSet("l2", weight = 20.0, reps = 10, side = "left"),
+            CompletedSet("r2", weight = 20.0, reps = 10, side = "right"),
+        )
+        val cardio = CompletedExercise(
+            exerciseId = "run",
+            exerciseName = "Trote",
+            cardioDetails = com.example.kpkn.data.models.CardioDetails(
+                type = com.example.kpkn.data.models.CardioType.RUN_OUTDOOR,
+                targetDistanceKm = 5.0,
+                targetDurationSeconds = 1800,
+            ),
+            effectiveMuscles = listOf(primary("Cuádriceps")),
+            sets = listOf(CompletedSet("c1", weight = 0.0, reps = 1)),
+        )
+        val logs = listOf(
+            log(
+                "a", "2026-03-03",
+                exercise("Zancada", *unilateralSets.toTypedArray(), muscles = listOf(primary("Cuádriceps"))),
+                cardio,
+            ),
+        )
+        val report = reportOf(logs)
+        assertEquals(2, report.hardSets)
+        assertEquals(800.0, report.tonnageKg, 1e-9)
+        assertEquals(listOf(MonthlyMuscleSets("Cuádriceps", 2)), report.muscles)
     }
 
     @Test

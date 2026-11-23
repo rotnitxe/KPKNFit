@@ -623,7 +623,9 @@ object AmrapProgramPreview {
             return record(hit, lift, null, "${prefix}esta serie no tiene XRM: se guarda en tu historial.")
         }
         val reps = Apre.validReps(hit.actualReps)
-        val band = Apre.band(variant, reps)
+        val rir = if (hit.reachedFailure) null else hit.declaredRir
+        val rpe = if (hit.reachedFailure) null else hit.meanRpe
+        val band = Apre.band(variant, reps, targetRir = rir, targetRpe = rpe)
         val bandText = if (band == Apre.Band.HOLD) "mantener" else "${signed(band.percent)} %"
         return if (hit.isLastAmrapOfExercise) {
             val capturedXrm = hit.apreXrmCapture?.takeIf { capture ->
@@ -632,7 +634,14 @@ object AmrapProgramPreview {
                     capture.reference.repMax == variant.xrmReps &&
                     (hit.sourceExerciseId == null || hit.sourceExerciseId == capture.sourceExerciseId)
             }?.reference?.capturedLoadKg?.takeIf { it.isFinite() && it > 0.0 }
-            val xrm = capturedXrm ?: Apre.nextWeekXrmKg(weight, reps, variant, rule.incrementKg)
+            val xrm = capturedXrm ?: Apre.nextWeekXrmKg(
+                set4LoadKg = weight,
+                set4ValidReps = reps,
+                variant = variant,
+                targetRir = rir,
+                targetRpe = rpe,
+                incrementKg = rule.incrementKg,
+            )
             val gate = gateOf(mode)
 
             val note = when (gate) {
@@ -655,7 +664,14 @@ object AmrapProgramPreview {
             )
         } else {
             val next = hit.apreSet4LoadKg?.takeIf { it.isFinite() && it > 0.0 }
-                ?: Apre.set4LoadKg(weight, reps, variant, rule.incrementKg)
+                ?: Apre.set4LoadKg(
+                    xrmLoadKg = weight,
+                    set3ValidReps = reps,
+                    variant = variant,
+                    targetRir = rir,
+                    targetRpe = rpe,
+                    incrementKg = rule.incrementKg,
+                )
             AmrapProgramEffect(
                 kind = AmrapEffectKind.NEXT_SET_LOAD,
                 timing = AmrapEffectTiming.SAME_SESSION,

@@ -445,16 +445,6 @@ internal fun WorkoutExerciseSetupContent(
             maxLines = 4,
         )
 
-        val cues = (exercise.setupCues + exercise.executionCues).distinct()
-        if (cues.isNotEmpty()) {
-            ContextLabel("Cues")
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                cues.take(maxVisibleCues.coerceAtLeast(0)).forEach { cue ->
-                    Text("- $cue", style = KpknType.caption, color = WizardColors.textMuted)
-                }
-            }
-        }
-
         if (exerciseTag != null) {
             Spacer(Modifier.height(4.dp))
             KpknModule(

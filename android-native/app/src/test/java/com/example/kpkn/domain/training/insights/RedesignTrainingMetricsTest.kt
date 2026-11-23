@@ -149,4 +149,40 @@ class RedesignTrainingMetricsTest {
         assertEquals(1.0, metrics.weeks[2].series, 0.0)
     }
 
+    @Test fun sessionSetsNormalizesUsesMaxOfAndReresolvesLiveCatalogV2() {
+        val catalogEntry = ExerciseMuscleInfo(
+            id = "pullover__cable__straight_bar",
+            name = "Pullover en polea",
+            catalogDefinitionId = "pullover",
+            catalogConfigurationId = "pullover__cable__straight_bar",
+            involvedMuscles = listOf(
+                InvolvedMuscle("Dorsal Ancho", MuscleRole.PRIMARY, 1.0),
+                InvolvedMuscle("deltoides anterior", MuscleRole.SECONDARY, 0.5, emphasis = "anterior"),
+                InvolvedMuscle("deltoides posterior", MuscleRole.SECONDARY, 0.5, emphasis = "posterior"),
+                InvolvedMuscle("erector espinal", MuscleRole.STABILIZER, LIMITING_STABILIZER_CONTRIBUTION),
+                InvolvedMuscle("core", MuscleRole.STABILIZER, 0.0),
+            ),
+        )
+        val staleHistorical = CompletedExercise(
+            exerciseId = "hist-1",
+            exerciseName = "Pullover en polea",
+            catalogDefinitionId = "pullover",
+            catalogConfigurationId = "pullover__cable__straight_bar",
+            effectiveMuscles = listOf(
+                InvolvedMuscle("Pectorales", MuscleRole.PRIMARY, 1.0),
+                InvolvedMuscle("Core", MuscleRole.STABILIZER, 0.4),
+            ),
+            sets = List(3) { CompletedSet("s$it", weight = 40.0, reps = 12) },
+        )
+        val volume = MuscleVolumeAccounting.sessionSets(
+            exercises = listOf(staleHistorical),
+            exerciseIndex = mapOf(catalogEntry.id to catalogEntry),
+        )
+        assertNull(volume["Pectorales"])
+        assertNull(volume["Core"])
+        assertEquals(3.0, volume.getValue("Dorsales"), 1e-9)
+        assertEquals(1.5, volume.getValue("Deltoides"), 1e-9)
+        assertEquals(0.9, volume.getValue("Erectores Espinales"), 1e-9)
+    }
+
 }

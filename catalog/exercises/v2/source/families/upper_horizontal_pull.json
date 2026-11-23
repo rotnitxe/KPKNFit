@@ -511,6 +511,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "back_remo_gorilla__dumbbells",
@@ -575,6 +578,9 @@
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
                   ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
@@ -751,6 +757,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "back_remo_gorilla__kettlebell",
@@ -815,6 +824,9 @@
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
                   ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
@@ -989,6 +1001,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "continuous_cable",
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "back_remo_gorilla__cable",
@@ -1051,6 +1066,9 @@
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
                   ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
@@ -1498,6 +1516,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "back_remo_renegado__dumbbells",
@@ -1553,6 +1574,9 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "core"
+                  ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -1560,12 +1584,11 @@
                     "trapezius",
                     "rhomboids",
                     "deltoid",
-                    "biceps",
-                    "core"
+                    "biceps"
                   ],
                   "stabilizerMuscles": [
+                    "core",
                     "triceps",
-                    "pectoralis",
                     "forearm"
                   ],
                   "volumeContribution": "indirect"
@@ -1635,8 +1658,7 @@
                 "trapezius",
                 "rhomboids",
                 "deltoid",
-                "biceps",
-                "core"
+                "biceps"
               ],
               "setupCues": [
                 "Pon dos mancuernas hexagonales en el suelo, bajo los hombros, y agárralas con las palmas enfrentadas.",
@@ -1644,8 +1666,8 @@
               ],
               "setupTimeSeconds": 30,
               "stabilizerMuscles": [
+                "core",
                 "triceps",
-                "pectoralis",
                 "forearm"
               ],
               "technicalDifficulty": 5.0
@@ -1716,6 +1738,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "back_remo_renegado__kettlebell",
@@ -1771,6 +1796,9 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "core"
+                  ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -1778,12 +1806,11 @@
                     "trapezius",
                     "rhomboids",
                     "deltoid",
-                    "biceps",
-                    "core"
+                    "biceps"
                   ],
                   "stabilizerMuscles": [
+                    "core",
                     "triceps",
-                    "pectoralis",
                     "forearm"
                   ],
                   "volumeContribution": "indirect"
@@ -1853,8 +1880,7 @@
                 "trapezius",
                 "rhomboids",
                 "deltoid",
-                "biceps",
-                "core"
+                "biceps"
               ],
               "setupCues": [
                 "Coloca dos kettlebells bajo los hombros y cierra cada mano sobre el asa, con la muñeca recta encima de la bola.",
@@ -1862,8 +1888,8 @@
               ],
               "setupTimeSeconds": 30,
               "stabilizerMuscles": [
+                "core",
                 "triceps",
-                "pectoralis",
                 "forearm"
               ],
               "technicalDifficulty": 5.0
@@ -1874,7 +1900,7 @@
           }
         ],
         "defaultConfigurationId": "back_remo_renegado_mancuernas__dumbbells",
-        "description": "En el Remo Renegado (renegade row) se rema desde una plancha alta: cada mano descansa sobre una carga apoyada en el suelo y un brazo sube la suya hacia la cadera mientras el otro brazo y los pies sostienen el cuerpo. El dorsal ancho tira del codo hacia atrás con ayuda del trapecio, los romboides, el bíceps y la porción posterior del deltoides. Los oblicuos y el resto del core frenan el giro de la pelvis hacia el lado que rema, y en el brazo de apoyo el pectoral y el tríceps fijan hombro y codo. Abrir los pies más que la cadera ensancha la base y facilita no rotar. Une espalda y estabilidad del tronco en la misma serie, con cargas modestas y mucha exigencia de postura.",
+        "description": "En el Remo Renegado (renegade row) se rema desde una plancha alta: cada mano descansa sobre una carga apoyada en el suelo y un brazo sube la suya hacia la cadera mientras el otro brazo y los pies sostienen el cuerpo. El dorsal ancho tira del codo hacia atrás con ayuda del trapecio, los romboides, el bíceps y la porción posterior del deltoides. Los oblicuos y el resto del core frenan el giro de la pelvis hacia el lado que rema, y en el brazo de apoyo el deltoides y el tríceps fijan hombro y codo. Abrir los pies más que la cadera ensancha la base y facilita no rotar. Une espalda y estabilidad del tronco en la misma serie, con cargas modestas y mucha exigencia de postura.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -2007,10 +2033,10 @@
                   ],
                   "secondaryMuscles": [
                     "trapezius",
-                    "rhomboids",
-                    "biceps"
+                    "rhomboids"
                   ],
                   "stabilizerMuscles": [
+                    "biceps",
                     "forearm"
                   ],
                   "volumeContribution": "indirect"
@@ -2072,8 +2098,7 @@
               },
               "secondaryMuscles": [
                 "trapezius",
-                "rhomboids",
-                "biceps"
+                "rhomboids"
               ],
               "setupCues": [
                 "Sube la polea por encima de tu cabeza y engancha una cuerda doble.",
@@ -2081,6 +2106,7 @@
               ],
               "setupTimeSeconds": 25,
               "stabilizerMuscles": [
+                "biceps",
                 "forearm"
               ],
               "technicalDifficulty": 3.8

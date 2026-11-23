@@ -74,7 +74,15 @@ fun captureApreXrm(
         ?: completed.weight.takeUnless { context.loadMode == LoadModeV2.LASTRE } ?: return null
     if (!load.isFinite() || load <= 0.0) return null
     val valid = Apre.validReps(completed.reps) // CAL1 ya separó las parciales: no descontarlas otra vez.
-    val next = Apre.nextWeekXrmKg(load, valid, block.variant, incrementKg)
+    val plannedS4 = exercise.sets.getOrNull(index)
+    val sideTarget = when (completed.side) {
+        "left" -> plannedS4?.leftTarget
+        "right" -> plannedS4?.rightTarget
+        else -> null
+    }
+    val actualRir = completed.rir ?: if (completed.rpe == null && !completed.isFailure) (sideTarget?.targetRIR ?: plannedS4?.targetRIR) else null
+    val actualRpe = completed.rpe ?: if (completed.rir == null && !completed.isFailure) (sideTarget?.targetRPE ?: plannedS4?.targetRPE) else null
+    val next = Apre.nextWeekXrmKg(load, valid, block.variant, actualRir, actualRpe, incrementKg)
     if (!next.isFinite() || next <= 0.0) return null
     val reason = "${block.variant.label}: ${block.variant.xrmReps}RM ${NativeProgressionText.formatKg(next)} kg " +
         "para la próxima semana (tabla de Mann, $valid reps válidas con ${NativeProgressionText.formatKg(load)} kg)."
@@ -83,7 +91,7 @@ fun captureApreXrm(
         quantityConvention = context.loadQuantityConvention, sourceSlotId = exercise.recipeSlotId,
         repMin = block.variant.xrmReps, repMax = block.variant.xrmReps, side = completed.side,
         sourceProgramId = sourceProgramId, state = PlanLoadReferenceState.CAPTURED,
-        capturedLoadKg = next, capturedAtMs = capturedAtMs,
+        capturedLoadKg = next, capturedTargetReps = block.variant.xrmReps, capturedAtMs = capturedAtMs,
         metadata = PlanLoadReferenceMetadata(origin = ExerciseLoadReferenceStore.APRE_XRM, reason = reason,
             contextKey = context.key, sourceId = completed.id, sourceSetId = exercise.sets[index].id, loadIncrementKg = incrementKg),
     )

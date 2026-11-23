@@ -180,9 +180,10 @@ private fun NewProgramIcon(icon: ImageVector, tint: Color) {
 internal fun BlankProgramSheet(
     suggestedName: String,
     onDismiss: () -> Unit,
-    onCreate: (name: String, coverImage: String, identityLabel: String) -> Unit,
+    onCreate: (name: String, coverImage: String, identityLabel: String, description: String) -> Unit,
 ) {
     var name by remember { mutableStateOf("") }
+    var description by remember { mutableStateOf("") }
     var selectedModality by remember { mutableStateOf<String?>(null) }
     var customModality by remember { mutableStateOf("") }
     var style by remember { mutableStateOf(BLANK_COVER_STYLES.first()) }
@@ -209,6 +210,16 @@ internal fun BlankProgramSheet(
                 label = "Nombre",
                 placeholder = suggestedName,
                 modifier = Modifier.testTag("blank-program-name"),
+            )
+            KpknTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = "Descripción (opcional)",
+                placeholder = "Objetivo, notas o enfoque del programa",
+                singleLine = false,
+                minLines = 2,
+                maxLines = 4,
+                modifier = Modifier.testTag("blank-program-description"),
             )
             BlankGroup(label = "Modalidad del programa · etiqueta") {
                 FlowRowOfModalities(selected = selectedModality, onSelect = { selectedModality = it })
@@ -259,6 +270,7 @@ internal fun BlankProgramSheet(
                         name.trim().ifBlank { suggestedName },
                         lineCoverValue(style, background),
                         modality,
+                        description.trim(),
                     )
                 },
                 modifier = Modifier.fillMaxWidth(),

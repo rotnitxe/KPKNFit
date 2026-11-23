@@ -115,8 +115,9 @@ internal fun agendaRows(days: List<ProgramDayUi>, dragging: Boolean): List<Agend
     return rows
 }
 
-/** Un día de descanso que puede plegarse: sin sesiones y sin ser destino de arrastre. */
-private fun isRestSlot(day: ProgramDayUi): Boolean = day.sessions.isEmpty() && !day.isDropTarget
+/** Un día de descanso que puede plegarse: sin sesiones, sin ser destino de arrastre y sin ser el día con más energía. */
+private fun isRestSlot(day: ProgramDayUi): Boolean =
+    day.sessions.isEmpty() && !day.isDropTarget && !day.isHighEnergyDay
 
 /**
  * El total de una jornada en la agenda: «≈ 45 min», «≈ 1 h 20 min» o «≈ 2 h» cuando no sobran minutos. Los minutos vienen del estimador.

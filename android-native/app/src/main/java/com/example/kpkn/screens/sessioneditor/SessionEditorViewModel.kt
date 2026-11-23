@@ -119,10 +119,14 @@ class SessionEditorViewModel(
     internal val repository = ProgramRepository.getInstance()
     private val sharedLoadReferences = SharedExerciseLoadReferenceRepository.getInstance(application)
 
+    internal val workoutTags: StateFlow<Map<String, WorkoutTag>> = repository.workoutTags
+
     internal fun workoutTagsForExercise(exercise: Exercise): List<WorkoutTag> =
         repository.getWorkoutTagsForExercise(exercise.resolvedCanonicalExerciseId())
 
     internal fun saveWorkoutTag(tag: WorkoutTag) = repository.upsertWorkoutTag(tag)
+
+    internal fun deleteWorkoutTag(tagId: String) = repository.deleteWorkoutTag(tagId)
 
     internal fun saveSharedLoadReferences(exercise: Exercise): Exercise {
         val configurationId = sharedLoadConfigurationId(exercise) ?: return exercise
@@ -157,6 +161,7 @@ class SessionEditorViewModel(
                     prReps = pr.reps,
                     effortMode = pr.effortMode,
                     effortValue = pr.effortValue,
+                    romTarget = pr.romTarget,
                 ),
             )
         } else {
@@ -233,14 +238,26 @@ class SessionEditorViewModel(
                 val w = ref.prWeightKg
                 val r = ref.prReps
                 if (w != null && w > 0.0 && r != null && r > 0) {
-                    PrReference(weight = w, reps = r, effortMode = ref.effortMode, effortValue = ref.effortValue)
+                    PrReference(
+                        weight = w,
+                        reps = r,
+                        effortMode = ref.effortMode,
+                        effortValue = ref.effortValue,
+                        romTarget = ref.romTarget ?: exercise.prFor1RM?.romTarget,
+                    )
                 } else null
             } ?: exercise.prFor1RM
             exercise.prFor1RM == null -> prRef?.let { ref ->
                 val w = ref.prWeightKg
                 val r = ref.prReps
                 if (w != null && w > 0.0 && r != null && r > 0) {
-                    PrReference(weight = w, reps = r, effortMode = ref.effortMode, effortValue = ref.effortValue)
+                    PrReference(
+                        weight = w,
+                        reps = r,
+                        effortMode = ref.effortMode,
+                        effortValue = ref.effortValue,
+                        romTarget = ref.romTarget,
+                    )
                 } else null
             }
             else -> exercise.prFor1RM
@@ -1105,7 +1122,7 @@ class SessionEditorViewModel(
         )
         val hydratedDraft = hydrateSessionSharedLoadReferences(preHydratedDraft)
         val draft = if (hydratedDraft != preHydratedDraft) {
-            hydratedDraft.withExplicitRmLoads(preHydratedDraft)
+            hydratedDraft.withExplicitRmLoads(preHydratedDraft).normalizeSession()
         } else {
             preHydratedDraft
         }

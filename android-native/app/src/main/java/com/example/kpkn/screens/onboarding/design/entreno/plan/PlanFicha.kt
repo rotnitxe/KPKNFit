@@ -98,23 +98,31 @@ private fun roundToFive(minutes: Int): Int = (((minutes + 2) / 5) * 5).coerceAtL
 data class PlanFichaSession(val title: String, val lines: List<PlanFichaLine>, val minutes: Int, val glyphOf: String?)
 
 /**
- * «Tu semana» día por día: los siete días de lunes a domingo; los que no tienen sesión son «Descanso». Un día con dos sesiones las
- * junta («Tirón · y Cardio y potencia», «5 + 4 ejercicios · ~50 + 30 min»), como el miércoles del lienzo.
+ * «Tu semana» día por día: los siete días ordenados desde [weekStart] (1 = lunes .. 7 = domingo);
+ * los que no tienen sesión son «Descanso». Un día con dos sesiones las junta
+ * («Tirón · y Cardio y potencia», «5 + 4 ejercicios · ~50 + 30 min»).
  */
-fun planFichaWeek(sessionsByDay: Map<Int, List<PlanFichaSession>>): List<PlanFichaDay> = (1..7).map { day ->
-    val label = PlanFichaCopy.WEEKDAY_SHORT[day - 1]
-    val sessions = sessionsByDay[day].orEmpty()
-    if (sessions.isEmpty()) {
-        PlanFichaDay(day = day, label = label, title = PlanFichaCopy.REST, rest = true)
-    } else {
-        PlanFichaDay(
-            day = day,
-            label = label,
-            title = sessions.joinToString(" · y ") { it.title },
-            subtitle = sessionsSubtitle(sessions),
-            lines = sessions.flatMap { it.lines },
-            glyphOf = sessions.firstNotNullOfOrNull { it.glyphOf },
-        )
+fun planFichaWeek(
+    sessionsByDay: Map<Int, List<PlanFichaSession>>,
+    weekStart: Int = 1,
+): List<PlanFichaDay> {
+    val start = weekStart.coerceIn(1, 7)
+    return (0 until 7).map { offset ->
+        val day = ((start - 1 + offset) % 7) + 1
+        val label = PlanFichaCopy.WEEKDAY_SHORT[day - 1]
+        val sessions = sessionsByDay[day].orEmpty()
+        if (sessions.isEmpty()) {
+            PlanFichaDay(day = day, label = label, title = PlanFichaCopy.REST, rest = true)
+        } else {
+            PlanFichaDay(
+                day = day,
+                label = label,
+                title = sessions.joinToString(" · y ") { it.title },
+                subtitle = sessionsSubtitle(sessions),
+                lines = sessions.flatMap { it.lines },
+                glyphOf = sessions.firstNotNullOfOrNull { it.glyphOf },
+            )
+        }
     }
 }
 

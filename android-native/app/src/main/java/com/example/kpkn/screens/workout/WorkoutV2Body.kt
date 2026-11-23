@@ -31,6 +31,10 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
@@ -211,9 +215,32 @@ internal fun WorkoutV2Body(
         val tagIds = uiState.activeTagsByExercise[exId].orEmpty()
         currentExerciseTags.filter { it.id in tagIds }
     }
-    val currentExerciseActiveSubTags = remember(currentExercise?.id, currentExerciseTags, uiState.activeSubTagsByExercise) {
-        val exId = currentExercise?.id ?: return@remember emptyList<WorkoutSubTag>()
-        val subTagIds = uiState.activeSubTagsByExercise[exId].orEmpty()
+    fun resolveWorkingSetKeyForExercise(targetEx: Exercise?): String? {
+        val ex = targetEx ?: return null
+        val exId = ex.id
+        val step = uiState.activeStepKey
+        val isWorkingStepForEx = step != null &&
+            step.startsWith("${exId}_") &&
+            !step.startsWith("${exId}_warmup_") &&
+            !step.startsWith("${exId}_mobility") &&
+            !step.startsWith("${exId}_cardio") &&
+            ex.mobilitySeries.none { mob -> step.startsWith("${exId}_${mob.id}") }
+        if (isWorkingStepForEx) return step
+        val idx = if (ex.id == currentExercise?.id) uiState.currentSetIdx.coerceAtLeast(0) else 0
+        return if (ex.isEffectivelyUnilateral()) {
+            val firstSet = ex.sets.getOrNull(idx)
+            val suffix = if (firstSet?.leftTarget == null && firstSet?.rightTarget != null) "R" else "L"
+            "${exId}_${idx}_$suffix"
+        } else {
+            "${exId}_$idx"
+        }
+    }
+    val currentActiveSetKey = remember(currentExercise?.id, currentExercise?.sets, uiState.activeStepKey, uiState.currentSetIdx) {
+        resolveWorkingSetKeyForExercise(currentExercise)
+    }
+    val currentExerciseActiveSubTags = remember(currentActiveSetKey, currentExerciseTags, uiState.activeSubTagsBySetKey) {
+        val setKey = currentActiveSetKey ?: return@remember emptyList<WorkoutSubTag>()
+        val subTagIds = uiState.activeSubTagsBySetKey[setKey].orEmpty()
         currentExerciseTags.flatMap { it.subTags }.filter { it.id in subTagIds }
     }
     val tagTargetExercise = visibleExercises.firstOrNull { it.id == tagTargetExerciseId } ?: currentExercise
@@ -284,6 +311,10 @@ internal fun WorkoutV2Body(
             isRestTimerRunning = uiState.isRestTimerRunning,
             isRestMinimized = uiState.isRestMinimized,
             restKind = uiState.restModalState?.kind,
+            pagerVisible = liveSessionView == LiveSessionView.CARDS &&
+                currentExercise?.isCardio != true &&
+                !uiState.showFinishSheet &&
+                !showingPostExerciseCard,
         )
         Column(modifier = Modifier.fillMaxSize()) {
             Box(
@@ -344,7 +375,7 @@ internal fun WorkoutV2Body(
                     tagManagerTagId = tagId
                 },
                 onRemoveSubTag = { subTagId ->
-                    viewModel.toggleSubTagActive(currentExercise?.id ?: "", subTagId)
+                    currentActiveSetKey?.let { viewModel.toggleSubTagForSet(it, subTagId) }
                 },
                 onOpenTagList = {
                     tagTargetExerciseId = currentExercise?.id
@@ -478,9 +509,12 @@ internal fun WorkoutV2Body(
                             viewModel.removeSubTag(exercise.id, tag.id, subTagId)
                         },
                         onToggleSubTagActive = { subTagId ->
-                            viewModel.toggleSubTagActive(exercise.id, subTagId)
+                            val targetSetKey = resolveWorkingSetKeyForExercise(exercise) ?: "${exercise.id}_0"
+                            viewModel.toggleSubTagForSet(targetSetKey, subTagId)
                         },
-                        activeSubTagIds = uiState.activeSubTagsByExercise[exercise.id].orEmpty(),
+                        activeSubTagIds = uiState.activeSubTagsBySetKey[
+                            resolveWorkingSetKeyForExercise(exercise) ?: "${exercise.id}_0",
+                        ].orEmpty(),
                         onDismiss = { tagManagerTagId = null },
                         onViewAll = {
                             tagManagerTagId = null
@@ -534,8 +568,13 @@ internal fun WorkoutV2Body(
                     onOpened = { viewModel.markWorkoutTagEducationSeen() },
                     onCreateInline = createTagAndRoute,
                     onManageTag = { tagId -> showTagListOverlay = false; tagManagerTagId = tagId },
-                    activeSubTagIds = uiState.activeSubTagsByExercise[exercise.id].orEmpty(),
-                    onToggleSubTag = { viewModel.toggleSubTagActive(exercise.id, it) },
+                    activeSubTagIds = uiState.activeSubTagsBySetKey[
+                        resolveWorkingSetKeyForExercise(exercise) ?: "${exercise.id}_0",
+                    ].orEmpty(),
+                    onToggleSubTag = {
+                        val targetListSetKey = resolveWorkingSetKeyForExercise(exercise) ?: "${exercise.id}_0"
+                        viewModel.toggleSubTagForSet(targetListSetKey, it)
+                    },
                 )
             }
 
@@ -779,6 +818,9 @@ internal fun WorkoutV2Body(
                                             },
                                             transitionIn = buildCardioTransitionIn(visibleExercises, currentExercise.id, uiState.completedSets.keys),
                                             transitionOut = buildCardioTransitionOut(visibleExercises, currentExercise.id, uiState, viewModel),
+                                            onNavigatePreviousExercise = if (visibleExercises.indexOfFirst { it.id == currentExercise.id } > 0) {
+                                                { viewModel.navigateAdjacentWorkingStep(false) }
+                                            } else null,
                                             onRecord = { duration, distance, heartRate ->
                                                 if (cardioPageActionIsCurrent()) {
                                                     viewModel.recordCardioSetUsingGps(duration, distance, heartRate, currentExercise.id, currentCardioSetIndex, executionRef(uiState, currentExercise, currentCardioSetIndex, null))
@@ -828,7 +870,12 @@ internal fun WorkoutV2Body(
                             ?.let { id -> visibleExercises.firstOrNull { it.id == id } }
                             ?: currentExercise
                     }
-                    val pagerExercise = if (workingRestActive) restAnchorExercise else currentExercise
+                    val restAnchorGroupId = restAnchorExercise.supersetGroupRefOrLegacyId()
+                    val pagerFollowsRestAnchor = workingRestActive && (
+                        restAnchorExercise.id == currentExercise.id ||
+                            (restAnchorGroupId != null && restAnchorGroupId == currentSupersetGroupId)
+                        )
+                    val pagerExercise = if (pagerFollowsRestAnchor) restAnchorExercise else currentExercise
                     val pagerSupersetGroupId = canonicalSteps.firstOrNull { it.exerciseId == pagerExercise.id }?.supersetGroupId
                     val pagerSupersetSteps = remember(pagerSupersetGroupId, canonicalSteps) {
                         pagerSupersetGroupId?.let { id -> canonicalSteps.filter { it.supersetGroupId == id } }.orEmpty()
@@ -1101,8 +1148,7 @@ internal fun WorkoutV2Body(
                                 workingRestActive = workingRestActive,
                                 isCardio = currentExercise.isCardio,
                                 amrapResultWithMinimizedRest = uiState.isRestMinimized && settledPage?.type == LivePageType.NORMAL &&
-                                    settledPage?.let { page -> uiState.completedSets[workoutSetKey(page.exerciseId ?: currentExercise.id, page.setIndex, page.side)]
-                                        ?.performedPurpose()?.isAmrap == true } == true,
+                                    settledPage?.let { page -> uiState.completedSets[workoutSetKey(page.exerciseId ?: currentExercise.id, page.setIndex, page.side)] != null } == true,
                             )
                             if (!recordFabHolder.visible) {
                                 recordFabHolder.isUpdateMode = false
@@ -1735,6 +1781,38 @@ internal fun WorkoutV2Body(
                         val liveCardStackEnabled = androidx.compose.ui.platform.LocalConfiguration.current.screenHeightDp >= LiveCardStackMinScreenHeightDp
                         val cardScale = WorkoutUiTokens.effectiveLivePagerCardScale()
                         val peekPadding = 24.dp
+                        val edgeSwipeThresholdPx = with(density) { 48.dp.toPx() }
+                        val edgeNavigationConnection = remember(pagerState, totalSetPages, currentExercise.id) {
+                            var boundaryDrag = 0f
+                            object : NestedScrollConnection {
+                                override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+                                    if (source != NestedScrollSource.UserInput) {
+                                        boundaryDrag = 0f
+                                    } else if (
+                                        (pagerState.currentPage == 0 && pagerState.currentPageOffsetFraction <= 0.001f && available.x > 0f) ||
+                                        (pagerState.currentPage >= totalSetPages - 1 && pagerState.currentPageOffsetFraction >= -0.001f && available.x < 0f)
+                                    ) {
+                                        boundaryDrag += available.x
+                                    } else {
+                                        boundaryDrag = 0f
+                                    }
+                                    return Offset.Zero
+                                }
+
+                                override suspend fun onPreFling(available: Velocity): Velocity {
+                                    if (boundaryDrag > edgeSwipeThresholdPx && pagerState.currentPage == 0) {
+                                        boundaryDrag = 0f
+                                        viewModel.navigateAdjacentExerciseGroup(forward = false)
+                                    } else if (boundaryDrag < -edgeSwipeThresholdPx && pagerState.currentPage >= totalSetPages - 1) {
+                                        boundaryDrag = 0f
+                                        viewModel.navigateAdjacentExerciseGroup(forward = true)
+                                    } else {
+                                        boundaryDrag = 0f
+                                    }
+                                    return Velocity.Zero
+                                }
+                            }
+                        }
                         Column(
                             modifier = Modifier.fillMaxWidth().background(Color.Transparent),
                         ) {
@@ -1743,6 +1821,7 @@ internal fun WorkoutV2Body(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .heightIn(max = 1200.dp)
+                                    .nestedScroll(edgeNavigationConnection)
                                     .drawWithContent {
                                         drawContent()
                                         val visiblePage = setPagerPages.getOrNull(pagerState.settledPage)
@@ -2233,7 +2312,16 @@ internal fun WorkoutV2Body(
                                         isAdaptiveActive = isAdaptiveRestActive(restState, uiState.pendingRestSuggestion),
                                         skipExerciseLabel = skipExerciseLabel,
                                         onSkipExercise = onSkipExercise,
-                                        modifier = Modifier.fillMaxWidth().fillMaxHeight(),
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .fillMaxHeight()
+                                            .then(
+                                                if (uiState.isRestMinimized && isActivePage) {
+                                                    Modifier.tourAnchor(TourAnchors.WORKOUT_DESCANSO)
+                                                } else {
+                                                    Modifier
+                                                },
+                                            ),
                                         shape = restShape,
                                         nextSet = restNext,
                                         lastCompletedCustomUnit = restAnchorExercise.customUnit,
@@ -2494,6 +2582,28 @@ internal fun WorkoutV2Body(
                                         null
                                     },
                                     activeTag = uiState.exerciseTags[targetExercise.id],
+                                    availableSubTags = run {
+                                        val activeTagIds = uiState.activeTagsByExercise[targetExercise.id].orEmpty()
+                                        viewModel.tagsForExercise(targetExercise.id)
+                                            .filter { it.id in activeTagIds }
+                                            .flatMap { it.subTags }
+                                    },
+                                    activeSubTagIds = run {
+                                        val subTagSetKey = if (targetIsUnilateral && cardSide != null) {
+                                            "${targetExercise.id}_${activeSetIndex}_${if (cardSide == "left" || cardSide.equals("L", ignoreCase = true)) "L" else "R"}"
+                                        } else {
+                                            "${targetExercise.id}_$activeSetIndex"
+                                        }
+                                        uiState.activeSubTagsBySetKey[subTagSetKey].orEmpty()
+                                    },
+                                    onToggleSubTag = { subTagId ->
+                                        val subTagSetKey = if (targetIsUnilateral && cardSide != null) {
+                                            "${targetExercise.id}_${activeSetIndex}_${if (cardSide == "left" || cardSide.equals("L", ignoreCase = true)) "L" else "R"}"
+                                        } else {
+                                            "${targetExercise.id}_$activeSetIndex"
+                                        }
+                                        viewModel.toggleSubTagForSet(subTagSetKey, subTagId)
+                                    },
                                     sessionAccentColor = sessionAccentColor,
                                     persistedLoadModeBySet = uiState.persistedLoadModeBySet,
                                     persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,

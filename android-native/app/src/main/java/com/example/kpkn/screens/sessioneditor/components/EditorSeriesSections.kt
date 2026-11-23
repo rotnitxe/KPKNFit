@@ -197,6 +197,7 @@ internal fun EdRepsSection(
     onCommitMax: (String) -> Unit,
     modifier: Modifier = Modifier,
     label: String = "Repeticiones",
+    stateKey: Any = label,
 ) {
     EdSection(
         label = label,
@@ -224,6 +225,7 @@ internal fun EdRepsSection(
                     modifier = Modifier.weight(1f),
                     minusDescription = "Menos repeticiones mínimas",
                     plusDescription = "Más repeticiones mínimas",
+                    stateKey = "$stateKey:min",
                 )
                 EdStepperField(
                     text = rangeMax.toString(),
@@ -237,6 +239,7 @@ internal fun EdRepsSection(
                     modifier = Modifier.weight(1f),
                     minusDescription = "Menos repeticiones máximas",
                     plusDescription = "Más repeticiones máximas",
+                    stateKey = "$stateKey:max",
                 )
             }
         } else {
@@ -249,6 +252,7 @@ internal fun EdRepsSection(
                 onCommitText = onCommitReps,
                 minusDescription = "Menos repeticiones",
                 plusDescription = "Más repeticiones",
+                stateKey = "$stateKey:reps",
             )
         }
     }
@@ -276,6 +280,7 @@ internal fun EdIntensitySection(
     onStep: (Int) -> Unit,
     onCommitText: (String) -> Unit,
     modifier: Modifier = Modifier,
+    stateKey: Any = "intensity",
     beyondFailure: (@Composable ColumnScope.() -> Unit)? = null,
 ) {
     val current = if (unit == null) null else intensityOptions.firstOrNull { it.first == unit } ?: intensityOptions.first()
@@ -332,6 +337,7 @@ internal fun EdIntensitySection(
                 }) else null,
                 minusDescription = "Menos intensidad",
                 plusDescription = "Más intensidad",
+                stateKey = stateKey,
             )
             if (isFailure && beyondFailure != null) {
                 Column(Modifier.padding(top = 8.dp), content = beyondFailure)

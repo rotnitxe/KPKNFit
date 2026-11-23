@@ -76,12 +76,14 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "pendlay_row__barbell__remo_pendlay",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_barbell",
               "replacementPriority": 1,
@@ -142,11 +144,14 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
+                    "trapezius",
                     "rhomboids",
                     "deltoid",
                     "biceps"
@@ -215,14 +220,14 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi",
-                    "horizontal_pull:trapezius"
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_row_barbell",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "trapezius",
                 "rhomboids",
                 "deltoid",
                 "biceps"
@@ -314,12 +319,14 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "pendlay_row__dumbbells__remo_pendlay",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_dumbbell",
               "replacementPriority": 2,
@@ -378,11 +385,14 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
+                    "trapezius",
                     "rhomboids",
                     "deltoid",
                     "biceps"
@@ -451,14 +461,14 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi",
-                    "horizontal_pull:trapezius"
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_row_dumbbell",
                   "replacementPriority": 2
                 }
               },
               "secondaryMuscles": [
+                "trapezius",
                 "rhomboids",
                 "deltoid",
                 "biceps"
@@ -553,8 +563,7 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "pendlay_row__machine__remo_pendlay",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_barbell",
               "replacementPriority": 1,
@@ -614,10 +623,10 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
+                    "trapezius",
                     "rhomboids",
                     "deltoid",
                     "biceps"
@@ -686,14 +695,14 @@
                     "machine"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi",
-                    "horizontal_pull:trapezius"
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_row_barbell",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "trapezius",
                 "rhomboids",
                 "deltoid",
                 "biceps"
@@ -789,8 +798,7 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "pendlay_row__smith_machine__remo_pendlay",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_barbell",
               "replacementPriority": 1,
@@ -852,10 +860,10 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
+                    "trapezius",
                     "rhomboids",
                     "deltoid",
                     "biceps"
@@ -924,14 +932,14 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi",
-                    "horizontal_pull:trapezius"
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_row_barbell",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "trapezius",
                 "rhomboids",
                 "deltoid",
                 "biceps"
@@ -1022,12 +1030,14 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "pendlay_row__kettlebell__remo_pendlay",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_barbell",
               "replacementPriority": 1,
@@ -1086,11 +1096,14 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
+                    "trapezius",
                     "rhomboids",
                     "deltoid",
                     "biceps"
@@ -1159,14 +1172,14 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi",
-                    "horizontal_pull:trapezius"
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_row_barbell",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "trapezius",
                 "rhomboids",
                 "deltoid",
                 "biceps"
@@ -1262,8 +1275,7 @@
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "pendlay_row__cable__remo_pendlay",
               "primaryMuscles": [
-                "latissimus_dorsi",
-                "trapezius"
+                "latissimus_dorsi"
               ],
               "replacementGroup": "back_row_cable_low",
               "replacementPriority": 2,
@@ -1325,10 +1337,10 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
-                    "trapezius"
+                    "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
+                    "trapezius",
                     "rhomboids",
                     "deltoid",
                     "biceps"
@@ -1397,14 +1409,14 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "horizontal_pull:latissimus_dorsi",
-                    "horizontal_pull:trapezius"
+                    "horizontal_pull:latissimus_dorsi"
                   ],
                   "replacementGroup": "back_row_cable_low",
                   "replacementPriority": 2
                 }
               },
               "secondaryMuscles": [
+                "trapezius",
                 "rhomboids",
                 "deltoid",
                 "biceps"

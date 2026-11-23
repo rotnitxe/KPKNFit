@@ -94,10 +94,10 @@
                   "primaryMuscles": [
                     "forearm"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -154,14 +154,14 @@
                   "replacementPriority": 3
                 }
               },
-              "secondaryMuscles": [
-                "latissimus_dorsi"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Cuélgate de la barra y aguanta el mayor tiempo posible."
               ],
               "setupTimeSeconds": 10,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "latissimus_dorsi"
+              ],
               "technicalDifficulty": 3.5
             },
             "selectedOptions": {}
@@ -233,6 +233,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "isometric_grip",
               "performanceProfileId": "forearms_paseo_del_granjero__dumbbells",
@@ -271,6 +274,9 @@
                       "jointId": "columna-toracica",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "core"
                   ],
                   "primaryMuscles": [
                     "forearm"
@@ -406,6 +412,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "isometric_grip",
               "performanceProfileId": "forearms_paseo_del_granjero__kettlebell",
@@ -444,6 +453,9 @@
                       "jointId": "columna-toracica",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "core"
                   ],
                   "primaryMuscles": [
                     "forearm"
@@ -579,6 +591,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "isometric_grip",
               "performanceProfileId": "forearms_paseo_del_granjero__plate",
@@ -617,6 +632,9 @@
                       "jointId": "columna-toracica",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "core"
                   ],
                   "primaryMuscles": [
                     "forearm"
@@ -752,6 +770,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "isometric_grip",
               "performanceProfileId": "forearms_paseo_del_granjero__hex_bar",
@@ -790,6 +811,9 @@
                       "jointId": "columna-toracica",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "core"
                   ],
                   "primaryMuscles": [
                     "forearm"
@@ -971,8 +995,7 @@
               "movementPatternId": "isometric_grip",
               "performanceProfileId": "suitcase_carry__dumbbells__paseo_del_maletin",
               "primaryMuscles": [
-                "forearm",
-                "abdominals"
+                "forearm"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -1026,16 +1049,16 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "forearm",
-                    "abdominals"
+                    "forearm"
                   ],
                   "secondaryMuscles": [
+                    "abdominals",
                     "erector_spinae",
-                    "gluteus_medius"
+                    "gluteus_medius",
+                    "core"
                   ],
                   "stabilizerMuscles": [
-                    "trapezius",
-                    "core"
+                    "trapezius"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -1099,16 +1122,17 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "isometric_grip:forearm",
-                    "isometric_grip:abdominals"
+                    "isometric_grip:forearm"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
+                "abdominals",
                 "erector_spinae",
-                "gluteus_medius"
+                "gluteus_medius",
+                "core"
               ],
               "setupCues": [
                 "Elige una mancuerna pesada y colócala a un lado del cuerpo.",
@@ -1117,8 +1141,7 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
-                "trapezius",
-                "core"
+                "trapezius"
               ],
               "technicalDifficulty": 4.5
             },
@@ -1193,8 +1216,7 @@
               "movementPatternId": "isometric_grip",
               "performanceProfileId": "suitcase_carry__kettlebell__paseo_del_maletin",
               "primaryMuscles": [
-                "forearm",
-                "abdominals"
+                "forearm"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -1248,16 +1270,16 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "forearm",
-                    "abdominals"
+                    "forearm"
                   ],
                   "secondaryMuscles": [
+                    "abdominals",
                     "erector_spinae",
-                    "gluteus_medius"
+                    "gluteus_medius",
+                    "core"
                   ],
                   "stabilizerMuscles": [
-                    "trapezius",
-                    "core"
+                    "trapezius"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -1321,16 +1343,17 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "isometric_grip:forearm",
-                    "isometric_grip:abdominals"
+                    "isometric_grip:forearm"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
+                "abdominals",
                 "erector_spinae",
-                "gluteus_medius"
+                "gluteus_medius",
+                "core"
               ],
               "setupCues": [
                 "Elige una kettlebell pesada y colócala a un lado del cuerpo.",
@@ -1339,8 +1362,7 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
-                "trapezius",
-                "core"
+                "trapezius"
               ],
               "technicalDifficulty": 4.5
             },

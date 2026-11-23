@@ -18,14 +18,19 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -171,6 +176,7 @@ fun KpknSheet(
     safeNavigationBarInset: Boolean = true,
     /** Full handle slot for flat sheets; 28 dp leaves 10 dp above and 14 dp below by default. */
     flatHandleAreaHeight: Dp = 28.dp,
+    imeInsets: WindowInsets = WindowInsets.ime,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     // A caller may own a local source (for example the workout overlay).  The
@@ -199,6 +205,7 @@ fun KpknSheet(
             backdropScrim = backdropScrim,
             surfaceColor = surfaceColor,
             lienzo = lienzo,
+            imeInsets = imeInsets,
             content = content,
         )
     }
@@ -220,6 +227,7 @@ private fun KpknSheetBody(
     backdropScrim: Color,
     surfaceColor: Color?,
     lienzo: KpknSheetSpec?,
+    imeInsets: WindowInsets,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val sheetShape = RoundedCornerShape(
@@ -281,11 +289,42 @@ private fun KpknSheetBody(
     BackHandler(enabled = dismissible) { dismissAnimated() }
     BackHandler(enabled = !dismissible) { /* Non-dismissible sheets consume Back. */ }
 
-    BoxWithConstraints(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .zIndex(350f),
     ) {
+        // Tap-outside lives on a full-screen layer; the sheet itself is clipped
+        // to rounded corners so no rectangular scrim peeks above the handle.
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .then(
+                    if (backdropScrim.alpha > 0f) {
+                        Modifier
+                            .graphicsLayer { alpha = scrimAlpha.value }
+                            .background(backdropScrim)
+                    } else Modifier,
+                )
+                .then(
+                    if (dismissible) {
+                        Modifier.clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = { dismissAnimated() },
+                        )
+                    } else {
+                        Modifier
+                    },
+                ),
+        )
+
+        BoxWithConstraints(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .windowInsetsPadding(imeInsets),
+        ) {
         val maxHeightPx = constraints.maxHeight.toFloat().coerceAtLeast(1f)
         val sheetCapPx = maxHeightPx * maxHeightFraction
         val sheetCapDp = with(density) { sheetCapPx.toDp() }
@@ -394,31 +433,6 @@ private fun KpknSheetBody(
             Modifier
         }
 
-        // Tap-outside lives on a full-screen layer; the sheet itself is clipped
-        // to rounded corners so no rectangular scrim peeks above the handle.
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .then(
-                    if (backdropScrim.alpha > 0f) {
-                        Modifier
-                            .graphicsLayer { alpha = scrimAlpha.value }
-                            .background(backdropScrim)
-                    } else Modifier,
-                )
-                .then(
-                    if (dismissible) {
-                        Modifier.clickable(
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = null,
-                            onClick = { dismissAnimated() },
-                        )
-                    } else {
-                        Modifier
-                    },
-                ),
-        )
-
         val flat = surfaceColor != null
         Box(
             modifier = modifier
@@ -480,8 +494,15 @@ private fun KpknSheetBody(
                                     translationY = (1f - contentIn.value) * (lienzo?.contentRise ?: KpknSheetMotion.ContentRise).toPx()
                                 }
                             }
-                            .then(if (safeTopInset) Modifier.statusBarsPadding() else Modifier)
-                            .then(if (safeNavigationBarInset) Modifier.navigationBarsPadding().padding(bottom = 8.dp) else Modifier)
+                            .then(
+                                if (safeNavigationBarInset) {
+                                    Modifier
+                                        .windowInsetsPadding(WindowInsets.navigationBars.exclude(imeInsets))
+                                        .padding(bottom = 8.dp)
+                                } else {
+                                    Modifier
+                                },
+                            )
                             .nestedScroll(nestedScrollConnection)
                             .then(if (dismissible) dragModifier else Modifier),
                     ) {
@@ -534,6 +555,7 @@ private fun KpknSheetBody(
                     }
                 }
             }
+        }
         }
     }
 }

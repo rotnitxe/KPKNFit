@@ -556,24 +556,18 @@ private fun Exercise.usesExternalTrainingMax(): Boolean =
     trainingMode == TrainingMode.RM && sets.any { it.usesExternalTrainingMax() }
 
 internal fun Exercise.normalizeExercise(): Exercise {
-    val preservedLeftTargets = sets.map { it.leftTarget }
-    val preservedRightTargets = sets.map { it.rightTarget }
+    val normalizedIdentity = normalizedIdentityFields()
+    val resolved1rm = resolveReferenceCapacity(normalizedIdentity)
+    val seedExercise = normalizedIdentity.copy(reference1RM = resolved1rm)
     val normalizedSets = if (sets.isEmpty()) {
         listOf(ExerciseSet(UUID.randomUUID().toString(), targetReps = 8))
-    } else sets.map { it.normalizeSet(this) }
-    val restoredSets = normalizedSets.mapIndexed { index, set ->
-        set.copy(
-            leftTarget = preservedLeftTargets.getOrNull(index),
-            rightTarget = preservedRightTargets.getOrNull(index),
-        )
+    } else {
+        sets.map { it.normalizeSet(seedExercise) }
     }
-    val normalizedIdentity = normalizedIdentityFields()
-    val restored = normalizedIdentity.copy(sets = restoredSets)
-    val resolved1rm = resolveReferenceCapacity(restored)
-    return normalizedIdentity.copy(
-        restTime = restTime ?: suggestRestSeconds(restoredSets.size, restoredSets.mapNotNull { it.targetRPE }.averageOrNull() ?: 8.0),
+    return seedExercise.copy(
+        restTime = restTime ?: suggestRestSeconds(normalizedSets.size, normalizedSets.mapNotNull { it.targetRPE }.averageOrNull() ?: 8.0),
         reference1RM = resolved1rm,
-        sets = restoredSets,
+        sets = normalizedSets,
     )
 }
 
@@ -649,54 +643,100 @@ internal fun Exercise.resolveSharedPerformance(history: List<WorkoutLog>): Share
 }
 
 internal fun ExerciseSet.normalizeSet(exercise: Exercise): ExerciseSet {
-    val usesExplicitTmPercent = exercise.trainingMode == TrainingMode.RM && usesExternalTrainingMax()
-    val normalized = when {
-        purpose.isAmrap -> copy(
-            // Purpose and explicit nullable minimum survive mixed RM recipes.
-            intensityMode = intensityMode?.takeUnless { it == IntensityMode.AMRAP },
-            targetDuration = null,
-            isFailure = false,
-        )
-        isFailure || intensityMode == IntensityMode.FAILURE -> copy(
-            intensityMode = IntensityMode.FAILURE,
-            targetRPE = null,
-            targetRIR = null,
-            isFailure = true,
-        )
-        else -> when (exercise.trainingMode) {
-            // En el editor, RM no programa intensidad de esfuerzo (solo %RM).
-            // intensityMode=null: no usar LOAD como "modo de reporte".
-            // SE11: el rango, el RIR y el RPE de la serie (la prescripción híbrida del generador) se conservan: normalizar
-            // no borra lo que la persona no ha tocado. Solo se quita el marcador de intensidad que no es el %.
-            TrainingMode.RM -> copy(
-                intensityMode = if (intensityMode == IntensityMode.SOLO_RM) IntensityMode.SOLO_RM else null,
-                isFailure = false,
-                purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
-                targetPercentageRM = if (usesExplicitTmPercent) {
-                    targetPercentageRM?.takeIf { it.isFinite() && it > 0.0 }
-                } else {
-                    roundToMax2Decimals((targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0))
-                },
+    val syncedBase = if (exercise.isEffectivelyUnilateral() && exercise.unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
+        val preferLeft = exercise.unilateralSideOrder == UnilateralSideOrder.LEFT_RIGHT
+        val activeTarget = if (preferLeft) (leftTarget ?: rightTarget) else (rightTarget ?: leftTarget)
+        if (activeTarget != null) {
+            val targetIntensityMode = activeTarget.intensityMode ?: intensityMode
+            val targetFailure = targetIntensityMode == IntensityMode.FAILURE
+            copy(
+                targetReps = activeTarget.targetReps ?: targetReps,
+                targetRepsRange = activeTarget.targetRepsRange,
+                targetDuration = activeTarget.targetDuration ?: targetDuration,
+                plannedTargetV2 = activeTarget.targetValue ?: plannedTargetV2,
+                intensityMode = targetIntensityMode,
+                targetRPE = if (targetFailure) null else (activeTarget.targetRPE ?: targetRPE),
+                targetRIR = if (targetFailure) null else (activeTarget.targetRIR ?: targetRIR),
+                isFailure = targetFailure,
             )
-            TrainingMode.SOLO_RPE -> copy(
-                intensityMode = IntensityMode.RPE,
-                targetRPE = (targetRPE ?: 8.0).coerceIn(1.0, 10.0),
-                targetRIR = null,
-                targetPercentageRM = null,
-                targetReps = null,
+        } else {
+            this
+        }
+    } else {
+        this
+    }
+    val usesExplicitTmPercent = exercise.trainingMode == TrainingMode.RM && syncedBase.usesExternalTrainingMax()
+    val normalized = with(syncedBase) {
+        when {
+            purpose.isAmrap -> copy(
+                // Purpose and explicit nullable minimum survive mixed RM recipes.
+                intensityMode = intensityMode?.takeUnless { it == IntensityMode.AMRAP },
                 targetDuration = null,
-                isFailure = false,
-                purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
+                isFailure = isFailure || intensityMode == IntensityMode.FAILURE,
             )
-            else -> {
-                when {
-                    intensityMode == IntensityMode.SOLO_RM -> copy(intensityMode = null)
-                    else -> this
+            isFailure || intensityMode == IntensityMode.FAILURE -> copy(
+                intensityMode = IntensityMode.FAILURE,
+                targetRPE = null,
+                targetRIR = null,
+                isFailure = true,
+            )
+            else -> when (exercise.trainingMode) {
+                // En el editor, RM no programa intensidad de esfuerzo (solo %RM).
+                // intensityMode=null: no usar LOAD como "modo de reporte".
+                // SE11: el rango, el RIR y el RPE de la serie (la prescripción híbrida del generador) se conservan: normalizar
+                // no borra lo que la persona no ha tocado. Solo se quita el marcador de intensidad que no es el %.
+                TrainingMode.RM -> copy(
+                    intensityMode = if (intensityMode == IntensityMode.SOLO_RM) IntensityMode.SOLO_RM else null,
+                    isFailure = false,
+                    purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
+                    targetPercentageRM = if (usesExplicitTmPercent) {
+                        targetPercentageRM?.takeIf { it.isFinite() && it > 0.0 }
+                    } else {
+                        roundToMax2Decimals((targetPercentageRM ?: 75.0).coerceIn(40.0, 100.0))
+                    },
+                )
+                TrainingMode.SOLO_RPE -> copy(
+                    intensityMode = IntensityMode.RPE,
+                    targetRPE = (targetRPE ?: 8.0).coerceIn(1.0, 10.0),
+                    targetRIR = null,
+                    targetPercentageRM = null,
+                    targetReps = null,
+                    targetDuration = null,
+                    isFailure = false,
+                    purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
+                )
+                else -> {
+                    when {
+                        intensityMode == IntensityMode.SOLO_RM -> copy(intensityMode = null)
+                        else -> this
+                    }
                 }
             }
         }
     }
-    return normalized.copy(weight = normalizedLoadKg(exercise, normalized))
+    return normalized.copy(
+        weight = syncedBase.normalizedLoadKg(exercise, normalized),
+        leftTarget = syncedBase.normalizedSideTarget(exercise, normalized, normalized.leftTarget),
+        rightTarget = syncedBase.normalizedSideTarget(exercise, normalized, normalized.rightTarget),
+    )
+}
+
+internal fun ExerciseSet.normalizedSideTarget(
+    exercise: Exercise,
+    normalized: ExerciseSet,
+    target: UnilateralTarget?,
+): UnilateralTarget? {
+    if (target == null) return null
+    val apreBlock = resolveLiveApreBlock(exercise)
+    if (exercise.apreBlock != null && apreBlock == null) return target
+    if (apreBlock?.setIds?.contains(id) == true) return target
+    val usesExplicitTmPercent = exercise.trainingMode == TrainingMode.RM && normalized.usesExternalTrainingMax()
+    val plainRm = exercise.trainingMode == TrainingMode.RM && !usesExplicitTmPercent &&
+        (normalized.loadModeV2 ?: LoadModeV2.LOAD) == LoadModeV2.LOAD
+    if (plainRm) return target
+    val autoWeight = com.example.kpkn.domain.calculations.calculateSuggestedLoadForTarget(exercise, normalized, target)
+    val computedKg = if (usesExplicitTmPercent) autoWeight else autoWeight ?: target.weight
+    return target.copy(weight = computedKg)
 }
 
 /**
@@ -908,10 +948,10 @@ internal fun Exercise.withTrainingMode(mode: TrainingMode): Exercise = copy(
         (if (mode == TrainingMode.AMRAP) set.copy(
             purpose = if (set.purpose == SetPurpose.CALIBRATOR) SetPurpose.CALIBRATOR else SetPurpose.AMRAP,
             amrapMinimumReps = if (set.purpose.isAmrap) set.amrapMinimumReps else set.effectiveRepRange()?.min,
-            intensityMode = null,
-            targetRPE = null,
-            targetRIR = null,
-            isFailure = false,
+            intensityMode = set.intensityMode?.takeIf { it in setOf(IntensityMode.RPE, IntensityMode.RIR, IntensityMode.FAILURE) },
+            targetRPE = if (set.intensityMode == IntensityMode.RPE) set.targetRPE else null,
+            targetRIR = if (set.intensityMode == IntensityMode.RIR) set.targetRIR else null,
+            isFailure = set.intensityMode == IntensityMode.FAILURE,
         ) else set.copy(
             purpose = SetPurpose.NONE,
             amrapMinimumReps = null,

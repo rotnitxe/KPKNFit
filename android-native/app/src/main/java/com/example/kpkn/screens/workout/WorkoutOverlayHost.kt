@@ -53,11 +53,12 @@ internal fun WorkoutRestOverlayHost(
     postExerciseFeedbackContent: (@Composable () -> Unit)?,
     feedbackExerciseCount: Int,
     forceShowForFeedback: Boolean,
+    pagerVisible: Boolean = true,
     onOpenTechniqueAnalysis: (String) -> Unit = {},
 ) {
     // B3: si la persona minimiza el descanso mientras el feedback sigue pendiente, la tarjeta del descanso lo lleva en compacto y la
     // pantalla completa no se fuerza. Sin descanso en marcha no hay tarjeta, y el feedback sigue a pantalla completa.
-    val feedbackOnCard = feedbackLivesOnCard(forceShowForFeedback, isRestTimerRunning, isRestMinimized, restState?.kind)
+    val feedbackOnCard = feedbackLivesOnCard(forceShowForFeedback, isRestTimerRunning, isRestMinimized, restState?.kind, pagerVisible = pagerVisible)
     val showExpanded = (isRestTimerRunning && restState != null && !isRestMinimized) || (forceShowForFeedback && !feedbackOnCard)
     val relator by viewModel.relatorResolution.collectAsStateWithLifecycle()
     val adaptiveActive = isAdaptiveRestActive(restState, pendingRestSuggestion)

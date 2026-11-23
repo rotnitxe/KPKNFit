@@ -294,18 +294,21 @@ public struct SetupDetails: Codable {
 
 // ─── Role Multipliers ────────────────────────────────────────────────────────
 
+public let LIMITING_STABILIZER_CONTRIBUTION: Double = 0.3
+public let DIAGNOSTIC_POSTURAL_STABILIZER_CONTRIBUTION: Double = 0.1
+
 public let HYPERTROPHY_ROLE_MULTIPLIERS: [MuscleRole: Double] = [
     .PRIMARY: 1.0,
     .SECONDARY: 0.5,
-    .STABILIZER: 0.4,
-    .NEUTRALIZER: 0.1
+    .STABILIZER: 0.0,
+    .NEUTRALIZER: 0.0
 ]
 
 public let VOLUME_CONTRIBUTION_FALLBACKS: [MuscleRole: Double] = [
     .PRIMARY: 1.0,
     .SECONDARY: 0.5,
-    .STABILIZER: 0.4,
-    .NEUTRALIZER: 0.1
+    .STABILIZER: 0.0,
+    .NEUTRALIZER: 0.0
 ]
 
 public let FATIGUE_ROLE_MULTIPLIERS: [MuscleRole: Double] = [
@@ -319,10 +322,18 @@ public let FATIGUE_ROLE_MULTIPLIERS: [MuscleRole: Double] = [
 
 public func resolveMuscleVolumeContribution(
     involvement: InvolvedMuscle,
-    capAtOne: Bool = true
+    capAtOne: Bool = true,
+    includePosturalStabilizerDiagnostic: Bool = false
 ) -> Double {
-    let fallback = VOLUME_CONTRIBUTION_FALLBACKS[involvement.role] ?? 0.0
-    let raw = involvement.volumeContribution ?? fallback
+    let raw: Double
+    if involvement.role == .STABILIZER &&
+        (involvement.volumeContribution == nil || involvement.volumeContribution == 0.0) &&
+        includePosturalStabilizerDiagnostic {
+        raw = DIAGNOSTIC_POSTURAL_STABILIZER_CONTRIBUTION
+    } else {
+        let fallback = VOLUME_CONTRIBUTION_FALLBACKS[involvement.role] ?? 0.0
+        raw = involvement.volumeContribution ?? fallback
+    }
     if capAtOne {
         return raw.clamped(to: 0.0...1.0)
     } else {

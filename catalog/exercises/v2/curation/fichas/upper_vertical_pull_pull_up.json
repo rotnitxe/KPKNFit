@@ -92,15 +92,6 @@
             "why": "El trapecio inferior inicia el gesto de la dominada deprimiendo la escápula, con el 45 al 56 % de la contracción máxima (Youdas et al.), y el medio se activó más con agarre prono que con neutro (Dickie et al.). En la bajada controla la elevación de la escápula."
           },
           {
-            "id": "pectoralis",
-            "role": "STABILIZER",
-            "sources": [
-              "youdas2010",
-              "dickie2017"
-            ],
-            "why": "El pectoral mayor acompaña la aducción del hombro con el 44 al 57 % de su contracción máxima en la dominada completa (Youdas et al.) y trabajó más en la subida que en la bajada (Dickie et al.), por eso aquí solo estabiliza."
-          },
-          {
             "id": "core",
             "role": "STABILIZER",
             "sources": [
@@ -118,6 +109,7 @@
           },
           {
             "id": "forearm",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "statpearls_forearm",
@@ -142,7 +134,7 @@
             ]
           }
         },
-        "description": "La Dominada Negativa es una dominada en la que solo se trabaja la bajada: se llega arriba con un salto o con un escalón, con la barbilla sobre la barra, y se desciende despacio hasta colgar con los brazos estirados. El dorsal ancho frena la caída del cuerpo junto con el bíceps y el deltoides posterior, y el antebrazo sostiene el agarre durante todo el recorrido. Sirve a quien todavía no consigue subir su peso: en la electromiografía de dominadas completas, el bíceps y el pectoral se activaron menos en la bajada que en la subida. No es solo un recurso de iniciación: en un estudio con escaladores avanzados, cinco semanas de dominadas con trabajo excéntrico mejoraron la fuerza máxima y la velocidad de la dominada."
+        "description": "La Dominada Negativa es una dominada en la que solo se trabaja la bajada: se llega arriba con un salto o con un escalón, con la barbilla sobre la barra, y se desciende despacio hasta colgar con los brazos estirados. El dorsal ancho frena la caída del cuerpo junto con el bíceps y el deltoides posterior, y el antebrazo sostiene el agarre durante todo el recorrido. Sirve a quien todavía no consigue subir su peso: en la electromiografía de dominadas completas, el bíceps y los flexores del codo se activaron menos en la bajada que en la subida. No es solo un recurso de iniciación: en un estudio con escaladores avanzados, cinco semanas de dominadas con trabajo excéntrico mejoraron la fuerza máxima y la velocidad de la dominada."
       },
       "sources": [
         {
@@ -345,14 +337,6 @@
             "why": "El trapecio bajo arranca la repetición: su pico es el primero del ciclo (Youdas et al.). En el conjunto de las tres condiciones midió 45-56 % de la contracción máxima, y fue mayor en la dominada prona que en la supina. El trapecio medio se activó más con agarre prono que con neutro (Dickie et al.). Ninguno de los dos estudios midió que el ancho del agarre lo suba o lo baje."
           },
           {
-            "id": "pectoralis",
-            "role": "STABILIZER",
-            "sources": [
-              "youdas2010"
-            ],
-            "why": "Se activa al inicio de la repetición junto con el trapecio bajo (Youdas et al.). En el conjunto de las tres condiciones midió 44-57 % de la contracción máxima, y fue mayor en la chin-up supina que en la dominada prona. Queda por debajo del dorsal (117-130 %) y del bíceps (78-96 %), así que estabiliza la aducción del hombro."
-          },
-          {
             "id": "core",
             "role": "STABILIZER",
             "sources": [
@@ -370,13 +354,115 @@
           },
           {
             "id": "forearm",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "dickie2017"
             ],
             "why": "Dickie et al. midieron el braquiorradial más activo en la subida que en la bajada, en todas las variantes de agarre. El rol de estabilizador es el del antebrazo que mantiene la mano cerrada sobre la barra mientras el cuerpo cuelga: eso no lo midió ese estudio, es la demanda de la suspensión."
           }
-        ]
+        ],
+        "overrides": {
+          "pull_up__neutral__close": {
+            "muscles": [
+              {
+                "id": "trapezius",
+                "role": "STABILIZER",
+                "sources": [
+                  "youdas2010",
+                  "dickie2017"
+                ],
+                "why": "Con las manos juntas los codos bajan pegados a las costillas y la retracción escapular se acorta; el trapecio sostiene y deprime la escápula como estabilizador."
+              }
+            ]
+          },
+          "pull_up__neutral__wide": {
+            "muscles": [
+              {
+                "id": "rhomboids",
+                "role": "SECONDARY",
+                "sources": [
+                  "statpearls_rhomboids"
+                ],
+                "why": "Con el agarre ancho los codos se abren respecto del tronco y los romboides colaboran con el trapecio medio para retraer y fijar las escápulas al final de la subida."
+              },
+              {
+                "id": "deltoid",
+                "role": "SECONDARY",
+                "sources": [
+                  "statpearls_deltoid"
+                ],
+                "why": "Al separar más las manos, el húmero desciende en un plano más abducido y la porción posterior del deltoides asiste en la extensión y abducción horizontal del hombro."
+              }
+            ]
+          },
+          "pull_up__pronated__close": {
+            "muscles": [
+              {
+                "id": "trapezius",
+                "role": "STABILIZER",
+                "sources": [
+                  "youdas2010",
+                  "dickie2017"
+                ],
+                "why": "Con las manos juntas los codos bajan pegados a las costillas y la retracción escapular se acorta; el trapecio sostiene y deprime la escápula como estabilizador."
+              }
+            ]
+          },
+          "pull_up__pronated__wide": {
+            "muscles": [
+              {
+                "id": "rhomboids",
+                "role": "SECONDARY",
+                "sources": [
+                  "statpearls_rhomboids"
+                ],
+                "why": "Con el agarre ancho los codos se abren respecto del tronco y los romboides colaboran con el trapecio medio para retraer y fijar las escápulas al final de la subida."
+              },
+              {
+                "id": "deltoid",
+                "role": "SECONDARY",
+                "sources": [
+                  "statpearls_deltoid"
+                ],
+                "why": "Al separar más las manos, el húmero desciende en un plano más abducido y la porción posterior del deltoides asiste en la extensión y abducción horizontal del hombro."
+              }
+            ]
+          },
+          "pull_up__supinated__close": {
+            "muscles": [
+              {
+                "id": "trapezius",
+                "role": "STABILIZER",
+                "sources": [
+                  "youdas2010",
+                  "dickie2017"
+                ],
+                "why": "Con las manos juntas los codos bajan pegados a las costillas y la retracción escapular se acorta; el trapecio sostiene y deprime la escápula como estabilizador."
+              }
+            ]
+          },
+          "pull_up__supinated__wide": {
+            "muscles": [
+              {
+                "id": "rhomboids",
+                "role": "SECONDARY",
+                "sources": [
+                  "statpearls_rhomboids"
+                ],
+                "why": "Con el agarre ancho los codos se abren respecto del tronco y los romboides colaboran con el trapecio medio para retraer y fijar las escápulas al final de la subida."
+              },
+              {
+                "id": "deltoid",
+                "role": "SECONDARY",
+                "sources": [
+                  "statpearls_deltoid"
+                ],
+                "why": "Al separar más las manos, el húmero desciende en un plano más abducido y la porción posterior del deltoides asiste en la extensión y abducción horizontal del hombro."
+              }
+            ]
+          }
+        }
       },
       "public": {
         "configurations": {
@@ -447,7 +533,7 @@
             ]
           },
           "pull_up__supinated__close": {
-            "description": "Con las palmas hacia ti y las manos juntas, los codos bajan pegados a las costillas. El bíceps y el pectoral aportan más que con las palmas al frente, sin una medición propia de este ancho.",
+            "description": "Con las palmas hacia ti y las manos juntas, los codos bajan pegados a las costillas. El bíceps aporta más que con las palmas al frente por la supinación, sin una medición propia de este ancho.",
             "executionCues": [
               "Sube con los codos pegados a las costillas hasta superar la barra con la barbilla.",
               "Baja hasta colgar del todo, frenando el estiramiento del bíceps."
@@ -458,7 +544,7 @@
             ]
           },
           "pull_up__supinated__medium": {
-            "description": "Con las palmas hacia ti y las manos al ancho de los hombros, el bíceps y el pectoral se activan más que en la prona, y el trapecio bajo menos. El codo recorre unos 101°, frente a unos 93° con las palmas al frente.",
+            "description": "Con las palmas hacia ti y las manos al ancho de los hombros, el bíceps se activa más que en la prona, y el trapecio bajo menos. El codo recorre unos 101°, frente a unos 93° con las palmas al frente.",
             "executionCues": [
               "Tira con los codos hacia abajo hasta que la barbilla supere la barra.",
               "Baja controlando el estiramiento del bíceps hasta colgar del todo."
@@ -480,7 +566,7 @@
             ]
           }
         },
-        "description": "La Dominada (pull-up) es una tracción vertical en la que el cuerpo cuelga de una barra fija y sube hasta que la barbilla la supera. El dorsal ancho es el motor en todos los agarres, y el bíceps flexiona el codo contra todo el peso corporal aunque las palmas miren al frente, sin llegar al nivel del dorsal. El trapecio bajo arranca el gesto deprimiendo la escápula. Con las palmas hacia ti el bíceps y el pectoral aportan más, y con las palmas al frente pesa más el trapecio bajo. Al no haber apoyo de tronco ni de piernas, nada compensa un balanceo."
+        "description": "La Dominada (pull-up) es una tracción vertical en la que el cuerpo cuelga de una barra fija y sube hasta que la barbilla la supera. El dorsal ancho es el motor en todos los agarres, y el bíceps flexiona el codo contra todo el peso corporal aunque las palmas miren al frente, sin llegar al nivel del dorsal. El trapecio bajo arranca el gesto deprimiendo la escápula. Con las palmas hacia ti el bíceps gana ventaja mecánica en la flexión del codo, y con las palmas al frente pesa más el trapecio bajo. Al no haber apoyo de tronco ni de piernas, nada compensa un balanceo."
       },
       "sources": [
         {
@@ -512,6 +598,18 @@
           "id": "prinold2016",
           "title": "Scapula kinematics of pull-up techniques: Avoiding impingement risk with training changes",
           "url": "https://pubmed.ncbi.nlm.nih.gov/26383875/"
+        },
+        {
+          "claim": "Describe los romboides mayor y menor como músculos del movimiento del miembro superior y de la estabilidad de la cintura escapular y la escápula.",
+          "id": "statpearls_rhomboids",
+          "title": "Anatomy, Back, Rhomboid Muscles",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30521277/"
+        },
+        {
+          "claim": "Describe el deltoides como músculo clave del movimiento y la estabilidad del hombro, con porciones anterior, media y posterior.",
+          "id": "statpearls_deltoid",
+          "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
         }
       ],
       "status": "CURATED",
@@ -713,6 +811,7 @@
           },
           {
             "id": "forearm",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "dickie2017",
@@ -729,15 +828,6 @@
               "statpearls_rhomboids"
             ],
             "why": "Fijan el borde interno de la escápula contra el tórax mientras el dorsal y el trapecio la bajan, y la sujetan junta cuando el pecho toca la barra. El único dato que los incluye es el canal que comparten con el trapecio medio en Lehman et al. (2004), más bajo en los jalones que en el remo. Sin una medida propia de que muevan la escápula quedan como estabilizadores, mientras que el trapecio es secundario por su porción inferior, medida aparte por Youdas et al. (2010)."
-          },
-          {
-            "id": "pectoralis",
-            "role": "STABILIZER",
-            "sources": [
-              "youdas2010",
-              "statpearls_pectoral"
-            ],
-            "why": "Su porción esternal ayuda a cerrar el brazo hacia el tronco al empezar la subida. En la dominada midió 44-57 % de su contracción máxima, muy por debajo del dorsal (Youdas 2010); aquí se extrapola como sostén de la aducción y no como motor."
           },
           {
             "id": "core",

@@ -184,6 +184,7 @@ data class CompletedSet(
     val homologatedResultV3: HomologatedPerformanceResult? = null,
     val setOutcomeV2: SetOutcomeV2? = null,
     val rom: Int? = null,
+    val recordedRomTarget: PlannedRomTarget? = null,
     val assistedReps: Int? = null,
     /** Cardio-only telemetry; null keeps strength logs compact and backward compatible. */
     val distanceKm: Double? = null,
@@ -296,7 +297,8 @@ data class OngoingWorkoutState(
     val weekId: String? = null,
     val exerciseTags: Map<String, String> = emptyMap(), // exerciseId → active tag (legacy)
     val activeTags: Map<String, List<String>> = emptyMap(), // exerciseId → active main tag IDs
-    val activeSubTags: Map<String, List<String>> = emptyMap(), // exerciseId → active sub-tag IDs
+    val activeSubTags: Map<String, List<String>> = emptyMap(), // exerciseId → active sub-tag IDs (legacy)
+    val activeSubTagsBySetKey: Map<String, List<String>> = emptyMap(), // setKey → active sub-tag IDs (#12)
     val userCreatedTags: Map<String, List<WorkoutTag>> = emptyMap(), // exerciseKey → tags for this exercise
     val contextProfilesV3: Map<String, WorkoutContextProfile> = emptyMap(),
     val activeContextProfileByExerciseId: Map<String, String> = emptyMap(),

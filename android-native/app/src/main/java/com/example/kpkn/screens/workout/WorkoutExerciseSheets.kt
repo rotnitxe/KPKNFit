@@ -235,8 +235,8 @@ internal fun WorkoutTagListOverlay(
     rows: List<WorkoutTagListRow>, onSelectTag: (String) -> Unit, onCreateTag: () -> Unit,
     onDismiss: () -> Unit, @Suppress("UNUSED_PARAMETER") hasSeenEducation: Boolean = true, onOpened: () -> Unit = {},
     onCreateInline: ((String, TagSetupInput?) -> CreateTagResult)? = null,
-    onManageTag: (String) -> Unit = {}, @Suppress("UNUSED_PARAMETER") activeSubTagIds: List<String> = emptyList(),
-    @Suppress("UNUSED_PARAMETER") onToggleSubTag: (String) -> Unit = {},
+    onManageTag: (String) -> Unit = {}, activeSubTagIds: List<String> = emptyList(),
+    onToggleSubTag: (String) -> Unit = {},
     exerciseName: String = "",
 ) {
     LaunchedEffect(Unit) { onOpened() }
@@ -263,6 +263,20 @@ internal fun WorkoutTagListOverlay(
         }
         Column(Modifier.fillMaxWidth().padding(top = 18.dp)) {
             rows.forEach { row -> LiveTagOptionRow(row, { onSelectTag(row.tag.id) }, { onManageTag(row.tag.id) }) }
+        }
+        val activeSubTagOptions = rows.filter { it.isActive }.flatMap { it.tag.subTags }.distinctBy { it.id }
+        if (activeSubTagOptions.isNotEmpty()) {
+            LiveSheetSectionLabel("SUB-ETIQUETAS DE ESTA SERIE")
+            Column(Modifier.fillMaxWidth()) {
+                activeSubTagOptions.forEach { sub ->
+                    LiveSheetMenuRow(
+                        label = "${sub.name} · ${subTagCategoryLabel(sub.category)}",
+                        onClick = { onToggleSubTag(sub.id) },
+                        icon = if (sub.id in activeSubTagIds) KpknLineIcons.Check else null,
+                        chevron = false,
+                    )
+                }
+            }
         }
         LiveSheetSecondary("Nueva etiqueta", { if (onCreateInline != null) { form.reset(); creating = true } else onCreateTag() },
             Modifier.padding(top = 12.dp), icon = KpknLineIcons.Plus, tag = "live-tags-new")
@@ -446,7 +460,7 @@ internal fun WorkoutTagManagerModal(
         var newSubTagName by remember { mutableStateOf("") }
         var newSubTagCategory by remember { mutableStateOf(SubTagCategory.LIBRE) }
         LiveSheet(title = "Subetiquetas", onDismiss = { showSubTags = false }, tag = "live-subtags-sheet") {
-            LiveSheetSubtitle(tag.name)
+            LiveSheetSubtitle("${tag.name} · activa en esta serie")
             tag.subTags.forEach { subTag ->
                 LiveSheetMenuRow("${subTag.name} · ${subTagCategoryLabel(subTag.category)}", { onToggleSubTagActive(subTag.id) },
                     icon = if (subTag.id in activeSubTagIds) KpknLineIcons.Check else null, chevron = false)

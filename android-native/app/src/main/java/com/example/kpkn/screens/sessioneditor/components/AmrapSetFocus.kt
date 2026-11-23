@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.dp
 import com.example.kpkn.data.models.CalibrationScope
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.ExerciseSet
+import com.example.kpkn.data.models.IntensityMode
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.SetPurpose
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
@@ -116,6 +117,35 @@ internal fun AmrapSetFocus(
                 ) {
                     Text(if (calibrator) "AMRAP calibrador" else "AMRAP", style = edText(13f, FontWeight.SemiBold, EdColors.ink, 16f), maxLines = 1)
                 }
+            }
+        }
+        EdSection(label = "Esfuerzo objetivo", hint = "opcional en APRE") {
+            EdFlexRow(modifier = Modifier.fillMaxWidth(), gap = 8.dp, lineGap = 8.dp) {
+                EdNumberPill(
+                    text = "Al fallo",
+                    on = set.targetRIR == null && set.targetRPE == null,
+                    onClick = { onUpdate { it.copy(targetRIR = null, targetRPE = null, intensityMode = IntensityMode.FAILURE) } },
+                )
+                EdNumberPill(
+                    text = "RIR 1",
+                    on = set.targetRIR == 1,
+                    onClick = { onUpdate { it.copy(targetRIR = 1, targetRPE = null, intensityMode = IntensityMode.RIR) } },
+                )
+                EdNumberPill(
+                    text = "RIR 2",
+                    on = set.targetRIR == 2,
+                    onClick = { onUpdate { it.copy(targetRIR = 2, targetRPE = null, intensityMode = IntensityMode.RIR) } },
+                )
+                EdNumberPill(
+                    text = "RPE 8",
+                    on = set.targetRPE == 8.0,
+                    onClick = { onUpdate { it.copy(targetRIR = null, targetRPE = 8.0, intensityMode = IntensityMode.RPE) } },
+                )
+                EdNumberPill(
+                    text = "RPE 9",
+                    on = set.targetRPE == 9.0,
+                    onClick = { onUpdate { it.copy(targetRIR = null, targetRPE = 9.0, intensityMode = IntensityMode.RPE) } },
+                )
             }
         }
         if (calibrator) {

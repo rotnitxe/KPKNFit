@@ -94,10 +94,11 @@
                   "primaryMuscles": [
                     "triceps"
                   ],
-                  "secondaryMuscles": [
-                    "deltoid"
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
+                    "deltoid",
+                    "core"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -156,14 +157,15 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "deltoid"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Colgado del TRX con los codos extendiendo: tu peso carga el tríceps y el core aguanta el cuerpo."
               ],
               "setupTimeSeconds": 15,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "deltoid",
+                "core"
+              ],
               "technicalDifficulty": 4.8
             },
             "selectedOptions": {}
@@ -279,10 +281,10 @@
                   "primaryMuscles": [
                     "triceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -340,14 +342,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "latissimus_dorsi"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Mancuerna bajando hacia la cadera con un brazo: el tríceps se estira y se concentra a la vez."
               ],
               "setupTimeSeconds": 20,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "latissimus_dorsi"
+              ],
               "technicalDifficulty": 4.8
             },
             "selectedOptions": {}

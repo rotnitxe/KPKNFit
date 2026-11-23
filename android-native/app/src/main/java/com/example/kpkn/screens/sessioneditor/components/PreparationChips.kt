@@ -154,13 +154,12 @@ internal fun WarmupCommonRestButton(
     var showPicker by remember { mutableStateOf(false) }
     PreparationHeaderButton(text = "Descanso común ${KpknSetFormat.rest(common)}", tag = "warmup-common-rest", onClick = { showPicker = true })
     if (showPicker) {
-        KpknNativeTimePickerDialog(
+        com.example.kpkn.ui.components.KpknRestClockSheet(
             title = "Descanso común de aproximaciones",
-            initialHour = (common / 60).coerceIn(0, 23),
-            initialMinute = (common % 60).coerceIn(0, 59),
-            hint = "Minutos : segundos",
-            onConfirm = { minutes, seconds ->
-                val target = (minutes * 60 + seconds).coerceAtLeast(0)
+            primaryLabel = "Aproximaciones",
+            initialPrimarySeconds = common.coerceAtLeast(0),
+            onConfirm = { targetSeconds, _ ->
+                val target = targetSeconds.coerceAtLeast(0)
                 sets.filter { (it.restBetween ?: 60) == common }
                     .forEach { row -> onUpdate(row.id) { it.copy(restBetween = target) } }
                 showPicker = false

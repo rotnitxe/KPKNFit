@@ -70,22 +70,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "mccurdy2018",
               "arakawa2023"
             ],
             "why": "Extiende la cadera delantera desde una flexión profunda. Con el pie trasero elevado llegó al 65,6 % de su contracción máxima, más que en la sentadilla de dos piernas, y el momento extensor de cadera fue un 44 % mayor que en esa sentadilla con cargas de 10 RM. Comparte el papel principal con el cuádriceps."
-          },
-          {
-            "id": "hamstrings",
-            "role": "SECONDARY",
-            "sources": [
-              "andersen2014",
-              "deforest2014",
-              "mccurdy2018"
-            ],
-            "why": "Los isquiosurales ayudan a abrir la cadera delantera cuando la rodilla se endereza bajo la carga. Los estudios de búlgara confirman participación, pero comparar su señal con la del glúteo no establece el rol; son cooperantes en esa extensión, sin una flexión de rodilla resistida como objetivo."
           },
           {
             "id": "adductors",
@@ -96,8 +86,18 @@
             "why": "El aductor mayor, con su porción isquiocondílea, ayuda a extender la cadera delantera desde la flexión profunda. En la subida al cajón, otro gesto a una pierna, y en la sentadilla, esa porción quedó en el nivel más alto de fuerza entre los ejercicios estudiados (Collings et al.); aquí se extrapola a la búlgara."
           },
           {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "andersen2014",
+              "deforest2014",
+              "mccurdy2018"
+            ],
+            "why": "Los isquiosurales ayudan a abrir la cadera delantera cuando la rodilla se endereza bajo la carga. Los estudios de búlgara confirman participación, pero comparar su señal con la del glúteo no establece el rol; son cooperantes en esa extensión, sin una flexión de rodilla resistida como objetivo."
+          },
+          {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "mackey2021",
               "deforest2014"
@@ -724,21 +724,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "mccurdy2018",
               "arakawa2023"
             ],
             "why": "Abre la cadera adelantada desde la flexión del punto bajo. Con el pie trasero elevado, el glúteo mayor rozó dos tercios de su contracción máxima (McCurdy et al., 2018), y la barra en los codos no le quita esa función porque la cadera hace el mismo recorrido."
-          },
-          {
-            "id": "hamstrings",
-            "role": "SECONDARY",
-            "sources": [
-              "andersen2014",
-              "mccurdy2018"
-            ],
-            "why": "Con el pie posterior sobre el banco y la barra en brazos flexionados, la musculatura posterior del muslo asiste a la cadera adelantada al subir. La actividad registrada por Andersen respalda presencia; su clasificación cooperante procede de la función compartida, sin jerarquía basada en EMG entre músculos."
           },
           {
             "id": "adductors",
@@ -749,8 +740,17 @@
             "why": "La porción isquiocondílea del aductor mayor acompaña al glúteo cuando la cadera adelantada sale de la flexión del fondo; su fuerza en la subida al cajón y en la sentadilla fue de las más altas medidas (Collings et al.), un dato que se extrapola a esta variante."
           },
           {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "andersen2014",
+              "mccurdy2018"
+            ],
+            "why": "Con el pie posterior sobre el banco y la barra en brazos flexionados, la musculatura posterior del muslo asiste a la cadera adelantada al subir. La actividad registrada por Andersen respalda presencia; su clasificación cooperante procede de la función compartida, sin jerarquía basada en EMG entre músculos."
+          },
+          {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "mackey2021"
             ],
@@ -776,6 +776,7 @@
           },
           {
             "id": "biceps",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "statpearls_biceps"

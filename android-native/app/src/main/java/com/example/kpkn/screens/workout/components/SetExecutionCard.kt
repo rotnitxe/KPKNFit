@@ -962,6 +962,9 @@ internal fun SetInputCardV2(
      * segundo valor es «Guardar también en el programa» (sin él, vale solo para esta sesión).
      */
     onTrackRomChange: ((Boolean, Boolean) -> Unit)? = null,
+    availableSubTags: List<com.example.kpkn.data.models.WorkoutSubTag> = emptyList(),
+    activeSubTagIds: List<String> = emptyList(),
+    onToggleSubTag: ((String) -> Unit)? = null,
 ) {
     val context = LocalContext.current
     val liveBootCount = liveClockBootCount(context)
@@ -1078,7 +1081,9 @@ internal fun SetInputCardV2(
     val draftBaseline = remember(exercise.id, setIndex, lockedSide, activeTag) { sessionCompletedSet }
     val restoredDraft = initialDraft.takeIf { sessionCompletedSet == draftBaseline }
     val initialSelectedSide = restoredDraft?.selectedSide ?: lockedSide ?: "left"
-    val draftWeightText = restoredDraft?.takeIf { it.isDirty && it.weightText != null }?.weightText
+    val draftWeightText = restoredDraft?.takeIf {
+        it.isDirty && (it.weightManuallyFixed == true || calibrationWeight == null) && it.weightText != null
+    }?.weightText
     val draftValueText = restoredDraft?.takeIf { it.isDirty && it.valueText != null }?.valueText
     val volumeReplacedTechnique = currentSet.techniqueScope() == SetTechniqueScope.VOLUME_REPLACED
     val initialTechniqueWeight = if (volumeReplacedTechnique) {
@@ -1178,10 +1183,22 @@ internal fun SetInputCardV2(
     // enciende para esta serie (y, vía `onTrackRomChange`, para el resto de series del ejercicio en la sesión); apagarlo deja la serie sin ROM.
     // Un valor ya guardado en una serie registrada o en el borrador se conserva: editar nunca borra un dato registrado.
     val tracksRom = exercise.trackRom
-    val pristineRomValue: Int? = sessionCompletedSet?.rom ?: (if (tracksRom) DEFAULT_ROM_PERCENT else null)
+    val effectivePlannedRom = currentSet.plannedRom ?: exercise.plannedRom
+    val defaultPlannedRomPercent = effectivePlannedRom?.let {
+        com.example.kpkn.domain.workout.RomTargetCatalog.toApproxPercent(it).coerceIn(LiveRom.MIN, LiveRom.MAX)
+    } ?: DEFAULT_ROM_PERCENT
+    val pristineRomValue: Int? = sessionCompletedSet?.rom ?: (if (tracksRom) defaultPlannedRomPercent else null)
     // `tracksRom` no entra en las claves: al activarlo desde la hoja el plan cambia a mitad de la serie y no debe reiniciar lo que se está editando.
     var romValue by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) {
-        mutableStateOf<Int?>(liveSetInitialRom(tracksRom, restoredDraft?.rom, sessionCompletedSet?.rom))
+        mutableStateOf<Int?>(
+            restoredDraft?.rom ?: sessionCompletedSet?.rom ?: (if (tracksRom) defaultPlannedRomPercent else null),
+        )
+    }
+    val pristineRecordedRomTarget = sessionCompletedSet?.recordedRomTarget ?: (if (tracksRom) effectivePlannedRom else null)
+    var recordedRomTarget by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) {
+        mutableStateOf(
+            restoredDraft?.recordedRomTarget ?: sessionCompletedSet?.recordedRomTarget ?: (if (tracksRom) effectivePlannedRom else null),
+        )
     }
     // Si el interruptor del editor (o la hoja de otra serie) cambia `trackRom` con la tarjeta a la vista, esta serie lo sigue: se enciende al
     // 100 % o se apaga, salvo que ya lleve un ROM registrado (editar nunca borra un dato guardado).
@@ -1189,7 +1206,8 @@ internal fun SetInputCardV2(
     LaunchedEffect(tracksRom) {
         if (tracksRom != seenTracksRom) {
             seenTracksRom = tracksRom
-            romValue = if (tracksRom) romValue ?: DEFAULT_ROM_PERCENT else if (sessionCompletedSet?.rom != null) romValue else null
+            romValue = if (tracksRom) romValue ?: defaultPlannedRomPercent else if (sessionCompletedSet?.rom != null) romValue else null
+            recordedRomTarget = if (tracksRom) recordedRomTarget ?: effectivePlannedRom else if (sessionCompletedSet?.recordedRomTarget != null) recordedRomTarget else null
         }
     }
     // «Guardar también en el programa» de la hoja: por defecto, el ROM vale solo para esta sesión.
@@ -1267,7 +1285,7 @@ internal fun SetInputCardV2(
                 draftLoadMode = restoredDraft?.loadMode,
                 persistedLoadMode = persistedLoadMode,
                 plannedLoadMode = currentSet.loadModeV2,
-                defaultCatalogMode = null,
+                defaultCatalogMode = inferDefaultLoadModeFromCatalog(exercise),
             ),
         )
     }
@@ -2095,7 +2113,8 @@ internal fun SetInputCardV2(
             onAssisted = { next -> assistedRepsValue = next.coerceAtMost(reportValueText.toIntOrNull() ?: next) },
             romValue = romValue,
             onRomToggle = { on ->
-                romValue = if (on) (romValue ?: DEFAULT_ROM_PERCENT) else null
+                romValue = if (on) (romValue ?: defaultPlannedRomPercent) else null
+                recordedRomTarget = if (on) (recordedRomTarget ?: effectivePlannedRom) else null
                 // El ejercicio registra ROM igual que si el editor lo dijera: el resto de sus series nacen con el slider.
                 if (on != tracksRom) onTrackRomChange?.invoke(on, saveRomToProgram)
             },
@@ -2111,6 +2130,12 @@ internal fun SetInputCardV2(
             onNote = { setNoteText = it },
             onDismiss = { showFeedbackExtrasPopup = false },
             isTimeMode = isTimeMode,
+            plannedRom = currentSet.plannedRom ?: exercise.plannedRom,
+            recordedRomTarget = recordedRomTarget,
+            onRecordedRomTargetChange = { recordedRomTarget = it },
+            availableSubTags = availableSubTags,
+            activeSubTagIds = activeSubTagIds,
+            onToggleSubTag = onToggleSubTag,
         )
     }
 
@@ -2389,6 +2414,7 @@ internal fun SetInputCardV2(
                     rmValues = rmValues,
                     ghostSet = ghostSet,
                     onOpenLoadModeMenu = { loadModeMenuExpanded = true },
+                    onSwitchToLastre = { selectLiveLoadMode(LoadModeV2.LASTRE) },
                     rmSheetOpen = rmSheetOpen,
                     onRmSheetOpenChange = { rmSheetOpen = it },
                     onShowHistory = onShowHistory,
@@ -2512,6 +2538,55 @@ internal fun SetInputCardV2(
                             reachedFailure = false
                         },
                     )
+                    if (availableSubTags.isNotEmpty() || activeSubTagIds.isNotEmpty()) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState())
+                                .padding(bottom = 2.dp),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            val pillItems = if (availableSubTags.isNotEmpty()) {
+                                availableSubTags.map { sub -> Triple(sub.id, sub.name, sub.id in activeSubTagIds) }
+                            } else {
+                                activeSubTagIds.map { subId -> Triple(subId, subId, true) }
+                            }
+                            pillItems.forEach { (subId, label, isSelected) ->
+                                val bg = if (isSelected) com.example.kpkn.screens.onboarding.design.WizardColors.text else com.example.kpkn.ui.design.KpknSurface.inset
+                                val ink = if (isSelected) com.example.kpkn.screens.onboarding.design.WizardColors.ctaContent else com.example.kpkn.screens.onboarding.design.WizardColors.text
+                                Box(
+                                    modifier = Modifier
+                                        .height(26.dp)
+                                        .clip(RoundedCornerShape(999.dp))
+                                        .background(bg, RoundedCornerShape(999.dp))
+                                        .then(
+                                            if (isSelected) Modifier else Modifier.border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(999.dp))
+                                        )
+                                        .semantics { selected = isSelected }
+                                        .clickable(
+                                            enabled = onToggleSubTag != null,
+                                            role = Role.Checkbox,
+                                            onClick = { onToggleSubTag?.invoke(subId) },
+                                        )
+                                        .padding(horizontal = 10.dp),
+                                    contentAlignment = Alignment.Center,
+                                ) {
+                                    Text(
+                                        text = label,
+                                        style = TextStyle(
+                                            fontFamily = com.example.kpkn.screens.onboarding.design.WizardFonts.body,
+                                            fontSize = 11.sp,
+                                            fontWeight = FontWeight.Medium,
+                                        ),
+                                        color = ink,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis,
+                                    )
+                                }
+                            }
+                        }
+                    }
                     LegacyDetailRow(
                         partials = partialSets.sum().coerceAtLeast(0),
                         romValue = romValue,
@@ -2525,6 +2600,9 @@ internal fun SetInputCardV2(
                         hapticFeedbackEnabled = hapticFeedbackEnabled,
                         onOpenDetails = { showFeedbackExtrasPopup = true },
                         detailSheetHost = renderSetDetailSheetHost,
+                        plannedRom = currentSet.plannedRom ?: exercise.plannedRom,
+                        recordedRomTarget = recordedRomTarget,
+                        onRecordedRomTargetChange = { recordedRomTarget = it },
                     )
                     modeResultContent?.invoke(liveMode)
                 }
@@ -2682,6 +2760,7 @@ internal fun SetInputCardV2(
                 reachedFailure,
                 partialRepsTotal,
                 romValue,
+                recordedRomTarget,
                 assistedRepsValue,
                 setNoteText,
                 dropSetEnabled,
@@ -2709,7 +2788,7 @@ internal fun SetInputCardV2(
                     draftLoadMode = restoredDraft?.loadMode,
                     persistedLoadMode = persistedLoadMode,
                     plannedLoadMode = currentSet.loadModeV2,
-                    defaultCatalogMode = null,
+                    defaultCatalogMode = inferDefaultLoadModeFromCatalog(exercise),
                 )
                 val initialFailure = sessionCompletedSet?.isFailure == true
                 val initialSide = lockedSide ?: "left"
@@ -2727,6 +2806,7 @@ internal fun SetInputCardV2(
                     partialRepsTotal != (restoredDraft?.partialReps ?: 0) ||
                     (supportsIndependentSides && selectedSide != initialSide) ||
                     romValue != pristineRomValue ||
+                    recordedRomTarget != pristineRecordedRomTarget ||
                     assistedRepsValue != (restoredDraft?.assistedReps ?: 0) ||
                     setNoteText.trim() != (restoredDraft?.notes.orEmpty()) ||
                     liveDropCountForDraft != (restoredDraft?.dropSetCount ?: plannedDropCountForDraft)
@@ -2752,6 +2832,7 @@ internal fun SetInputCardV2(
                             amrapReserveReps = amrapReserveReps,
                             isDirty = isDirty,
                             rom = romValue,
+                            recordedRomTarget = recordedRomTarget,
                             assistedReps = assistedRepsValue.takeIf { it > 0 },
                             notes = setNoteText.trim().takeIf { it.isNotEmpty() },
                             techniqueProgress = techniqueProgressForDraft,
@@ -2807,6 +2888,7 @@ internal fun SetInputCardV2(
                 timerElapsedSeconds = if (isTimeMode) parseLiveDurationSeconds(reportValueText) else null,
                 timerTargetSeconds = if (isTimeMode) plannedTarget else null,
                 rom = romValue,
+                recordedRomTarget = recordedRomTarget,
                 assistedReps = assistedRepsValue.takeIf { it > 0 },
                 notes = setNoteText.trim().takeIf { it.isNotEmpty() },
             )
@@ -3061,7 +3143,7 @@ internal fun SetInputCardV2(
 
             SideEffect {
                 if (isActivePage) {
-                    recordFabHolder?.isUpdateMode = sessionCompletedSet != null
+                    recordFabHolder?.isUpdateMode = sessionCompletedSet != null && !showAmrapResult
                 }
             }
 
@@ -3953,6 +4035,7 @@ private fun LegacyLoadHero(
     rmValues: LiveRmValues,
     ghostSet: CompletedSet?,
     onOpenLoadModeMenu: () -> Unit,
+    onSwitchToLastre: () -> Unit = onOpenLoadModeMenu,
     rmSheetOpen: Boolean,
     onRmSheetOpenChange: (Boolean) -> Unit,
     onShowHistory: () -> Unit,
@@ -3981,6 +4064,7 @@ private fun LegacyLoadHero(
                 when (loadMode) {
                     LoadModeV2.ASSISTED -> "AYUDA EXTERNA"
                     LoadModeV2.LASTRE -> "LASTRE"
+                    LoadModeV2.BODYWEIGHT -> "MODALIDAD"
                     else -> "CARGA"
                 },
                 // Con inventario de discos, cómo montar la carga va en la descripción accesible de la etiqueta.
@@ -4003,7 +4087,32 @@ private fun LegacyLoadHero(
             fontFeatureSettings = "'lnum' 1, 'tnum' 1",
         )
         val increment = quickLoadIncrementFor(exercise, currentSet, equipmentInventory, customLoadStepKg)
-        Row(
+        if (loadMode == LoadModeV2.BODYWEIGHT) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(if (tightCard) 48.dp else 56.dp)
+                    .testTag("live-card-load-hero"),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(
+                    text = "PESO CORPORAL",
+                    style = TextStyle(
+                        fontFamily = WizardFonts.body,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        letterSpacing = 1.sp,
+                    ),
+                    color = WizardColors.textMuted,
+                    maxLines = 1,
+                )
+                com.example.kpkn.ui.design.KpknTextAction(
+                    text = "+ Lastre",
+                    onClick = onSwitchToLastre,
+                )
+            }
+        } else Row(
             modifier = Modifier.fillMaxWidth().height(if (tightCard) 48.dp else 56.dp).testTag("live-card-load-hero")
                 // Modo Voz (v-record): destino del vuelo de la carga dictada; brilla al recibirla.
                 .voiceFlightTarget(voiceFieldTargetKey(exercise.id, setIndex, VoiceFlightField.LOAD)),
@@ -4194,6 +4303,12 @@ private fun SetDetailSheetHost(
     onNote: (String) -> Unit,
     onDismiss: () -> Unit,
     isTimeMode: Boolean,
+    plannedRom: com.example.kpkn.data.models.PlannedRomTarget? = null,
+    recordedRomTarget: com.example.kpkn.data.models.PlannedRomTarget? = null,
+    onRecordedRomTargetChange: ((com.example.kpkn.data.models.PlannedRomTarget) -> Unit)? = null,
+    availableSubTags: List<com.example.kpkn.data.models.WorkoutSubTag> = emptyList(),
+    activeSubTagIds: List<String> = emptyList(),
+    onToggleSubTag: ((String) -> Unit)? = null,
 ) {
     if (!visible) return
     LiveSetDetailSheet(
@@ -4215,6 +4330,12 @@ private fun SetDetailSheetHost(
         onNote = onNote,
         onDismiss = onDismiss,
         showCompleteReps = !isTimeMode,
+        plannedRom = plannedRom,
+        recordedRomTarget = recordedRomTarget,
+        onRecordedRomTargetChange = onRecordedRomTargetChange,
+        availableSubTags = availableSubTags,
+        activeSubTagIds = activeSubTagIds,
+        onToggleSubTag = onToggleSubTag,
     )
 }
 
@@ -4232,6 +4353,9 @@ private fun LegacyDetailRow(
     hapticFeedbackEnabled: Boolean,
     onOpenDetails: () -> Unit,
     detailSheetHost: @Composable () -> Unit,
+    plannedRom: com.example.kpkn.data.models.PlannedRomTarget? = null,
+    recordedRomTarget: com.example.kpkn.data.models.PlannedRomTarget? = null,
+    onRecordedRomTargetChange: ((com.example.kpkn.data.models.PlannedRomTarget) -> Unit)? = null,
 ) {
     // `.lv-det` / `.lv-rom` del lienzo. Sin ROM, el resumen de parciales y ayuda (o «Parciales, ayuda y ROM ›»); si hay que avisar, el
     // aviso en línea. Con ROM (el ejercicio lo registra: `Exercise.trackRom`, o se encendió en la hoja) ese mismo hueco lleva la banda
@@ -4271,6 +4395,9 @@ private fun LegacyDetailRow(
                     hasDetail = partials > 0 || assistedReps > 0,
                     onOpenDetail = onOpenDetails,
                     hapticsEnabled = hapticFeedbackEnabled,
+                    plannedRom = plannedRom,
+                    recordedRomTarget = recordedRomTarget,
+                    onRecordedRomTargetChange = onRecordedRomTargetChange,
                 )
             } else {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {

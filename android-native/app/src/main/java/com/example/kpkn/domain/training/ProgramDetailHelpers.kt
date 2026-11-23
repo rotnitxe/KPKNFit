@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.MesocycleGoal
 import com.example.kpkn.data.models.Program
 import com.example.kpkn.data.models.ProgramKeyDate
 import com.example.kpkn.data.models.Session
+import com.example.kpkn.data.models.SimpleProgramKind
 import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.models.WorkoutLog
@@ -120,18 +121,25 @@ object ProgramDetailHelpers {
     fun getAllWeeks(
         roadmapBlocks: List<RoadmapBlock>,
         program: Program,
+        workoutLogs: List<WorkoutLog> = emptyList(),
     ): List<WeekWithMeta> =
-        roadmapBlocks.flatMap { block -> getWeeksForBlock(block.id, roadmapBlocks, program) }
+        roadmapBlocks.flatMap { block -> getWeeksForBlock(block.id, roadmapBlocks, program, workoutLogs) }
 
     fun getWeeksForBlock(
         selectedBlockId: String?,
         roadmapBlocks: List<RoadmapBlock>,
         program: Program,
+        workoutLogs: List<WorkoutLog> = emptyList(),
     ): List<WeekWithMeta> {
         if (selectedBlockId == null) return emptyList()
         val block = roadmapBlocks.find { it.id == selectedBlockId } ?: return emptyList()
         val macro = program.macrocycles.getOrNull(block.macroIndex) ?: return emptyList()
         val weekDateMeta = buildWeekDateMeta(program)
+        val hasWaves = program.isSimpleProgram &&
+            program.simpleProgramKind == SimpleProgramKind.CYCLIC &&
+            program.loops.any { it.mode == com.example.kpkn.data.models.LoopMode.PROGRESSIVE_WAVE }
+        val activeCycle = if (hasWaves) LoopEngine.getCurrentCycle(program).coerceAtLeast(1) else 1
+        val waveLabel = if (hasWaves) LoopWaveModulator.activeWaveLabel(program, activeCycle) else null
 
         var mesoOffset = 0
         for (b in macro.blocks) {
@@ -142,11 +150,18 @@ object ProgramDetailHelpers {
         return block.let { b ->
             val actualBlock = macro.blocks.getOrNull(b.blockIndex) ?: return emptyList()
             actualBlock.mesocycles.flatMapIndexed { localMesoIdx, meso ->
-                meso.weeks.map { week ->
+                meso.weeks.map { rawWeek ->
+                    val week = if (hasWaves && !rawWeek.isLoopWeek) {
+                        LoopWaveModulator.applyActiveWavesToWeek(program, rawWeek, activeCycle, workoutLogs)
+                    } else {
+                        rawWeek
+                    }
                     WeekWithMeta(
                         id = week.id,
                         name = week.name,
-                        description = week.description,
+                        description = if (hasWaves && !rawWeek.isLoopWeek && waveLabel != null) {
+                            listOfNotNull(waveLabel, week.description?.takeIf { it != waveLabel && it.isNotBlank() }).joinToString(" · ")
+                        } else week.description,
                         sessions = week.sessions,
                         mesoGoal = meso.goal,
                         mesoIndex = mesoOffset + localMesoIdx,

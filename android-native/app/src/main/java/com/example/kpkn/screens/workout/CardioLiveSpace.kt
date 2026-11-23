@@ -45,6 +45,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -1023,8 +1024,16 @@ internal fun CardioSwipeToStart(
     val density = LocalDensity.current
     val reduced = wizardReducedMotion()
     val scope = rememberCoroutineScope()
+    val latestOnDone by rememberUpdatedState(onDone)
     val offsetPx = remember { Animatable(0f) }
     var completed by remember { mutableStateOf(false) }
+    androidx.compose.runtime.LaunchedEffect(completed) {
+        if (completed) {
+            kotlinx.coroutines.delay(1200L)
+            completed = false
+            offsetPx.snapTo(0f)
+        }
+    }
     val shimmerClock = rememberKpknClockMs(running = !reduced && !completed, key = "cv-shim", loopMs = 2600f)
 
     BoxWithConstraints(
@@ -1032,7 +1041,13 @@ internal fun CardioSwipeToStart(
             .kpknGlassPreset(hazeState, KpknGlassPreset.VidrioInterruptor, RoundedCornerShape(31.dp), additionalScrim = Color(0xC21B1B1D))
             .border(1.dp, Color(0x1FFFFFFF), RoundedCornerShape(31.dp))
             .clip(RoundedCornerShape(31.dp))
-            .semantics { contentDescription = label; onClick(label = actionLabel) { onDone(); true } }
+            .clickable(role = Role.Button) {
+                if (!completed) {
+                    completed = true
+                    latestOnDone()
+                }
+            }
+            .semantics { contentDescription = label; onClick(label = actionLabel) { latestOnDone(); true } }
             .testTag("cardio-swipe"),
     ) {
         val maxPx = with(density) { (maxWidth - 60.dp).toPx() }.coerceAtLeast(1f)
@@ -1060,25 +1075,27 @@ internal fun CardioSwipeToStart(
         }
         Icon(KpknLineIcons.DoubleChevronRight, null, Modifier.align(Alignment.CenterEnd).padding(end = 20.dp).size(18.dp).alpha(labelAlpha), tint = Color(0x40FFFFFF))
         Box(
-            Modifier.offset { IntOffset(offsetPx.value.roundToInt(), 0) }
-                .padding(5.dp).size(50.dp).clip(CircleShape).background(CardioInk)
+            Modifier
+                .fillMaxSize()
                 .pointerInput(maxPx) {
                     detectHorizontalDragGestures(
                         onDragEnd = {
-                            if (offsetPx.value >= maxPx * 0.85f) {
+                            if (offsetPx.value >= maxPx * 0.65f && !completed) {
                                 completed = true
                                 scope.launch {
                                     offsetPx.animateTo(maxPx, tween(220, easing = KpknMotion.Estandar))
-                                    onDone()
+                                    latestOnDone()
                                 }
-                            } else {
+                            } else if (!completed) {
                                 scope.launch {
                                     offsetPx.animateTo(0f, tween(300, easing = KpknMotion.Estandar))
                                 }
                             }
                         },
                         onDragCancel = {
-                            scope.launch { offsetPx.animateTo(0f, tween(300, easing = KpknMotion.Estandar)) }
+                            if (!completed) {
+                                scope.launch { offsetPx.animateTo(0f, tween(300, easing = KpknMotion.Estandar)) }
+                            }
                         },
                     ) { change, dx ->
                         change.consume()
@@ -1087,18 +1104,25 @@ internal fun CardioSwipeToStart(
                         }
                     }
                 },
-            contentAlignment = Alignment.Center,
+            contentAlignment = Alignment.CenterStart,
         ) {
-            if (arrow) {
-                Canvas(Modifier.size(20.dp)) {
-                    val w = 1.9.dp.toPx(); val y = size.height / 2f
-                    val ink = Color(0xFF111111)
-                    drawLine(ink, Offset(3.dp.toPx(), y), Offset(size.width - 3.dp.toPx(), y), w, StrokeCap.Round)
-                    drawLine(ink, Offset(size.width - 8.5.dp.toPx(), y - 5.5.dp.toPx()), Offset(size.width - 3.dp.toPx(), y), w, StrokeCap.Round)
-                    drawLine(ink, Offset(size.width - 8.5.dp.toPx(), y + 5.5.dp.toPx()), Offset(size.width - 3.dp.toPx(), y), w, StrokeCap.Round)
+            Box(
+                Modifier
+                    .graphicsLayer { translationX = offsetPx.value }
+                    .padding(5.dp).size(50.dp).clip(CircleShape).background(CardioInk),
+                contentAlignment = Alignment.Center,
+            ) {
+                if (arrow) {
+                    Canvas(Modifier.size(20.dp)) {
+                        val w = 1.9.dp.toPx(); val y = size.height / 2f
+                        val ink = Color(0xFF111111)
+                        drawLine(ink, Offset(3.dp.toPx(), y), Offset(size.width - 3.dp.toPx(), y), w, StrokeCap.Round)
+                        drawLine(ink, Offset(size.width - 8.5.dp.toPx(), y - 5.5.dp.toPx()), Offset(size.width - 3.dp.toPx(), y), w, StrokeCap.Round)
+                        drawLine(ink, Offset(size.width - 8.5.dp.toPx(), y + 5.5.dp.toPx()), Offset(size.width - 3.dp.toPx(), y), w, StrokeCap.Round)
+                    }
+                } else {
+                    Icon(KpknLineIcons.ChevronRight, null, Modifier.size(20.dp), tint = Color(0xFF111111))
                 }
-            } else {
-                Icon(KpknLineIcons.ChevronRight, null, Modifier.size(20.dp), tint = Color(0xFF111111))
             }
         }
     }

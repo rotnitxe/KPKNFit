@@ -69,6 +69,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "romanian_deadlift__barbell__peso_muerto_rumano",
@@ -126,6 +130,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -291,6 +299,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "romanian_deadlift__barbell__peso_muerto_rumano",
@@ -350,6 +362,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -517,6 +533,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "romanian_deadlift__smith_machine__peso_muerto_rumano",
@@ -574,6 +594,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -739,6 +763,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "romanian_deadlift__smith_machine__peso_muerto_rumano",
@@ -798,6 +826,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -965,6 +997,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "romanian_deadlift__dumbbells__peso_muerto_rumano",
@@ -1022,6 +1058,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -1187,6 +1227,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "romanian_deadlift__dumbbells__peso_muerto_rumano",
@@ -1246,6 +1290,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -1413,6 +1461,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "romanian_deadlift__hex_bar__peso_muerto_rumano",
@@ -1470,6 +1522,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -1635,6 +1691,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "romanian_deadlift__hex_bar__peso_muerto_rumano",
@@ -1694,6 +1754,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -1855,6 +1919,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "bodyweight",
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "romanian_deadlift__bodyweight__peso_muerto_rumano",
@@ -1906,6 +1973,9 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -2099,6 +2169,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "romanian_sumo_deadlift__bilateral__barbell",
@@ -2156,6 +2230,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -2319,6 +2397,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "romanian_sumo_deadlift__bilateral__smith_machine",
@@ -2376,6 +2458,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -2539,6 +2625,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "romanian_sumo_deadlift__bilateral__dumbbells",
@@ -2596,6 +2686,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -2759,6 +2853,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "romanian_sumo_deadlift__bilateral__hex_bar",
@@ -2816,6 +2914,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",

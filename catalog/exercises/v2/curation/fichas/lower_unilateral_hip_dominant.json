@@ -102,7 +102,7 @@
           },
           {
             "id": "quadriceps",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "quadriceps_anatomy",
               "simenz_stepup"
@@ -110,8 +110,17 @@
             "why": "La rodilla flexionada del pie elevado también debe extenderse contra cuerpo y mancuernas. El cuádriceps se agrega como motor directo tras el glúteo; inclinar el torso o atrasar la rodilla no elimina ese trabajo ni justifica clasificarlo como mero estabilizador."
           },
           {
-            "id": "hamstrings",
+            "id": "adductors",
             "role": "SECONDARY",
+            "sources": [
+              "collings_adductors",
+              "adductor_anatomy"
+            ],
+            "why": "El apoyo adelantado conserva una salida desde cadera flexionada; la porción isquiocondílea del aductor mayor coopera al erguir el cuerpo que transporta las mancuernas. Es aplicación funcional del estudio de step-up a esta estrategia, sin demostrar una jerarquía muscular por la tibia vertical."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
             "sources": [
               "simenz_stepup",
               "kipp_forces"
@@ -120,7 +129,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "calf_anatomy",
               "kipp_forces"
@@ -167,15 +176,6 @@
               "deltoid_anatomy"
             ],
             "why": "Al partir inclinado desde la cadera, las pesas siguen colgadas de brazos largos y ejercen tracción sobre sus hombros; el deltoides limita el desplazamiento inferior de la articulación por función anatómica, sin participar en el erguimiento de cadera."
-          },
-          {
-            "id": "adductors",
-            "role": "SECONDARY",
-            "sources": [
-              "collings_adductors",
-              "adductor_anatomy"
-            ],
-            "why": "El apoyo adelantado conserva una salida desde cadera flexionada; la porción isquiocondílea del aductor mayor coopera al erguir el cuerpo que transporta las mancuernas. Es aplicación funcional del estudio de step-up a esta estrategia, sin demostrar una jerarquía muscular por la tibia vertical."
           }
         ]
       },
@@ -442,7 +442,7 @@
           },
           {
             "id": "quadriceps",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "quad",
               "kin"
@@ -450,8 +450,17 @@
             "why": "El retorno desde el cruce requiere enderezar la rodilla delantera bajo el peso corporal y las mancuernas. La extensión dinámica es parte central de la repetición, no una mera estabilidad de rodilla; esta asignación se infiere de su función y del gesto, no de EMG específico."
           },
           {
-            "id": "hamstrings",
+            "id": "adductors",
             "role": "SECONDARY",
+            "sources": [
+              "collings_adductors",
+              "adductor_anatomy"
+            ],
+            "why": "Cuando la pierna delantera devuelve el cuerpo desde el descenso cruzado, su cadera necesita extenderse. El segmento isquiocondíleo del aductor mayor ayuda a esa acción por anatomía; las estimaciones de sentadilla y step-up se extrapolan al cruce, que Collings no estudió."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
             "sources": [
               "hams",
               "emg"
@@ -460,7 +469,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "calf",
               "kin"
@@ -498,15 +507,6 @@
               "grip"
             ],
             "why": "Cada mano sostiene una mancuerna durante el descenso cruzado y el regreso al centro. Los flexores de dedos cierran el agarre sin que la muñeca impulse la subida, por lo que la participación corresponde al sostén continuo de dos cargas."
-          },
-          {
-            "id": "adductors",
-            "role": "SECONDARY",
-            "sources": [
-              "collings_adductors",
-              "adductor_anatomy"
-            ],
-            "why": "Cuando la pierna delantera devuelve el cuerpo desde el descenso cruzado, su cadera necesita extenderse. El segmento isquiocondíleo del aductor mayor ayuda a esa acción por anatomía; las estimaciones de sentadilla y step-up se extrapolan al cruce, que Collings no estudió."
           },
           {
             "id": "deltoid",

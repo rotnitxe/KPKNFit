@@ -116,6 +116,105 @@ class ProgramAnalyticsEngineTest {
         assertEquals(total, roles.directSets + roles.indirectSets, 1e-9)
     }
 
+    @Test
+    fun `quadPosteriorRatio excluye erectores y chain y deduplica cabezas`() {
+        val catalog = listOf(
+            ExerciseMuscleInfo(
+                id = "squat",
+                name = "Sentadilla",
+                force = "Empuje",
+                chain = "anterior",
+                bodyPart = "lower",
+                involvedMuscles = listOf(
+                    InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY, 1.0),
+                    InvolvedMuscle("Cuádriceps", MuscleRole.SECONDARY, 0.5, "recto femoral"),
+                    InvolvedMuscle("Glúteos", MuscleRole.SECONDARY, 0.5),
+                    InvolvedMuscle("Erectores Espinales", MuscleRole.STABILIZER, 0.3),
+                ),
+            ),
+            ExerciseMuscleInfo(
+                id = "good-morning",
+                name = "Buenos días lumbar",
+                force = "Bisagra",
+                chain = "posterior",
+                bodyPart = "lower",
+                involvedMuscles = listOf(
+                    InvolvedMuscle("Erectores Espinales", MuscleRole.PRIMARY, 1.0),
+                    InvolvedMuscle("Isquiosurales", MuscleRole.PRIMARY, 1.0),
+                ),
+            ),
+            ExerciseMuscleInfo(
+                id = "bench-press",
+                name = "Press banca",
+                force = "Empuje",
+                chain = "anterior",
+                bodyPart = "upper",
+                involvedMuscles = listOf(
+                    InvolvedMuscle("Pectorales", MuscleRole.PRIMARY, 1.0),
+                    InvolvedMuscle("Deltoides", MuscleRole.SECONDARY, 0.5, emphasis = "anterior"),
+                ),
+            ),
+        )
+        val program = programWithExercises(
+            Exercise("sq", "Sentadilla", exerciseDbId = "squat", sets = workSets(4)),
+            Exercise("gm", "Buenos días lumbar", exerciseDbId = "good-morning", sets = workSets(2)),
+            Exercise("bp", "Press banca", exerciseDbId = "bench-press", sets = workSets(6)),
+        )
+        val report = ProgramAnalyticsEngine.analyze(program, emptyList(), catalog)
+        // Cuádriceps: 4 * 1.0 = 4.0 (deduplicado)
+        // Posterior: Glúteos (4 * 0.5 = 2.0) + Isquiosurales (2 * 1.0 = 2.0) = 4.0 (sin Erectores ni chainLower)
+        assertEquals(4.0, report.balance.quadPosteriorRatio.leftValue, 1e-9)
+        assertEquals(4.0, report.balance.quadPosteriorRatio.rightValue, 1e-9)
+        assertEquals(1.0, report.balance.quadPosteriorRatio.ratio, 1e-9)
+    }
+
+    @Test
+    fun `efficiency colapsa series unilaterales y excluye cardio`() {
+        val exercise = Exercise("lunge", "Zancada", exerciseDbId = "lunge", sets = workSets(2))
+        val program = programWithExercises(exercise)
+        val lungeInfo = ExerciseMuscleInfo(
+            id = "lunge",
+            name = "Zancada",
+            force = "Empuje",
+            bodyPart = "lower",
+            involvedMuscles = listOf(InvolvedMuscle("Cuádriceps", MuscleRole.PRIMARY, 1.0)),
+        )
+        val log = WorkoutLog(
+            id = "log-u",
+            programId = "program",
+            sessionId = "session",
+            sessionName = "Pierna",
+            date = "2026-01-01T10:00:00.000Z",
+            durationMinutes = 60,
+            completedExercises = listOf(
+                CompletedExercise(
+                    exerciseId = "lunge",
+                    exerciseName = "Zancada",
+                    exerciseDbId = "lunge",
+                    sets = listOf(
+                        CompletedSet("l1", weight = 40.0, reps = 10, setIndex = 0, side = "left"),
+                        CompletedSet("r1", weight = 40.0, reps = 10, setIndex = 0, side = "right"),
+                        CompletedSet("l2", weight = 40.0, reps = 10, setIndex = 1, side = "left"),
+                        CompletedSet("r2", weight = 40.0, reps = 10, setIndex = 1, side = "right"),
+                    ),
+                ),
+                CompletedExercise(
+                    exerciseId = "run",
+                    exerciseName = "Carrera",
+                    cardioDetails = com.example.kpkn.data.models.CardioDetails(
+                        type = com.example.kpkn.data.models.CardioType.RUN_OUTDOOR,
+                        targetDistanceKm = 5.0,
+                        targetDurationSeconds = 1800,
+                    ),
+                    sets = listOf(CompletedSet("c1", reps = 1)),
+                ),
+            ),
+        )
+        val report = ProgramAnalyticsEngine.analyze(program, listOf(log), listOf(lungeInfo))
+        assertEquals(2.0, report.efficiency.densitySetsPerHour, 1e-9)
+        assertEquals(2.0, report.efficiency.sessionDensity.single().value, 1e-9)
+    }
+
     private fun programWithExercises(vararg exercises: Exercise): Program =
         Program(
             id = "program",

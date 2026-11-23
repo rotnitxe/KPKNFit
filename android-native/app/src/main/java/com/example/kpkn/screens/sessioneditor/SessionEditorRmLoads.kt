@@ -48,17 +48,36 @@ internal fun Session.withExplicitRmLoads(previous: Session): Session {
 
 /** Versión por ejercicio de [withExplicitRmLoads]: compara con el ejercicio antes de la edición, sin normalizar todavía. */
 internal fun Exercise.withExplicitRmLoads(previous: Exercise): Exercise {
-    if (trainingMode != TrainingMode.RM) return this
+    val prChanged = previous.prFor1RM != prFor1RM
+    val effectiveExercise = if (prChanged && prFor1RM != null && previous.reference1RM == reference1RM) {
+        copy(reference1RM = resolveReferenceCapacity(copy(reference1RM = null)))
+    } else {
+        this
+    }
+    val hadSmartReference = resolveSmartLoadReference(previous) != null || resolveReferenceCapacity(previous) != null || previous.prFor1RM != null
+    val hasSmartReference = resolveSmartLoadReference(effectiveExercise) != null || resolveReferenceCapacity(effectiveExercise) != null || effectiveExercise.prFor1RM != null
+    if (hadSmartReference && !hasSmartReference) {
+        return effectiveExercise.copy(
+            sets = effectiveExercise.sets.map { set ->
+                set.copy(
+                    weight = null,
+                    leftTarget = set.leftTarget?.copy(weight = null),
+                    rightTarget = set.rightTarget?.copy(weight = null),
+                )
+            },
+        )
+    }
+    if (effectiveExercise.trainingMode != TrainingMode.RM) return effectiveExercise
     val switchedToRm = previous.trainingMode != TrainingMode.RM
     // Cada base tiene su referencia: cambiar el 1RM recalcula las series en %1RM y cambiar el TM las series en %TM.
-    val oneRmChanged = resolveReferenceCapacity(previous) != resolveReferenceCapacity(this)
-    val smartReferenceChanged = resolveSmartLoadReference(previous)?.kilograms != resolveSmartLoadReference(this)?.kilograms
-    val smartBasisChanged = previous.smartLoadBasis != smartLoadBasis
-    val trainingMaxChanged = previous.referenceTrainingMax != referenceTrainingMax
+    val oneRmChanged = resolveReferenceCapacity(previous) != resolveReferenceCapacity(effectiveExercise)
+    val smartReferenceChanged = resolveSmartLoadReference(previous)?.kilograms != resolveSmartLoadReference(effectiveExercise)?.kilograms
+    val smartBasisChanged = previous.smartLoadBasis != effectiveExercise.smartLoadBasis
+    val trainingMaxChanged = previous.referenceTrainingMax != effectiveExercise.referenceTrainingMax
     val previousSets = previous.sets.associateBy { it.id }
-    val protectedApreIds = observedApreXrmBlock(this)?.setIds.orEmpty().toSet()
-    return copy(
-        sets = sets.map { set ->
+    val protectedApreIds = observedApreXrmBlock(effectiveExercise)?.setIds.orEmpty().toSet()
+    return effectiveExercise.copy(
+        sets = effectiveExercise.sets.map { set ->
             if (set.id in protectedApreIds) return@map set
             val old = previousSets[set.id] ?: return@map set
             val percentChanged = old.targetPercentageRM != set.targetPercentageRM
@@ -68,7 +87,7 @@ internal fun Exercise.withExplicitRmLoads(previous: Exercise): Exercise {
                 else -> oneRmChanged
             }
             val basisChanged = old.loadBasis != set.loadBasis
-            if (switchedToRm || referenceChanged || percentChanged || basisChanged) set.withRmLoad(this) else set
+            if (switchedToRm || referenceChanged || percentChanged || basisChanged) set.withRmLoad(effectiveExercise) else set
         },
     )
 }

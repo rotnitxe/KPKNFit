@@ -40,6 +40,7 @@ import com.example.kpkn.ui.design.KpknStatusVeil
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.kpknEntrance
 import com.example.kpkn.ui.design.rememberIslandVisible
+import com.example.kpkn.ui.tour.TourAnchorScroller
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.TourIds
 import com.example.kpkn.ui.tour.TourScripts
@@ -75,12 +76,16 @@ fun BodyProgressScreen(
     val bodyViewModel: BodyProgressViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
     val settings by ProgramRepository.getInstance().settings.collectAsState()
     val vitals = settings.userVitals
-    // Recorrido de Cuerpo: se lanza al montar la pantalla (no hay señal de carga en el ViewModel). Visto = no arranca.
-    val tourHost = LocalKpknOverlayHost.current
-    LaunchedEffect(Unit) { tourHost?.startTour(TourIds.BODY, TourScripts.body) }
     val history by bodyViewModel.history.collectAsState()
     val bodyUiState by bodyViewModel.uiState.collectAsState()
     val schedule by bodyViewModel.measurementSchedule.collectAsState()
+    // Recorrido de Cuerpo: espera a que bodyUiState.loaded sea true para no recortar skeletons. Visto = no arranca.
+    val tourHost = LocalKpknOverlayHost.current
+    LaunchedEffect(bodyUiState.loaded) {
+        if (bodyUiState.loaded) {
+            tourHost?.startTour(TourIds.BODY, TourScripts.body(hasEntries = history.isNotEmpty()))
+        }
+    }
 
     // Hojas y diálogos de los módulos de Cuerpo: objetivo propio, quitarlo, explicación de una cifra y la hora del recordatorio.
     var goalDraft by remember { mutableStateOf<BodyGoalDraft?>(null) }
@@ -100,6 +105,7 @@ fun BodyProgressScreen(
     val snackbarScope = rememberCoroutineScope()
     val contextualBottomBarClearance = 110.dp
     val listState = rememberLazyListState()
+    TourAnchorScroller(TourAnchors.BODY_TENDENCIA) { listState.animateScrollToItem(1) }
     val bodyHazeState = remember { HazeState() }
     val islandVisible = rememberIslandVisible(listState, afterItemIndex = 0)
     val topInset = WindowInsets.statusBars.asPaddingValues().calculateTopPadding()

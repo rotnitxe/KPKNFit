@@ -56,15 +56,6 @@
         ],
         "muscles": [
           {
-            "id": "latissimus_dorsi",
-            "role": "PRIMARY",
-            "sources": [
-              "park2015",
-              "statpearls_extrinsic_back"
-            ],
-            "why": "Con las manos fijas en la barra, acerca el tronco al húmero y desciende la cintura escapular, que es lo que eleva el cuerpo unos centímetros sin flexionar el codo. En isometrías contra el peso del tronco, levantar el cuerpo bajando los hombros favoreció la porción lateral del dorsal (Park et al.); allí los brazos estaban abajo, pero la depresión de los hombros contra el peso corporal es la misma."
-          },
-          {
             "id": "trapezius",
             "role": "PRIMARY",
             "sources": [
@@ -72,6 +63,15 @@
               "youdas2010"
             ],
             "why": "Sus fibras inferiores deprimen la escápula (StatPearls) y, en la dominada, la secuencia de activación arranca con el trapecio bajo (Youdas et al.): es justo el tramo que este ejercicio aísla, por eso comparte el papel principal con el dorsal. Las fibras superiores, que elevan la escápula, deben quedar en silencio para que los hombros no vuelvan hacia las orejas."
+          },
+          {
+            "id": "latissimus_dorsi",
+            "role": "SECONDARY",
+            "sources": [
+              "park2015",
+              "statpearls_extrinsic_back"
+            ],
+            "why": "Con las manos fijas en la barra, acerca el tronco al húmero y desciende la cintura escapular, que es lo que eleva el cuerpo unos centímetros sin flexionar el codo. En isometrías contra el peso del tronco, levantar el cuerpo bajando los hombros favoreció la porción lateral del dorsal (Park et al.); allí los brazos estaban abajo, pero la depresión de los hombros contra el peso corporal es la misma."
           },
           {
             "id": "rhomboids",
@@ -89,15 +89,6 @@
               "statpearls_forearm_compartments"
             ],
             "why": "Los flexores de los dedos sostienen todo el peso corporal en isometría durante la serie. En suspensiones de escalada su activación no cambió entre colgar con los brazos extendidos y con el codo bloqueado en flexión (Exel et al.), así que el agarre trabaja aunque los brazos no se doblen."
-          },
-          {
-            "id": "pectoralis",
-            "role": "STABILIZER",
-            "sources": [
-              "youdas2010",
-              "baig_pectoral"
-            ],
-            "why": "Youdas et al. vieron que la dominada arranca con el trapecio bajo y el pectoral mayor, que llegó al 44-57 % de su máximo en el conjunto de la repetición. En el tramo que aísla este ejercicio fija el húmero y acompaña la bajada de la cintura escapular junto con el pectoral menor, del grupo que estabiliza la escápula (StatPearls); no eleva el cuerpo por sí mismo, por eso cuenta como estabilizador."
           }
         ]
       },

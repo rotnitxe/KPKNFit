@@ -114,10 +114,9 @@
                   "primaryMuscles": [
                     "hamstrings"
                   ],
-                  "secondaryMuscles": [
-                    "calves"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
+                    "calves",
                     "gluteus_maximus",
                     "erector_spinae",
                     "core"
@@ -179,15 +178,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "calves"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Arrodíllate sobre una superficie acolchada y fija los tobillos bajo un anclaje firme o pide a un compañero que los sujete.",
                 "Endereza el cuerpo de las rodillas a la cabeza, aprieta los glúteos y lleva las manos delante del pecho."
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
+                "calves",
                 "gluteus_maximus",
                 "erector_spinae",
                 "core"

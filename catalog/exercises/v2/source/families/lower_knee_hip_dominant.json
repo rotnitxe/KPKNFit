@@ -64,12 +64,14 @@
               ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "knee_hip_dominant",
               "performanceProfileId": "quads_sentadilla_cajon__barbell__sentadilla_a_cajon",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -118,11 +120,14 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
+                    "gluteus_maximus",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -182,14 +187,14 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "knee_hip_dominant:quadriceps",
-                    "knee_hip_dominant:gluteus_maximus"
+                    "knee_hip_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
+                "gluteus_maximus",
                 "adductors"
               ],
               "setupCues": [
@@ -300,12 +305,14 @@
               ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "knee_hip_dominant",
               "performanceProfileId": "quads_sentadilla_sumo_frontal__barbell__sentadilla_sumo_frontal",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -370,11 +377,14 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
+                    "gluteus_maximus",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -435,14 +445,14 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "knee_hip_dominant:quadriceps",
-                    "knee_hip_dominant:gluteus_maximus"
+                    "knee_hip_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
+                "gluteus_maximus",
                 "adductors"
               ],
               "setupCues": [
@@ -553,12 +563,16 @@
               ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "biceps"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "knee_hip_dominant",
               "performanceProfileId": "quads_sentadilla_sumo_zercher__barbell__sentadilla_sumo_zercher",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": 999,
@@ -623,11 +637,16 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "biceps"
+                  ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
+                    "gluteus_maximus",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -689,14 +708,14 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "knee_hip_dominant:quadriceps",
-                    "knee_hip_dominant:gluteus_maximus"
+                    "knee_hip_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
                 }
               },
               "secondaryMuscles": [
+                "gluteus_maximus",
                 "adductors"
               ],
               "setupCues": [

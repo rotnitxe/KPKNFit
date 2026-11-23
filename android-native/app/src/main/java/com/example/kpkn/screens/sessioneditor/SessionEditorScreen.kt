@@ -38,6 +38,7 @@ import androidx.compose.foundation.lazy.LazyItemScope
 import com.example.kpkn.domain.exercises.resolveCatalogInfoForDisplay
 import com.example.kpkn.screens.sessioneditor.components.LocalEdListDragging
 import com.example.kpkn.screens.sessioneditor.design.edAutoScrollDelta
+import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.depth.KpknGradient
 import com.example.kpkn.ui.design.depth.kpknGradient
 import com.example.kpkn.screens.sessioneditor.frame.EdMotion
@@ -284,9 +285,25 @@ fun SessionEditorScreen(
             }
             val draftFailure = msg.startsWith("No se pudo guardar el borrador") ||
                 msg.startsWith("No se pudo descartar el borrador")
+            val isDangerMsg = draftFailure ||
+                msg.startsWith("No se pudo") ||
+                msg.startsWith("No pudimos") ||
+                msg.startsWith("Error")
+            val isWarningMsg = !isDangerMsg && (
+                msg.contains("falta", ignoreCase = true) ||
+                    msg.contains("revisa", ignoreCase = true) ||
+                    msg.contains("inválid", ignoreCase = true) ||
+                    msg.contains("bloquead", ignoreCase = true) ||
+                    msg.contains("sin cambios", ignoreCase = true)
+                )
+            val snackbarType = when {
+                isDangerMsg -> SnackbarType.DANGER
+                isWarningMsg -> SnackbarType.SUGGESTION
+                else -> SnackbarType.SUCCESS
+            }
             val action = snackbarHostState.showKpknSnackbar(
                 msg,
-                if (draftFailure) SnackbarType.DANGER else SnackbarType.SUCCESS,
+                snackbarType,
                 actionLabel = if (draftFailure) "Reintentar" else null,
             )
             viewModel.clearSnackbarMessage()
@@ -823,9 +840,16 @@ fun SessionEditorScreen(
             return true
         }
 
-        // La lista ocupa toda la pantalla y pasa POR DEBAJO de la fila superior (islas de vidrio con desenfoque real): la lista es la
-        // fuente `hazeSource` y la fila superior, su hermana dibujada después. El primer elemento queda libre gracias al padding superior.
-        Box(modifier = Modifier.fillMaxSize()) {
+        var nameFocusTrigger by remember { mutableIntStateOf(0) }
+
+        // La lista ocupa toda la pantalla dentro de un contenedor con fondo de lienzo (`KpknSurface.canvas`) que actúa como `hazeSource`,
+        // hermano directo de AMBAS barras de vidrio (`SessionEditorFrameTopBar` y `SessionEditorFrameBottomBar`).
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(KpknSurface.canvas)
+                .hazeSource(state = hazeState),
+        ) {
             LazyColumn(
                 state = listState,
                 modifier = Modifier
@@ -836,7 +860,6 @@ fun SessionEditorScreen(
                         translationX = slideX.value
                         alpha = slideAlpha.value
                     }
-                    .hazeSource(state = hazeState)
                     .onGloballyPositioned { lazyColumnWindowBoundsRaw = it.boundsInWindow() },
                 contentPadding = PaddingValues(top = listTopPadding, bottom = contentBottomPadding),
             ) {
@@ -852,6 +875,7 @@ fun SessionEditorScreen(
                             onDescriptionChange = viewModel::updateSessionDescription,
                             onDaySwipe = ::swipeToAdjacentDay,
                             importedContextLabel = importedEditorContext,
+                            nameFocusTrigger = nameFocusTrigger,
                         )
                     }
             items(scrollableListItems, key = { it.stableKey }, contentType = { it::class }) { listItem ->
@@ -902,6 +926,7 @@ fun SessionEditorScreen(
                 }
             }
             }
+        }
 
             // Pulido v1 · EDITOR · A2: el único velo es un degradado negro corto detrás de la barra de estado (`.ed-topfade`, 44 dp), para que el reloj y
             // los iconos del sistema se lean siempre; la isla de vidrio no lleva velo propio.
@@ -953,11 +978,16 @@ fun SessionEditorScreen(
                     SessionEditorFrameBlockNotice(
                         message = block.message,
                         onOpenExercise = block.exerciseId?.let { exerciseId -> { pendingAutoExpandExerciseId = exerciseId } },
+                        onFocusSessionName = {
+                            scope.launch {
+                                listState.animateScrollToItem(0)
+                                nameFocusTrigger++
+                            }
+                        },
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
                     )
                 }
             }
-        }
 
         // Barra inferior fija (Pulido v1 · EDITOR · A2): tiempo · Añadir partido · Asistente. «Reglas» es ahora la 4.ª pestaña del Asistente y
         // tocar los minutos abre Asistente › Reglas › Tiempo. Va sobre la lista, con el vidrio que lee la lista; baja al 38 % al arrastrar una fila.

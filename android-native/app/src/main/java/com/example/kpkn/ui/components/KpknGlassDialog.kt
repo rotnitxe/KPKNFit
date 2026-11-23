@@ -7,7 +7,9 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.runtime.Composable
@@ -72,19 +74,27 @@ fun KpknGlassDialog(
             )
 
             Box(
-                modifier = modifier
-                    .padding(horizontal = 24.dp)
-                    .widthIn(max = maxWidth)
-                    .fillMaxWidth()
-                    .kpknGlassOrFallback(resolvedHaze, shape, variant = KpknGlassVariant.SHEET)
-                    .clickable(
-                        interactionSource = panelInteraction,
-                        indication = null,
-                        onClick = {},
-                    ),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .imePadding(),
+                contentAlignment = Alignment.Center,
             ) {
-                KpknDialogTheme {
-                    content()
+                Box(
+                    modifier = modifier
+                        .padding(horizontal = 24.dp)
+                        .widthIn(max = maxWidth)
+                        .fillMaxWidth()
+                        .kpknGlassOrFallback(resolvedHaze, shape, variant = KpknGlassVariant.SHEET)
+                        .clickable(
+                            interactionSource = panelInteraction,
+                            indication = null,
+                            onClick = {},
+                        ),
+                ) {
+                    KpknDialogTheme {
+                        content()
+                    }
                 }
             }
         }

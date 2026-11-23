@@ -80,7 +80,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "glutmax",
               "lateral_joints"
@@ -98,7 +98,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "lateral_joints"
             ],

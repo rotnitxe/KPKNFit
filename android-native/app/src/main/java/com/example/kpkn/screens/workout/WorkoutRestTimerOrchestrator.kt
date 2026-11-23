@@ -501,6 +501,8 @@ class WorkoutRestTimerOrchestrator(
                         )
                     }
                     ports.persistOngoingState()
+                } else {
+                    finishFinalSessionAfterRest(currentExIdx)
                 }
             }
             !skipExercise && ports.nextIncompleteStepAfter(getState(), includeCurrent = true) == null -> {

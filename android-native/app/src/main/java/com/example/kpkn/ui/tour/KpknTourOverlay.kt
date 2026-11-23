@@ -1,12 +1,20 @@
 package com.example.kpkn.ui.tour
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Canvas
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -25,11 +33,14 @@ import androidx.compose.foundation.layout.navigationBars
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -42,11 +53,14 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathFillType
+import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -60,6 +74,7 @@ import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.unit.IntRect
 import androidx.compose.ui.unit.dp
@@ -67,28 +82,35 @@ import androidx.compose.ui.unit.sp
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
-import com.example.kpkn.screens.onboarding.design.WizardTypography
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.components.LocalHazeState
+import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.kpknGlass
 import dev.chrisbanes.haze.HazeState
 import kotlin.math.max
+import kotlin.math.min
 import kotlin.math.roundToInt
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 
-private val TourVeil = Color(0xFF000000).copy(alpha = 0.72f)
-private val TourCutoutCorner = 16.dp
+private val TourVeil = Color(0xFF000000).copy(alpha = 0.75f)
 private val TourCutoutMargin = 8.dp
-private val TourBubbleShape = RoundedCornerShape(24.dp)
-private val TourBubbleFallback = Color(0xFF141414).copy(alpha = 0.94f)
-private val TourBubbleGap = 12.dp
-private val TourArrowWidth = 16.dp
-private val TourArrowHeight = 8.dp
-private val TourArrowInset = 20.dp
+private val TourTryCutoutMargin = 6.dp
+private val TourCardShape = RoundedCornerShape(24.dp)
+private val TourCardFallback = Color(0xFF121212).copy(alpha = 0.93f)
+private val TourCardGap = 14.dp
 private const val TourEnterMillis = 220
-private val TourCutoutSpring = spring<Float>(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium)
+private const val TourMaxTouchBlockers = 24
+private val TourCutoutSpring = spring<Float>(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow)
 
+private val TourEyebrowStyle = TextStyle(
+    fontFamily = WizardFonts.body,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 11.sp,
+    lineHeight = 14.sp,
+    letterSpacing = 0.9.sp,
+)
 private val TourTitleStyle = TextStyle(
     fontFamily = WizardFonts.display,
     fontWeight = FontWeight.SemiBold,
@@ -101,11 +123,26 @@ private val TourBodyStyle = TextStyle(
     fontSize = 14.sp,
     lineHeight = 20.sp,
 )
+private val TourHintStyle = TextStyle(
+    fontFamily = WizardFonts.body,
+    fontWeight = FontWeight.Medium,
+    fontSize = 11.sp,
+    lineHeight = 14.sp,
+)
+private val TourChipLabelStyle = TextStyle(
+    fontFamily = WizardFonts.body,
+    fontWeight = FontWeight.SemiBold,
+    fontSize = 12.sp,
+    lineHeight = 16.sp,
+)
 
 /**
- * Overlay del recorrido, montado por el anfitrión sobre todo lo demás. Un velo negro al 72 % con un recorte
- * redondeado sobre el ancla y una burbuja con el paso. En pasos «Pruébalo» solo el recorte deja pasar los toques
- * (llegan al elemento); en el resto, nada llega a la app. Atrás = saltar el recorrido.
+ * Overlay del recorrido guiado montado por el anfitrión sobre todo lo demás.
+ *
+ * - Velo negro con recorte de resorte (`spring`) y radio adaptativo al componente.
+ * - Anillo de foco nítido en pasos `NEXT` y halo + beacon pulsante en pasos `TRY`.
+ * - Tarjeta flotante glass en la zona segura opuesta al ancla (sin `TourArrow`).
+ * - Durante `isScrollingToAnchor` o sin ancla visible no pinta una pantalla negra vacía.
  */
 @Composable
 fun KpknTourOverlay(
@@ -116,41 +153,48 @@ fun KpknTourOverlay(
     val ui by tour.state.collectAsState()
     val step = ui.current
     val reduced = wizardReducedMotion()
+    SideEffect { tour.reducedMotion = reduced }
+
     val density = LocalDensity.current
     val haze = LocalHazeState.current
-    // Los insets son @Composable: se leen aquí y la medición del Layout usa los valores.
     val insetTop = WindowInsets.statusBars.getTop(density)
     val insetBottom = WindowInsets.navigationBars.getBottom(density)
     val marginPx = with(density) { TourCutoutMargin.toPx() }
-    val cornerPx = with(density) { TourCutoutCorner.toPx() }
-    val target = step?.let { anchors.boundsOf(it.anchorId)?.inflate(marginPx) }
+    val tryMarginPx = with(density) { TourTryCutoutMargin.toPx() }
 
-    // Recorte: se transforma de un ancla a la siguiente con resorte; con movimiento reducido salta.
+    val target = if (step != null && !ui.isScrollingToAnchor) {
+        anchors.boundsOf(step.anchorId)?.inflate(marginPx)
+    } else {
+        null
+    }
+    val rawTryBounds = if (step != null && !ui.isScrollingToAnchor) {
+        step.tryAnchorId?.let { anchors.boundsOf(it) }
+    } else {
+        null
+    }
+    val disjointTryTarget = if (target != null && rawTryBounds != null && !target.overlaps(rawTryBounds)) {
+        rawTryBounds.inflate(tryMarginPx)
+    } else {
+        null
+    }
+    val targetCornerPx = with(density) { (step?.cutoutCornerDp ?: 22f).dp.toPx() }
+    val tryCornerPx = with(density) { 24.dp.toPx() }
+
     val cut = remember { TourCut() }
-    LaunchedEffect(target, reduced) {
-        val rect = target
-        if (rect == null) {
-            cut.placed = false
-        } else if (!cut.placed || reduced) {
-            cut.left.snapTo(rect.left)
-            cut.top.snapTo(rect.top)
-            cut.right.snapTo(rect.right)
-            cut.bottom.snapTo(rect.bottom)
-            cut.placed = true
-        } else {
-            coroutineScope {
-                launch { cut.left.animateTo(rect.left, TourCutoutSpring) }
-                launch { cut.top.animateTo(rect.top, TourCutoutSpring) }
-                launch { cut.right.animateTo(rect.right, TourCutoutSpring) }
-                launch { cut.bottom.animateTo(rect.bottom, TourCutoutSpring) }
-            }
-        }
+    LaunchedEffect(target, targetCornerPx, reduced) {
+        animateCut(cut, target, targetCornerPx, reduced)
     }
 
-    // Entrada de la burbuja en cada paso: escala 0,92→1 y fundido; con movimiento reducido, cuadro final.
+    val tryCut = remember { TourCut() }
+    LaunchedEffect(disjointTryTarget, tryCornerPx, reduced) {
+        animateCut(tryCut, disjointTryTarget, tryCornerPx, reduced)
+    }
+
     val enter = remember { Animatable(0f) }
-    LaunchedEffect(ui.tourId, ui.index, reduced) {
-        if (reduced) {
+    LaunchedEffect(ui.tourId, ui.index, reduced, target != null) {
+        if (target == null) {
+            enter.snapTo(0f)
+        } else if (reduced) {
             enter.snapTo(1f)
         } else {
             enter.snapTo(0f)
@@ -158,158 +202,334 @@ fun KpknTourOverlay(
         }
     }
 
-    // Al cambiar de paso, el foco va al título para que TalkBack lo lea primero.
+    val pulsePhase: Float
+    val beaconPhase: Float
+    if (step?.kind == TourStepKind.TRY && !reduced) {
+        val infinite = rememberInfiniteTransition(label = "tour-try-pulse")
+        pulsePhase = infinite.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 950, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Reverse,
+            ),
+            label = "halo-phase",
+        ).value
+        beaconPhase = infinite.animateFloat(
+            initialValue = 0f,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 1_450, easing = FastOutSlowInEasing),
+                repeatMode = RepeatMode.Restart,
+            ),
+            label = "beacon-phase",
+        ).value
+    } else {
+        pulsePhase = 0f
+        beaconPhase = 0f
+    }
+
     val titleFocus = remember { FocusRequester() }
-    LaunchedEffect(ui.tourId, ui.index) {
-        runCatching { titleFocus.requestFocus() }
+    LaunchedEffect(ui.tourId, ui.index, target != null) {
+        if (target != null) runCatching { titleFocus.requestFocus() }
     }
     BackHandler(enabled = ui.isActive) { tour.skip() }
 
     val veil = remember { Path() }
-    val cutShown = target != null && cut.placed
+    val cutShown = step != null && !ui.isScrollingToAnchor && target != null && cut.placed
+    val tryCutShown = cutShown && disjointTryTarget != null && tryCut.placed
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .drawBehind {
-                if (step == null) return@drawBehind
+                if (!cutShown) return@drawBehind
+                val activeStep = step ?: return@drawBehind
+                val mainRect = cut.toRect()
+                val mainCorner = cut.clampedCorner(mainRect)
+
                 veil.reset()
                 veil.fillType = PathFillType.EvenOdd
                 veil.addRect(Rect(0f, 0f, size.width, size.height))
-                if (cutShown) {
-                    veil.addRoundRect(
-                        RoundRect(
-                            cut.left.value,
-                            cut.top.value,
-                            cut.right.value,
-                            cut.bottom.value,
-                            CornerRadius(cornerPx, cornerPx),
-                        ),
-                    )
+                veil.addRoundRect(RoundRect(mainRect, CornerRadius(mainCorner, mainCorner)))
+                if (tryCutShown) {
+                    val tryRect = tryCut.toRect()
+                    if (!mainRect.overlaps(tryRect)) {
+                        val tryCorner = tryCut.clampedCorner(tryRect)
+                        veil.addRoundRect(RoundRect(tryRect, CornerRadius(tryCorner, tryCorner)))
+                    }
                 }
                 drawPath(veil, TourVeil)
+
+                drawFocusRing(
+                    rect = mainRect,
+                    corner = mainCorner,
+                    isTry = activeStep.kind == TourStepKind.TRY,
+                    pulsePhase = pulsePhase,
+                )
+                if (tryCutShown) {
+                    val tryRect = tryCut.toRect()
+                    drawFocusRing(
+                        rect = tryRect,
+                        corner = tryCut.clampedCorner(tryRect),
+                        isTry = true,
+                        pulsePhase = pulsePhase,
+                    )
+                }
+                if (activeStep.kind == TourStepKind.TRY && !reduced && !ui.trySuccessPulse && rawTryBounds != null) {
+                    drawTryBeacon(center = rawTryBounds.center, phase = beaconPhase)
+                }
             },
     ) {
-        if (step != null) {
+        if (cutShown) {
+            val activeStep = step!!
+            val anchor = target!!
             TourTouchRegions(
-                // «Pruébalo»: se bloquea todo menos el recorte, por donde el toque llega al elemento.
-                outsideCutOnly = cutShown && step.kind == TourStepKind.TRY,
+                outsideCutOnly = activeStep.kind == TourStepKind.TRY,
                 cut = cut,
-                cutShown = cutShown,
+                tryCut = if (tryCutShown) tryCut else null,
             )
             Layout(
                 modifier = Modifier.fillMaxSize(),
                 content = {
-                    TourBubble(
+                    KpknTourCard(
                         ui = ui,
-                        step = step,
+                        step = activeStep,
                         haze = haze,
+                        reduced = reduced,
                         titleFocus = titleFocus,
+                        onPrev = { tour.previous() },
                         onNext = { tour.next() },
                         onSkip = { tour.skip() },
                         modifier = Modifier.graphicsLayer {
                             alpha = enter.value
-                            val scale = if (reduced) 1f else 0.92f + 0.08f * enter.value
+                            val scale = if (reduced) 1f else 0.94f + 0.06f * enter.value
                             scaleX = scale
                             scaleY = scale
                         },
                     )
-                    TourArrow(pointsUp = true)
-                    TourArrow(pointsUp = false)
                 },
             ) { measurables, constraints ->
                 val gutter = WizardSpacing.gutter.roundToPx()
-                val gap = TourBubbleGap.roundToPx()
-                val arrowWidth = TourArrowWidth.roundToPx()
-                val arrowHeight = TourArrowHeight.roundToPx()
+                val gap = TourCardGap.roundToPx()
+                val safeMargin = 12.dp.roundToPx()
+                val safeTop = insetTop + safeMargin
+                val safeBottom = constraints.maxHeight - insetBottom - safeMargin
                 val width = (constraints.maxWidth - 2 * gutter).coerceAtLeast(0)
-                val bubble = measurables[0].measure(
+                val card = measurables[0].measure(
                     Constraints(minWidth = width, maxWidth = width, minHeight = 0, maxHeight = constraints.maxHeight),
                 )
-                val anchor = target
-                // Con ancla visible, la burbuja va debajo si cabe y si no, encima; sin ancla, centrada.
-                val below = anchor != null && anchor.bottom + gap + bubble.height <= constraints.maxHeight - insetBottom
-                val maxY = max(insetTop, constraints.maxHeight - bubble.height - insetBottom)
+                val maxY = max(safeTop, safeBottom - card.height)
+                val belowY = (anchor.bottom + gap).roundToInt()
+                val aboveY = (anchor.top - gap - card.height).roundToInt()
+                val tryBelow = disjointTryTarget != null && disjointTryTarget.center.y > anchor.center.y
+                val fitsBelow = !tryBelow && belowY + card.height <= safeBottom
+                val fitsAbove = aboveY >= safeTop
                 val y = when {
-                    anchor == null -> (constraints.maxHeight - bubble.height) / 2
-                    below -> (anchor.bottom + gap).roundToInt()
-                    else -> (anchor.top - gap - bubble.height).roundToInt()
-                }.coerceIn(insetTop, maxY)
-                val arrow = if (anchor == null) {
-                    null
-                } else {
-                    measurables[if (below) 1 else 2].measure(Constraints.fixed(arrowWidth, arrowHeight))
-                }
-                val arrowLow = gutter + TourArrowInset.roundToPx()
-                val arrowHigh = gutter + width - TourArrowInset.roundToPx() - arrowWidth
-                val arrowX = if (anchor == null) {
-                    0
-                } else {
-                    val centered = (anchor.center.x - arrowWidth / 2f).roundToInt()
-                    if (arrowHigh < arrowLow) arrowLow else centered.coerceIn(arrowLow, arrowHigh)
-                }
-                val arrowY = if (below) y - arrowHeight + 1 else y + bubble.height - 1
+                    tryBelow && fitsAbove -> aboveY
+                    anchor.center.y > constraints.maxHeight * 0.55f && fitsAbove -> aboveY
+                    fitsBelow -> belowY
+                    fitsAbove -> aboveY
+                    else -> {
+                        val spaceAbove = anchor.top - safeTop
+                        val spaceBelow = safeBottom - anchor.bottom
+                        if (spaceAbove >= spaceBelow) aboveY else belowY
+                    }
+                }.coerceIn(safeTop, maxY)
                 layout(constraints.maxWidth, constraints.maxHeight) {
-                    bubble.place(gutter, y)
-                    arrow?.place(arrowX, arrowY)
+                    card.place(gutter, y)
                 }
             }
         }
     }
 }
 
-/** Recorte animado: cuatro valores que siguen al ancla con resorte. [placed] indica que ya hay un recorte colocado. */
+private suspend fun animateCut(
+    cut: TourCut,
+    rect: Rect?,
+    cornerPx: Float,
+    reduced: Boolean,
+) {
+    if (rect == null) {
+        cut.placed = false
+    } else if (!cut.placed || reduced) {
+        cut.left.snapTo(rect.left)
+        cut.top.snapTo(rect.top)
+        cut.right.snapTo(rect.right)
+        cut.bottom.snapTo(rect.bottom)
+        cut.corner.snapTo(cornerPx)
+        cut.placed = true
+    } else {
+        coroutineScope {
+            launch { cut.left.animateTo(rect.left, TourCutoutSpring) }
+            launch { cut.top.animateTo(rect.top, TourCutoutSpring) }
+            launch { cut.right.animateTo(rect.right, TourCutoutSpring) }
+            launch { cut.bottom.animateTo(rect.bottom, TourCutoutSpring) }
+            launch { cut.corner.animateTo(cornerPx, TourCutoutSpring) }
+        }
+    }
+}
+
+private fun DrawScope.drawFocusRing(
+    rect: Rect,
+    corner: Float,
+    isTry: Boolean,
+    pulsePhase: Float,
+) {
+    val topLeft = Offset(rect.left, rect.top)
+    val rectSize = Size(rect.width, rect.height)
+    val cr = CornerRadius(corner, corner)
+    if (isTry) {
+        val outerExpand = (4f + 5f * pulsePhase).dp.toPx()
+        val outerAlpha = 0.28f * (1f - 0.65f * pulsePhase)
+        drawRoundRect(
+            color = SymbolPalette.musculo.copy(alpha = outerAlpha),
+            topLeft = Offset(rect.left - outerExpand / 2f, rect.top - outerExpand / 2f),
+            size = Size(rect.width + outerExpand, rect.height + outerExpand),
+            cornerRadius = CornerRadius(corner + outerExpand / 2f, corner + outerExpand / 2f),
+            style = Stroke(width = outerExpand),
+        )
+        drawRoundRect(
+            color = SymbolPalette.musculo.copy(alpha = 0.95f),
+            topLeft = topLeft,
+            size = rectSize,
+            cornerRadius = cr,
+            style = Stroke(width = 2.dp.toPx()),
+        )
+    } else {
+        drawRoundRect(
+            color = WizardColors.text.copy(alpha = 0.08f),
+            topLeft = Offset(rect.left - 2.dp.toPx(), rect.top - 2.dp.toPx()),
+            size = Size(rect.width + 4.dp.toPx(), rect.height + 4.dp.toPx()),
+            cornerRadius = CornerRadius(corner + 2.dp.toPx(), corner + 2.dp.toPx()),
+            style = Stroke(width = 4.dp.toPx()),
+        )
+        drawRoundRect(
+            color = WizardColors.text.copy(alpha = 0.55f),
+            topLeft = topLeft,
+            size = rectSize,
+            cornerRadius = cr,
+            style = Stroke(width = 1.5.dp.toPx()),
+        )
+    }
+}
+
+private fun DrawScope.drawTryBeacon(center: Offset, phase: Float) {
+    val rippleRadius = (10f + 16f * phase).dp.toPx()
+    val rippleAlpha = (1f - phase).coerceIn(0f, 1f)
+    drawCircle(
+        color = SymbolPalette.musculo.copy(alpha = 0.28f * rippleAlpha),
+        radius = rippleRadius,
+        center = center,
+    )
+    drawCircle(
+        color = SymbolPalette.musculo.copy(alpha = 0.85f * rippleAlpha),
+        radius = rippleRadius,
+        center = center,
+        style = Stroke(width = 1.5.dp.toPx()),
+    )
+    drawCircle(
+        color = SymbolPalette.musculo,
+        radius = 6.dp.toPx(),
+        center = center,
+    )
+}
+
+/** Recorte animado con física de resorte y radio adaptativo. */
 private class TourCut {
     val left = Animatable(0f)
     val top = Animatable(0f)
     val right = Animatable(0f)
     val bottom = Animatable(0f)
+    val corner = Animatable(0f)
     var placed by mutableStateOf(false)
+
+    fun toRect(): Rect = Rect(left.value, top.value, right.value, bottom.value)
+
+    fun clampedCorner(rect: Rect): Float =
+        corner.value.coerceIn(0f, min(rect.width, rect.height) / 2f)
+
+    fun toIntRect(screenW: Int, screenH: Int): IntRect {
+        val l = left.value.roundToInt().coerceIn(0, screenW)
+        val t = top.value.roundToInt().coerceIn(0, screenH)
+        val r = right.value.roundToInt().coerceIn(l, screenW)
+        val b = bottom.value.roundToInt().coerceIn(t, screenH)
+        return IntRect(l, t, r, b)
+    }
 }
 
 /**
- * Bloqueo de toques y recorte medible. Cada hijo se mide y se coloca con `place` en su rectángulo, así que sus límites y
- * su zona de toque son los reales (un `offset` solo movería el contenido). Los límites se leen al medir: el recorte sigue
- * la animación sin recomponer cada cuadro.
+ * Bloqueo de toques y recorte medible. Deja libres las áreas de [cut] (y [tryCut] si es disjunto)
+ * en pasos `TRY`, y bloquea toda la pantalla en pasos `NEXT`.
  */
 @Composable
 private fun TourTouchRegions(
     outsideCutOnly: Boolean,
     cut: TourCut,
-    cutShown: Boolean,
+    tryCut: TourCut?,
 ) {
     Layout(
         modifier = Modifier.fillMaxSize(),
         content = {
-            // Hijos 0–3: bloqueos (arriba, abajo, izquierda y derecha del recorte, o uno a pantalla completa). Hijo 4: recorte.
-            repeat(4) { Box(Modifier.tourBlockTouches()) {} }
+            repeat(TourMaxTouchBlockers) { Box(Modifier.tourBlockTouches()) {} }
             Box(Modifier.testTag("tour_cutout")) {}
         },
     ) { measurables, constraints ->
         val screenW = constraints.maxWidth
         val screenH = constraints.maxHeight
-        val left = cut.left.value.roundToInt().coerceIn(0, screenW)
-        val top = cut.top.value.roundToInt().coerceIn(0, screenH)
-        val right = cut.right.value.roundToInt().coerceIn(left, screenW)
-        val bottom = cut.bottom.value.roundToInt().coerceIn(top, screenH)
-        val regions = buildList<Pair<Int, IntRect>> {
-            if (outsideCutOnly) {
-                add(0 to IntRect(0, 0, screenW, top))
-                add(1 to IntRect(0, bottom, screenW, screenH))
-                add(2 to IntRect(0, top, left, bottom))
-                add(3 to IntRect(right, top, screenW, bottom))
-            } else {
-                add(0 to IntRect(0, 0, screenW, screenH))
-            }
-            if (cutShown) add(4 to IntRect(left, top, right, bottom))
+        val mainRect = cut.toIntRect(screenW, screenH)
+        val extraRect = tryCut?.toIntRect(screenW, screenH)
+        val blockerRects = if (!outsideCutOnly) {
+            listOf(IntRect(0, 0, screenW, screenH))
+        } else if (extraRect == null) {
+            listOf(
+                IntRect(0, 0, screenW, mainRect.top),
+                IntRect(0, mainRect.bottom, screenW, screenH),
+                IntRect(0, mainRect.top, mainRect.left, mainRect.bottom),
+                IntRect(mainRect.right, mainRect.top, screenW, mainRect.bottom),
+            ).filter { it.width > 0 && it.height > 0 }
+        } else {
+            computeComplementRects(screenW, screenH, listOf(mainRect, extraRect))
         }
-        val placed = regions.map { (index, rect) ->
-            measurables[index].measure(Constraints.fixed(rect.width, rect.height)) to rect
+
+        val placedBlockers = blockerRects.take(TourMaxTouchBlockers).mapIndexed { idx, rect ->
+            measurables[idx].measure(Constraints.fixed(rect.width, rect.height)) to rect
         }
+        val cutoutPlaceable = measurables[TourMaxTouchBlockers].measure(
+            Constraints.fixed(mainRect.width, mainRect.height),
+        )
         layout(screenW, screenH) {
-            placed.forEach { (placeable, rect) -> placeable.place(rect.left, rect.top) }
+            placedBlockers.forEach { (placeable, rect) -> placeable.place(rect.left, rect.top) }
+            cutoutPlaceable.place(mainRect.left, mainRect.top)
         }
     }
+}
+
+private fun computeComplementRects(
+    screenW: Int,
+    screenH: Int,
+    holes: List<IntRect>,
+): List<IntRect> {
+    val xs = (listOf(0, screenW) + holes.flatMap { listOf(it.left, it.right) })
+        .map { it.coerceIn(0, screenW) }
+        .distinct()
+        .sorted()
+    val ys = (listOf(0, screenH) + holes.flatMap { listOf(it.top, it.bottom) })
+        .map { it.coerceIn(0, screenH) }
+        .distinct()
+        .sorted()
+    val out = ArrayList<IntRect>(16)
+    for (i in 0 until xs.lastIndex) {
+        for (j in 0 until ys.lastIndex) {
+            val cell = IntRect(xs[i], ys[j], xs[i + 1], ys[j + 1])
+            if (cell.width <= 0 || cell.height <= 0) continue
+            val cx = cell.left + cell.width / 2
+            val cy = cell.top + cell.height / 2
+            val insideHole = holes.any { h -> cx >= h.left && cx < h.right && cy >= h.top && cy < h.bottom }
+            if (!insideHole) out += cell
+        }
+    }
+    return out
 }
 
 /** Se come todos los toques de la región: nada llega a la app que hay debajo. */
@@ -322,29 +542,172 @@ private fun Modifier.tourBlockTouches(): Modifier = this.pointerInput(Unit) {
 }
 
 @Composable
-private fun TourBubble(
+private fun KpknTourCard(
     ui: TourUiState,
     step: TourStep,
     haze: HazeState?,
+    reduced: Boolean,
     titleFocus: FocusRequester,
+    onPrev: () -> Unit,
     onNext: () -> Unit,
     onSkip: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // Vidrio del anfitrión si hay desenfoque; si no, #141414 al 94 %.
     val surface = if (haze != null) {
-        Modifier.kpknGlass(haze, TourBubbleShape, withBorder = false)
+        Modifier.kpknGlass(haze, TourCardShape, withBorder = false)
     } else {
-        Modifier.clip(TourBubbleShape).background(TourBubbleFallback)
+        Modifier.clip(TourCardShape).background(TourCardFallback)
     }
+    val eyebrowText = step.eyebrow.ifBlank { "PASO ${ui.index + 1} DE ${ui.steps.size}" }
+    val isLastStep = ui.index == ui.steps.lastIndex
+
     Column(
         modifier = modifier
             .then(surface)
-            .border(1.dp, WizardColors.glassBorder, TourBubbleShape)
-            .padding(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 8.dp)
+            .border(1.dp, WizardColors.glassBorder, TourCardShape)
+            .padding(horizontal = 18.dp, vertical = 16.dp)
             .semantics { paneTitle = step.title }
             .testTag("tour_bubble"),
     ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            Text(
+                text = eyebrowText,
+                style = TourEyebrowStyle,
+                color = SymbolPalette.musculo,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f),
+            )
+            Box(
+                modifier = Modifier
+                    .testTag("tour_skip")
+                    .defaultMinSize(minWidth = WizardSpacing.touchTarget, minHeight = 36.dp)
+                    .clip(CircleShape)
+                    .clickable(role = Role.Button, onClick = onSkip)
+                    .padding(horizontal = 10.dp),
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(
+                    text = "Saltar",
+                    style = TourChipLabelStyle,
+                    color = WizardColors.textMuted,
+                )
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+        TourProgressPills(count = ui.steps.size, current = ui.index, reduced = reduced)
+        Spacer(Modifier.height(12.dp))
+
+        if (reduced) {
+            TourCardCopy(step = step, titleFocus = titleFocus)
+        } else {
+            AnimatedContent(
+                targetState = ui.index to step,
+                transitionSpec = {
+                    fadeIn(tween(180)) togetherWith fadeOut(tween(120))
+                },
+                label = "tour-card-copy",
+            ) { (_, targetStep) ->
+                TourCardCopy(step = targetStep, titleFocus = titleFocus)
+            }
+        }
+
+        Spacer(Modifier.height(14.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween,
+        ) {
+            if (ui.canGoBack) {
+                TourPillButton(
+                    label = "← Atrás",
+                    containerColor = Color.White.copy(alpha = 0.07f),
+                    contentColor = WizardColors.textMuted,
+                    tag = "tour_prev",
+                    onClick = onPrev,
+                )
+            } else {
+                Spacer(Modifier.width(1.dp))
+            }
+
+            when {
+                ui.trySuccessPulse -> {
+                    Row(
+                        modifier = Modifier
+                            .testTag("tour_try_success")
+                            .clip(CircleShape)
+                            .background(WizardColors.done.copy(alpha = 0.20f))
+                            .border(1.dp, WizardColors.done, CircleShape)
+                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        Icon(
+                            imageVector = KpknLineIcons.Check,
+                            contentDescription = null,
+                            tint = WizardColors.done,
+                            modifier = Modifier.size(14.dp),
+                        )
+                        Text(
+                            text = "¡Listo!",
+                            style = TourChipLabelStyle,
+                            color = WizardColors.done,
+                        )
+                    }
+                }
+                step.kind == TourStepKind.TRY -> {
+                    Row(
+                        modifier = Modifier.weight(1f, fill = false),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        val hint = step.tryHint
+                        if (!hint.isNullOrBlank()) {
+                            Text(
+                                text = hint,
+                                style = TourHintStyle,
+                                color = SymbolPalette.musculo,
+                                maxLines = 1,
+                                overflow = TextOverflow.Ellipsis,
+                                modifier = Modifier.weight(1f, fill = false),
+                            )
+                        }
+                        TourPillButton(
+                            label = "Continuar",
+                            containerColor = Color.White.copy(alpha = 0.10f),
+                            contentColor = WizardColors.text,
+                            borderColor = Color.White.copy(alpha = 0.16f),
+                            tag = "tour_next",
+                            onClick = onNext,
+                        )
+                    }
+                }
+                else -> {
+                    TourPillButton(
+                        label = if (isLastStep) "Listo" else "Siguiente",
+                        containerColor = WizardColors.text,
+                        contentColor = Color(0xFF0B0B0B),
+                        tag = "tour_next",
+                        onClick = onNext,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TourCardCopy(
+    step: TourStep,
+    titleFocus: FocusRequester,
+) {
+    Column {
         Text(
             text = step.title,
             style = TourTitleStyle,
@@ -355,73 +718,72 @@ private fun TourBubble(
                 .focusable(),
         )
         Spacer(Modifier.height(6.dp))
-        Text(text = step.body, style = TourBodyStyle, color = WizardColors.textMuted)
-        Spacer(Modifier.height(14.dp))
-        // Fila 1: progreso y la acción principal. Fila 2: «Saltar recorrido». Así, con letra grande, ninguna acción se parte.
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TourDots(count = ui.steps.size, current = ui.index)
-            Spacer(Modifier.weight(1f))
-            if (step.kind == TourStepKind.NEXT) {
-                TourAction(label = "Siguiente", color = WizardColors.text, tag = "tour_next", onClick = onNext)
-            } else {
-                Text(text = "Pruébalo", style = WizardTypography.controlLabel, color = WizardColors.text)
-            }
-        }
-        TourAction(label = "Saltar recorrido", color = WizardColors.textMuted, tag = "tour_skip", onClick = onSkip)
+        Text(
+            text = step.body,
+            style = TourBodyStyle,
+            color = WizardColors.textMuted,
+        )
     }
 }
 
 @Composable
-private fun TourDots(count: Int, current: Int) {
+private fun TourProgressPills(
+    count: Int,
+    current: Int,
+    reduced: Boolean,
+) {
     Row(
         modifier = Modifier.semantics { contentDescription = "Paso ${current + 1} de $count" },
         horizontalArrangement = Arrangement.spacedBy(6.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         repeat(count) { index ->
+            val targetWidth = when {
+                index == current -> 28.dp
+                index < current -> 12.dp
+                else -> 10.dp
+            }
+            val width by if (reduced) {
+                remember(targetWidth) { mutableStateOf(targetWidth) }
+            } else {
+                animateDpAsState(targetValue = targetWidth, label = "tour-pill-width")
+            }
+            val color = when {
+                index == current -> WizardColors.text
+                index < current -> WizardColors.done
+                else -> Color.White.copy(alpha = 0.20f)
+            }
             Box(
-                Modifier
-                    .size(6.dp)
-                    .background(if (index == current) WizardColors.text else WizardColors.textFaint, CircleShape),
-            ) {}
+                modifier = Modifier
+                    .width(width)
+                    .height(6.dp)
+                    .clip(CircleShape)
+                    .background(color),
+            )
         }
     }
 }
 
 @Composable
-private fun TourAction(label: String, color: Color, tag: String, onClick: () -> Unit) {
+private fun TourPillButton(
+    label: String,
+    containerColor: Color,
+    contentColor: Color,
+    tag: String,
+    onClick: () -> Unit,
+    borderColor: Color? = null,
+) {
     Box(
         modifier = Modifier
             .testTag(tag)
-            .defaultMinSize(minWidth = WizardSpacing.touchTarget, minHeight = WizardSpacing.touchTarget)
-            .clickable(role = Role.Button, onClick = onClick),
+            .defaultMinSize(minWidth = WizardSpacing.touchTarget, minHeight = 40.dp)
+            .clip(CircleShape)
+            .background(containerColor)
+            .then(if (borderColor != null) Modifier.border(1.dp, borderColor, CircleShape) else Modifier)
+            .clickable(role = Role.Button, onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
         contentAlignment = Alignment.Center,
     ) {
-        Text(text = label, style = WizardTypography.controlLabel, color = color)
-    }
-}
-
-/** Flecha pequeña hacia el ancla: apunta arriba si la burbuja va debajo, y abajo si va encima. */
-@Composable
-private fun TourArrow(pointsUp: Boolean) {
-    val path = remember { Path() }
-    val border = WizardColors.glassBorder
-    Canvas(Modifier.size(TourArrowWidth, TourArrowHeight)) {
-        path.reset()
-        if (pointsUp) {
-            path.moveTo(size.width / 2f, 0f)
-            path.lineTo(size.width, size.height)
-            path.lineTo(0f, size.height)
-        } else {
-            path.moveTo(0f, 0f)
-            path.lineTo(size.width, 0f)
-            path.lineTo(size.width / 2f, size.height)
-        }
-        path.close()
-        drawPath(path, TourBubbleFallback)
-        drawPath(path, border, style = Stroke(width = 1.dp.toPx()))
+        Text(text = label, style = TourChipLabelStyle, color = contentColor, maxLines = 1)
     }
 }

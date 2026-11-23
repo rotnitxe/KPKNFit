@@ -1,8 +1,11 @@
 package com.example.kpkn.ui.tour
 
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Rect
@@ -17,17 +20,35 @@ import com.example.kpkn.ui.components.LocalKpknOverlayHost
 
 /**
  * Límites, en coordenadas de raíz, de cada ancla visible. Los escribe [tourAnchor] y los leen el
- * controlador (¿está el ancla?) y el overlay (dónde va el recorte).
+ * controlador (¿está el ancla?) y el overlay (dónde va el recorte). También guarda callbacks de scroll
+ * opcionales por ancla para revelar elementos fuera del viewport antes de mostrar el recorte.
  */
 class TourAnchorRegistry {
     private class Anchor(val owner: Any, val bounds: Rect)
 
     private val anchors = mutableStateMapOf<String, Anchor>()
+    private val scrollers = mutableMapOf<String, suspend () -> Unit>()
 
     /** Límites actuales del ancla [id], o null si no está compuesta. */
     fun boundsOf(id: String): Rect? = anchors[id]?.bounds
 
     fun contains(id: String): Boolean = anchors.containsKey(id)
+
+    fun hasScroller(id: String): Boolean = scrollers.containsKey(id)
+
+    fun registerScroller(anchorId: String, onReveal: suspend () -> Unit) {
+        scrollers[anchorId] = onReveal
+    }
+
+    fun unregisterScroller(anchorId: String, onReveal: suspend () -> Unit) {
+        if (scrollers[anchorId] === onReveal) scrollers.remove(anchorId)
+    }
+
+    suspend fun reveal(anchorId: String): Boolean {
+        val scroller = scrollers[anchorId] ?: return false
+        scroller()
+        return true
+    }
 
     internal fun put(id: String, owner: Any, bounds: Rect) {
         val current = anchors[id]
@@ -38,6 +59,28 @@ class TourAnchorRegistry {
     /** Quita el ancla solo si la registró este mismo elemento; dos elementos con el mismo id no se borran entre sí. */
     internal fun remove(id: String, owner: Any) {
         if (anchors[id]?.owner === owner) anchors.remove(id)
+    }
+}
+
+/**
+ * Registra un callback suspendible para revelar [anchorId] (p. ej. `LazyListState.animateScrollToItem` o
+ * `ScrollState.animateScrollTo`) antes de que el overlay pinte el recorte.
+ */
+@Composable
+fun TourAnchorScroller(
+    anchorId: String,
+    onReveal: suspend () -> Unit,
+) {
+    val host = LocalKpknOverlayHost.current
+    val registry = host?.tourAnchors
+    val latestOnReveal by rememberUpdatedState(onReveal)
+    val wrapper = remember(anchorId) {
+        val block: suspend () -> Unit = { latestOnReveal() }
+        block
+    }
+    DisposableEffect(registry, anchorId, wrapper) {
+        registry?.registerScroller(anchorId, wrapper)
+        onDispose { registry?.unregisterScroller(anchorId, wrapper) }
     }
 }
 

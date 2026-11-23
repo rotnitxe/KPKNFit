@@ -62,7 +62,10 @@ internal fun ProgramSessionBlock(
             val name = exerciseDisplayName(exercise, exerciseLookup)
             if (index > 0) Box(modifier = Modifier.fillMaxWidth().height(1.dp).background(KpknSurface.divider))
             Row(
-                modifier = Modifier.fillMaxWidth().padding(vertical = 10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .then(if (startAnchor && index == 0) Modifier.tourAnchor(TourAnchors.TRAINING_EX1) else Modifier)
+                    .padding(vertical = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {

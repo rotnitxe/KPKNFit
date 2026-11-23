@@ -107,7 +107,8 @@ internal fun feedbackLivesOnCard(
     isRestTimerRunning: Boolean,
     isRestMinimized: Boolean,
     restKind: RestTimerKind?,
-): Boolean = feedbackShowing && isRestTimerRunning && isRestMinimized && restKind != null && restKind != RestTimerKind.WARMUP
+    pagerVisible: Boolean = true,
+): Boolean = feedbackShowing && pagerVisible && isRestTimerRunning && isRestMinimized && restKind != null && restKind != RestTimerKind.WARMUP
 
 /**
  * «Guardar»: UNA función para la pantalla completa y la tarjeta, así guardan exactamente lo mismo (la técnica y las molestias del borrador

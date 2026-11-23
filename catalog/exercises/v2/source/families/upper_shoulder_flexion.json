@@ -109,10 +109,10 @@
                   "primaryMuscles": [
                     "deltoid"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "trapezius"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -178,14 +178,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "trapezius"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Polea al frente: subes los brazos contra la tensión constante."
               ],
               "setupTimeSeconds": 25,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "trapezius"
+              ],
               "technicalDifficulty": 3.8
             },
             "selectedOptions": {
@@ -295,10 +295,10 @@
                   "primaryMuscles": [
                     "deltoid"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "trapezius"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -364,14 +364,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "trapezius"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Barra al frente: subes la barra hasta la altura del hombro."
               ],
               "setupTimeSeconds": 35,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "trapezius"
+              ],
               "technicalDifficulty": 3.8
             },
             "selectedOptions": {
@@ -481,10 +481,10 @@
                   "primaryMuscles": [
                     "deltoid"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "trapezius"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -550,14 +550,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "trapezius"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Mancuernas al frente: subes cada brazo o ambos a la altura del hombro."
               ],
               "setupTimeSeconds": 20,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "trapezius"
+              ],
               "technicalDifficulty": 3.8
             },
             "selectedOptions": {
@@ -667,10 +667,10 @@
                   "primaryMuscles": [
                     "deltoid"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "trapezius"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -736,14 +736,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "trapezius"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Kettlebell al frente: el agarre suma trabajo y el hombro empuja."
               ],
               "setupTimeSeconds": 20,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "trapezius"
+              ],
               "technicalDifficulty": 3.8
             },
             "selectedOptions": {

@@ -132,7 +132,9 @@ fun MuscleVolumeBreakdown(
             )
             RoleLine("Directo", row.roles.directSets, unit)
             RoleLine("Secundario", row.roles.secondarySets, unit)
-            if (mode == VolumeCountingMode.STABILIZER) RoleLine("Estabilizador", row.roles.stabilizerSets, unit)
+            if (mode == VolumeCountingMode.STABILIZER || row.roles.stabilizerSets > 0.0) {
+                RoleLine("Estabilizador", row.roles.stabilizerSets, unit)
+            }
         }
 
         if (row.portions.isNotEmpty()) {

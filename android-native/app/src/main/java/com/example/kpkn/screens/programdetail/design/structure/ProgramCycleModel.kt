@@ -1,7 +1,10 @@
 package com.example.kpkn.screens.programdetail.design.structure
 
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.example.kpkn.data.models.LoopMode
+import com.example.kpkn.data.models.LoopModulationScope
 import com.example.kpkn.data.models.LoopType
+import com.example.kpkn.data.models.LoopWaveStep
 import com.example.kpkn.domain.text.SpanishPlurals
 import com.example.kpkn.domain.training.LoopEngine
 import com.example.kpkn.screens.programdetail.design.numberWithUnit
@@ -19,6 +22,9 @@ internal data class ProgramCycleLoop(
     val type: LoopType,
     val cadence: Int,
     val cancelled: Boolean,
+    val mode: LoopMode = LoopMode.RECURRING_WEEK,
+    val waveSteps: List<LoopWaveStep> = emptyList(),
+    val modulationScope: LoopModulationScope = LoopModulationScope.APRE_EXERCISES,
 )
 
 /**
@@ -54,6 +60,7 @@ internal data class ProgramCyclesModel(
     val legacyEventCount: Int,
     val collisionLines: List<String>,
     val canAddLoops: Boolean = true,
+    val apreExerciseNames: List<String> = emptyList(),
 )
 
 /** Lo que la hoja pide sobre un ciclo ya existente. [DELETE] se confirma antes de aplicarse. */
@@ -65,6 +72,9 @@ internal data class ProgramCycleDraft(
     val title: String,
     val type: LoopType,
     val cadence: Int,
+    val mode: LoopMode = LoopMode.RECURRING_WEEK,
+    val waveSteps: List<LoopWaveStep> = emptyList(),
+    val modulationScope: LoopModulationScope = LoopModulationScope.APRE_EXERCISES,
 )
 
 /** Icono del lienzo (e-cycles) para cada tipo de ciclo: descarga = repetir, test = diana, competición = bandera, otro = repetir. */
@@ -100,14 +110,18 @@ internal fun legacyEventsLine(count: Int): String =
 /** El otro loop que ya usa esa cadencia, o null si no hay choque. Una cadencia de 0 (campo vacío) nunca choca. */
 internal fun cycleCadenceConflict(existing: List<ProgramCycleLoop>, editingId: String?, cadence: Int): ProgramCycleLoop? {
     if (cadence <= 0) return null
-    return existing.firstOrNull { loop -> loop.id != editingId && loop.cadence.coerceAtLeast(1) == cadence }
+    return existing.firstOrNull { loop ->
+        loop.id != editingId &&
+            loop.mode != LoopMode.PROGRESSIVE_WAVE &&
+            loop.cadence.coerceAtLeast(1) == cadence
+    }
 }
 
 /** «Conflicto: Descarga ya usa cada 4 loops. Cambia la cadencia para evitar que dos loops compitan por la misma semana.» */
 internal fun cycleConflictLine(conflict: ProgramCycleLoop, cadence: Int): String =
     "Conflicto: ${conflict.title} ya usa ${cycleCadenceLabel(cadence)}. Cambia la cadencia para evitar que dos loops compitan por la misma semana."
 
-/** Las cuatro plantillas de loops con su icono. Qué loops crean vive en `CyclesSection`, que es quien los añade al programa. */
+/** Las plantillas de loops con su icono. Qué loops crean vive en `CyclesSection`, que es quien los añade al programa. */
 internal val programCycleTemplates: List<ProgramCycleTemplate> = listOf(
     ProgramCycleTemplate(
         id = "custom",
@@ -133,7 +147,46 @@ internal val programCycleTemplates: List<ProgramCycleTemplate> = listOf(
         description = "Descarga cada 4 loops y test cada 8.",
         icon = KpknLineIcons.Repeat,
     ),
+    ProgramCycleTemplate(
+        id = "wave:onda-apre-10-6-3",
+        name = "Onda APRE 10-6-3",
+        description = "Acumulación APRE 10 -> transición APRE 6 -> pico APRE 3.",
+        icon = KpknLineIcons.Flame,
+    ),
+    ProgramCycleTemplate(
+        id = "wave:progresion-rir-3-0",
+        name = "Progresión RIR 3->0",
+        description = "Baja el RIR objetivo semana a semana hasta el pico.",
+        icon = KpknLineIcons.Target,
+    ),
+    ProgramCycleTemplate(
+        id = "wave:rampa-volumen-descarga",
+        name = "Rampa + descarga",
+        description = "Suma +1 serie por bloque y descarga automática al final.",
+        icon = KpknLineIcons.Repeat,
+    ),
+    ProgramCycleTemplate(
+        id = "wave:ondulacion-reps-12-6",
+        name = "Ondulación de reps 12 → 6",
+        description = "Reduce repeticiones progresivamente de 12 a 6 semana a semana.",
+        icon = KpknLineIcons.Repeat,
+    ),
 )
+
+/** Filtra las plantillas de loops según los ejercicios APRE presentes en el programa. */
+internal fun programCycleTemplatesFor(apreExerciseNames: List<String>): List<ProgramCycleTemplate> {
+    if (apreExerciseNames.isEmpty()) {
+        return programCycleTemplates.filterNot { it.id == "wave:onda-apre-10-6-3" }
+    }
+    val targetsLabel = apreExerciseNames.distinct().joinToString(", ")
+    return programCycleTemplates.map { template ->
+        if (template.id == "wave:onda-apre-10-6-3") {
+            template.copy(description = "Afecta solo a: $targetsLabel · ${template.description}")
+        } else {
+            template
+        }
+    }
+}
 
 /** Nombre del tipo de ciclo en el editor (el de `LoopEngine`, sin cambios). */
 internal fun cycleTypeLabel(type: LoopType): String = LoopEngine.getLoopTypeLabel(type)

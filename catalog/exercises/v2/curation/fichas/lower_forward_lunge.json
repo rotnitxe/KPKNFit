@@ -79,30 +79,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "gmax",
               "escamilla"
             ],
             "why": "La cadera adelantada se flexiona en la recepción y se extiende al devolver el cuerpo. El glúteo mayor produce esa extensión cargada, por lo que acompaña como PRIMARY al cuádriceps y no queda como mero sostén postural."
-          },
-          {
-            "id": "hamstrings",
-            "role": "SECONDARY",
-            "sources": [
-              "ham",
-              "escamilla"
-            ],
-            "why": "Ayudan a extender la cadera delantera y coactivan alrededor de la rodilla en el aterrizaje. Su activación en zancadas y su función anatómica respaldan ayuda secundaria, sin sustituir la extensión de rodilla del cuádriceps."
-          },
-          {
-            "id": "calves",
-            "role": "SECONDARY",
-            "sources": [
-              "calf",
-              "escamilla"
-            ],
-            "why": "El gastrocnemio y el sóleo, agrupados aquí como calves, acompañan el desplazamiento tibial y la flexión plantar del regreso. La medición de gastrocnemio en zancadas respalda contribución secundaria del tobillo."
           },
           {
             "id": "adductors",
@@ -112,6 +94,24 @@
               "escamilla"
             ],
             "why": "La actividad de aductores registrada en zancadas acompaña el control del muslo; la porción posterior del aductor mayor puede ayudar a extender la cadera. Esa ayuda secundaria se infiere de su anatomía, sin asignarle dominancia."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "ham",
+              "escamilla"
+            ],
+            "why": "Ayudan a extender la cadera delantera y coactivan alrededor de la rodilla en el aterrizaje. Su activación en zancadas y su función anatómica respaldan ayuda secundaria, sin sustituir la extensión de rodilla del cuádriceps."
+          },
+          {
+            "id": "calves",
+            "role": "STABILIZER",
+            "sources": [
+              "calf",
+              "escamilla"
+            ],
+            "why": "El gastrocnemio y el sóleo, agrupados aquí como calves, acompañan el desplazamiento tibial y la flexión plantar del regreso. La medición de gastrocnemio en zancadas respalda contribución secundaria del tobillo."
           },
           {
             "id": "gluteus_medius",

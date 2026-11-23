@@ -39,10 +39,10 @@ import com.example.kpkn.domain.calculations.resolveReferenceCapacity
 import com.example.kpkn.domain.calculations.resolveSmartLoadReference
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.components.sheets.formatDecimalComma
+import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.safeIntOrNull
 import com.example.kpkn.screens.sessioneditor.safeDoubleOrNull
 import com.example.kpkn.screens.sessioneditor.smartReferenceMetricLabel
-import com.example.kpkn.screens.sessioneditor.components.sheets.EditorDialogImeArea
 import com.example.kpkn.ui.components.KpknAlertConfirmButton
 import com.example.kpkn.ui.components.KpknAlertDismissButton
 import com.example.kpkn.ui.design.KpknChip
@@ -125,30 +125,29 @@ internal fun ExerciseSmartLoadDialog(
     onUpdateExercise: ((Exercise) -> Exercise) -> Unit,
     availableTags: List<WorkoutTag> = emptyList(),
     onSaveTag: (WorkoutTag) -> Unit = {},
+    onOpenTagManager: (() -> Unit)? = null,
     onDismiss: () -> Unit,
 ) {
-    var trainingMaxInput by remember(exercise.id, exercise.referenceTrainingMax) { mutableStateOf(exercise.referenceTrainingMax?.toString().orEmpty()) }
+    var trainingMaxInput by remember(exercise.id, exercise.referenceTrainingMax) {
+        mutableStateOf(
+            exercise.referenceTrainingMax?.let { formatEditableNumber(it) }.orEmpty(),
+        )
+    }
     var prEffortMode by rememberSaveable(exercise.id, exercise.prFor1RM?.effortMode) {
         mutableStateOf(exercise.prFor1RM?.effortMode?.name ?: "UNKNOWN")
     }
     var prEffortInput by rememberSaveable(exercise.id, exercise.prFor1RM?.effortValue) {
         mutableStateOf(exercise.prFor1RM?.effortValue?.toString().orEmpty())
     }
+    var showAdvancedOptions by rememberSaveable(exercise.id) {
+        mutableStateOf(exercise.prFor1RM?.romTarget != null || exercise.prFor1RM?.effortMode != null)
+    }
+    var showInlineTagSelector by rememberSaveable(exercise.id) { mutableStateOf(false) }
     var newTagName by rememberSaveable(exercise.id) { mutableStateOf("") }
-    var renameTagId by rememberSaveable(exercise.id) { mutableStateOf<String?>(null) }
-    var renameTagValue by rememberSaveable(exercise.id) { mutableStateOf("") }
-    var showTagSelector by rememberSaveable(exercise.id) { mutableStateOf(false) }
     val selectedTag = availableTags.firstOrNull { it.id == exercise.workoutTagId }
     val effortMode = runCatching { PrEffortMode.valueOf(prEffortMode) }.getOrNull()
     val effortValue = prEffortInput.safeDoubleOrNull()?.takeIf { it.isFinite() }
     val smartReference = resolveSmartLoadReference(exercise)
-    val smartReferenceLabel = when (smartReference?.source) {
-        com.example.kpkn.domain.calculations.SmartLoadReferenceSource.ONE_RM -> "1RM"
-        com.example.kpkn.domain.calculations.SmartLoadReferenceSource.EXPLICIT_TRAINING_MAX -> "TM explícito"
-        com.example.kpkn.domain.calculations.SmartLoadReferenceSource.RECIPE_TRAINING_MAX -> "TM según receta"
-        com.example.kpkn.domain.calculations.SmartLoadReferenceSource.DEFAULT_TRAINING_MAX -> "TM calculado al 90%"
-        null -> "Referencia pendiente"
-    }
     val availableSuggestedKg = exercise.sets.firstNotNullOfOrNull { set ->
         calculateSuggestedLoad(exercise, set)?.takeIf { it.isFinite() && it >= 0.0 }
     }
@@ -159,6 +158,7 @@ internal fun ExerciseSmartLoadDialog(
         repsText: String = prRepsInput,
         mode: PrEffortMode? = effortMode,
         effortText: String = prEffortInput,
+        romTarget: PlannedRomTarget? = exercise.prFor1RM?.romTarget ?: exercise.plannedRom.takeIf { exercise.trackRom },
     ) {
         val weight = weightText.safeDoubleOrNull()
         val reps = repsText.safeIntOrNull()
@@ -169,7 +169,7 @@ internal fun ExerciseSmartLoadDialog(
             PrEffortMode.FAILURE, null -> null
         }
         if (weight != null && weight > 0.0 && reps != null && reps > 0) {
-            val updatedPr = PrReference(weight, reps, mode, value)
+            val updatedPr = PrReference(weight, reps, mode, value, romTarget)
             val estimated = StrengthModel.estimate1RM(
                 weight = weight,
                 reps = reps,
@@ -177,21 +177,31 @@ internal fun ExerciseSmartLoadDialog(
                 rpe = value?.takeIf { mode == PrEffortMode.RPE },
                 toFailure = mode == PrEffortMode.FAILURE,
             )
-            onUpdateExercise { current -> current.copy(prFor1RM = updatedPr, reference1RM = estimated) }
-        } else {
             onUpdateExercise { current ->
-                current.copy(
-                    prFor1RM = current.prFor1RM?.copy(
-                        weight = weight ?: current.prFor1RM.weight,
-                        reps = reps ?: current.prFor1RM.reps,
-                        effortMode = mode,
-                        effortValue = value,
-                    ),
-                )
+                current.copy(prFor1RM = updatedPr, reference1RM = estimated).recomputePlannedApreLoadsIfLinked()
+            }
+        } else {
+            val cleared = weightText.isBlank() || repsText.isBlank() || (weight != null && weight <= 0.0) || (reps != null && reps <= 0)
+            onUpdateExercise { current ->
+                if (cleared) {
+                    current.copy(
+                        prFor1RM = null,
+                        reference1RM = null,
+                    )
+                } else {
+                    current.copy(
+                        prFor1RM = current.prFor1RM?.copy(
+                            weight = weight ?: current.prFor1RM.weight,
+                            reps = reps ?: current.prFor1RM.reps,
+                            effortMode = mode,
+                            effortValue = value,
+                            romTarget = romTarget,
+                        ),
+                    )
+                }
             }
         }
     }
-EditorDialogImeArea {
 EditorSheetDialog(
     onDismissRequest = { onDismiss() },
     title = {
@@ -205,72 +215,41 @@ EditorSheetDialog(
     },
     text = {
         Column(
-            modifier = Modifier
-                .heightIn(max = 300.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            modifier = Modifier.verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(14.dp),
         ) {
+            // 1. Píldora resumen viva
+            val est1Rm = resolved1RM ?: exercise.reference1RM ?: localPrEstimatedRm
+            val summaryText = buildString {
+                append(est1Rm?.let { "1RM est. ${formatDecimalComma(it)} kg" } ?: "1RM pendiente")
+                append(" · ")
+                append(smartReference?.let { "Base activa: ${formatDecimalComma(it.kilograms)} kg" } ?: "Sin base activa")
+                availableSuggestedKg?.let { append(" · Sug: ${formatDecimalComma(it)} kg") }
+            }
             Text(
-                buildString {
-                    append("Base efectiva: ")
-                    append(smartReferenceLabel)
-                    smartReference?.let { append(" · ${formatDecimalComma(it.kilograms)} kg") }
-                    append(" · ")
-                    append(availableSuggestedKg?.let { "carga disponible: ${formatDecimalComma(it)} kg" } ?: "carga pendiente")
-                },
+                text = summaryText,
                 style = KpknType.caption,
-                color = WizardColors.textMuted,
+                color = if (smartReference == null) WizardColors.danger else WizardColors.textMuted,
             )
 
-            Text("Base para sugerencias", style = KpknType.bodyStrong, color = WizardColors.text)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                KpknChip(
-                    text = "1RM",
-                    selected = (exercise.smartLoadBasis ?: SmartLoadBasis.ONE_RM) == SmartLoadBasis.ONE_RM,
-                    onClick = { onUpdateExercise { it.copy(smartLoadBasis = SmartLoadBasis.ONE_RM) } },
-                )
-                KpknChip(
-                    text = "Training Max",
-                    selected = exercise.smartLoadBasis == SmartLoadBasis.TRAINING_MAX,
-                    onClick = { onUpdateExercise { it.copy(smartLoadBasis = SmartLoadBasis.TRAINING_MAX) } },
-                )
-            }
-            if (smartReference == null) {
-                Text("Falta una referencia para calcular la sugerencia.", style = KpknType.caption, color = WizardColors.danger)
-            }
-
-            Text("Referencia de 1RM", style = KpknType.bodyStrong, color = WizardColors.text)
-            val hasExplicitTmSets = exercise.sets.any { it.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM }
-            if (exercise.smartLoadBasis == SmartLoadBasis.TRAINING_MAX || hasExplicitTmSets) {
-                EditorKpknField(
-                    label = "Training max (TM) explícito",
-                    value = trainingMaxInput,
-                    keyboardType = KeyboardType.Decimal,
-                    modifier = Modifier.fillMaxWidth(),
-                ) { input ->
-                    trainingMaxInput = input
-                    val parsed = input.safeDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 }
-                    onUpdateExercise { current -> current.copy(referenceTrainingMax = parsed) }
-                }
-                if (missing.trainingMax) {
-                    Text("Falta el TM para las series en %TM. Esta referencia no se sustituye con el 1RM.", style = KpknType.caption, color = WizardColors.danger)
-                }
-            }
-            if (exercise.trainingMode == TrainingMode.REPS || exercise.trainingMode == TrainingMode.RM) {
+            // 2. Bloque principal (PR / 1RM)
+            if (exercise.trainingMode == TrainingMode.REPS || exercise.trainingMode == TrainingMode.RM || exercise.trainingMode == TrainingMode.AMRAP) {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    KpknChip(text = "RM directo", selected = rmInputMode == "direct", onClick = { onRmInputModeChange("direct") })
+                    KpknChip(text = "1RM directo", selected = rmInputMode == "direct", onClick = { onRmInputModeChange("direct") })
                     KpknChip(text = "Desde PR", selected = rmInputMode == "pr", onClick = { onRmInputModeChange("pr") })
                 }
                 if (rmInputMode == "direct") {
                     EditorKpknField(
-                        label = "1RM referencial",
+                        label = "1RM referencial (kg)",
                         value = directRmInput,
                         keyboardType = KeyboardType.Decimal,
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         onDirectRmInputChange(it)
                         val parsed = it.safeDoubleOrNull()?.takeIf { value -> value > 0 }
-                        onUpdateExercise { current -> current.copy(reference1RM = parsed) }
+                        onUpdateExercise { current ->
+                            current.copy(reference1RM = parsed, prFor1RM = null).recomputePlannedApreLoadsIfLinked()
+                        }
                     }
                     if (missing.oneRm) {
                         Text("Falta el 1RM para las series en %1RM. Agrega un 1RM o un PR.", style = KpknType.caption, color = WizardColors.danger)
@@ -296,34 +275,6 @@ EditorSheetDialog(
                             updatePr(repsText = it)
                         }
                     }
-                    Text("Esfuerzo opcional del PR", style = KpknType.bodyStrong, color = WizardColors.text)
-                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                        listOf("UNKNOWN" to "Sin dato", "RPE" to "RPE", "RIR" to "RIR", "FAILURE" to "Fallo").forEach { (id, label) ->
-                            KpknChip(
-                                text = label,
-                                selected = prEffortMode == id,
-                                onClick = {
-                                    prEffortMode = id
-                                    prEffortInput = if (id == "FAILURE" || id == "UNKNOWN") "" else prEffortInput
-                                    updatePr(
-                                        mode = runCatching { PrEffortMode.valueOf(id) }.getOrNull(),
-                                        effortText = if (id == "FAILURE" || id == "UNKNOWN") "" else prEffortInput,
-                                    )
-                                },
-                            )
-                        }
-                    }
-                    if (effortMode == PrEffortMode.RPE || effortMode == PrEffortMode.RIR) {
-                        EditorKpknField(
-                            label = if (effortMode == PrEffortMode.RPE) "RPE del PR (0–10)" else "RIR del PR",
-                            value = prEffortInput,
-                            keyboardType = KeyboardType.Decimal,
-                            modifier = Modifier.fillMaxWidth(),
-                        ) { input ->
-                            prEffortInput = input
-                            updatePr()
-                        }
-                    }
                     (prWeightInput.safeDoubleOrNull()?.let { weight ->
                         prRepsInput.safeIntOrNull()?.takeIf { it > 0 }?.let { reps ->
                             StrengthModel.estimate1RM(
@@ -335,7 +286,7 @@ EditorSheetDialog(
                         }
                     } ?: localPrEstimatedRm)?.let { estimate ->
                         Text(
-                            "Origen: PR · ${formatDecimalComma(prWeightInput.safeDoubleOrNull() ?: 0.0)} kg × ${prRepsInput.safeIntOrNull() ?: 0} reps${effortMode?.let { " · ${it.name} ${effortValue ?: ""}" }.orEmpty()} · 1RM estimado: ${formatDecimalComma(estimate)} kg",
+                            "1RM estimado: ${formatDecimalComma(estimate)} kg",
                             style = KpknType.bodyStrong,
                             color = WizardColors.text,
                         )
@@ -379,86 +330,207 @@ EditorSheetDialog(
                 }
             }
 
-            Text("Etiqueta del historial", style = KpknType.bodyStrong, color = WizardColors.text)
-            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text(
-                    selectedTag?.name ?: if (exercise.workoutTagId == null) "Sin etiqueta" else "Etiqueta seleccionada",
-                    modifier = Modifier.weight(1f),
-                    style = KpknType.body,
-                    color = WizardColors.text,
-                    maxLines = 1,
-                )
-                KpknTextAction(text = if (showTagSelector) "Ocultar" else "Elegir", onClick = { showTagSelector = !showTagSelector })
-            }
-            if (showTagSelector) {
-                Column(
-                    modifier = Modifier.heightIn(max = 128.dp).verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(6.dp),
-                ) {
-                    KpknTextAction(
-                        text = "Sin etiqueta",
-                        onClick = { onUpdateExercise { it.copy(workoutTagId = null) } },
+            // 3. Switch simple: Usar Training Max
+            val useTrainingMax = exercise.smartLoadBasis == SmartLoadBasis.TRAINING_MAX
+            val hasExplicitTmSets = exercise.sets.any { it.loadBasis == com.example.kpkn.data.protocols.LoadBasis.PERCENT_TM }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Usar Training Max", style = KpknType.bodyStrong, color = WizardColors.text)
+                    Text(
+                        if (useTrainingMax) "Sugerencias basadas en TM (por defecto 90 % del 1RM)" else "Sugerencias basadas en 1RM directo",
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
                     )
+                }
+                KpknSwitch(
+                    checked = useTrainingMax,
+                    onCheckedChange = { checked ->
+                        if (checked) {
+                            val prefillTm = exercise.referenceTrainingMax ?: est1Rm?.let { kotlin.math.round(it * 0.90 * 2.0) / 2.0 }
+                            if (trainingMaxInput.isBlank() && prefillTm != null) {
+                                trainingMaxInput = formatEditableNumber(prefillTm)
+                            }
+                            onUpdateExercise { current ->
+                                current.copy(
+                                    smartLoadBasis = SmartLoadBasis.TRAINING_MAX,
+                                    referenceTrainingMax = current.referenceTrainingMax ?: prefillTm,
+                                ).recomputePlannedApreLoadsIfLinked()
+                            }
+                        } else {
+                            onUpdateExercise { current ->
+                                current.copy(smartLoadBasis = SmartLoadBasis.ONE_RM).recomputePlannedApreLoadsIfLinked()
+                            }
+                        }
+                    },
+                )
+            }
+            if (useTrainingMax || hasExplicitTmSets) {
+                EditorKpknField(
+                    label = "Training Max (kg)",
+                    value = trainingMaxInput,
+                    keyboardType = KeyboardType.Decimal,
+                    modifier = Modifier.fillMaxWidth(),
+                ) { input ->
+                    trainingMaxInput = input
+                    val parsed = input.safeDoubleOrNull()?.takeIf { it.isFinite() && it > 0.0 }
+                    onUpdateExercise { current ->
+                        current.copy(referenceTrainingMax = parsed).recomputePlannedApreLoadsIfLinked()
+                    }
+                }
+                if (missing.trainingMax) {
+                    Text("Falta el TM para las series en %TM.", style = KpknType.caption, color = WizardColors.danger)
+                }
+            }
+
+            // 4. Chip simple de etiqueta
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text("Etiqueta", style = KpknType.bodyStrong, color = WizardColors.text)
+                KpknChip(
+                    text = selectedTag?.let { "🏷 ${it.name} ⌄" } ?: "+ Etiqueta",
+                    selected = selectedTag != null,
+                    onClick = {
+                        if (onOpenTagManager != null) onOpenTagManager() else showInlineTagSelector = !showInlineTagSelector
+                    },
+                )
+            }
+            if (showInlineTagSelector && onOpenTagManager == null) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    KpknTextAction(text = "Sin etiqueta", onClick = { onUpdateExercise { it.copy(workoutTagId = null) } })
                     availableTags.forEach { tag ->
                         KpknTextAction(
                             text = if (tag.id == exercise.workoutTagId) "✓ ${tag.name}" else tag.name,
                             onClick = { onUpdateExercise { it.copy(workoutTagId = tag.id) } },
                         )
                     }
-                }
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                    KpknTextField(
-                        value = newTagName,
-                        onValueChange = { newTagName = it },
-                        label = "Crear etiqueta",
-                        modifier = Modifier.weight(1f),
-                        singleLine = true,
-                    )
-                    KpknTextAction(
-                        text = "Crear",
-                        onClick = {
-                            val name = newTagName.trim()
-                            if (name.isNotEmpty()) {
-                                val now = java.time.Instant.now().toString()
-                                val tag = com.example.kpkn.domain.workout.WorkoutTagResolver.withNormalized(
-                                    WorkoutTag(
-                                        id = java.util.UUID.randomUUID().toString(),
-                                        name = name,
-                                        exerciseKey = exercise.resolvedCanonicalExerciseId(),
-                                        createdAtIso = now,
-                                        lastUsedAtIso = now,
-                                    ),
-                                )
-                                onSaveTag(tag)
-                                onUpdateExercise { it.copy(workoutTagId = tag.id) }
-                                newTagName = ""
-                            }
-                        },
-                    )
-                }
-                selectedTag?.let { tag ->
-                    if (renameTagId != tag.id) {
-                        KpknTextAction(
-                            text = "Renombrar ${tag.name}",
-                            onClick = { renameTagId = tag.id; renameTagValue = tag.name },
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
+                        KpknTextField(
+                            value = newTagName,
+                            onValueChange = { newTagName = it },
+                            label = "Crear etiqueta",
+                            modifier = Modifier.weight(1f),
+                            singleLine = true,
                         )
-                    } else {
-                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
-                            EditorKpknField(
-                                label = "Nuevo nombre",
-                                value = renameTagValue,
-                                modifier = Modifier.weight(1f),
-                            ) { renameTagValue = it }
-                            KpknTextAction(
-                                text = "Guardar",
+                        KpknTextAction(
+                            text = "Crear",
+                            onClick = {
+                                val name = newTagName.trim()
+                                if (name.isNotEmpty()) {
+                                    val now = java.time.Instant.now().toString()
+                                    val tag = com.example.kpkn.domain.workout.WorkoutTagResolver.withNormalized(
+                                        WorkoutTag(
+                                            id = java.util.UUID.randomUUID().toString(),
+                                            name = name,
+                                            exerciseKey = exercise.resolvedCanonicalExerciseId(),
+                                            createdAtIso = now,
+                                            lastUsedAtIso = now,
+                                        ),
+                                    )
+                                    onSaveTag(tag)
+                                    onUpdateExercise { it.copy(workoutTagId = tag.id) }
+                                    newTagName = ""
+                                }
+                            },
+                        )
+                    }
+                }
+            }
+
+            // 5. Sección colapsable «Opciones avanzadas»
+            KpknTextAction(
+                text = if (showAdvancedOptions) "Ocultar opciones avanzadas ⌃" else "Opciones avanzadas ⌄",
+                onClick = { showAdvancedOptions = !showAdvancedOptions },
+            )
+            if (showAdvancedOptions) {
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    val hasPrRom = exercise.trackRom && (exercise.plannedRom != null || exercise.prFor1RM?.romTarget != null)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Especificar ROM", style = KpknType.bodyStrong, color = WizardColors.text)
+                            Text(
+                                "Activa el registro de ROM en el ejercicio",
+                                style = KpknType.caption,
+                                color = WizardColors.textMuted,
+                            )
+                        }
+                        KpknSwitch(
+                            checked = hasPrRom,
+                            onCheckedChange = { checked ->
+                                val defaultRom = if (checked) {
+                                    exercise.plannedRom
+                                        ?: exercise.prFor1RM?.romTarget
+                                        ?: com.example.kpkn.domain.workout.RomTargetCatalog.defaultForMode(RomScaleMode.QUALITATIVE)
+                                } else {
+                                    null
+                                }
+                                onUpdateExercise { current ->
+                                    current.copy(
+                                        trackRom = checked,
+                                        plannedRom = if (checked) (current.plannedRom ?: defaultRom) else null,
+                                        prFor1RM = current.prFor1RM?.copy(
+                                            romTarget = if (checked) (current.prFor1RM.romTarget ?: defaultRom) else null,
+                                        ),
+                                    )
+                                }
+                            },
+                        )
+                    }
+                    if (hasPrRom) {
+                        com.example.kpkn.ui.design.KpknRomEditorSection(
+                            target = exercise.prFor1RM?.romTarget ?: exercise.plannedRom,
+                            onChange = { nextRom ->
+                                onUpdateExercise { current ->
+                                    current.copy(
+                                        trackRom = true,
+                                        plannedRom = nextRom,
+                                        prFor1RM = current.prFor1RM?.copy(romTarget = nextRom),
+                                    )
+                                }
+                            },
+                            title = "ROM de la referencia",
+                        )
+                    }
+
+                    Text("Intensidad del PR", style = KpknType.bodyStrong, color = WizardColors.text)
+                    androidx.compose.foundation.layout.FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        listOf("UNKNOWN" to "Sin dato", "RPE" to "RPE", "RIR" to "RIR", "FAILURE" to "Fallo").forEach { (id, label) ->
+                            KpknChip(
+                                text = label,
+                                selected = prEffortMode == id,
                                 onClick = {
-                                    val name = renameTagValue.trim()
-                                    if (name.isNotEmpty()) {
-                                        onSaveTag(com.example.kpkn.domain.workout.WorkoutTagResolver.withNormalized(tag.copy(name = name)))
-                                    }
-                                    renameTagId = null
+                                    prEffortMode = id
+                                    prEffortInput = if (id == "FAILURE" || id == "UNKNOWN") "" else prEffortInput
+                                    updatePr(
+                                        mode = runCatching { PrEffortMode.valueOf(id) }.getOrNull(),
+                                        effortText = if (id == "FAILURE" || id == "UNKNOWN") "" else prEffortInput,
+                                    )
                                 },
                             )
+                        }
+                    }
+                    if (effortMode == PrEffortMode.RPE || effortMode == PrEffortMode.RIR) {
+                        EditorKpknField(
+                            label = if (effortMode == PrEffortMode.RPE) "RPE del PR (0–10)" else "RIR del PR",
+                            value = prEffortInput,
+                            keyboardType = KeyboardType.Decimal,
+                            modifier = Modifier.fillMaxWidth(),
+                        ) { input ->
+                            prEffortInput = input
+                            updatePr()
                         }
                     }
                 }
@@ -467,7 +539,6 @@ EditorSheetDialog(
     },
     confirmButton = {},
 )
-}
 }
 
 @Composable
@@ -479,14 +550,13 @@ internal fun ExerciseGoalDialog(
     onDismiss: () -> Unit,
     imeInsets: WindowInsets = WindowInsets.ime,
 ) {
-EditorDialogImeArea(imeInsets = imeInsets) {
 EditorSheetDialog(
     onDismissRequest = { onDismiss() },
+    imeInsets = imeInsets,
     title = { Text("Meta", style = KpknType.dialogTitle, color = WizardColors.text) },
     text = {
         Column(
             modifier = Modifier
-                .heightIn(max = 300.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -538,7 +608,6 @@ EditorSheetDialog(
     },
 )
 }
-}
 
 @Composable
 internal fun ExerciseCustomUnitDialog(
@@ -548,14 +617,13 @@ internal fun ExerciseCustomUnitDialog(
     onDismiss: () -> Unit,
     imeInsets: WindowInsets = WindowInsets.ime,
 ) {
-EditorDialogImeArea(imeInsets = imeInsets) {
 EditorSheetDialog(
     onDismissRequest = { onDismiss() },
+    imeInsets = imeInsets,
     title = { Text("Unidad Personalizada", style = KpknType.dialogTitle, color = WizardColors.text) },
     text = {
         Column(
             modifier = Modifier
-                .heightIn(max = 300.dp)
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
@@ -587,5 +655,4 @@ EditorSheetDialog(
         KpknAlertDismissButton(text = "Cancelar", onClick = { onDismiss() })
     },
 )
-}
 }

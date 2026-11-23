@@ -95,10 +95,11 @@
                     "abdominals"
                   ],
                   "secondaryMuscles": [
-                    "core",
+                    "core"
+                  ],
+                  "stabilizerMuscles": [
                     "latissimus_dorsi"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -157,14 +158,15 @@
                 }
               },
               "secondaryMuscles": [
-                "core",
-                "latissimus_dorsi"
+                "core"
               ],
               "setupCues": [
                 "Preparación: Rueda desde las rodillas o de pie: extiendes el cuerpo y vuelves con el abdomen cargado."
               ],
               "setupTimeSeconds": 10,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "latissimus_dorsi"
+              ],
               "technicalDifficulty": 3.5
             },
             "selectedOptions": {}

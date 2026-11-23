@@ -51,10 +51,13 @@ import com.example.kpkn.ui.components.showKpknSnackbar
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.tour.TourAnchorScroller
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.TourIds
 import com.example.kpkn.ui.tour.TourScripts
 import com.example.kpkn.ui.tour.tourAnchor
+import kotlinx.coroutines.delay
+import kotlin.math.roundToInt
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -219,6 +222,7 @@ fun ProgramDetailScreen(
     val blockTransitionBanner by viewModel.blockTransitionBanner.collectAsState()
     val nativeProgressionCard by viewModel.nativeProgressionCard.collectAsState()
     val completedSessionIds by viewModel.completedSessionIds.collectAsState()
+    val programLogs by viewModel.programLogs.collectAsState()
     LaunchedEffect(openCatalogRequested) {
         if (openCatalogRequested) { viewModel.consumeOpenCatalogRequest(); onOpenCatalog() }
     }
@@ -268,6 +272,7 @@ fun ProgramDetailScreen(
     var showOneRmDialog by rememberSaveable { mutableStateOf(false) }
     var showTmEditor by rememberSaveable { mutableStateOf(false) }
     var showPlanSheet by rememberSaveable { mutableStateOf(false) }
+    var showHighEnergyDaySheet by rememberSaveable { mutableStateOf(false) }
     var showMoreMenu by rememberSaveable { mutableStateOf(false) }
     var showDeleteProgramConfirm by rememberSaveable { mutableStateOf(false) }
     var blockedDeleteSessionId by remember { mutableStateOf<String?>(null) }
@@ -359,6 +364,31 @@ fun ProgramDetailScreen(
     LaunchedEffect(p.id) { tourHost?.startTour(TourIds.TRAINING, TourScripts.training) }
 
     val scroll = rememberScrollState()
+    val desiredScrollTopPx = with(density) { 116.dp.toPx() }
+    suspend fun scrollToAnchor(anchorId: String, waitForExpand: Boolean = false) {
+        if (uiState.structureSubTab != StructureSubTab.SEMANA) {
+            viewModel.setStructureSubTab(StructureSubTab.SEMANA)
+            delay(80)
+        }
+        if (waitForExpand) {
+            var waited = 0
+            while (tourHost?.tourAnchors?.boundsOf(anchorId) == null && waited < 320) {
+                delay(40)
+                waited += 40
+            }
+            // Deja terminar la expansión de AnimatedVisibility (220 ms) para medir el alto real.
+            delay(240)
+        }
+        val bounds = tourHost?.tourAnchors?.boundsOf(anchorId) ?: return
+        val target = (scroll.value + bounds.top - desiredScrollTopPx).roundToInt().coerceIn(0, scroll.maxValue)
+        if (kotlin.math.abs(target - scroll.value) > 8) {
+            scroll.animateScrollTo(target)
+        }
+    }
+    TourAnchorScroller(TourAnchors.TRAINING_ESTRUCTURA) { scroll.animateScrollTo(0) }
+    TourAnchorScroller(TourAnchors.TRAINING_SEMANA) { scrollToAnchor(TourAnchors.TRAINING_SEMANA) }
+    TourAnchorScroller(TourAnchors.TRAINING_SESION) { scrollToAnchor(TourAnchors.TRAINING_SESION, waitForExpand = true) }
+    TourAnchorScroller(TourAnchors.TRAINING_EMPEZAR) { scrollToAnchor(TourAnchors.TRAINING_EMPEZAR, waitForExpand = true) }
     // Al cambiar de pestaña la página vuelve arriba: si no, Estructura o Progreso se abrían por la mitad, a la altura de la anterior.
     var shownTab by remember { mutableStateOf(uiState.structureSubTab) }
     LaunchedEffect(uiState.structureSubTab) {
@@ -396,9 +426,9 @@ fun ProgramDetailScreen(
     }
     // Cinta de fases y «Bloque X de Y»: cada semana con la fase de su bloque. La semana actual sale de la línea de Home (1 = la primera).
     val allProgramWeeks = remember(roadmapBlocks, p) { ProgramDetailHelpers.getAllWeeks(roadmapBlocks, p) }
-    val weekBlock = remember(roadmapBlocks, p) {
+    val weekBlock = remember(roadmapBlocks, p, programLogs) {
         roadmapBlocks.withIndex().flatMap { (blockIndex, block) ->
-            val weeks = ProgramDetailHelpers.getWeeksForBlock(block.id, roadmapBlocks, p)
+            val weeks = ProgramDetailHelpers.getWeeksForBlock(block.id, roadmapBlocks, p, workoutLogs = programLogs)
             val phase = programPhaseOf(goal = block.goal, hasCompetitionWeek = weeks.any { it.keyDateType == KeyDateType.COMPETITION })
             weeks.map { week -> week.id to (phase to blockIndex) }
         }.toMap()
@@ -756,6 +786,7 @@ fun ProgramDetailScreen(
                         onCreateSession = onCreateSession,
                         onOpenProgram = onOpenProgram,
                         onOpenSplitPage = { showSplitPage = true },
+                        onOpenHighEnergyDay = { showHighEnergyDaySheet = true },
                         copiedWeekState = copiedWeekState,
                         exerciseTmSheetState = exerciseTmSheetState,
                     )
@@ -784,6 +815,70 @@ fun ProgramDetailScreen(
         ) { KpknSnackbar(it) }
     }
 
+    if (showHighEnergyDaySheet && p != null) {
+        var selectedEnergyDay by rememberSaveable(p.id, p.highEnergyDay) {
+            mutableIntStateOf(p.highEnergyDay ?: p.startDay ?: 1)
+        }
+        var alsoStartWeek by rememberSaveable(p.id, p.startDay) {
+            mutableStateOf(p.startDay == (p.highEnergyDay ?: p.startDay))
+        }
+        val dayChoices = listOf(
+            1 to "Lunes",
+            2 to "Martes",
+            3 to "Miércoles",
+            4 to "Jueves",
+            5 to "Viernes",
+            6 to "Sábado",
+            7 to "Domingo",
+        )
+        com.example.kpkn.ui.components.KpknSheet(onDismissRequest = { showHighEnergyDaySheet = false }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Text("Día con más energía", style = com.example.kpkn.ui.design.KpknType.dialogTitle, color = WizardColors.text)
+                Text(
+                    "Marca el día en que llegas más fresco para priorizarlo en tu programa.",
+                    style = com.example.kpkn.ui.design.KpknType.body,
+                    color = WizardColors.textMuted,
+                )
+                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    dayChoices.forEach { (id, label) ->
+                        com.example.kpkn.ui.design.KpknChip(
+                            text = label,
+                            selected = selectedEnergyDay == id,
+                            onClick = { selectedEnergyDay = id },
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text("Empezar la semana este día", style = com.example.kpkn.ui.design.KpknType.bodyStrong, color = WizardColors.text)
+                    com.example.kpkn.ui.design.KpknSwitch(
+                        checked = alsoStartWeek,
+                        onCheckedChange = { alsoStartWeek = it },
+                    )
+                }
+                com.example.kpkn.ui.design.KpknPrimaryPill(
+                    text = "Guardar",
+                    onClick = {
+                        viewModel.updateHighEnergyDay(selectedEnergyDay, alsoStartWeek)
+                        showHighEnergyDaySheet = false
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
     if (showPlanSheet) {
         ProgramPlanSheet(
             summary = planSummary,
@@ -800,6 +895,9 @@ fun ProgramDetailScreen(
             program = p,
             isActive = isActive,
             currentWeekId = activeProgramState?.currentWeekId?.takeIf { isActive && it.isNotBlank() },
+            onSaveDescription = { nextDesc ->
+                viewModel.updateProgram(p.copy(description = nextDesc))
+            },
         )
     }
     exerciseSwapRequest?.let { request ->
@@ -1109,8 +1207,19 @@ fun ProgramDetailScreen(
             draft = draft,
             onDraftChange = { editDraft = it },
             onSave = {
+                val effectivePreviousMode = com.example.kpkn.screens.programdetail.design.programModeFromIdentityLabel(p.identityLabel) ?: p.mode
+                val nextIdentityLabel = p.identityLabel?.takeIf { label ->
+                    com.example.kpkn.screens.programdetail.design.programModeFromIdentityLabel(label) == null &&
+                        draft.mode == effectivePreviousMode
+                }
                 viewModel.updateProgram(
-                    p.copy(name = draft.trimmedName, description = draft.trimmedDescription, coverImage = draft.cover, mode = draft.mode),
+                    p.copy(
+                        name = draft.trimmedName,
+                        description = draft.trimmedDescription,
+                        coverImage = draft.cover,
+                        mode = draft.mode,
+                        identityLabel = nextIdentityLabel,
+                    ),
                 )
                 showEditSheet = false
             },
@@ -1233,6 +1342,7 @@ private fun TrainingPanel(
     onCreateSession: (String, String, Int, Int, Int) -> Unit,
     onOpenProgram: (String) -> Unit = {},
     onOpenSplitPage: () -> Unit = {},
+    onOpenHighEnergyDay: () -> Unit = {},
     copiedWeekState: MutableState<String?> = remember(program.id) { mutableStateOf(null) },
     exerciseTmSheetState: MutableState<Boolean> = remember(program.id) { mutableStateOf(false) },
 ) {
@@ -1251,6 +1361,7 @@ private fun TrainingPanel(
     val calendarizationStartDayOfWeek by viewModel.calendarizationStartDayOfWeek.collectAsState()
     val calendarizationTrainingDays by viewModel.calendarizationTrainingDays.collectAsState()
     val restoreBlockedSessionIds by viewModel.restoreBlockedSessionIds.collectAsState()
+    val programLogs by viewModel.programLogs.collectAsState()
     // Lo copiado vive por encima de las pestañas (copiedWeekState): cambiar de pestaña no lo pierde.
     var copiedRoadmapWeekId by copiedWeekState
     var showCopyWeekDialog by remember { mutableStateOf(false) }
@@ -1272,10 +1383,10 @@ private fun TrainingPanel(
     val completedSessionIds by viewModel.completedSessionIds.collectAsState()
     val activeWeekId = currentWeekId?.currentWeekId
     // Módulo «Fases»: cada bloque con sus semanas numeradas en orden global. Hecha = antes de la semana en curso.
-    val phaseBlocks = remember(roadmapBlocks, allProgramWeeks, activeWeekId, program) {
+    val phaseBlocks = remember(roadmapBlocks, allProgramWeeks, activeWeekId, program, programLogs) {
         val currentIndex = allProgramWeeks.indexOfFirst { it.id == activeWeekId }
         roadmapBlocks.map { block ->
-            val weeks = ProgramDetailHelpers.getWeeksForBlock(block.id, roadmapBlocks, program)
+            val weeks = ProgramDetailHelpers.getWeeksForBlock(block.id, roadmapBlocks, program, workoutLogs = programLogs)
             val phase = programPhaseOf(
                 goal = block.goal,
                 hasCompetitionWeek = weeks.any { it.keyDateType == KeyDateType.COMPETITION },
@@ -1468,7 +1579,7 @@ private fun TrainingPanel(
                 if (emptyWeek && selectedWeekMeta != null) {
                     // Semana vacía (s-empty): en vez de una agenda de días sin sesiones, copiar la anterior o añadir la primera sesión.
                     KpknModule(
-                        modifier = Modifier.padding(horizontal = 16.dp).tourAnchor(TourAnchors.TRAINING_SEMANA),
+                        modifier = Modifier.padding(horizontal = 16.dp),
                         contentPadding = PaddingValues(horizontal = 20.dp, vertical = 26.dp),
                     ) {
                         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
@@ -1503,17 +1614,52 @@ private fun TrainingPanel(
                                 )
                                 Spacer(Modifier.height(8.dp))
                             }
-                            com.example.kpkn.screens.programdetail.design.ProgramLienzoPill(
-                                text = "Añadir sesión",
-                                onClick = { addSessionMenu = addSessionBounds },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .onGloballyPositioned { addSessionBounds = it.boundsInWindow() },
-                                filled = false,
-                                small = true,
-                                icon = KpknLineIcons.Plus,
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                com.example.kpkn.screens.programdetail.design.ProgramLienzoPill(
+                                    text = "Añadir sesión",
+                                    onClick = { addSessionMenu = addSessionBounds },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .onGloballyPositioned { addSessionBounds = it.boundsInWindow() },
+                                    filled = false,
+                                    small = true,
+                                    icon = KpknLineIcons.Plus,
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                com.example.kpkn.screens.programdetail.design.ProgramRoundButton(
+                                    icon = KpknLineIcons.More,
+                                    contentDescription = "Más opciones de la semana",
+                                    onClick = { weekMenu = selectedWeekMeta.id to weekMoreBounds },
+                                    modifier = Modifier.onGloballyPositioned { weekMoreBounds = it.boundsInWindow() },
+                                    filled = true,
+                                )
+                            }
                         }
+                    }
+                    val activeEnergyDay = program.highEnergyDay ?: program.startDay ?: 1
+                    val energyDayName = when (activeEnergyDay) {
+                        1 -> "Lunes"
+                        2 -> "Martes"
+                        3 -> "Miércoles"
+                        4 -> "Jueves"
+                        5 -> "Viernes"
+                        6 -> "Sábado"
+                        else -> "Domingo"
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 8.dp),
+                    ) {
+                        com.example.kpkn.ui.design.KpknChip(
+                            text = "⚡ Día con más energía · $energyDayName",
+                            selected = program.highEnergyDay != null,
+                            onClick = onOpenHighEnergyDay,
+                        )
                     }
                 } else {
                     DayView(
@@ -1554,7 +1700,30 @@ private fun TrainingPanel(
                         onRestoreManualSessionFromPlan = viewModel::restoreManualSessionFromPlan,
                         restoreBlockedSessionIds = restoreBlockedSessionIds,
                         completedSessionIds = completedSessionIds,
+                        highEnergyDay = program.highEnergyDay ?: program.startDay,
                     )
+                    val activeEnergyDay = program.highEnergyDay ?: program.startDay ?: 1
+                    val energyDayName = when (activeEnergyDay) {
+                        1 -> "Lunes"
+                        2 -> "Martes"
+                        3 -> "Miércoles"
+                        4 -> "Jueves"
+                        5 -> "Viernes"
+                        6 -> "Sábado"
+                        else -> "Domingo"
+                    }
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(top = 8.dp),
+                    ) {
+                        com.example.kpkn.ui.design.KpknChip(
+                            text = "⚡ Día con más energía · $energyDayName",
+                            selected = program.highEnergyDay != null,
+                            onClick = onOpenHighEnergyDay,
+                        )
+                    }
                     if (selectedWeekMeta != null) {
                         // Debajo de la agenda (s-agenda): «Añadir sesión» (se elige el día) y el menú de la semana (⋯).
                         Row(
@@ -1691,17 +1860,35 @@ private fun TrainingPanel(
                     }.mapTo(HashSet()) { it.id }
                     program.macrocycles.flatMap { it.blocks }.flatMap { it.mesocycles }.flatMap { it.weeks }.filter { it.id in ids }
                 }
+                val settingsForCalibration by ProgramRepository.getInstance().settings.collectAsState()
+                val effectiveProfileScore = program.athleteProfileScore
+                    ?: settingsForCalibration.volumeCalibrationProfile?.athleteProfileScore
+                val effectiveProfileNotes = program.volumeCalibrationNotes.takeIf { it.isNotBlank() }
+                    ?: settingsForCalibration.volumeCalibrationProfile?.notes.orEmpty()
+                val effectiveHasRecommendations = program.volumeRecommendations.isNotEmpty() ||
+                    settingsForCalibration.volumeCalibrationProfile?.recommendations?.isNotEmpty() == true
                 val rangesOrigin = rangesOriginOf(
                     ownRangesCount = program.planningVolumeTargets.size,
-                    hasProfile = program.athleteProfileScore != null && program.volumeRecommendations.isNotEmpty(),
+                    hasProfile = effectiveProfileScore != null && effectiveHasRecommendations,
                 )
                 var openLiftKey by rememberSaveable(program.id) { mutableStateOf<String?>(null) }
                 var showAllLifts by rememberSaveable(program.id) { mutableStateOf(false) }
                 var showDecisionsSheet by rememberSaveable(program.id) { mutableStateOf(false) }
                 var showRangesSheet by rememberSaveable(program.id) { mutableStateOf(false) }
                 var showCalibrationSheet by rememberSaveable(program.id) { mutableStateOf(false) }
+                var expandExercises by rememberSaveable(program.id) { mutableStateOf(true) }
+                var expandMuscleVolume by rememberSaveable(program.id) { mutableStateOf(true) }
+                var expandWorkAndTonnage by rememberSaveable(program.id) { mutableStateOf(!progressUi.early) }
+                var expandAdherence by rememberSaveable(program.id) { mutableStateOf(!progressUi.early) }
+                var expandEffortAndDiscomfort by rememberSaveable(program.id) { mutableStateOf(progressUi.discomforts != null || !progressUi.early) }
+                var expandDecisionsAndMonthly by rememberSaveable(program.id) { mutableStateOf(false) }
                 val progressContext = LocalContext.current.applicationContext
                 val openExerciseProgress = LocalExerciseProgressOpener.current
+                val openFourWeeks = com.example.kpkn.screens.progress.LocalMuscleVolumePanelOpener.current
+                val summaryMonthList = remember(progLogs, program.id) { summaryMonths(progLogs, program.id, java.time.LocalDate.now()) }
+                var openSummaryMonth by rememberSaveable(program.id) { mutableStateOf<String?>(null) }
+                var shareSummary by remember { mutableStateOf(false) }
+                val summaryContext = LocalContext.current
                 Column(Modifier.padding(start = 16.dp, end = 16.dp, top = 8.dp)) {
                     ProgressScopeChips(
                         selected = progressScope,
@@ -1712,85 +1899,170 @@ private fun TrainingPanel(
                     )
                     Spacer(Modifier.height(12.dp))
                     ProgressSummaryModule(progressUi)
-                    Spacer(Modifier.height(12.dp))
-                    if (progressUi.lifts.isNotEmpty()) {
-                        ProgressLiftsModule(
-                            rows = progressUi.lifts,
-                            early = progressUi.early,
-                            onSeeAll = { showAllLifts = true },
-                            onOpenLift = { openLiftKey = it.key },
-                        )
-                        Spacer(Modifier.height(12.dp))
-                    }
-                    if (!progressUi.early && progressUi.weeks.isNotEmpty()) {
-                        ProgressWorkModule(
-                            weeks = progressUi.weeks,
-                            setsDone = progressUi.kpis.setsDone,
-                            setsPlanned = progressUi.kpis.setsPlanned,
-                            note = progressUi.weekNote,
-                        )
-                        Spacer(Modifier.height(12.dp))
-                    }
-                    if (!progressUi.early && progressUi.totals.sessions > 0) {
-                        ProgressTotalsModule(progressUi.totals)
-                        Spacer(Modifier.height(12.dp))
-                    }
-                    VolumeView(
-                        program = program,
-                        weeks = volumeWeeks,
-                        averageByWeek = progressScope != ProgressScope.WEEK,
-                        isProgramActive = isActiveProg,
-                        hasCreatedSessions = hasCreatedSessions,
-                        onActivateProgram = { viewModel.activateOrResume() },
-                        onGoCreateSession = {
-                            val firstBlock = program.macrocycles.firstOrNull()?.blocks?.firstOrNull()
-                            val firstWeek = firstBlock?.mesocycles?.firstOrNull()?.weeks?.firstOrNull()
-                            if (firstBlock != null && firstWeek != null) {
-                                viewModel.selectBlock(firstBlock.id)
-                                viewModel.selectWeek(firstWeek.id)
-                                viewModel.setStructureSubTab(StructureSubTab.SEMANA)
-                            } else {
-                                viewModel.setStructureSubTab(StructureSubTab.MACROCICLO)
-                            }
-                        },
-                        programLogs = progLogs,
-                        rangesOrigin = rangesOrigin,
-                        onOpenRanges = { showRangesSheet = true },
+                    Spacer(Modifier.height(10.dp))
+                    com.example.kpkn.screens.programdetail.design.progress.ProgramFourWeeksQuickLink(
+                        onClick = { openFourWeeks?.invoke(program.id) },
                     )
                     Spacer(Modifier.height(12.dp))
-                    if (!progressUi.early) {
-                        progressUi.adherence?.let {
-                            ProgressAdherenceModule(it)
-                            Spacer(Modifier.height(12.dp))
-                        }
-                        progressUi.effort?.let {
-                            ProgressEffortModule(it)
-                            Spacer(Modifier.height(12.dp))
-                        }
+
+                    // 1. Progreso por ejercicio (siempre visible, desplegable)
+                    val exercisesSummaryLabel = when {
+                        progressUi.allLiftsCount > 0 && progressUi.programExercises.size > progressUi.allLiftsCount ->
+                            "${progressUi.allLiftsCount} con registro · ${progressUi.programExercises.size} en el plan"
+                        progressUi.allLiftsCount > 0 ->
+                            "${progressUi.allLiftsCount} ${if (progressUi.allLiftsCount == 1) "ejercicio" else "ejercicios"}"
+                        progressUi.programExercises.isNotEmpty() ->
+                            "${progressUi.programExercises.size} planificados"
+                        else -> "Ver progreso"
                     }
-                    progressUi.discomforts?.let {
-                        ProgressDiscomfortModule(it)
-                        Spacer(Modifier.height(12.dp))
-                    }
-                    if (decisionRows.isNotEmpty()) {
-                        ProgressDecisionsModule(rows = decisionRows, onSeeAll = { showDecisionsSheet = true })
-                        Spacer(Modifier.height(12.dp))
-                    }
-                    // Resúmenes mensuales (P8c-2): los meses con resumen; cada fila abre su pantalla completa, con su hoja de compartir.
-                    val summaryMonthList = remember(progLogs, program.id) { summaryMonths(progLogs, program.id, java.time.LocalDate.now()) }
-                    var openSummaryMonth by rememberSaveable(program.id) { mutableStateOf<String?>(null) }
-                    var shareSummary by remember { mutableStateOf(false) }
-                    val summaryContext = LocalContext.current
-                    if (summaryMonthList.isNotEmpty()) {
-                        ProgramMonthlySummariesModule(
-                            months = summaryMonthList,
-                            onOpen = { month ->
-                                monthlySummaryStore(summaryContext).markSeen(summaryKey(program.id, month))
-                                openSummaryMonth = month.toString()
-                            },
+                    com.example.kpkn.screens.programdetail.design.progress.ProgramCollapsibleModule(
+                        title = "Progreso por ejercicio · e1RM",
+                        summary = exercisesSummaryLabel,
+                        expanded = expandExercises,
+                        onToggle = { expandExercises = !expandExercises },
+                    ) {
+                        com.example.kpkn.screens.programdetail.design.progress.ProgramExercisesProgressBody(
+                            loggedRows = progressUi.lifts,
+                            allExercises = progressUi.programExercises,
+                            early = progressUi.early,
+                            onOpenLiftSheet = { openLiftKey = it.key },
+                            onSeeAllLiftsSheet = { showAllLifts = true },
+                            onOpenDedicatedProgress = { key -> openExerciseProgress(key) },
                         )
+                    }
+                    Spacer(Modifier.height(12.dp))
+
+                    // 2. Series por músculo (desplegable)
+                    val volumeSummaryLabel = "${progressUi.kpis.setsDone}/${progressUi.kpis.setsPlanned} series"
+                    com.example.kpkn.screens.programdetail.design.progress.ProgramCollapsibleModule(
+                        title = "Volumen y series por músculo",
+                        summary = volumeSummaryLabel,
+                        expanded = expandMuscleVolume,
+                        onToggle = { expandMuscleVolume = !expandMuscleVolume },
+                    ) {
+                        VolumeView(
+                            program = program,
+                            weeks = volumeWeeks,
+                            averageByWeek = progressScope != ProgressScope.WEEK,
+                            isProgramActive = isActiveProg,
+                            hasCreatedSessions = hasCreatedSessions,
+                            onActivateProgram = { viewModel.activateOrResume() },
+                            onGoCreateSession = {
+                                val firstBlock = program.macrocycles.firstOrNull()?.blocks?.firstOrNull()
+                                val firstWeek = firstBlock?.mesocycles?.firstOrNull()?.weeks?.firstOrNull()
+                                if (firstBlock != null && firstWeek != null) {
+                                    viewModel.selectBlock(firstBlock.id)
+                                    viewModel.selectWeek(firstWeek.id)
+                                    viewModel.setStructureSubTab(StructureSubTab.SEMANA)
+                                } else {
+                                    viewModel.setStructureSubTab(StructureSubTab.MACROCICLO)
+                                }
+                            },
+                            programLogs = progLogs,
+                            rangesOrigin = rangesOrigin,
+                            onOpenRanges = { showRangesSheet = true },
+                        )
+                    }
+                    Spacer(Modifier.height(12.dp))
+
+                    // 3. Trabajo y tonelaje semanal (desplegable)
+                    if (progressUi.weeks.isNotEmpty() || progressUi.totals.sessions > 0) {
+                        val tonnageSummary = "${com.example.kpkn.screens.onboarding.design.formatDecimalEs(progressUi.kpis.tonnageKg / 1000.0, 1)} t · ${progressUi.kpis.setsDone}/${progressUi.kpis.setsPlanned} series"
+                        com.example.kpkn.screens.programdetail.design.progress.ProgramCollapsibleModule(
+                            title = "Trabajo y tonelaje semanal",
+                            summary = tonnageSummary,
+                            expanded = expandWorkAndTonnage,
+                            onToggle = { expandWorkAndTonnage = !expandWorkAndTonnage },
+                        ) {
+                            if (progressUi.weeks.isNotEmpty()) {
+                                ProgressWorkModule(
+                                    weeks = progressUi.weeks,
+                                    setsDone = progressUi.kpis.setsDone,
+                                    setsPlanned = progressUi.kpis.setsPlanned,
+                                    note = progressUi.weekNote,
+                                )
+                            }
+                            if (progressUi.weeks.isNotEmpty() && progressUi.totals.sessions > 0) {
+                                Spacer(Modifier.height(12.dp))
+                            }
+                            if (progressUi.totals.sessions > 0) {
+                                ProgressTotalsModule(progressUi.totals)
+                            }
+                        }
                         Spacer(Modifier.height(12.dp))
                     }
+
+                    // 4. Cumplimiento y consistencia (desplegable)
+                    progressUi.adherence?.let { adherence ->
+                        val adherenceSummary = progressUi.kpis.compliancePct?.let { "$it %" }
+                            ?: "${progressUi.kpis.sessionsDone}/${progressUi.kpis.sessionsPlanned} sesiones"
+                        com.example.kpkn.screens.programdetail.design.progress.ProgramCollapsibleModule(
+                            title = "Cumplimiento y consistencia",
+                            summary = adherenceSummary,
+                            expanded = expandAdherence,
+                            onToggle = { expandAdherence = !expandAdherence },
+                        ) {
+                            ProgressAdherenceModule(adherence)
+                        }
+                        Spacer(Modifier.height(12.dp))
+                    }
+
+                    // 5. Esfuerzo (RIR/RPE) y molestias (desplegable)
+                    if (progressUi.effort != null || progressUi.discomforts != null) {
+                        val effortSummary = buildList {
+                            if (progressUi.effort != null) add("RIR semanal")
+                            if (progressUi.discomforts != null) add("Molestias registradas")
+                        }.joinToString(" · ")
+                        com.example.kpkn.screens.programdetail.design.progress.ProgramCollapsibleModule(
+                            title = "Esfuerzo y molestias",
+                            summary = effortSummary,
+                            expanded = expandEffortAndDiscomfort,
+                            onToggle = { expandEffortAndDiscomfort = !expandEffortAndDiscomfort },
+                        ) {
+                            progressUi.effort?.let {
+                                ProgressEffortModule(it)
+                            }
+                            if (progressUi.effort != null && progressUi.discomforts != null) {
+                                Spacer(Modifier.height(12.dp))
+                            }
+                            progressUi.discomforts?.let {
+                                ProgressDiscomfortModule(it)
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                    }
+
+                    // 6. Decisiones del programa y resúmenes mensuales (desplegable)
+                    if (decisionRows.isNotEmpty() || summaryMonthList.isNotEmpty()) {
+                        val historySummary = buildList {
+                            if (decisionRows.isNotEmpty()) add("${decisionRows.size} decisiones")
+                            if (summaryMonthList.isNotEmpty()) add("${summaryMonthList.size} meses")
+                        }.joinToString(" · ")
+                        com.example.kpkn.screens.programdetail.design.progress.ProgramCollapsibleModule(
+                            title = "Decisiones y resúmenes mensuales",
+                            summary = historySummary,
+                            expanded = expandDecisionsAndMonthly,
+                            onToggle = { expandDecisionsAndMonthly = !expandDecisionsAndMonthly },
+                        ) {
+                            if (decisionRows.isNotEmpty()) {
+                                ProgressDecisionsModule(rows = decisionRows, onSeeAll = { showDecisionsSheet = true })
+                            }
+                            if (decisionRows.isNotEmpty() && summaryMonthList.isNotEmpty()) {
+                                Spacer(Modifier.height(12.dp))
+                            }
+                            if (summaryMonthList.isNotEmpty()) {
+                                ProgramMonthlySummariesModule(
+                                    months = summaryMonthList,
+                                    onOpen = { month ->
+                                        monthlySummaryStore(summaryContext).markSeen(summaryKey(program.id, month))
+                                        openSummaryMonth = month.toString()
+                                    },
+                                )
+                            }
+                        }
+                        Spacer(Modifier.height(12.dp))
+                    }
+
                     openSummaryMonth?.let { monthText ->
                         val month = remember(monthText) { YearMonth.parse(monthText) }
                         val report = remember(progLogs, month, program.id) { MonthlyReportEngine.build(progLogs, month, program.id) }
@@ -1885,16 +2157,24 @@ private fun TrainingPanel(
                 }
                 if (showCalibrationSheet) {
                     VolumeCalibrationSheet(
-                        currentMode = program.mode,
-                        initialScore = program.athleteProfileScore,
+                        currentMode = com.example.kpkn.screens.programdetail.design.programModeFromIdentityLabel(program.identityLabel) ?: program.mode,
+                        initialScore = effectiveProfileScore,
+                        initialNotes = effectiveProfileNotes,
                         onDismiss = { showCalibrationSheet = false },
                         onSave = { result ->
+                            val effectivePrevMode = com.example.kpkn.screens.programdetail.design.programModeFromIdentityLabel(program.identityLabel) ?: program.mode
+                            val nextIdentityLabel = program.identityLabel?.takeIf { label ->
+                                com.example.kpkn.screens.programdetail.design.programModeFromIdentityLabel(label) == null &&
+                                    result.mode == effectivePrevMode
+                            }
                             viewModel.updateProgram(
                                 program.copy(
                                     mode = result.mode,
+                                    identityLabel = nextIdentityLabel,
                                     volumeSystem = com.example.kpkn.data.models.VolumeSystem.KPNK,
                                     athleteProfileScore = result.score,
                                     volumeRecommendations = result.recommendations,
+                                    volumeCalibrationNotes = result.notes,
                                 ),
                             )
                             viewModel.saveVolumeCalibrationOriginals(result)
@@ -1975,6 +2255,7 @@ private fun TrainingPanel(
                 { weekEdit = WeekEditDraft(weekId = week.id, name = week.name, description = week.description.orEmpty()) }
             },
             onChangeSplit = if (weekId == selectedWeekId) onOpenSplitPage else null,
+            onHighEnergyDay = onOpenHighEnergyDay,
             onUndoSplit = if (weekId == selectedWeekId && com.example.kpkn.domain.training.split.SplitMigrationPlanner.undoState(program) == com.example.kpkn.domain.training.split.UndoState.AVAILABLE) {
                 { viewModel.updateProgram(com.example.kpkn.domain.training.split.SplitMigrationPlanner.undo(program)) }
             } else {

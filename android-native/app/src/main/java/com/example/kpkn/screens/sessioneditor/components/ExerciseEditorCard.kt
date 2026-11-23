@@ -135,6 +135,7 @@ internal fun ExerciseEditorCard(
     onUpdateRelationshipNotes: (String?) -> Unit,
     tagOptions: List<WorkoutTag> = emptyList(),
     onSaveTag: (WorkoutTag) -> Unit = {},
+    onDeleteTag: (String) -> Unit = {},
     autoExpand: Boolean,
     onAutoExpandHandled: () -> Unit,
     suppressIndividualRest: Boolean = false,
@@ -162,20 +163,24 @@ internal fun ExerciseEditorCard(
     val resolved1RM = remember(exercise.trainingMode, exercise.reference1RM, exercise.prFor1RM) {
         resolveReferenceCapacity(exercise)
     }
-    val localPrEstimatedRm = remember(prWeightInput, prRepsInput) {
+    val localPrEstimatedRm = remember(prWeightInput, prRepsInput, exercise.prFor1RM, exercise.trainingMode) {
         val weight = prWeightInput.safeDoubleOrNull()
         val reps = prRepsInput.safeIntOrNull()
+        val pr = exercise.prFor1RM
+        val rir = pr?.effortValue?.toInt()?.takeIf { pr.effortMode == com.example.kpkn.data.models.PrEffortMode.RIR }
+        val rpe = pr?.effortValue?.takeIf { pr.effortMode == com.example.kpkn.data.models.PrEffortMode.RPE }
+        val toFailure = pr?.effortMode == com.example.kpkn.data.models.PrEffortMode.FAILURE
         if (weight != null && weight > 0 && reps != null && reps > 0) {
             when (exercise.trainingMode) {
                 TrainingMode.REPS,
                 TrainingMode.RM,
-                -> StrengthModel.estimate1RM(weight, reps)
+                TrainingMode.AMRAP,
+                -> StrengthModel.estimate1RM(weight, reps, rir = rir, rpe = rpe, toFailure = toFailure)
                 TrainingMode.TIME,
                 TrainingMode.DISTANCE,
                 TrainingMode.CUSTOM,
                 -> calculateGeneralizedCapacity(weight, reps.toDouble())
                 TrainingMode.SOLO_RPE -> null
-                TrainingMode.AMRAP -> null
             }
         } else null
     }
@@ -357,6 +362,7 @@ internal fun ExerciseEditorCard(
                 onUpdateRelationshipNotes = onUpdateRelationshipNotes,
                 tagOptions = tagOptions,
                 onSaveTag = onSaveTag,
+                onDeleteTag = onDeleteTag,
             )
         }
     }

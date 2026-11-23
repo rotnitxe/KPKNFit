@@ -82,7 +82,10 @@ class OnboardingSplitSelectionTest {
         }
         listOf(upperLowerResult, pushPullResult).forEach { result ->
             result.report.muscles.forEach { row ->
-                assertTrue("${row.muscle}", row.directSets + row.indirectSets <= minOf(row.mav, row.mrv) + 0.001)
+                assertTrue(
+                    "${row.muscle}: principales=${row.directSets}, total=${row.directSets + row.indirectSets}",
+                    row.directSets <= minOf(row.mav, row.mrv) + 0.001,
+                )
                 assertTrue("${row.muscle} frecuencia", row.frequency <= 3)
             }
         }

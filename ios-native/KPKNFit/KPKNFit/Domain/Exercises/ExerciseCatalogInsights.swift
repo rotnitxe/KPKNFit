@@ -489,13 +489,14 @@ func computeExerciseVolumeSummary(_ info: ExerciseMuscleInfo) -> ExerciseVolumeS
     for muscle in info.involvedMuscles {
         let name = broadMuscleLabel(muscle.muscle)
         let contribution = VolumeCalculator.resolveMuscleVolumeContribution(muscle, capAtOne: false)
+        guard contribution > 0.0 else { continue }
         switch muscle.role {
         case .PRIMARY:
-            primary[name, default: 0.0] += contribution
+            primary[name] = max(primary[name] ?? 0.0, contribution)
         case .SECONDARY:
-            secondary[name, default: 0.0] += contribution
+            secondary[name] = max(secondary[name] ?? 0.0, contribution)
         case .STABILIZER, .NEUTRALIZER:
-            stabilizer[name, default: 0.0] += contribution
+            stabilizer[name] = max(stabilizer[name] ?? 0.0, contribution)
         }
     }
 

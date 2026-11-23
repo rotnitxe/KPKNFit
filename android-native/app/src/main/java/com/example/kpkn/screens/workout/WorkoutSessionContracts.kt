@@ -106,6 +106,7 @@ data class WorkoutSetDraft(
     val weightManuallyFixed: Boolean? = null,
     val updatedAtMs: Long = System.currentTimeMillis(),
     val rom: Int? = null,
+    val recordedRomTarget: com.example.kpkn.data.models.PlannedRomTarget? = null,
     val assistedReps: Int? = null,
     /** Explicit live override; null means follow the planned set. */
     val amrapOverride: Boolean? = null,
@@ -594,6 +595,7 @@ data class WorkoutVariantProgress(
     val exerciseTags: Map<String, String> = emptyMap(),
     val activeTagsByExercise: Map<String, List<String>> = emptyMap(),
     val activeSubTagsByExercise: Map<String, List<String>> = emptyMap(),
+    val activeSubTagsBySetKey: Map<String, List<String>> = emptyMap(),
     val activeContextProfileByExerciseId: Map<String, String> = emptyMap(),
 )
 
@@ -612,5 +614,6 @@ internal fun snapshotVariantProgress(state: WorkoutUiState) = WorkoutVariantProg
     exerciseTags = state.exerciseTags,
     activeTagsByExercise = state.activeTagsByExercise,
     activeSubTagsByExercise = state.activeSubTagsByExercise,
+    activeSubTagsBySetKey = state.activeSubTagsBySetKey,
     activeContextProfileByExerciseId = state.activeContextProfileByExerciseId,
 )

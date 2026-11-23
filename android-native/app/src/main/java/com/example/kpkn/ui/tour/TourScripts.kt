@@ -13,14 +13,18 @@ object TourIds {
 /** Ids de las anclas (`Modifier.tourAnchor`). Cada uno va en un único elemento visible de su pantalla. */
 object TourAnchors {
     const val HOME_SESION = "home.sesion"
-    const val HOME_RINGS = "home.rings"
+    const val HOME_MUSCLES_BTN = "home.muscles.btn"
     const val HOME_PROGRAMAS = "home.programas"
     const val HOME_BARRA = "home.barra"
+    const val HOME_PERFIL = "home.perfil"
+    const val TRAINING_ESTRUCTURA = "training.estructura"
     const val TRAINING_SEMANA = "training.semana"
     const val TRAINING_SESION = "training.sesion"
-    const val TRAINING_ESTRUCTURA = "training.estructura"
+    const val TRAINING_EX1 = "training.ex1"
     const val TRAINING_EMPEZAR = "training.empezar"
     const val WORKOUT_SERIE = "workout.serie"
+    const val WORKOUT_LOG_BTN = "workout.log.btn"
+    const val WORKOUT_DESCANSO = "workout.descanso"
     const val WORKOUT_SIGUIENTE = "workout.siguiente"
     const val NUTRITION_REGISTRO = "nutrition.registro"
     const val NUTRITION_ANILLOS = "nutrition.anillos"
@@ -35,137 +39,193 @@ object TourAnchors {
 /**
  * Pasos de cada recorrido. Títulos y textos van en 90 caracteres como mucho (`TourCopyRulesTest`).
  *
- * Un paso TRY solo va sobre una acción inocua (abrir o desplegar): nunca borra, guarda ni empieza un entreno.
+ * Un paso TRY solo va sobre una acción inocua (abrir o desplegar): nunca borra ni empieza un entreno.
  * Si un recorrido ya se vio, [TourController.start] no arranca: esa decisión no se duplica aquí.
  */
 object TourScripts {
-    /** Inicio. En plan Free no hay torre de RINGS: el paso se omite en vez de esperar su ancla. */
-    fun home(conTorre: Boolean): List<TourStep> = listOfNotNull(
+    fun home(): List<TourStep> = listOf(
         TourStep(
             anchorId = TourAnchors.HOME_SESION,
+            tryAnchorId = TourAnchors.HOME_MUSCLES_BTN,
+            eyebrow = "INICIO · 1 DE 4",
             title = "Sesión de hoy",
-            body = "Tu sesión de hoy. Toca «Músculos involucrados» para ver qué trabaja.",
+            body = "Toca «Músculos involucrados» para ver qué trabajas hoy.",
             kind = TourStepKind.TRY,
+            tryHint = "Toca el botón resaltado",
+            cutoutCornerDp = 22f,
         ),
         TourStep(
             anchorId = TourAnchors.HOME_PROGRAMAS,
+            eyebrow = "INICIO · 2 DE 4",
             title = "Tus programas",
-            body = "Aquí están tus programas. Puedes cambiar de programa cuando quieras.",
+            body = "Desliza para cambiar de rutina, ver semanas o crear un programa nuevo.",
+            cutoutCornerDp = 22f,
         ),
         TourStep(
             anchorId = TourAnchors.HOME_BARRA,
+            eyebrow = "INICIO · 3 DE 4",
             title = "Barra inferior",
-            body = "Entreno, Nutrición, Cuerpo y Perfil: todo a un toque.",
+            body = "Inicio, Entreno, Nutrición y Cuerpo: las cuatro áreas principales a un toque.",
+            cutoutCornerDp = 32f,
+        ),
+        TourStep(
+            anchorId = TourAnchors.HOME_PERFIL,
+            eyebrow = "INICIO · 4 DE 4",
+            title = "Tu perfil y ajustes",
+            body = "Aquí arriba viven tu perfil, progreso global, competiciones y ajustes.",
+            cutoutCornerDp = 99f,
         ),
     )
 
-    /**
-     * Primera sesión en curso. Sin pasos de descanso ni de final: el descanso solo aparece tras registrar una serie
-     * (el botón de registro queda fuera del recorte) y el final se hace desde el diálogo de salida.
-     */
-    val firstWorkout: List<TourStep> = listOf(
-        TourStep(
-            anchorId = TourAnchors.WORKOUT_SERIE,
-            title = "Serie",
-            body = "Anota el peso y las repeticiones y registra la serie.",
-        ),
-        TourStep(
-            anchorId = TourAnchors.WORKOUT_SIGUIENTE,
-            title = "Siguiente ejercicio",
-            body = "Desliza o toca para pasar al siguiente ejercicio.",
-        ),
-    )
-
-    /**
-     * Nutrición. No hay señal de carga en su ViewModel: el recorrido arranca al montar la pantalla.
-     * «Tu plan» solo existe con plan activo; sin él, ese paso se salta solo.
-     */
-    val nutrition: List<TourStep> = listOf(
-        TourStep(
-            anchorId = TourAnchors.NUTRITION_REGISTRO,
-            title = "Registro",
-            body = "Escribe lo que comiste con tus palabras: KPKN lo entiende.",
-        ),
-        TourStep(
-            anchorId = TourAnchors.NUTRITION_ANILLOS,
-            title = "Anillos de macros",
-            body = "Tus calorías y macros del día, de un vistazo.",
-        ),
-        TourStep(
-            anchorId = TourAnchors.NUTRITION_PLAN,
-            title = "Tu plan",
-            body = "Tu plan de alimentación. Puedes ajustarlo cuando quieras.",
-        ),
-        TourStep(
-            anchorId = TourAnchors.NUTRITION_HISTORIAL,
-            title = "Historial",
-            body = "Aquí ves lo que has comido otros días.",
-        ),
-    )
-
-    /** Cuerpo. Sin señal de carga: arranca al montar la pantalla. La tendencia y el objetivo solo aparecen con datos. */
-    val body: List<TourStep> = listOf(
-        TourStep(
-            anchorId = TourAnchors.BODY_PESAJES,
-            title = "Pesajes",
-            body = "Añade tus pesajes: con unos pocos ves tu tendencia.",
-        ),
-        TourStep(
-            anchorId = TourAnchors.BODY_TENDENCIA,
-            title = "Tendencia y objetivo",
-            body = "Tu tendencia, y tu objetivo si lo tienes.",
-        ),
-    )
-
-    /**
-     * Perfil. El recorrido vive en esta pantalla: «Repetir el recorrido» está dentro de Ajustes,
-     * así que el paso apunta al icono de ajustes y dice dónde está.
-     */
-    val profile: List<TourStep> = listOf(
-        TourStep(
-            anchorId = TourAnchors.PROFILE_AJUSTES,
-            title = "Ajustes",
-            body = "Si quieres volver a ver esta guía, está en «Repetir el recorrido».",
-        ),
-        TourStep(
-            anchorId = TourAnchors.PROFILE_COMPETICION,
-            title = "Competiciones",
-            body = "Tus competiciones, las próximas y las pasadas.",
-        ),
-    )
-
-    /** Recorrido de cada id, con la torre de RINGS activa (para pruebas de textos y anclas). */
-    fun todos(): Map<String, List<TourStep>> = mapOf(
-        TourIds.HOME to home(conTorre = true),
-        TourIds.TRAINING to training,
-        TourIds.FIRST_WORKOUT to firstWorkout,
-        TourIds.NUTRITION to nutrition,
-        TourIds.BODY to body,
-        TourIds.PROFILE to profile,
-    )
-
-    /** Detalle del programa (Entreno). */
+    /** Detalle del programa (Entreno), en orden visual descendente. */
     val training: List<TourStep> = listOf(
         TourStep(
+            anchorId = TourAnchors.TRAINING_ESTRUCTURA,
+            eyebrow = "ENTRENO · 1 DE 4",
+            title = "Vista del programa",
+            body = "Alterna entre la semana actual, tu progreso por músculo y la estructura.",
+            cutoutCornerDp = 26f,
+        ),
+        TourStep(
             anchorId = TourAnchors.TRAINING_SEMANA,
-            title = "Semana",
-            body = "Tu semana empieza en tu día con más energía.",
+            eyebrow = "ENTRENO · 2 DE 4",
+            title = "Días de la semana",
+            body = "Cambia de día para revisar cada sesión; las completadas quedan en verde.",
+            cutoutCornerDp = 22f,
         ),
         TourStep(
             anchorId = TourAnchors.TRAINING_SESION,
-            title = "Una sesión",
-            body = "Toca los ejercicios para verlos. Con editar, cambias el que quieras.",
+            tryAnchorId = TourAnchors.TRAINING_EX1,
+            eyebrow = "ENTRENO · 3 DE 4",
+            title = "Explora los ejercicios",
+            body = "Toca un ejercicio para ver sus series o edítalo cuando quieras.",
             kind = TourStepKind.TRY,
-        ),
-        TourStep(
-            anchorId = TourAnchors.TRAINING_ESTRUCTURA,
-            title = "Estructura",
-            body = "Así avanza tu programa, bloque a bloque.",
+            tryHint = "Toca el primer ejercicio",
+            cutoutCornerDp = 20f,
         ),
         TourStep(
             anchorId = TourAnchors.TRAINING_EMPEZAR,
+            eyebrow = "ENTRENO · 4 DE 4",
             title = "Empezar sesión",
-            body = "Empieza aquí cuando quieras.",
+            body = "Pulsa aquí cuando estés listo para iniciar el entrenamiento en vivo.",
+            cutoutCornerDp = 28f,
         ),
+    )
+
+    /** Primera sesión en curso: serie → descanso automático → selector de siguiente ejercicio. */
+    val firstWorkout: List<TourStep> = listOf(
+        TourStep(
+            anchorId = TourAnchors.WORKOUT_SERIE,
+            tryAnchorId = TourAnchors.WORKOUT_LOG_BTN,
+            eyebrow = "SESIÓN · 1 DE 3",
+            title = "Registra tu primera serie",
+            body = "Ajusta peso y reps y pulsa «Registrar serie» para abrir el descanso.",
+            kind = TourStepKind.TRY,
+            tryHint = "Pulsa «Registrar serie»",
+            cutoutCornerDp = 26f,
+        ),
+        TourStep(
+            anchorId = TourAnchors.WORKOUT_DESCANSO,
+            eyebrow = "SESIÓN · 2 DE 3",
+            title = "Descanso automático",
+            body = "Tu temporizador arranca solo tras cada serie; suma +15 s o sáltalo.",
+            cutoutCornerDp = 22f,
+        ),
+        TourStep(
+            anchorId = TourAnchors.WORKOUT_SIGUIENTE,
+            eyebrow = "SESIÓN · 3 DE 3",
+            title = "Siguiente ejercicio",
+            body = "Toca el selector inferior o desliza entre tarjetas para cambiar.",
+            cutoutCornerDp = 28f,
+        ),
+    )
+
+    /** Nutrición: copy adaptativo según si el usuario ya tiene un plan activo. */
+    fun nutrition(hasActivePlan: Boolean): List<TourStep> = listOf(
+        TourStep(
+            anchorId = TourAnchors.NUTRITION_REGISTRO,
+            eyebrow = "NUTRICIÓN · 1 DE 4",
+            title = "Registro inteligente",
+            body = "Escribe o dicta lo que comiste con tus palabras: KPKN calcula macros.",
+            cutoutCornerDp = 32f,
+        ),
+        TourStep(
+            anchorId = TourAnchors.NUTRITION_ANILLOS,
+            eyebrow = "NUTRICIÓN · 2 DE 4",
+            title = "Anillos de macros",
+            body = "Controla calorías, proteína, carbohidratos y grasas del día.",
+            cutoutCornerDp = 24f,
+        ),
+        TourStep(
+            anchorId = TourAnchors.NUTRITION_PLAN,
+            eyebrow = "NUTRICIÓN · 3 DE 4",
+            title = if (hasActivePlan) "Tu plan calórico" else "Crea tu plan cuando quieras",
+            body = if (hasActivePlan) {
+                "Ajusta tus metas calóricas o reparto de macros desde este acceso."
+            } else {
+                "Aún no tienes meta: pulsa «Crear plan» para definir tus calorías objetivo."
+            },
+            cutoutCornerDp = 24f,
+        ),
+        TourStep(
+            anchorId = TourAnchors.NUTRITION_HISTORIAL,
+            eyebrow = "NUTRICIÓN · 4 DE 4",
+            title = "Historial semanal",
+            body = "Revisa tu adherencia diaria y recupera comidas de días anteriores.",
+            cutoutCornerDp = 24f,
+        ),
+    )
+
+    /** Cuerpo: copy adaptativo según si ya existen pesajes registrados. */
+    fun body(hasEntries: Boolean): List<TourStep> = listOf(
+        TourStep(
+            anchorId = TourAnchors.BODY_PESAJES,
+            eyebrow = "CUERPO · 1 DE 2",
+            title = "Añade tus pesajes",
+            body = "Registra peso o medidas desde aquí en dos toques.",
+            cutoutCornerDp = 32f,
+        ),
+        TourStep(
+            anchorId = TourAnchors.BODY_TENDENCIA,
+            eyebrow = "CUERPO · 2 DE 2",
+            title = if (hasEntries) "Tendencia y meta" else "Tu curva arranca aquí",
+            body = if (hasEntries) {
+                "La media móvil filtra fluctuaciones y la compara con tu objetivo."
+            } else {
+                "Con al menos 3 pesajes verás tu línea de tendencia real sin ruido diario."
+            },
+            cutoutCornerDp = 24f,
+        ),
+    )
+
+    /** Perfil: acceso a «Repetir el recorrido» en Ajustes y Competiciones. */
+    val profile: List<TourStep> = listOf(
+        TourStep(
+            anchorId = TourAnchors.PROFILE_AJUSTES,
+            eyebrow = "PERFIL · 1 DE 2",
+            title = "Ajustes y guía",
+            body = "Cambia unidades, respaldos y toca «Repetir el recorrido» aquí.",
+            cutoutCornerDp = 99f,
+        ),
+        TourStep(
+            anchorId = TourAnchors.PROFILE_COMPETICION,
+            eyebrow = "PERFIL · 2 DE 2",
+            title = "Competiciones",
+            body = "Guarda fechas de tarima y marcas pasadas con cuenta atrás en Inicio.",
+            cutoutCornerDp = 24f,
+        ),
+    )
+
+    /** Recorrido de cada id (para pruebas de textos y anclas). */
+    fun todos(
+        hasActivePlan: Boolean = true,
+        hasEntries: Boolean = true,
+    ): Map<String, List<TourStep>> = mapOf(
+        TourIds.HOME to home(),
+        TourIds.TRAINING to training,
+        TourIds.FIRST_WORKOUT to firstWorkout,
+        TourIds.NUTRITION to nutrition(hasActivePlan = hasActivePlan),
+        TourIds.BODY to body(hasEntries = hasEntries),
+        TourIds.PROFILE to profile,
     )
 }

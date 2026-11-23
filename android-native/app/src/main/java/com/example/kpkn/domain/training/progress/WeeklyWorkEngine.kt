@@ -2,6 +2,7 @@ package com.example.kpkn.domain.training.progress
 
 import com.example.kpkn.data.models.CompletedSet
 import com.example.kpkn.data.models.WorkoutLog
+import com.example.kpkn.domain.training.insights.RecordedSetAccounting
 import kotlin.math.round
 
 /** Trabajo de una semana. [rirMean] y [plannedRirMean] van redondeados a 1 decimal. */
@@ -18,7 +19,8 @@ data class WeekWork(
 )
 
 /** Serie de trabajo: no omitida, no de calentamiento y con repeticiones. Compartida con [LiftTrendEngine]. */
-internal fun CompletedSet.isWorkingSet(): Boolean = !skipped && !isWarmup && reps > 0
+internal fun CompletedSet.isWorkingSet(): Boolean =
+    !skipped && !isWarmup && recordedPayloadV3?.skipped != true && reps > 0
 
 /** Agregado semanal de series de trabajo. Dominio puro, sin android.*. */
 object WeeklyWorkEngine {
@@ -32,11 +34,17 @@ object WeeklyWorkEngine {
         val logsByWeek = logs.groupBy { it.weekId }
         return weekOrder.distinct().map { weekId ->
             val weekLogs = logsByWeek[weekId].orEmpty()
-            val sets = weekLogs.flatMap { log -> log.completedExercises.flatMap { it.sets } }.filter { it.isWorkingSet() }
+            val strengthExercises = weekLogs.flatMap { log ->
+                log.completedExercises.filter { it.cardioDetails == null }
+            }
+            val sets = strengthExercises.flatMap { it.sets }.filter { it.isWorkingSet() }
+            val hardSets = strengthExercises.sumOf { ex ->
+                RecordedSetAccounting.logicalWorkingSets(ex, requirePositiveReps = true).size
+            }
             val rirs = sets.mapNotNull { it.rir }
             WeekWork(
                 weekId = weekId,
-                hardSets = sets.size,
+                hardSets = hardSets,
                 plannedSets = plannedSetsByWeek[weekId],
                 tonnageKg = sets.sumOf {
                     com.example.kpkn.domain.workout.CompletedSetLoadSemantics.totalExternalTonnageKg(it)

@@ -367,7 +367,8 @@ data class WorkoutUiState(
     // Tanda 1: tags, history
     val exerciseTags: Map<String, String> = emptyMap(),   // exerciseId → active tag (legacy compat)
     val activeTagsByExercise: Map<String, List<String>> = emptyMap(), // exerciseId → active main tag IDs
-    val activeSubTagsByExercise: Map<String, List<String>> = emptyMap(), // exerciseId → active sub-tag IDs
+    val activeSubTagsByExercise: Map<String, List<String>> = emptyMap(), // exerciseId → active sub-tag IDs (legacy)
+    val activeSubTagsBySetKey: Map<String, List<String>> = emptyMap(), // setKey → active sub-tag IDs (#12)
     val userCreatedTags: Map<String, List<WorkoutTag>> = emptyMap(), // exerciseKey → all user-created tags
     val exerciseNotes: Map<String, String> = emptyMap(),
     val exercisePhotos: Map<String, List<String>> = emptyMap(),

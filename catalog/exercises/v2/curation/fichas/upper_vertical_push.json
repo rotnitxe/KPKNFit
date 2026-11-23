@@ -367,25 +367,6 @@
             "why": "Sostiene la barra por encima de la cabeza y empuja contra ella al bloquear. Padovan et al. midieron el deltoides anterior, lateral y posterior durante el press de hombros, y Soriano et al. sitúan el envión entre los derivados de empuje por encima de la cabeza; no hay electromiografía del envión, así que el rol se hereda del push press y de la regla del empuje vertical."
           },
           {
-            "id": "quadriceps",
-            "role": "SECONDARY",
-            "sources": [
-              "soriano2019",
-              "soriano2024b",
-              "anat_quadriceps"
-            ],
-            "why": "Genera con la cadera la extensión de rodillas del impulso y frena la segunda flexión al meter el cuerpo bajo la barra. Soriano et al. describen estos ejercicios como una extensión impulsiva de cadera, rodillas y tobillos, y no encontraron diferencias cinéticas entre el push press y el envión con el 80 % de 1RM del push press."
-          },
-          {
-            "id": "gluteus_maximus",
-            "role": "SECONDARY",
-            "sources": [
-              "soriano2019",
-              "anat_glute_max"
-            ],
-            "why": "Extiende la cadera durante el impulso de las piernas. La revisión de Soriano et al. recoge la extensión de cadera, rodillas y tobillos como motor de estos ejercicios; no hay datos que lo sitúen por encima del deltoides, por eso se mantiene como apoyo."
-          },
-          {
             "id": "triceps",
             "role": "SECONDARY",
             "sources": [
@@ -402,6 +383,25 @@
               "anat_trapezius"
             ],
             "why": "Eleva y gira hacia arriba la escápula para dejar sitio al brazo sobre la cabeza. Padovan et al. midieron el trapecio superior en el press de hombros; en el envión se extrapola esa función al bloqueo."
+          },
+          {
+            "id": "quadriceps",
+            "role": "STABILIZER",
+            "sources": [
+              "soriano2019",
+              "soriano2024b",
+              "anat_quadriceps"
+            ],
+            "why": "Genera con la cadera la extensión de rodillas del impulso y frena la segunda flexión al meter el cuerpo bajo la barra. Soriano et al. describen estos ejercicios como una extensión impulsiva de cadera, rodillas y tobillos, y no encontraron diferencias cinéticas entre el push press y el envión con el 80 % de 1RM del push press."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "STABILIZER",
+            "sources": [
+              "soriano2019",
+              "anat_glute_max"
+            ],
+            "why": "Extiende la cadera durante el impulso de las piernas. La revisión de Soriano et al. recoge la extensión de cadera, rodillas y tobillos como motor de estos ejercicios; no hay datos que lo sitúen por encima del deltoides, por eso se mantiene como apoyo."
           },
           {
             "id": "calves",
@@ -751,25 +751,6 @@
             "why": "Sostiene la barra bloqueada sobre la cabeza durante la tijera y la recuperación de los pies. Padovan et al. midieron el deltoides en el press por encima de la cabeza y Soriano et al. incluyen el envión de tijera entre los derivados de empuje; no hay electromiografía del envión, de modo que el rol se hereda del push press y de la regla del empuje vertical."
           },
           {
-            "id": "quadriceps",
-            "role": "SECONDARY",
-            "sources": [
-              "soriano2024b",
-              "nagao2026",
-              "anat_quadriceps"
-            ],
-            "why": "Extiende las rodillas en el impulso y frena el cuerpo sobre la pierna delantera. Soriano et al. no hallaron diferencias cinéticas entre el push press y el envión de tijera, y Nagao et al. relacionaron el éxito del envión de tijera con una flexión de rodilla más lenta en la primera flexión."
-          },
-          {
-            "id": "gluteus_maximus",
-            "role": "SECONDARY",
-            "sources": [
-              "nagao2026",
-              "anat_glute_max"
-            ],
-            "why": "Extiende la cadera durante el impulso y sostiene la pierna delantera en la tijera. Nagao et al. vieron mayor velocidad de extensión de cadera y de tronco en el impulso de los intentos que salieron bien; no hay electromiografía del glúteo en este gesto."
-          },
-          {
             "id": "triceps",
             "role": "SECONDARY",
             "sources": [
@@ -786,6 +767,25 @@
               "anat_trapezius"
             ],
             "why": "Gira hacia arriba la escápula para dejar el brazo sobre la cabeza y sostiene el hombro bajo la barra. Padovan et al. midieron el trapecio superior en el press por encima de la cabeza; en el envión se extrapola esa función."
+          },
+          {
+            "id": "quadriceps",
+            "role": "STABILIZER",
+            "sources": [
+              "soriano2024b",
+              "nagao2026",
+              "anat_quadriceps"
+            ],
+            "why": "Extiende las rodillas en el impulso y frena el cuerpo sobre la pierna delantera. Soriano et al. no hallaron diferencias cinéticas entre el push press y el envión de tijera, y Nagao et al. relacionaron el éxito del envión de tijera con una flexión de rodilla más lenta en la primera flexión."
+          },
+          {
+            "id": "gluteus_maximus",
+            "role": "STABILIZER",
+            "sources": [
+              "nagao2026",
+              "anat_glute_max"
+            ],
+            "why": "Extiende la cadera durante el impulso y sostiene la pierna delantera en la tijera. Nagao et al. vieron mayor velocidad de extensión de cadera y de tronco en el impulso de los intentos que salieron bien; no hay electromiografía del glúteo en este gesto."
           },
           {
             "id": "calves",

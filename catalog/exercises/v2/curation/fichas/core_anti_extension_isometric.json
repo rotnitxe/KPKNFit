@@ -58,8 +58,17 @@
         ],
         "muscles": [
           {
-            "id": "abdominals",
+            "id": "core",
             "role": "PRIMARY",
+            "sources": [
+              "haladay2015",
+              "statpearls_abdominal_wall"
+            ],
+            "why": "La capa profunda de la pared abdominal comprime el tronco y genera presión intraabdominal, lo que ayuda a sostener la columna mientras los extremos pesan hacia el suelo. En el descenso de ambas piernas, el oblicuo interno y el transverso del abdomen guardaron una asociación moderada con el nivel de la prueba (Haladay et al.); apoyan al abdomen superficial sin liderar el gesto."
+          },
+          {
+            "id": "abdominals",
+            "role": "SECONDARY",
             "sources": [
               "willett2001",
               "haladay2015",
@@ -75,15 +84,6 @@
               "statpearls_iliopsoas"
             ],
             "why": "El iliopsoas levanta las piernas estiradas y las sostiene en el aire; en el descenso de ambas piernas, el momento articular de la cadera tuvo una asociación muy fuerte con el nivel de la prueba (Haladay et al.). Por eso es un secundario de peso: cuanto más bajan los pies, más trabaja."
-          },
-          {
-            "id": "core",
-            "role": "STABILIZER",
-            "sources": [
-              "haladay2015",
-              "statpearls_abdominal_wall"
-            ],
-            "why": "La capa profunda de la pared abdominal comprime el tronco y genera presión intraabdominal, lo que ayuda a sostener la columna mientras los extremos pesan hacia el suelo. En el descenso de ambas piernas, el oblicuo interno y el transverso del abdomen guardaron una asociación moderada con el nivel de la prueba (Haladay et al.); apoyan al abdomen superficial sin liderar el gesto."
           }
         ]
       },

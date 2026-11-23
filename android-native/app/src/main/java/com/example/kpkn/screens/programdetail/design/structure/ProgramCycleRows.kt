@@ -23,10 +23,15 @@ internal fun ProgramCycleRow(
     modifier: Modifier = Modifier,
     divider: Boolean = true,
 ) {
+    val baseDetail = if (loop.mode == com.example.kpkn.data.models.LoopMode.PROGRESSIVE_WAVE && loop.waveSteps.isNotEmpty()) {
+        "Onda · ${com.example.kpkn.domain.text.SpanishPlurals.weeks(loop.waveSteps.size)}"
+    } else {
+        cycleCadenceLabel(loop.cadence)
+    }
     StructureMenuRow(
         icon = loopTypeIcon(loop.type),
         title = loop.title,
-        detail = if (loop.cancelled) "${cycleCadenceLabel(loop.cadence)} · cancelado" else cycleCadenceLabel(loop.cadence),
+        detail = if (loop.cancelled) "$baseDetail · cancelado" else baseDetail,
         divider = divider,
         onClick = onClick,
         modifier = modifier,

@@ -575,7 +575,10 @@ internal fun SessionEditorSheets(
         return
     }
 
-    KpknSheet(onDismissRequest = onDismiss) {
+    KpknSheet(
+        onDismissRequest = onDismiss,
+        showDragHandle = uiState.sheet != SessionEditorSheet.QUICK_ACTIONS,
+    ) {
         when (uiState.sheet) {
             SessionEditorSheet.EXERCISE_PICKER -> Unit
             SessionEditorSheet.BACKGROUND -> CoverSheet(

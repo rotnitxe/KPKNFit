@@ -249,7 +249,7 @@
               "movementPatternId": "anti_extension_pelvic_control",
               "performanceProfileId": "dead_bug__default__dead_bug",
               "primaryMuscles": [
-                "abdominals"
+                "core"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -295,13 +295,14 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "abdominals"
+                    "core"
                   ],
                   "secondaryMuscles": [
-                    "core",
+                    "abdominals"
+                  ],
+                  "stabilizerMuscles": [
                     "hip_flexors"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -357,22 +358,23 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "anti_extension_pelvic_control:abdominals"
+                    "anti_extension_pelvic_control:core"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "core",
-                "hip_flexors"
+                "abdominals"
               ],
               "setupCues": [
                 "Túmbate boca arriba con los brazos estirados hacia el techo y las rodillas flexionadas sobre la cadera, con las espinillas paralelas al suelo.",
                 "Pega suavemente la zona lumbar al suelo antes de mover nada."
               ],
               "setupTimeSeconds": 10,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "hip_flexors"
+              ],
               "technicalDifficulty": 4.0
             },
             "selectedOptions": {}

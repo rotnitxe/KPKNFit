@@ -198,43 +198,31 @@ fun KpknRestPickerChain(
     onDismiss: () -> Unit,
 ) {
     val hasSecondary = secondaryTitle != null && secondarySeconds != null
-    var step by remember(primaryTitle, primarySeconds, secondaryTitle, secondarySeconds) {
-        mutableStateOf(0)
+    val shortPrimary = when {
+        primaryTitle.contains("entre ejercicios", ignoreCase = true) -> "Entre ejercicios"
+        primaryTitle.contains("entre lados", ignoreCase = true) -> "Entre lados"
+        primaryTitle.contains("entre series", ignoreCase = true) -> "Series"
+        else -> primaryTitle
     }
-    var chosenPrimarySeconds by remember(primaryTitle, primarySeconds, secondaryTitle, secondarySeconds) {
-        mutableStateOf<Int?>(null)
+    val shortSecondary = secondaryTitle?.let { title ->
+        when {
+            title.contains("ronda", ignoreCase = true) -> "Tras la ronda"
+            title.contains("superserie", ignoreCase = true) -> "Tras la ronda"
+            title.contains("lado", ignoreCase = true) -> "Entre lados"
+            else -> title
+        }
     }
-
-    if (step == 0) {
-        KpknNativeTimePickerDialog(
-            title = primaryTitle,
-            initialHour = (primarySeconds.coerceAtLeast(0) / 60).coerceIn(0, 23),
-            initialMinute = (primarySeconds.coerceAtLeast(0) % 60).coerceIn(0, 59),
-            hint = "Minutos : segundos",
-            onConfirm = { minutes, seconds ->
-                val selected = (minutes * 60 + seconds).coerceAtLeast(0)
-                if (hasSecondary) {
-                    chosenPrimarySeconds = selected
-                    step = 1
-                } else {
-                    onConfirm(selected, null)
-                }
-            },
-            onDismiss = onDismiss,
-        )
-    } else {
-        KpknNativeTimePickerDialog(
-            title = secondaryTitle.orEmpty(),
-            initialHour = (secondarySeconds.orZero() / 60).coerceIn(0, 23),
-            initialMinute = (secondarySeconds.orZero() % 60).coerceIn(0, 59),
-            hint = "Minutos : segundos",
-            onConfirm = { minutes, seconds ->
-                val selected = (minutes * 60 + seconds).coerceAtLeast(0)
-                onConfirm(chosenPrimarySeconds ?: primarySeconds.coerceAtLeast(0), selected)
-            },
-            onDismiss = onDismiss,
-        )
-    }
+    KpknRestClockSheet(
+        title = if (hasSecondary) "Descanso" else primaryTitle,
+        primaryLabel = shortPrimary,
+        initialPrimarySeconds = primarySeconds.coerceAtLeast(0),
+        secondaryLabel = if (hasSecondary) shortSecondary else null,
+        initialSecondarySeconds = if (hasSecondary) secondarySeconds.orZero() else null,
+        primaryStepSeconds = if (shortPrimary == "Entre lados") 5 else 15,
+        secondaryStepSeconds = if (shortSecondary == "Entre lados") 5 else 15,
+        onConfirm = onConfirm,
+        onDismiss = onDismiss,
+    )
 }
 
 private fun Int?.orZero(): Int = this ?: 0

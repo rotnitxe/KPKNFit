@@ -68,6 +68,8 @@ data class SetupSettingsPatch(
     val athleteType: SetupPatchField<AthleteType> = SetupPatchField.Unchanged,
     /** ¿Compites? «Sí, sin fecha» (true); con fecha o «No compito» (false). Unchanged si el alta no preguntó. */
     val competesWithoutDate: SetupPatchField<Boolean> = SetupPatchField.Unchanged,
+    val nutritionActivityLevel: SetupPatchField<Int> = SetupPatchField.Unchanged,
+    val defaultHighEnergyDay: SetupPatchField<Int?> = SetupPatchField.Unchanged,
 ) {
     fun applyTo(base: Settings): Settings = base.copy(
         username = username.resolve(base.username),
@@ -78,6 +80,8 @@ data class SetupSettingsPatch(
         dailyProteinGoal = dailyProteinGoal.resolve(base.dailyProteinGoal),
         dailyCarbGoal = dailyCarbGoal.resolve(base.dailyCarbGoal),
         dailyFatGoal = dailyFatGoal.resolve(base.dailyFatGoal),
+        nutritionActivityLevel = nutritionActivityLevel.resolve(base.nutritionActivityLevel),
+        defaultHighEnergyDay = defaultHighEnergyDay.resolve(base.defaultHighEnergyDay),
         onboardingCompleted = onboardingCompleted.resolve(base.onboardingCompleted),
         onboardingNameDone = onboardingNameDone.resolve(base.onboardingNameDone),
         onboardingProgramDone = onboardingProgramDone.resolve(base.onboardingProgramDone),

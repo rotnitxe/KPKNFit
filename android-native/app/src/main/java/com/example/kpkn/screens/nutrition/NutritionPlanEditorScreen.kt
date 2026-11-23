@@ -78,6 +78,7 @@ fun NutritionPlanEditorScreen(
             onWeeklyDistribution = viewModel::setWeeklyDistribution,
             onProvenance = viewModel::setProvenance,
             onMode = viewModel::setMode,
+            onResetRecommendation = if (state.draft.provenance == com.example.kpkn.domain.nutrition.NutritionEditorProvenance.PROFESSIONAL) null else viewModel::resetToRecommendation,
             onSave = viewModel::save,
         ),
         isNew = isNew,

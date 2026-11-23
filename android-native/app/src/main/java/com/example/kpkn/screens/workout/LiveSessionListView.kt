@@ -985,12 +985,29 @@ private fun ListRowWithEditor(
                     }
                     val nextWeight = values.getOrElse(0) { currentWeight }
                     val nextValue = values.getOrElse(1) { currentValue }
+                    val currentRowMode = displayedRow.completed?.loadMode ?: resolvePersistedLoadModeForSet(
+                        exerciseId = displayedRow.exercise.id,
+                        setIdx = displayedRow.setIndex,
+                        tagId = uiState.exerciseTags[displayedRow.exercise.id],
+                        persistedLoadModeBySet = uiState.persistedLoadModeBySet,
+                        persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,
+                    ) ?: displayedRow.planned.loadModeV2 ?: inferDefaultLoadModeFromCatalog(displayedRow.exercise)
+                    val nextLoadMode = loadModeAfterEnteredWeight(currentRowMode, nextWeight)
+                    if (nextLoadMode != currentRowMode) {
+                        viewModel.persistLoadModeForSet(displayedRow.exercise.id, displayedRow.setIndex, nextLoadMode)
+                    }
                     val base = viewModel.getSetDraft(displayedRow.exercise.id, displayedRow.setIndex, displayedRow.side) ?: WorkoutSetDraft()
                     viewModel.updateSetDraftFromExercise(
                         displayedRow.exercise,
                         displayedRow.setIndex,
                         displayedRow.side,
-                        base.copy(weightText = nextWeight, valueText = nextValue, isDirty = true),
+                        base.copy(
+                            weightText = nextWeight,
+                            valueText = nextValue,
+                            loadMode = nextLoadMode,
+                            weightManuallyFixed = nextWeight != currentWeight || base.weightManuallyFixed == true,
+                            isDirty = true,
+                        ),
                     )
                     quickKeyboardField = null
                 },
@@ -1000,8 +1017,23 @@ private fun ListRowWithEditor(
                         quickKeyboardField = null
                         return@WorkoutNumericKeyboardDialog
                     }
+                    val currentRowMode = displayedRow.completed?.loadMode ?: resolvePersistedLoadModeForSet(
+                        exerciseId = displayedRow.exercise.id,
+                        setIdx = displayedRow.setIndex,
+                        tagId = uiState.exerciseTags[displayedRow.exercise.id],
+                        persistedLoadModeBySet = uiState.persistedLoadModeBySet,
+                        persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,
+                    ) ?: displayedRow.planned.loadModeV2 ?: inferDefaultLoadModeFromCatalog(displayedRow.exercise)
+                    val nextLoadMode = if (editingWeight) loadModeAfterEnteredWeight(currentRowMode, staged) else currentRowMode
+                    if (nextLoadMode != currentRowMode) {
+                        viewModel.persistLoadModeForSet(displayedRow.exercise.id, displayedRow.setIndex, nextLoadMode)
+                    }
                     val base = viewModel.getSetDraft(displayedRow.exercise.id, displayedRow.setIndex, displayedRow.side) ?: WorkoutSetDraft()
-                    val update = if (editingWeight) base.copy(weightText = staged) else base.copy(valueText = staged)
+                    val update = if (editingWeight) {
+                        base.copy(weightText = staged, loadMode = nextLoadMode, weightManuallyFixed = true)
+                    } else {
+                        base.copy(valueText = staged)
+                    }
                     viewModel.updateSetDraftFromExercise(displayedRow.exercise, displayedRow.setIndex, displayedRow.side,
                         update.copy(isDirty = true))
                     quickKeyboardField = null
@@ -1029,7 +1061,7 @@ private fun ListApreProposal(
     if (completed.performedPurpose() != SetPurpose.AMRAP) return
     val record = viewModel.calibrationForSet(completed)
         ?.takeIf { it.apre != null && it.status != CalibrationStatus.SUPERSEDED }
-        ?: return
+    if (record == null && completed.apreXrm == null) return
     Box(
         Modifier.fillMaxWidth().padding(top = 8.dp, bottom = 8.dp)
             .heightIn(min = 320.dp, max = 460.dp)
@@ -1389,8 +1421,24 @@ private fun SetListRow(
         // La cifra siempre con su unidad («100 kg × 8») y coma decimal; la columna crece o se divide en 2 líneas si hay muchos dígitos.
         BoxWithConstraints(Modifier.widthIn(min = valueWidth, max = 180.dp)) {
             val density = LocalDensity.current
-            val shownLoad = if (row.completed == null) draft?.weightText?.takeIf { it.isNotBlank() }
+            val effectiveRowLoadMode = row.completed?.loadMode
+                ?: draft?.loadMode
+                ?: resolvePersistedLoadModeForSet(
+                    exerciseId = row.exercise.id,
+                    setIdx = row.setIndex,
+                    tagId = uiState.exerciseTags[row.exercise.id],
+                    persistedLoadModeBySet = uiState.persistedLoadModeBySet,
+                    persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,
+                )
+                ?: row.planned.loadModeV2
+                ?: inferDefaultLoadModeFromCatalog(row.exercise)
+            val isBodyweight = effectiveRowLoadMode == com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT &&
+                (row.completed?.weight ?: 0.0) <= 0.0 && (draft?.weightText?.toDoubleOrNull() ?: 0.0) <= 0.0
+            val shownLoad = if (isBodyweight) {
+                "Peso corporal"
+            } else if (row.completed == null) draft?.takeIf { it.weightManuallyFixed == true }?.weightText?.takeIf { it.isNotBlank() }
                 ?: liveListDisplayedRow(row, uiState).planned.weight?.takeIf { it > 0.0 }?.let(::listNumber)
+                ?: draft?.weightText?.takeIf { it.isNotBlank() }
                 ?: row.planned.weight?.takeIf { it > 0.0 }?.let(::listNumber) else row.completed.weight.takeIf { it > 0.0 }?.let(::listNumber)
             val quantity = listRowQuantity(row)
             val shownQuantity = if (row.completed == null) draft?.valueText?.takeIf { it.isNotBlank() } ?: quantity.first else quantity.first
@@ -1444,7 +1492,7 @@ private fun SetListRow(
                     Row(horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.Bottom) {
                         LoadValue(Modifier.alignByBaseline())
                         Text(
-                            text = " kg × ",
+                            text = if (isBodyweight) " × " else " kg × ",
                             modifier = Modifier.alignByBaseline(),
                             style = Body.copy(
                                 fontSize = 11.sp,
@@ -1511,9 +1559,26 @@ private fun InlineSetEditor(
 ) {
     val savedDraft = viewModel.getSetDraft(row.exercise.id, row.setIndex, row.side)
     val bootCount = liveClockBootCount(androidx.compose.ui.platform.LocalContext.current)
+    var activeLoadMode by remember(row.key, row.completed?.loadMode, uiState.persistedLoadModeBySet, uiState.persistedLoadModeByExercise) {
+        mutableStateOf(
+            row.completed?.loadMode ?: resolvePersistedLoadModeForSet(
+                exerciseId = row.exercise.id,
+                setIdx = row.setIndex,
+                tagId = uiState.exerciseTags[row.exercise.id],
+                persistedLoadModeBySet = uiState.persistedLoadModeBySet,
+                persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,
+            ) ?: row.planned.loadModeV2 ?: inferDefaultLoadModeFromCatalog(row.exercise),
+        )
+    }
     // La escala puede cambiarse entre RIR y RPE en «Esfuerzo realizado».
+    val effectivePlannedRom = row.planned.plannedRom ?: row.exercise.plannedRom
+    val defaultPlannedRomPercent = effectivePlannedRom?.let {
+        com.example.kpkn.domain.workout.RomTargetCatalog.toApproxPercent(it).coerceIn(10, 100)
+    } ?: 100
     var mode by rememberSaveable(row.key) { mutableStateOf(savedDraft?.effortMode ?: row.completed?.actualIntensityMode?.takeIf { it == IntensityMode.RPE || it == IntensityMode.RIR } ?: if (row.completed?.rpe != null) IntensityMode.RPE else if (row.completed?.rir != null) IntensityMode.RIR else effortModeOf(row.planned)) }
-    var weightText by rememberSaveable(row.key) { mutableStateOf(savedDraft?.weightText ?: initialWeight(row)) }
+    var weightText by rememberSaveable(row.key, row.planned.weight) {
+        mutableStateOf(savedDraft?.takeIf { it.weightManuallyFixed == true }?.weightText ?: initialWeight(row))
+    }
     var valueText by rememberSaveable(row.key) { mutableStateOf(savedDraft?.valueText ?: initialValue(row)) }
     var effort by rememberSaveable(row.key) {
         mutableStateOf(savedDraft?.intensityText?.let(::parseDecimal) ?: initialEffortValue(row, mode))
@@ -1522,7 +1587,12 @@ private fun InlineSetEditor(
     var partials by rememberSaveable(row.key) { mutableIntStateOf(savedDraft?.partialReps ?: row.completed?.partialReps ?: 0) }
     var assisted by rememberSaveable(row.key) { mutableIntStateOf(savedDraft?.assistedReps ?: row.completed?.assistedReps ?: 0) }
     // Pulido v1 (15): igual que en la tarjeta, el plan del ejercicio (`trackRom`) decide el valor de partida; lo ya guardado manda.
-    var rom by rememberSaveable(row.key) { mutableStateOf(liveSetInitialRom(row.exercise.trackRom, savedDraft?.rom, row.completed?.rom)) }
+    var rom by rememberSaveable(row.key) {
+        mutableStateOf(savedDraft?.rom ?: row.completed?.rom ?: (if (row.exercise.trackRom) defaultPlannedRomPercent else null))
+    }
+    var recordedRomTarget by remember(row.key) {
+        mutableStateOf(savedDraft?.recordedRomTarget ?: row.completed?.recordedRomTarget ?: (if (row.exercise.trackRom) effectivePlannedRom else null))
+    }
     var note by rememberSaveable(row.key) { mutableStateOf(savedDraft?.notes ?: row.completed?.notes.orEmpty()) }
     // El ROM sigue a `Exercise.trackRom` (la única verdad): si el editor, la tarjeta o la hoja de otra serie lo cambian, esta fila también.
     var seenTracksRom by remember(row.key) { mutableStateOf(row.exercise.trackRom) }
@@ -1530,7 +1600,8 @@ private fun InlineSetEditor(
         val on = row.exercise.trackRom
         if (on != seenTracksRom) {
             seenTracksRom = on
-            rom = if (on) rom ?: 100 else if (row.completed?.rom != null) rom else null
+            rom = if (on) rom ?: defaultPlannedRomPercent else if (row.completed?.rom != null) rom else null
+            recordedRomTarget = if (on) recordedRomTarget ?: effectivePlannedRom else if (row.completed?.recordedRomTarget != null) recordedRomTarget else null
         }
     }
     var saveRomToProgram by remember(row.exercise.id) { mutableStateOf(false) }
@@ -1585,6 +1656,7 @@ private fun InlineSetEditor(
                 partialReps = partials.takeIf { it > 0 },
                 assistedReps = assisted.takeIf { it > 0 },
                 rom = rom,
+                recordedRomTarget = recordedRomTarget,
                 notes = note.ifBlank { null },
                 timedSetAccumulatedMs = timedClock.accumulatedMs,
                 timedSetStartedAtElapsedMs = timedClock.startedAtMs,
@@ -1697,15 +1769,10 @@ private fun InlineSetEditor(
                         partialReps = partials.takeIf { it > 0 },
                         assistedReps = assisted.takeIf { it > 0 },
                         rom = rom,
+                        recordedRomTarget = recordedRomTarget,
                         notes = note.ifBlank { null },
                     ),
-                    loadMode = row.completed?.loadMode ?: resolvePersistedLoadModeForSet(
-                        exerciseId = row.exercise.id,
-                        setIdx = row.setIndex,
-                        tagId = uiState.exerciseTags[row.exercise.id],
-                        persistedLoadModeBySet = uiState.persistedLoadModeBySet,
-                        persistedLoadModeByExercise = uiState.persistedLoadModeByExercise,
-                    ) ?: row.planned.loadModeV2,
+                    loadMode = activeLoadMode,
                     unitMode = unit,
                     bodyWeight = viewModel.currentBodyWeight(),
                     side = row.side,
@@ -1793,7 +1860,7 @@ private fun InlineSetEditor(
                     initialDropEnabled = drops.isNotEmpty(),
                     initialRestPauseEnabled = pauses.isNotEmpty(),
                     setNumber = row.setIndex + 1,
-                    loadMode = row.planned.loadModeV2 ?: com.example.kpkn.data.models.LoadModeV2.LOAD,
+                    loadMode = activeLoadMode,
                 )
             }
         } else if (shownFace == EDITOR_FACE_VISUAL) {
@@ -1934,7 +2001,42 @@ private fun InlineSetEditor(
                 val onStepChange: (Double) -> Unit = { step ->
                     viewModel.setExerciseLoadIncrementKg(loadStepKey, step)
                 }
-                if (split) {
+                if (activeLoadMode == com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT) {
+                    Row(
+                        Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                            Text(
+                                text = "PESO CORPORAL",
+                                style = Body.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold, letterSpacing = 0.8.sp),
+                                color = WizardColors.textMuted,
+                            )
+                            com.example.kpkn.ui.design.KpknTextAction(
+                                text = "+ Lastre",
+                                onClick = {
+                                    activeLoadMode = com.example.kpkn.data.models.LoadModeV2.LASTRE
+                                    viewModel.persistLoadModeForSet(
+                                        row.exercise.id,
+                                        row.setIndex,
+                                        com.example.kpkn.data.models.LoadModeV2.LASTRE,
+                                    )
+                                },
+                            )
+                        }
+                        Row(horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.Bottom) {
+                            ListMetricField(valueText, ::updateTimedValue, metric.copy(fontSize = 24.sp, lineHeight = 30.sp, textAlign = TextAlign.End),
+                                Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-value-${row.key}", "Cantidad realizada", !busy && !timedClockRunning,
+                                decimal = unit != UnitModeV2.REPS, allowColon = unit == UnitModeV2.TIME,
+                                fields = editorFields, activeContextIndex = 1, onApplyFields = applyEditorFields,
+                                allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange)
+                            Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "m"; else -> "reps" }, Modifier.padding(start = 4.dp, bottom = 5.dp),
+                                style = Body.copy(fontSize = 13.sp, fontFeatureSettings = "'tnum' 1, 'lnum' 1", platformStyle = PlatformTextStyle(includeFontPadding = false)),
+                                color = WizardColors.textFaint, maxLines = 1, softWrap = false)
+                        }
+                    }
+                } else if (split) {
                     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.SpaceBetween) {
                             Row(verticalAlignment = Alignment.Bottom) {
@@ -2016,6 +2118,9 @@ private fun InlineSetEditor(
                         hasDetail = partials > 0 || assisted > 0,
                         onOpenDetail = { showDetail = true },
                         modifier = Modifier.weight(1.6f).padding(start = 8.dp),
+                        plannedRom = row.planned.plannedRom ?: row.exercise.plannedRom,
+                        recordedRomTarget = recordedRomTarget,
+                        onRecordedRomTargetChange = { recordedRomTarget = it; persist() },
                     )
                 } else {
                     Text(
@@ -2029,6 +2134,29 @@ private fun InlineSetEditor(
                             .testTag("live-list-detail-${row.key}"),
                         style = Body.copy(fontSize = 12.sp), color = WizardColors.textMuted,
                     )
+                }
+            }
+            val listActiveTagIds = uiState.activeTagsByExercise[row.exercise.id].orEmpty()
+            val listSubTagOptions = viewModel.tagsForExercise(row.exercise.id)
+                .filter { it.id in listActiveTagIds }
+                .flatMap { it.subTags }
+                .distinctBy { it.id }
+            if (listSubTagOptions.isNotEmpty()) {
+                val activeSetSubIds = uiState.activeSubTagsBySetKey[row.key].orEmpty()
+                @OptIn(ExperimentalLayoutApi::class)
+                FlowRow(
+                    modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    listSubTagOptions.forEach { sub ->
+                        val active = sub.id in activeSetSubIds
+                        com.example.kpkn.ui.design.KpknChip(
+                            text = sub.name,
+                            selected = active,
+                            onClick = { viewModel.toggleSubTagForSet(row.key, sub.id) },
+                        )
+                    }
                 }
             }
             // `.quick-effort`: rótulo del modo, cinco valores, Fallo y «…» con la escala completa.
@@ -2085,6 +2213,19 @@ private fun InlineSetEditor(
     }
 
     if (showDetail) {
+        val rowExerciseKey = remember(row.exercise) { viewModel.canonicalExerciseKey(row.exercise) }
+        val rowTags = uiState.userCreatedTags[rowExerciseKey].orEmpty()
+        val rowActiveTagIds = uiState.activeTagsByExercise[row.exercise.id].orEmpty()
+        val rowAvailableSubTags = remember(rowTags, rowActiveTagIds) {
+            rowTags.filter { it.id in rowActiveTagIds }.flatMap { it.subTags }.ifEmpty {
+                rowTags.flatMap { it.subTags }
+            }.distinctBy { it.id }
+        }
+        val rowSubTagSetKey = if (row.side != null) {
+            "${row.exercise.id}_${row.setIndex}_${if (row.side == "left" || row.side.equals("L", ignoreCase = true)) "L" else "R"}"
+        } else {
+            "${row.exercise.id}_${row.setIndex}"
+        }
         LiveSetDetailSheet(
             exerciseName = displayWorkoutExerciseName(row.exercise),
             setLabel = row.label,
@@ -2097,7 +2238,8 @@ private fun InlineSetEditor(
             romOn = rom != null,
             rom = rom,
             onRomToggle = { on ->
-                rom = if (on) (rom ?: 100) else null
+                rom = if (on) (rom ?: defaultPlannedRomPercent) else null
+                recordedRomTarget = if (on) (recordedRomTarget ?: effectivePlannedRom) else null
                 persist()
                 // Igual que en la tarjeta: el ejercicio registra ROM como si el editor lo dijera, para el resto de la sesión.
                 if (on != row.exercise.trackRom) viewModel.setExerciseTrackRom(row.exercise.id, on, saveRomToProgram)
@@ -2112,6 +2254,16 @@ private fun InlineSetEditor(
             onNote = { note = it; persist() },
             onDismiss = { showDetail = false },
             showCompleteReps = unit == UnitModeV2.REPS,
+            plannedRom = effectivePlannedRom,
+            recordedRomTarget = recordedRomTarget,
+            onRecordedRomTargetChange = {
+                recordedRomTarget = it
+                rom = com.example.kpkn.domain.workout.RomTargetCatalog.toApproxPercent(it).coerceIn(10, 100)
+                persist()
+            },
+            availableSubTags = rowAvailableSubTags,
+            activeSubTagIds = uiState.activeSubTagsBySetKey[rowSubTagSetKey].orEmpty(),
+            onToggleSubTag = { subTagId -> viewModel.toggleSubTagForSet(rowSubTagSetKey, subTagId) },
         )
     }
     if (showScale) {

@@ -91,9 +91,12 @@ import com.example.kpkn.ui.design.KpknTextAction
 import com.example.kpkn.ui.design.KpknType
 import com.example.kpkn.ui.components.KpknPortal
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.tour.HomeTourInviteBanner
+import com.example.kpkn.ui.tour.TourAnchorScroller
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.TourIds
 import com.example.kpkn.ui.tour.TourScripts
+import com.example.kpkn.ui.tour.TourUiState
 import com.example.kpkn.ui.tour.tourAnchor
 import com.example.kpkn.screens.home.design.HomeDateSaver
 import com.example.kpkn.screens.home.design.HomeMasthead
@@ -157,8 +160,8 @@ fun HomeScreen(
     onResumeWorkout: () -> Unit = {},
     onEditSession: (Session, Program) -> Unit = { _, _ -> },
     onNavigateToCard: (String) -> Unit = {},
-    /** Abre la trayectoria exacta de un ejercicio desde Progreso de Inicio. */
-    onOpenExerciseProgress: (String) -> Unit = {},
+    /** Abre la trayectoria exacta de un ejercicio desde Progreso de Inicio (null = directorio completo). */
+    onOpenExerciseProgress: (String?) -> Unit = {},
     onNavigate: (String) -> Unit = {},
     onHeaderOverlayChange: HomeGlassOverlayChange = { _, _ -> },
     onNutritionOverlayChange: HomeGlassOverlayChange = { _, _ -> },
@@ -212,9 +215,7 @@ fun HomeScreen(
             program = programLine,
         )
     }
-    // Recorrido de Inicio: solo cuando los RINGS ya cargaron (si no, esperaría a sus anclas). Lo decide el controlador: visto = no arranca.
-    val tourHost = LocalKpknOverlayHost.current
-    LaunchedEffect(Unit) { tourHost?.startTour(TourIds.HOME, TourScripts.home(conTorre = false)) }
+    // Invitación suave y scrollers de Inicio viven dentro de HomeWithProgram (no bloquea el primer cuadro).
     val nutritionLogs by nutritionRepo.nutritionLogs.collectAsState()
     val context = LocalContext.current
     LaunchedEffect(uiState.activeProgramId) {
@@ -519,7 +520,7 @@ private fun HomeWithProgram(
     onNavigateToProgram: (String) -> Unit,
     onCreateProgram: () -> Unit,
     onNavigateToCard: (String) -> Unit,
-    onOpenExerciseProgress: (String) -> Unit = {},
+    onOpenExerciseProgress: (String?) -> Unit = {},
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier,
     onAddMeal: (MealType?) -> Unit = {},
@@ -565,7 +566,6 @@ private fun HomeWithProgram(
         }
     }
     var showSupplementQuickSheet by remember { mutableStateOf(false) }
-    var showProgressList by rememberSaveable { mutableStateOf(false) }
     var homeSupplementDetailId by remember { mutableStateOf<String?>(null) }
     var homeSupplementCeiling by remember { mutableStateOf<HomeSupplementCeiling?>(null) }
     fun homeHhmmNow(): String = java.time.LocalTime.now().format(java.time.format.DateTimeFormatter.ofPattern("HH:mm"))
@@ -614,6 +614,18 @@ private fun HomeWithProgram(
         summaryStore.markSeen(summaryKey(programId, month))
         seenKeys = summaryStore.seenKeys()
     }
+    val tourHost = LocalKpknOverlayHost.current
+    val tourUiState by tourHost?.tour?.state?.collectAsState() ?: remember { mutableStateOf(TourUiState()) }
+    val showTourInvite = tourHost != null &&
+        TourIds.HOME !in homeSettings.tourSeen &&
+        !tourHost.isTourSeen(TourIds.HOME) &&
+        !tourUiState.isActive
+    val weekSessionItemIndex = 1 + (if (showTourInvite) 1 else 0) + (if (notice != null) 1 else 0)
+    val programsItemIndex = weekSessionItemIndex + 3
+    TourAnchorScroller(TourAnchors.HOME_PERFIL) { listState.animateScrollToItem(0) }
+    TourAnchorScroller(TourAnchors.HOME_SESION) { listState.animateScrollToItem(weekSessionItemIndex) }
+    TourAnchorScroller(TourAnchors.HOME_PROGRAMAS) { listState.animateScrollToItem(programsItemIndex) }
+
     LazyColumn(
         state = listState,
         modifier = modifier.fillMaxSize().testTag(HOME_SCREEN_SCROLL_TAG),
@@ -631,6 +643,15 @@ private fun HomeWithProgram(
                 modifier = Modifier
                     .homeEntrance(0)
                     .onGloballyPositioned { onMastheadPositionChanged(it.positionInRoot().y + it.size.height) },
+            )
+        }
+        if (showTourInvite) item(key = "tour-invite") {
+            HomeTourInviteBanner(
+                onStart = { tourHost?.startTour(TourIds.HOME, TourScripts.home()) },
+                onLater = { tourHost?.markTourSeen(TourIds.HOME) },
+                modifier = Modifier
+                    .homeGapAbove(HomePageGap)
+                    .padding(horizontal = 16.dp),
             )
         }
         // Aviso «Tu <mes> está listo»: entre la cabecera y «Esta semana»; solo los días 1 a 10 y mientras no se haya visto o descartado.
@@ -703,9 +724,9 @@ private fun HomeWithProgram(
         item(key = "training-history") {
             HomeMetricsSection(
                 metrics = trainingMetrics,
-                onOpenHistory = { showProgressList = true },
-                onOpenProgress = onOpenExerciseProgress,
-                onOpenProgressList = { showProgressList = true },
+                onOpenHistory = { onOpenExerciseProgress(null) },
+                onOpenProgress = { id -> onOpenExerciseProgress(id) },
+                onOpenProgressList = { onOpenExerciseProgress(null) },
             )
         }
         item(key = "cards") {
@@ -757,45 +778,6 @@ private fun HomeWithProgram(
     }
     // Registro rápido desde Inicio (sp-rapida): la hoja que antes se abría sin montarse. Toma, detalle y techo
     // comparten motor y reglas con Nutrición; «Añadir» lleva a la pila completa.
-    if (showProgressList) {
-        ModalBottomSheet(
-            onDismissRequest = { showProgressList = false },
-            containerColor = WizardColors.cardFill,
-        ) {
-            Column(
-                Modifier.fillMaxWidth()
-                    .verticalScroll(rememberScrollState())
-                    .padding(horizontal = 20.dp)
-                    .padding(bottom = 28.dp),
-                verticalArrangement = Arrangement.spacedBy(4.dp),
-            ) {
-                Text("Progreso por ejercicio", style = WizardTypography.questionCompact, color = WizardColors.text)
-                Text("Los mismos ejercicios y el mismo orden que muestra Inicio.", style = WizardTypography.caption, color = WizardColors.textMuted)
-                Spacer(Modifier.height(8.dp))
-                trainingMetrics.progress.forEach { lift ->
-                    val improved = lift.deltaKg?.let { delta ->
-                        if (lift.higherIsBetter) delta > 0.005 else delta < -0.005
-                    } == true
-                    Row(
-                        Modifier.fillMaxWidth()
-                            .clickable {
-                                showProgressList = false
-                                onOpenExerciseProgress(lift.progressId)
-                            }
-                            .padding(vertical = 12.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                    ) {
-                        Text(lift.name, Modifier.weight(1f), style = WizardTypography.body, color = WizardColors.text, maxLines = 1)
-                        Text(
-                            progressDeltaLabel(lift.deltaKg, lift.unitLabel),
-                            style = WizardTypography.cardTitle,
-                            color = if (improved) Color(0xFF7FE3B0) else WizardColors.textMuted,
-                        )
-                    }
-                }
-            }
-        }
-    }
     if (showSupplementQuickSheet) {
         val caffeineTotal = todayMeals.sumOf { log -> log.foods.sumOf { it.caffeineMg } }
         SupplementQuickSheet(

@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ColorScheme
@@ -176,19 +178,26 @@ private fun KpknAlertDialogBody(
                 ),
         )
 
-        KpknDialogTheme {
-            Column(
-                modifier = modifier
-                    .padding(horizontal = 28.dp)
-                    .widthIn(max = 400.dp)
-                    .fillMaxWidth()
-                    // Gris oscuro plano con sombra real de elevación (KpknFloating); sin vidrio ni desenfoque.
-                    .kpknFloatingSurface(shape, KpknFloating.DialogElevation)
-                    .clickable(
-                        interactionSource = panelInteraction,
-                        indication = null,
-                        onClick = {},
-                    )
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .imePadding(),
+            contentAlignment = Alignment.Center,
+        ) {
+            KpknDialogTheme {
+                Column(
+                    modifier = modifier
+                        .padding(horizontal = 28.dp)
+                        .widthIn(max = 400.dp)
+                        .fillMaxWidth()
+                        // Gris oscuro plano con sombra real de elevación (KpknFloating); sin vidrio ni desenfoque.
+                        .kpknFloatingSurface(shape, KpknFloating.DialogElevation)
+                        .clickable(
+                            interactionSource = panelInteraction,
+                            indication = null,
+                            onClick = {},
+                        )
                     .padding(horizontal = 24.dp, vertical = 20.dp),
                 horizontalAlignment = Alignment.Start,
             ) {
@@ -243,6 +252,7 @@ private fun KpknAlertDialogBody(
                     }
                 }
             }
+        }
         }
     }
 }

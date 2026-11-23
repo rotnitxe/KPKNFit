@@ -106,11 +106,33 @@ internal fun LiveRouteSheetContent(
     currentSetNumber: Int? = null,
     warmupCompletedIds: Set<String> = emptySet(),
     mobilityCompletedIds: Set<String> = emptySet(),
+    mobilityTotalCompletedStepKeys: Set<String> = emptySet(),
+    restActive: Boolean = false,
+    restRemainingSeconds: Int? = null,
     activeStepKey: String? = null,
     onSelectStep: (String) -> Unit = {},
 ) {
     val groups = remember(exercises, supersetGroups) { liveRouteGroups(exercises, supersetGroups) }
     val paceWork = remember(exercises, completedSets, omittedSetKeys) { sessionPaceWork(exercises, completedSets, omittedSetKeys) }
+    if (restActive) {
+        val restClock = restRemainingSeconds?.let(com.example.kpkn.ui.design.KpknSetFormat::rest)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 10.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(Ruta.Blue.copy(alpha = 0.14f))
+                .padding(horizontal = 12.dp, vertical = 8.dp)
+                .testTag("live-route-rest-banner"),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Descanso en curso", style = inter(12f, FontWeight.SemiBold), color = Ruta.Blue)
+            if (restClock != null) {
+                Text(restClock, style = syne(15f), color = Ruta.Ink)
+            }
+        }
+    }
     // `.lv2-sub` y `.lv2-pg`: la nota y el avance de la sesión.
     // `.bd` del lienzo lleva 2 dp de relleno arriba y la hoja de la sesión 6: la nota sube 4 dp (y el resto con ella).
     Text("Seleccionar permite consultar o editar. No registra ni omite una serie.",
@@ -140,7 +162,7 @@ internal fun LiveRouteSheetContent(
             CardioHeader()
         }
         RouteGroupRows(position, group, completedSets, omittedSetKeys, currentExerciseId, supersetGroups, calibratedLoads, currentSetNumber,
-            warmupCompletedIds, mobilityCompletedIds, activeStepKey, onSelectStep,
+            warmupCompletedIds, mobilityCompletedIds, mobilityTotalCompletedStepKeys, activeStepKey, onSelectStep,
             onSelectExercise, onSelectSuperset, onSelectSet, onOpenExerciseOptions, onOpenSupersetOptions)
     }
     onReorder?.let { RouteMenuRow("Reordenar pendientes", KpknLineIcons.Grip, it, Modifier.padding(top = 10.dp).testTag("live-route-reorder")) }
@@ -203,6 +225,7 @@ private fun RouteGroupRows(
     currentSetNumber: Int?,
     warmupCompletedIds: Set<String>,
     mobilityCompletedIds: Set<String>,
+    mobilityTotalCompletedStepKeys: Set<String>,
     activeStepKey: String?,
     onSelectStep: (String) -> Unit,
     onSelectExercise: (String) -> Unit,
@@ -270,26 +293,90 @@ private fun RouteGroupRows(
             }
         }
     }
-    // `.lv2-grp .mem`: los miembros de la superserie con un filete vertical de 2 dp.
+    // `.lv2-grp .mem`: los miembros de la superserie con un filete vertical de 2 dp (#15: miembros y rondas clicables).
     if (superset) Column(Modifier.padding(start = 37.dp).drawBehind {
         drawLine(Color(0x2AFFFFFF), Offset(1.dp.toPx(), 0f), Offset(1.dp.toPx(), size.height), 2.dp.toPx())
-    }.padding(start = 12.dp)) {
+    }.padding(start = 12.dp, bottom = 6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         members.forEachIndexed { k, member ->
-            Row(Modifier.padding(vertical = 6.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                Text("A${k + 1}", Modifier.width(22.dp), style = inter(13f), color = Ruta.Fnt)
-                Text(displayWorkoutExerciseName(member), style = inter(13f), color = if (current) Ruta.Ink else Ruta.Mut)
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                Row(
+                    Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .clickable(role = Role.Button) { onSelectExercise(member.id) }
+                        .padding(vertical = 6.dp, horizontal = 4.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("A${k + 1}", Modifier.width(22.dp), style = inter(13f), color = Ruta.Fnt)
+                    Text(displayWorkoutExerciseName(member), style = inter(13f), color = if (current) Ruta.Ink else Ruta.Mut)
+                }
+                val activeRounds = member.sets.indices.filter { idx -> !member.sets[idx].isEmptySlot }
+                if (activeRounds.isNotEmpty()) {
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        activeRounds.forEach { setIdx ->
+                            val baseKey = com.example.kpkn.screens.workout.workoutSetKey(member.id, setIdx)
+                            val done = baseKey in completedSets ||
+                                (member.isEffectivelyUnilateral() &&
+                                    com.example.kpkn.screens.workout.workoutSetKey(member.id, setIdx, "left") in completedSets &&
+                                    com.example.kpkn.screens.workout.workoutSetKey(member.id, setIdx, "right") in completedSets)
+                            val active = activeStepKey == WorkoutStepRules.workingStepKey(member.id, setIdx) ||
+                                activeStepKey == WorkoutStepRules.workingStepKey(member.id, setIdx, "left") ||
+                                activeStepKey == WorkoutStepRules.workingStepKey(member.id, setIdx, "right")
+                            RoutePreparationChip(
+                                label = "R${setIdx + 1}",
+                                detail = "",
+                                done = done,
+                                active = active,
+                                accessibilityLabel = "Ronda ${setIdx + 1} de ${displayWorkoutExerciseName(member)}",
+                                tag = "live-route-round-${member.id}-$setIdx",
+                                onClick = { onSelectSet?.invoke(member.id, setIdx) },
+                            )
+                        }
+                    }
+                }
             }
         }
     }
-    val prepMembers = members.filter { it.mobilitySeries.isNotEmpty() || it.warmupSets.isNotEmpty() }
+    val prepMembers = members.filter { it.mobilitySeries.isNotEmpty() || it.warmupSets.isNotEmpty() || (it.mobilityConfig?.totalMinutes ?: 0) > 0 }
     if (prepMembers.isNotEmpty()) {
         Column(Modifier.fillMaxWidth().padding(start = 37.dp, bottom = 8.dp), verticalArrangement = Arrangement.spacedBy(7.dp)) {
             prepMembers.forEach { member ->
                 val memberPrefix = if (members.size > 1) displayWorkoutExerciseName(member) + " · " else ""
-                if (member.mobilitySeries.isNotEmpty()) {
+                val totalMin = member.mobilityConfig?.totalMinutes ?: 0
+                if (totalMin > 0 || member.mobilitySeries.isNotEmpty()) {
                     Text(memberPrefix + "MOVILIDAD", style = inter(10f, FontWeight.SemiBold, 13f),
                         color = Ruta.Fnt, modifier = Modifier.padding(top = 5.dp))
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        if (totalMin > 0) {
+                            val totalKey = WorkoutStepRules.mobilityTotalStepKey(member.id)
+                            val firstSeriesStepKey = member.mobilitySeries.firstOrNull()?.let { firstMob ->
+                                WorkoutStepRules.mobilityStepKey(member.id, firstMob.id, 0)
+                            }
+                            val targetStepKey = if (member.id.startsWith("__part_mobility__") && member.mobilitySeries.isEmpty()) {
+                                totalKey
+                            } else {
+                                firstSeriesStepKey ?: WorkoutStepRules.workingStepKey(member.id, 0)
+                            }
+                            val totalDone = totalKey in mobilityTotalCompletedStepKeys || member.id in mobilityCompletedIds
+                            RoutePreparationChip(
+                                label = "M·Total",
+                                detail = "$totalMin min",
+                                done = totalDone,
+                                active = activeStepKey == totalKey,
+                                accessibilityLabel = "Movilidad global de $totalMin min para ${displayWorkoutExerciseName(member)}",
+                                tag = "live-route-mobility-total-${member.id}",
+                                onClick = {
+                                    if (member.id.startsWith("__part_mobility__") && member.mobilitySeries.isEmpty()) {
+                                        onSelectStep(totalKey)
+                                    } else if (firstSeriesStepKey != null) {
+                                        onSelectStep(firstSeriesStepKey)
+                                    } else {
+                                        onSelectExercise(member.id)
+                                    }
+                                },
+                            )
+                        }
                         member.mobilitySeries.forEachIndexed { index, mobility ->
                             val setCount = mobility.sets.coerceAtLeast(1)
                             val stepKeys = (0 until setCount).map { setIndex ->
@@ -348,8 +435,17 @@ private fun RouteGroupRows(
         FlowRow(Modifier.fillMaxWidth().padding(start = 37.dp, bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp)) {
             exercise.sets.indices.forEach { index ->
-                val doneSet = completedSets.keys.any { it == "${exercise.id}_$index" || it.startsWith("${exercise.id}_${index}_") }
-                val isCurrent = currentSetNumber == index + 1
+                val doneSet = if (exercise.isEffectivelyUnilateral()) {
+                    "${exercise.id}_${index}_L" in completedSets && "${exercise.id}_${index}_R" in completedSets
+                } else {
+                    "${exercise.id}_$index" in completedSets
+                }
+                val matchesStepKey = activeStepKey != null && (
+                    activeStepKey == WorkoutStepRules.workingStepKey(exercise.id, index) ||
+                        activeStepKey == WorkoutStepRules.workingStepKey(exercise.id, index, "left") ||
+                        activeStepKey == WorkoutStepRules.workingStepKey(exercise.id, index, "right")
+                    )
+                val isCurrent = matchesStepKey || (activeStepKey == null && currentSetNumber == index + 1)
                 Row(
                     Modifier.kpknAnimate(LiveRoadmapMotion.chip(index)).height(36.dp).widthIn(min = 52.dp).clip(RoundedCornerShape(18.dp))
                         .background(if (isCurrent) Ruta.Ink else Ruta.Chip)

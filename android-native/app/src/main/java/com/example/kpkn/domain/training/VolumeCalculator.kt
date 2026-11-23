@@ -51,6 +51,17 @@ enum class VolumeCountingMode {
         MuscleRole.STABILIZER -> this == STABILIZER
         MuscleRole.NEUTRALIZER -> false
     }
+
+    fun includes(involvement: InvolvedMuscle): Boolean = when (involvement.role) {
+        MuscleRole.PRIMARY -> true
+        MuscleRole.SECONDARY -> this != DIRECT
+        MuscleRole.STABILIZER -> when (this) {
+            DIRECT -> false
+            SECONDARY -> resolveMuscleVolumeContribution(involvement) > 0.0
+            STABILIZER -> true
+        }
+        MuscleRole.NEUTRALIZER -> false
+    }
 }
 
 data class ExerciseVolumeContributor(
@@ -144,7 +155,7 @@ object VolumeCalculator {
         "sóleo" to "Pantorrillas",
         "soleo" to "Pantorrillas",
         "pantorrilla" to "Pantorrillas",
-        "tibial anterior" to "Tibial Anterior",
+        "tibial anterior" to "Pantorrillas",
         "cuello" to "Cuello",
         "cervical" to "Cuello",
         "pectoral" to "Pectorales",
@@ -212,8 +223,7 @@ object VolumeCalculator {
         if (lower.contains("glúteo") || lower.contains("gluteo") || lower.contains("tensor de la fascia lata") || lower.contains("tensor fascia")) return "Glúteos"
         if (lower.contains("psoas")) return "Core"
         if (lower.contains("adductor") || lower.contains("aductor") || lower.contains("pectíneo") || lower.contains("pectineo")) return "Aductores"
-        if (lower.contains("gemelo") || lower.contains("pantorrilla") || lower.contains("gastrocnemio") || lower.contains("sóleo") || lower.contains("soleo")) return "Pantorrillas"
-        if (lower.contains("tibial anterior") || lower == "tibial") return "Tibial Anterior"
+        if (lower.contains("gemelo") || lower.contains("pantorrilla") || lower.contains("gastrocnemio") || lower.contains("sóleo") || lower.contains("soleo") || lower.contains("tibial anterior") || lower == "tibial") return "Pantorrillas"
         if (lower.contains("cuello") || lower.contains("cervical")) return "Cuello"
         // Core: deep stabilizers — must be checked BEFORE Abdomen to avoid "core" → "Abdomen".
         if (lower == "core" || lower.contains("transverso") || lower.contains("serrato") || emphasisLower.contains("core")) return "Core"
@@ -271,7 +281,7 @@ object VolumeCalculator {
     }
 
     private fun effectiveVolumeSets(sets: List<ExerciseSet>): List<ExerciseSet> {
-        val active = sets.filterNot { it.isIneffective }
+        val active = sets.filterNot { it.isIneffective || it.isEmptySlot }
         val counted = active.filter { set ->
             when {
                 set.completedReps != null -> set.completedReps > 0
@@ -286,12 +296,13 @@ object VolumeCalculator {
         sessions: List<Session>,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
         divisor: Double = 1.0,
-        mode: VolumeCountingMode = VolumeCountingMode.STABILIZER,
+        mode: VolumeCountingMode = VolumeCountingMode.SECONDARY,
         adjustByIntensity: Boolean = false,
     ): TrainingVolumeResult {
         val safeDivisor = divisor.takeIf { it.isFinite() && it > 0.0 } ?: 1.0
         val index = exerciseIndex.mapKeys { it.key.lowercase() }
         val totals = linkedMapOf<String, MutableMuscleVolume>()
+        val includePosturalDiagnostic = mode == VolumeCountingMode.STABILIZER
         sessions.forEach { session ->
             session.allExercises().forEach exerciseLoop@ { exercise ->
                 val sets = effectiveVolumeSets(exercise.sets)
@@ -299,7 +310,7 @@ object VolumeCalculator {
                 // POST-RINGS: una serie registrada es un hecho, no una estimación de fatiga por RPE.
                 val weightedSets = sets.size.toDouble()
                 val muscles = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, index)
-                    .filter { mode.includes(it.role) }
+                    .filter { mode.includes(it) }
                     .groupBy { normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) }
                 val exerciseKey = exercise.catalogConfigurationId?.takeIf { it.isNotBlank() }
                     ?: exercise.exerciseDbId?.takeIf { it.isNotBlank() }
@@ -308,9 +319,15 @@ object VolumeCalculator {
                 muscles.forEach muscleLoop@ { (canonical, involvements) ->
                     if (canonical !in standardVolumeMuscles) return@muscleLoop
                     val winner = involvements.maxWithOrNull(
-                        compareBy<InvolvedMuscle>({ resolveMuscleVolumeContribution(it) }, { -it.role.ordinal }),
+                        compareBy<InvolvedMuscle>(
+                            { resolveMuscleVolumeContribution(it, includePosturalStabilizerDiagnostic = includePosturalDiagnostic) },
+                            { -it.role.ordinal },
+                        ),
                     ) ?: return@muscleLoop
-                    val contribution = resolveMuscleVolumeContribution(winner)
+                    val contribution = resolveMuscleVolumeContribution(
+                        winner,
+                        includePosturalStabilizerDiagnostic = includePosturalDiagnostic,
+                    )
                     if (contribution <= 0.0) return@muscleLoop
                     val total = totals.getOrPut(canonical) { MutableMuscleVolume() }
                     val value = weightedSets * contribution / safeDivisor
@@ -325,7 +342,9 @@ object VolumeCalculator {
                     involvements.groupBy { MuscleHeadResolution.resolveDisplayHead(it.muscle, it.emphasis) to it.role }
                         .forEach portionLoop@ { (portion, rows) ->
                             val name = portion.first ?: return@portionLoop
-                            val coefficient = rows.maxOf { resolveMuscleVolumeContribution(it) }
+                            val coefficient = rows.maxOf {
+                                resolveMuscleVolumeContribution(it, includePosturalStabilizerDiagnostic = includePosturalDiagnostic)
+                            }
                             if (coefficient <= 0.0) return@portionLoop
                             total.portions.getOrPut(name to portion.second) { linkedMapOf() }
                                 .addContribution(exerciseKey, displayName, weightedSets * coefficient / safeDivisor, sets.size)
@@ -353,7 +372,7 @@ object VolumeCalculator {
         logs: List<WorkoutLog>,
         exerciseIndex: Map<String, ExerciseMuscleInfo>,
         window: TrainingWindow,
-        mode: VolumeCountingMode = VolumeCountingMode.STABILIZER,
+        mode: VolumeCountingMode = VolumeCountingMode.SECONDARY,
         adjustByIntensity: Boolean = false,
         programId: String? = null,
     ): TrainingVolumeResult {
@@ -408,26 +427,26 @@ object VolumeCalculator {
             val muscles = ExerciseMuscleResolver.effectiveMusclesForVolume(exercise, baseIndex)
             if (muscles.isEmpty()) return@forEach
 
-            // Collapse duplicate heads within one exercise by role, not by raw row.
-            val perExercise = mutableMapOf<String, MutableRoleVolume>()
-            muscles.forEach { involvement ->
-                val canonical = normalizeCanonicalMuscleGroup(involvement.muscle, involvement.emphasis)
-                if (canonical !in standardVolumeMuscles) return@forEach
-                val contribution = resolveMuscleVolumeContribution(involvement)
-                val bucket = perExercise.getOrPut(canonical) { MutableRoleVolume() }
-                when (involvement.role) {
-                    MuscleRole.PRIMARY -> bucket.direct = maxOf(bucket.direct, contribution)
-                    MuscleRole.SECONDARY -> bucket.secondary = maxOf(bucket.secondary, contribution)
-                    MuscleRole.STABILIZER -> bucket.stabilizer = maxOf(bucket.stabilizer, contribution)
-                    MuscleRole.NEUTRALIZER -> Unit
+            // Single winner per canonical group (highest contribution, tie-break by highest role)
+            // so heads of the same group do not sum across direct + secondary + stabilizer.
+            muscles
+                .filter { it.role != MuscleRole.NEUTRALIZER }
+                .groupBy { normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) }
+                .forEach canonicalLoop@ { (canonical, involvements) ->
+                    if (canonical !in standardVolumeMuscles) return@canonicalLoop
+                    val winner = involvements.maxWithOrNull(
+                        compareBy<InvolvedMuscle>({ resolveMuscleVolumeContribution(it) }, { -it.role.ordinal }),
+                    ) ?: return@canonicalLoop
+                    val contribution = resolveMuscleVolumeContribution(winner)
+                    if (contribution <= 0.0) return@canonicalLoop
+                    val total = totals.getOrPut(canonical) { MutableRoleVolume() }
+                    when (winner.role) {
+                        MuscleRole.PRIMARY -> total.direct += setWeight * contribution
+                        MuscleRole.SECONDARY -> total.secondary += setWeight * contribution
+                        MuscleRole.STABILIZER -> total.stabilizer += setWeight * contribution
+                        MuscleRole.NEUTRALIZER -> Unit
+                    }
                 }
-            }
-            perExercise.forEach { (muscle, contribution) ->
-                val total = totals.getOrPut(muscle) { MutableRoleVolume() }
-                total.direct += setWeight * contribution.direct
-                total.secondary += setWeight * contribution.secondary
-                total.stabilizer += setWeight * contribution.stabilizer
-            }
         }
 
         return totals.mapValues { (_, value) ->
@@ -622,15 +641,20 @@ object VolumeCalculator {
                         id = ex.exerciseId,
                         name = ex.exerciseName,
                         exerciseDbId = ex.exerciseDbId,
+                        exerciseId = ex.canonicalExerciseId,
+                        canonicalExerciseId = ex.canonicalExerciseId,
+                        catalogRevision = ex.catalogRevision,
+                        catalogDefinitionId = ex.catalogDefinitionId,
+                        catalogConfigurationId = ex.catalogConfigurationId,
                         selectedAspects = ex.selectedAspects,
                         effectiveMuscles = ex.effectiveMuscles,
-                        sets = ex.sets.map { set ->
+                        sets = com.example.kpkn.domain.training.insights.RecordedSetAccounting.logicalWorkingSets(ex).map { set ->
                             ExerciseSet(
                                 id = set.id,
                                 targetReps = set.reps,
                                 weight = set.weight,
-                                completedReps = if (set.skipped) 0 else set.reps,
-                                isIneffective = set.isWarmup || set.skipped,
+                                completedReps = set.reps,
+                                isIneffective = false,
                             )
                         }
                     )
@@ -669,19 +693,19 @@ object VolumeCalculator {
                         variantName = ex.variantName,
                         selectedAspects = ex.selectedAspects,
                         effectiveMuscles = ex.effectiveMuscles,
-                        sets = ex.sets.map { set ->
+                        sets = com.example.kpkn.domain.training.insights.RecordedSetAccounting.logicalWorkingSets(ex).map { set ->
                             ExerciseSet(
                                 id = set.id,
                                 targetReps = set.reps,
                                 weight = set.weight,
-                                completedReps = if (set.skipped) 0 else set.reps,
+                                completedReps = set.reps,
                                 completedRPE = set.rpe ?: set.actualIntensityValue
                                     ?.takeIf { set.actualIntensityMode == com.example.kpkn.data.models.IntensityMode.RPE },
                                 completedRIR = set.rir ?: set.actualIntensityValue
                                     ?.takeIf { set.actualIntensityMode == com.example.kpkn.data.models.IntensityMode.RIR }?.toInt(),
                                 isFailure = set.isFailure,
                                 intensityMode = set.actualIntensityMode,
-                                isIneffective = set.isWarmup || set.skipped || set.recordedPayloadV3?.skipped == true,
+                                isIneffective = false,
                             )
                         }
                     )

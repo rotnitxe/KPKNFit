@@ -77,6 +77,7 @@ data class PersonalizerInput(
     val weekdays: List<Int> = emptyList(),
     /** Primer día de la semana del programa (1 = lunes … 7 = domingo); sin valor, el primer día elegido. */
     val weekStartDay: Int? = null,
+    val freshestDay: Int? = null,
     val equipment: Set<String> = setOf("general_gym"),
     val level: CatalogLevel = CatalogLevel.BEGINNER,
     val availableMinutes: Int = 60,
@@ -611,9 +612,11 @@ class SimpleCyclePersonalizer(
                     Mesocycle(id = "$programId-meso", name = "Base", weeks = listOf(week)),
                 ), sourceDefinitionId = entry.id, sourceRevision = PersonalizedPlanCatalog.REVISION, prescriptionOrigin = "KPKN_NATIVE_CURATED"),
             ))),
-            startDay = days.first(), volumeRecommendations = input.volumeRecommendations,
+            startDay = input.weekStartDay ?: days.first(),
+            highEnergyDay = input.freshestDay ?: input.weekStartDay ?: days.first(),
+            volumeRecommendations = input.volumeRecommendations,
             schedulePlan = ProgramSchedulePlan(
-                weekStartDay = days.first(),
+                weekStartDay = input.weekStartDay ?: days.first(),
                 trainingDays = days.toSet(),
             ),
             // El modo de autorregulación lo trae la configuración real
@@ -1877,6 +1880,7 @@ class SimpleCyclePersonalizer(
             ),
         ),
         startDay = nativeWeekStart(input, days),
+        highEnergyDay = input.freshestDay ?: nativeWeekStart(input, days),
         volumeRecommendations = input.volumeRecommendations,
         schedulePlan = ProgramSchedulePlan(weekStartDay = nativeWeekStart(input, days), trainingDays = days.toSet()),
         autoregulationMode = options.autoregulationMode,
@@ -2099,22 +2103,24 @@ class SimpleCyclePersonalizer(
             pattern = template.pattern
             splitName = template.name
         }
+        val startDay = input.weekStartDay ?: selectedDays.first()
+        val rotatedDays = selectedDays.filter { it >= startDay } + selectedDays.filter { it < startDay }
         // Mismo convenio que SplitApplicationEngine: solo "Descanso" descansa.
         val trainingLabels = if (rawSplitId == "custom") {
             pattern.mapNotNull { label ->
                 label.trim().takeIf { it.isNotBlank() && !it.equals("Descanso", ignoreCase = true) }
             }
         } else {
-            SplitApplicationEngine.patternToTrainingDays(pattern, startDay = selectedDays.first()).map { it.label }
+            SplitApplicationEngine.patternToTrainingDays(pattern, startDay = startDay).map { it.label }
         }
-        if (trainingLabels.size != input.frequency || trainingLabels.size != selectedDays.size) {
-            return SplitResolution.Invalid("El split '$splitName' define ${trainingLabels.size} días de entrenamiento y has elegido ${selectedDays.size}. Ajusta los días o el split.")
+        if (trainingLabels.size != input.frequency || trainingLabels.size != rotatedDays.size) {
+            return SplitResolution.Invalid("El split '$splitName' define ${trainingLabels.size} días de entrenamiento y has elegido ${rotatedDays.size}. Ajusta los días o el split.")
         }
         val labelsByDay = mutableMapOf<Int, String>()
         val groupsByDay = mutableMapOf<Int, Set<String>?>()
         val notes = mutableListOf<String>()
         for ((index, label) in trainingLabels.withIndex()) {
-            val day = selectedDays[index]
+            val day = rotatedDays[index]
             labelsByDay[day] = label
             val groups = dayMuscleGroups(label)
             if (groups == null) {
@@ -2175,8 +2181,10 @@ class SimpleCyclePersonalizer(
         if (!template.isVisibleForApplication) {
             return SplitResolution.Invalid("El reparto '${template.name}' está oculto porque falta una receta verificable día por día.")
         }
+        val startDay = nativeWeekStart(input, selectedDays)
+        val rotatedDays = selectedDays.filter { it >= startDay } + selectedDays.filter { it < startDay }
         // Mismo convenio que SplitApplicationEngine: solo "Descanso" descansa; el día i del plan toma la etiqueta i.
-        val labels = SplitApplicationEngine.patternToTrainingDays(template.pattern, startDay = selectedDays.first())
+        val labels = SplitApplicationEngine.patternToTrainingDays(template.pattern, startDay = startDay)
             .map { it.label }
         if (labels.size != dayCount) {
             return SplitResolution.Invalid(
@@ -2187,7 +2195,7 @@ class SimpleCyclePersonalizer(
             SplitPlan(
                 splitId = rawSplitId,
                 splitName = template.name,
-                labelsByDay = selectedDays.zip(labels).toMap(),
+                labelsByDay = rotatedDays.zip(labels).toMap(),
                 groupsByDay = emptyMap(),
             ),
         )

@@ -63,6 +63,8 @@ import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.tourAnchor
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
@@ -183,6 +185,8 @@ internal fun LiveSessionLine(
     sessionCompletedCount: Int? = null,
     sessionTotalCount: Int? = null,
     restActive: Boolean = false,
+    restRemainingSeconds: Int? = null,
+    restPlannedSeconds: Int? = null,
     onEndRest: (() -> Unit)? = null,
     modifier: Modifier = Modifier,
     stepperSnapshotProvider: () -> LiveSetStepperSnapshot? = { snapshot },
@@ -214,18 +218,17 @@ internal fun LiveSessionLine(
     }
     val done = sessionCompletedCount ?: snapshot?.completedCount ?: 0
     val total = sessionTotalCount ?: snapshot?.totalCount ?: 0
-    val strength = exercises.filter { !it.isCardio }
-    val atFirst = selected == 0 && currentExerciseId == strength.firstOrNull()?.id
-    val atLast = selected == steps.lastIndex && currentExerciseId == strength.lastOrNull()?.id
+    val atFirst = selected == 0 && currentExerciseId == exercises.firstOrNull()?.id
+    val atLast = selected == steps.lastIndex && currentExerciseId == exercises.lastOrNull()?.id
     val setNumber = activeStep?.takeIf { phase == LiveRoadmapPhase.Set }?.let { liveRoadmapSetNumber(it.label) } ?: 1
     val setCount = currentExercise?.sets?.count { !it.isEmptySlot } ?: 0
     val onLastSet = phase == LiveRoadmapPhase.Set && setCount > 0 && setNumber >= setCount
     val registered = phase == LiveRoadmapPhase.Set && (activeStep?.completed == true || isUpdateMode)
-    val restLabel = restStep?.label
+    val restLabel = restStep?.label ?: if (restActive) restRemainingSeconds?.let(com.example.kpkn.ui.design.KpknSetFormat::rest) else null
     val tail: RoadTail = when {
         pendingActions.isNotEmpty() -> RoadTail.Pending(pendingActions)
         registered -> RoadTail.Registered
-        phase == LiveRoadmapPhase.Set && onLastSet -> RoadTail.Last(finalOfSession = currentExerciseId == strength.lastOrNull()?.id)
+        phase == LiveRoadmapPhase.Set && onLastSet -> RoadTail.Last(finalOfSession = currentExerciseId == exercises.lastOrNull()?.id)
         else -> RoadTail.Name(currentExercise?.let(::displayWorkoutExerciseName).orEmpty())
     }
     fun step(forward: Boolean) {
@@ -288,7 +291,12 @@ internal fun LiveSessionLine(
 
     val shape = RoundedCornerShape(28.dp)
     Box(modifier.fillMaxWidth()) {
-        Box(Modifier.fillMaxWidth().height(variant.height).testTag("live-session-line")
+        Box(
+            Modifier
+                .fillMaxWidth()
+                .height(variant.height)
+                .tourAnchor(TourAnchors.WORKOUT_SIGUIENTE)
+                .testTag("live-session-line")
             .kpknShadow(KpknShadow.Caida1028Capas, shape)
             .background(Road.Panel, shape).border(1.dp, Road.Border, shape)) {
             val stripTop = Road.Margin + variant.band1 + Road.Gap
@@ -299,7 +307,13 @@ internal fun LiveSessionLine(
                 provisionalName = provisional?.let { segments.getOrNull(it)?.name(::displayWorkoutExerciseName) },
                 lead = liveRoadmapLead(phase, activeStep, currentExercise, restLabel),
                 leadShort = liveRoadmapLeadShort(phase, activeStep, currentExercise, restLabel),
-                drain = if (phase == LiveRoadmapPhase.Rest) (1f - (restStep?.preparationProgress ?: 0f)).coerceIn(0f, 1f) else 0f,
+                drain = if (phase == LiveRoadmapPhase.Rest) {
+                    val stepDrain = restStep?.preparationProgress?.let { 1f - it }
+                    val vmDrain = if (restRemainingSeconds != null && restPlannedSeconds != null && restPlannedSeconds > 0) {
+                        restRemainingSeconds.toFloat() / restPlannedSeconds.toFloat()
+                    } else null
+                    (stepDrain ?: vmDrain ?: 0f).coerceIn(0f, 1f)
+                } else 0f,
                 done = done, total = total, slide = slide,
                 onClick = onOpenRoute,
                 onLongClick = currentExerciseId?.let { id -> { onOpenExerciseOptions(id) } },
@@ -637,7 +651,8 @@ private fun RoadmapBand2(
 ) {
     Row(modifier.fillMaxWidth().height(Road.Band2), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Road.Gap)) {
         RoadmapNav(KpknLineIcons.ChevronLeft, "Paso anterior", prevEnabled, onPrev)
-        val endsRest = canEndRest && !holdRecord
+        val isEditingRecordedSet = recordVisible && isUpdateMode
+        val endsRest = canEndRest && !holdRecord && !isEditingRecordedSet
         val updating = isUpdateMode && !holdRecord
         val label = when {
             endsRest -> "Terminar descanso"
@@ -670,6 +685,7 @@ private fun RoadmapBand2(
                 .clickable(interactionSource = source, indication = null, enabled = visible && enabled, role = Role.Button,
                     onClick = { if (endsRest) onEndRest() else onRecord() })
                 .semantics(mergeDescendants = true) { contentDescription = label }
+                .then(if (!endsRest && visible) Modifier.tourAnchor(TourAnchors.WORKOUT_LOG_BTN) else Modifier)
                 .testTag("live-session-record"),
             contentAlignment = Alignment.Center,
         ) {

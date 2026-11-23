@@ -91,7 +91,7 @@
           },
           {
             "id": "triceps",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "muyor2022",
               "statpearls_triceps"
@@ -100,7 +100,7 @@
           },
           {
             "id": "deltoid",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "pezaratcorreia2020",
               "muyor2022",
@@ -498,7 +498,7 @@
           },
           {
             "id": "triceps",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "muyor2022",
               "statpearls_triceps"
@@ -506,18 +506,8 @@
             "why": "Su cabeza larga cruza el hombro y ayuda a extenderlo, y el resto del músculo fija el codo casi recto. En el pull over de pie en polea el tríceps se activó más que en el pull over tumbado con barra, con los dos anchos de agarre probados (Muyor 2022): ayuda con trabajo real sin llevar el gesto."
           },
           {
-            "id": "pectoralis",
-            "role": "SECONDARY",
-            "sources": [
-              "teixeira2022",
-              "muyor2022",
-              "statpearls_pectoralis_major"
-            ],
-            "why": "Su porción esternocostal ayuda al principio del arco, con el brazo todavía elevado: en contracciones isométricas el pectoral rindió más entre 90 y 135 grados de flexión del hombro (Teixeira 2022). En este gesto se activó menos que en el pull over tumbado con barra (Muyor 2022), así que acompaña al dorsal sin llevar el movimiento."
-          },
-          {
             "id": "deltoid",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "teixeira2022",
               "statpearls_deltoid"
@@ -616,7 +606,7 @@
             ]
           }
         },
-        "description": "El Pull Over de Pie en Polea (straight-arm pulldown) se hace de pie frente a una polea alta, bajando un agarre en arco desde la altura de la cabeza hasta rozar los muslos con los brazos casi rectos. Es una extensión de hombro que lleva el dorsal ancho, con ayuda de la cabeza larga del tríceps, de la porción esternal del pectoral al principio del arco y del deltoides posterior al final. El tronco se inclina un poco hacia delante con una bisagra de cadera y no se mueve; como los codos no se doblan, el tirón no se convierte en un jalón. Trabaja el dorsal sin que los flexores del codo limiten la serie, por eso suele ir antes o después de las tracciones pesadas."
+        "description": "El Pull Over de Pie en Polea (straight-arm pulldown) se hace de pie frente a una polea alta, bajando un agarre en arco desde la altura de la cabeza hasta rozar los muslos con los brazos casi rectos. Es una extensión de hombro que lleva el dorsal ancho, con el sostén de la cabeza larga del tríceps y del deltoides posterior a lo largo del arco. El tronco se inclina un poco hacia delante con una bisagra de cadera y no se mueve; como los codos no se doblan, el tirón no se convierte en un jalón. Trabaja el dorsal sin que los flexores del codo limiten la serie, por eso suele ir antes o después de las tracciones pesadas."
       },
       "sources": [
         {
@@ -826,17 +816,8 @@
             "why": "Extiende el hombro desde la elevación completa hasta el costado y aquí recibe la resistencia en el brazo, sin depender de la mano. La extensión del hombro fue la tarea que más activó el dorsal en contracciones isométricas (Muñoz-Garcés 2026; Al-Qaisi 2022), y en pull over isométricos con polea rindió más entre 0 y 45 grados de flexión (Teixeira 2022), el tramo final de esta máquina."
           },
           {
-            "id": "pectoralis",
-            "role": "SECONDARY",
-            "sources": [
-              "teixeira2022",
-              "statpearls_pectoralis_major"
-            ],
-            "why": "Su porción esternocostal ayuda en la parte alta del arco, con el brazo elevado: en pull over isométricos con polea el pectoral rindió más entre 90 y 135 grados de flexión del hombro (Teixeira 2022). Al final del recorrido, con el brazo junto al costado, deja el trabajo al dorsal y al deltoides posterior, así que acompaña sin ser el motor."
-          },
-          {
             "id": "deltoid",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "teixeira2022",
               "statpearls_deltoid"
@@ -851,6 +832,14 @@
               "statpearls_triceps"
             ],
             "why": "La fuerza entra por la parte de atrás del brazo, así que el codo no se estira contra la carga y el tríceps no mueve el antebrazo. Su cabeza larga cruza el hombro y puede extenderlo: con estimulación eléctrica, su momento de extensión del hombro creció entre 0 y 80 grados (Landin y Thompson 2011), pero eso mide su capacidad y no su actividad en esta máquina. Sin datos del gesto, se cuenta como estabilizador del hombro y del codo apoyado."
+          },
+          {
+            "id": "core",
+            "role": "STABILIZER",
+            "sources": [
+              "statpearls_abdominal_wall"
+            ],
+            "why": "La pared abdominal mantiene el tronco firme contra el respaldo y el cinturón durante toda la extensión del hombro, sin producir movimiento en la columna."
           }
         ]
       },
@@ -869,7 +858,7 @@
             ]
           }
         },
-        "description": "El Pull Over Sentado en Máquina (machine pullover) cambia el punto de empuje: la fuerza entra por la parte de atrás del brazo, apoyada en unas almohadillas, y las manos solo descansan sobre la barra. Sentado con el hombro alineado con el eje de la máquina, los brazos bajan en arco desde detrás de la cabeza hasta la altura del vientre en una extensión de hombro. El dorsal ancho mueve el brazo; el pectoral ayuda en la parte alta del arco, y el deltoides posterior y la cabeza larga del tríceps acompañan en la mitad baja. Con el cinturón y el respaldo, el tronco queda sujeto y solo el hombro mueve la carga. Como ni el agarre ni el codo hacen de eslabón débil, la serie se acaba por el cansancio de la espalda."
+        "description": "El Pull Over Sentado en Máquina (machine pullover) cambia el punto de empuje: la fuerza entra por la parte de atrás del brazo, apoyada en unas almohadillas, y las manos solo descansan sobre la barra. Sentado con el hombro alineado con el eje de la máquina, los brazos bajan en arco desde detrás de la cabeza hasta la altura del vientre en una extensión de hombro. El dorsal ancho mueve el brazo; mientras el deltoides posterior, la cabeza larga del tríceps y el core estabilizan el hombro, el codo apoyado y el tronco durante el arco. Con el cinturón y el respaldo, el tronco queda sujeto y solo el hombro mueve la carga. Como ni el agarre ni el codo hacen de eslabón débil, la serie se acaba por el cansancio de la espalda."
       },
       "sources": [
         {
@@ -919,6 +908,12 @@
           "id": "statpearls_deltoid",
           "title": "Anatomy, Shoulder and Upper Limb, Deltoid Muscle",
           "url": "https://pubmed.ncbi.nlm.nih.gov/30725741/"
+        },
+        {
+          "claim": "La pared abdominal contiene y protege las vísceras, genera presión intraabdominal y mueve la columna vertebral.",
+          "id": "statpearls_abdominal_wall",
+          "title": "Anatomy, Abdomen and Pelvis: Abdominal Wall",
+          "url": "https://pubmed.ncbi.nlm.nih.gov/31869113/"
         }
       ],
       "status": "CURATED",

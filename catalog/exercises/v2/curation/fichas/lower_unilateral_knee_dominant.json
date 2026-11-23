@@ -77,21 +77,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "arakawa2023",
               "mccurdy2018"
             ],
             "why": "La aclaración del montaje cambia el apoyo de la barra, no elimina la extensión de la cadera delantera. El glúteo mayor la extiende desde la flexión y por esa acción contra carga comparte el papel motor. Arakawa y McCurdy estudiaron búlgaras habituales; el rol aquí es una extrapolación funcional, sin ensayo de esta especialidad."
-          },
-          {
-            "id": "hamstrings",
-            "role": "SECONDARY",
-            "sources": [
-              "andersen2014",
-              "mccurdy2018"
-            ],
-            "why": "Asisten en la extensión de la cadera adelantada mientras la rodilla también se estira; no reciben una flexión de rodilla aislada. Se extrapola esa ayuda de la actividad del grupo medida en búlgaras habituales, sin trasladar sus porcentajes al apoyo de barra sobre la cadera."
           },
           {
             "id": "adductors",
@@ -102,8 +93,17 @@
             "why": "La porción isquiocondílea del aductor mayor acompaña la extensión de la cadera delantera desde el punto bajo. Collings estimó fuerzas altas en sentadilla y step-up, sin medir esta búlgara; se extrapola su función extensora, sin convertirla en motor dominante."
           },
           {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "andersen2014",
+              "mccurdy2018"
+            ],
+            "why": "Asisten en la extensión de la cadera adelantada mientras la rodilla también se estira; no reciben una flexión de rodilla aislada. Se extrapola esa ayuda de la actividad del grupo medida en búlgaras habituales, sin trasladar sus porcentajes al apoyo de barra sobre la cadera."
+          },
+          {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "mackey2021"
             ],
@@ -369,21 +369,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "glutmax",
               "sls_kinematics"
             ],
             "why": "La cadera de apoyo se flexiona al bajar y se extiende para recuperar la posición de pie. Esa extensión eleva el cuerpo y lo hace motor junto al cuádriceps; la asignación se infiere de la función y el gesto, no de porcentajes EMG."
-          },
-          {
-            "id": "hamstrings",
-            "role": "SECONDARY",
-            "sources": [
-              "sls_front",
-              "sls_kinematics"
-            ],
-            "why": "Ayudan a la extensión de la cadera de apoyo y coactivan alrededor de la rodilla. El registro en SLS con pierna anterior demuestra participación de los isquiosurales mediales; no prueba que sean el motor dominante de la pistola profunda."
           },
           {
             "id": "adductors",
@@ -395,8 +386,17 @@
             "why": "El aductor mayor de la pierna cargada puede asistir la extensión de cadera desde el fondo. Esa contribución se infiere de su actividad en tareas isométricas de extensión y de la mecánica de la pistola; no implica que sea dominante ni se atribuye a estiramiento pasivo."
           },
           {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "sls_front",
+              "sls_kinematics"
+            ],
+            "why": "Ayudan a la extensión de la cadera de apoyo y coactivan alrededor de la rodilla. El registro en SLS con pierna anterior demuestra participación de los isquiosurales mediales; no prueba que sean el motor dominante de la pistola profunda."
+          },
+          {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "sls_joints"
             ],
@@ -710,21 +710,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "glutmax",
               "sls_kinematics"
             ],
             "why": "Aunque las manos aporten ayuda, la cadera de trabajo se flexiona y extiende durante la repetición. El glúteo mayor sigue produciendo ese ascenso junto al cuádriceps; no se rebaja su rol porque el ejercicio use asistencia, cuya magnitud no está fijada."
-          },
-          {
-            "id": "hamstrings",
-            "role": "SECONDARY",
-            "sources": [
-              "sls_front",
-              "sls_kinematics"
-            ],
-            "why": "Los isquiosurales participan alrededor de la rodilla y comparten extensión de la cadera cargada aun cuando las manos descarguen parte del peso. La actividad medial observada en SLS fundamenta una extrapolación a este gesto asistido, sin suponer igual intensidad ni liderazgo muscular."
           },
           {
             "id": "adductors",
@@ -736,8 +727,17 @@
             "why": "El aductor mayor ofrece ayuda extensora al recobrar altura con la pierna de trabajo. El anclaje añade asistencia externa, pero la cadera no queda inmóvil; esta contribución se infiere desde ensayos de función isométrica y no de EMG de la pistola con correas."
           },
           {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "sls_front",
+              "sls_kinematics"
+            ],
+            "why": "Los isquiosurales participan alrededor de la rodilla y comparten extensión de la cadera cargada aun cuando las manos descarguen parte del peso. La actividad medial observada en SLS fundamenta una extrapolación a este gesto asistido, sin suponer igual intensidad ni liderazgo muscular."
+          },
+          {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "sls_joints"
             ],
@@ -745,7 +745,7 @@
           },
           {
             "id": "biceps",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "biceps"
             ],
@@ -753,7 +753,7 @@
           },
           {
             "id": "latissimus_dorsi",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "lats"
             ],
@@ -805,7 +805,7 @@
           },
           {
             "id": "deltoid",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "deltoid_anatomy"
             ],
@@ -1095,7 +1095,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "kipp_forces",
               "glute_max_anatomy"
@@ -1103,8 +1103,17 @@
             "why": "La cadera del pie elevado también pasa de flexión a extensión y levanta el tronco con su carga anterior. El glúteo mayor es motor directo aunque el torso permanezca relativamente erguido; la conclusión extrapola el step-up cargado."
           },
           {
-            "id": "hamstrings",
+            "id": "adductors",
             "role": "SECONDARY",
+            "sources": [
+              "collings_adductors",
+              "adductor_anatomy"
+            ],
+            "why": "La cadera del cajón se endereza transportando el eje sobre los hombros anteriores; la porción posterior del aductor mayor puede ayudar en esa extensión. Su función y el modelado de step-up sustentan una extrapolación al clean rack, sin ensayo de este contacto frontal."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
             "sources": [
               "simenz_stepup",
               "kipp_forces"
@@ -1113,7 +1122,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "calf_anatomy",
               "kipp_forces"
@@ -1160,15 +1169,6 @@
               "deltoid_anatomy"
             ],
             "why": "La porción anterior sostiene los brazos elevados en la posición frontal mientras los hombros reciben la barra. Se infiere isometría por esa postura; no es un press ni un motor del ascenso al cajón."
-          },
-          {
-            "id": "adductors",
-            "role": "SECONDARY",
-            "sources": [
-              "collings_adductors",
-              "adductor_anatomy"
-            ],
-            "why": "La cadera del cajón se endereza transportando el eje sobre los hombros anteriores; la porción posterior del aductor mayor puede ayudar en esa extensión. Su función y el modelado de step-up sustentan una extrapolación al clean rack, sin ensayo de este contacto frontal."
           }
         ]
       },
@@ -1442,7 +1442,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "kipp_forces",
               "glute_max_anatomy"
@@ -1450,8 +1450,17 @@
             "why": "La pierna de apoyo extiende la cadera y levanta el tronco que lleva el eje delante del abdomen. El glúteo mayor conserva un papel motor directo, extrapolado del step-up cargado, sin depender de que el atleta incline más el pecho."
           },
           {
-            "id": "hamstrings",
+            "id": "adductors",
             "role": "SECONDARY",
+            "sources": [
+              "collings_adductors",
+              "adductor_anatomy"
+            ],
+            "why": "Con el eje retenido entre los codos, el muslo elevado cambia de ángulo respecto a la pelvis para levantar al atleta. La contribución extensora del aductor mayor se infiere de su anatomía y de fuerzas modeladas en step-up, sin atribuir una medición al Zercher."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
             "sources": [
               "simenz_stepup",
               "kipp_forces"
@@ -1460,7 +1469,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "calf_anatomy",
               "kipp_forces"
@@ -1494,6 +1503,7 @@
           },
           {
             "id": "biceps",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "biceps_anatomy"
@@ -1507,15 +1517,6 @@
               "deltoid_anatomy"
             ],
             "why": "Los brazos conservan una posición anterior al torso para alojar el eje cerca del abdomen. El deltoides participa en sostener esa posición del hombro; no levanta la barra con un press durante la subida."
-          },
-          {
-            "id": "adductors",
-            "role": "SECONDARY",
-            "sources": [
-              "collings_adductors",
-              "adductor_anatomy"
-            ],
-            "why": "Con el eje retenido entre los codos, el muslo elevado cambia de ángulo respecto a la pelvis para levantar al atleta. La contribución extensora del aductor mayor se infiere de su anatomía y de fuerzas modeladas en step-up, sin atribuir una medición al Zercher."
           }
         ]
       },
@@ -1807,30 +1808,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "gmax",
               "bezerra"
             ],
             "why": "Extiende la cadera del apoyo que eleva y transporta el cuerpo con la barra. La función motora y la EMG del caminar cargado justifican PRIMARY por extrapolación al estante frontal, no una simple estabilización glútea."
-          },
-          {
-            "id": "hamstrings",
-            "role": "SECONDARY",
-            "sources": [
-              "ham",
-              "bezerra"
-            ],
-            "why": "Participan en la extensión de cadera y la coactivación de rodilla durante los pasos. La evidencia caminando registra bíceps femoral; se extrapola al estante frontal como ayuda secundaria sin afirmar un aumento de activación."
-          },
-          {
-            "id": "calves",
-            "role": "SECONDARY",
-            "sources": [
-              "calf",
-              "escamilla"
-            ],
-            "why": "La flexión plantar acompaña el paso desde el pie anterior hacia el siguiente apoyo. Se infiere asistencia dinámica de pantorrilla a partir del movimiento de tobillo y de zancadas cargadas, no EMG de esta carga frontal."
           },
           {
             "id": "adductors",
@@ -1840,6 +1823,24 @@
               "escamilla"
             ],
             "why": "Ayudan a orientar cada fémur sobre el apoyo nuevo y pueden asistir la extensión de cadera. Esta función secundaria se infiere de anatomía y zancada frontal, sin atribuir a la barra delante un estímulo aductor especial."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "ham",
+              "bezerra"
+            ],
+            "why": "Participan en la extensión de cadera y la coactivación de rodilla durante los pasos. La evidencia caminando registra bíceps femoral; se extrapola al estante frontal como ayuda secundaria sin afirmar un aumento de activación."
+          },
+          {
+            "id": "calves",
+            "role": "STABILIZER",
+            "sources": [
+              "calf",
+              "escamilla"
+            ],
+            "why": "La flexión plantar acompaña el paso desde el pie anterior hacia el siguiente apoyo. Se infiere asistencia dinámica de pantorrilla a partir del movimiento de tobillo y de zancadas cargadas, no EMG de esta carga frontal."
           },
           {
             "id": "gluteus_medius",
@@ -2182,30 +2183,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "gmax",
               "bezerra"
             ],
             "why": "La cadera del apoyo se extiende al elevar y llevar el cuerpo hacia el siguiente paso. El soporte Zercher modifica los brazos pero conserva ese motor; la actividad glútea de caminando se extrapola para sostener PRIMARY."
-          },
-          {
-            "id": "hamstrings",
-            "role": "SECONDARY",
-            "sources": [
-              "ham",
-              "bezerra"
-            ],
-            "why": "Ayudan a extender la cadera y a coactivar la rodilla durante la recepción alterna. Se extrapola su actividad en caminando al sostén Zercher, sin afirmar que la posición de brazos cambie su rol secundario."
-          },
-          {
-            "id": "calves",
-            "role": "SECONDARY",
-            "sources": [
-              "calf",
-              "escamilla"
-            ],
-            "why": "Los plantarflexores acompañan el paso y el cambio de apoyo al avanzar con la barra. Es inferencia del recorrido de tobillo y la anatomía de pantorrilla, con evidencia indirecta de zancadas cargadas; no un motor que lidere."
           },
           {
             "id": "adductors",
@@ -2215,6 +2198,24 @@
               "escamilla"
             ],
             "why": "Acompañan la orientación del muslo y pueden asistir su extensión cuando cambia el apoyo. La participación secundaria procede de anatomía y del padre frontal comparable; no hay medición específica de caminando Zercher."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "ham",
+              "bezerra"
+            ],
+            "why": "Ayudan a extender la cadera y a coactivar la rodilla durante la recepción alterna. Se extrapola su actividad en caminando al sostén Zercher, sin afirmar que la posición de brazos cambie su rol secundario."
+          },
+          {
+            "id": "calves",
+            "role": "STABILIZER",
+            "sources": [
+              "calf",
+              "escamilla"
+            ],
+            "why": "Los plantarflexores acompañan el paso y el cambio de apoyo al avanzar con la barra. Es inferencia del recorrido de tobillo y la anatomía de pantorrilla, con evidencia indirecta de zancadas cargadas; no un motor que lidere."
           },
           {
             "id": "gluteus_medius",
@@ -2245,6 +2246,7 @@
           },
           {
             "id": "biceps",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "biceps"
@@ -2551,30 +2553,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "gmax",
               "escamilla"
             ],
             "why": "La cadera flexionada de la pierna adelantada se extiende al devolver el cuerpo con la carga Zercher. Se extrapola del padre y de su anatomía: el cambio de soporte de la barra no elimina al glúteo mayor como motor PRIMARY."
-          },
-          {
-            "id": "hamstrings",
-            "role": "SECONDARY",
-            "sources": [
-              "ham",
-              "escamilla"
-            ],
-            "why": "Asisten la extensión de la cadera al regresar del paso y coactivan la rodilla que aterriza. Se traslada la función registrada en la frontal, sin EMG específica de la sujeción Zercher y sin hacerlos protagonistas."
-          },
-          {
-            "id": "calves",
-            "role": "SECONDARY",
-            "sources": [
-              "calf",
-              "escamilla"
-            ],
-            "why": "Los plantarflexores acompañan el avance tibial y el impulso de retorno desde el pie delantero. Se extrapola la asistencia medida en zancada frontal cargada al mismo recorrido con la barra en los codos."
           },
           {
             "id": "adductors",
@@ -2584,6 +2568,24 @@
               "escamilla"
             ],
             "why": "Acompañan la orientación del fémur y la extensión de cadera de la pierna que recibió el paso. Es asistencia inferida de la anatomía y de zancadas frontales; el apoyo Zercher no demuestra un nuevo rol principal."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "ham",
+              "escamilla"
+            ],
+            "why": "Asisten la extensión de la cadera al regresar del paso y coactivan la rodilla que aterriza. Se traslada la función registrada en la frontal, sin EMG específica de la sujeción Zercher y sin hacerlos protagonistas."
+          },
+          {
+            "id": "calves",
+            "role": "STABILIZER",
+            "sources": [
+              "calf",
+              "escamilla"
+            ],
+            "why": "Los plantarflexores acompañan el avance tibial y el impulso de retorno desde el pie delantero. Se extrapola la asistencia medida en zancada frontal cargada al mismo recorrido con la barra en los codos."
           },
           {
             "id": "gluteus_medius",
@@ -2614,6 +2616,7 @@
           },
           {
             "id": "biceps",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "biceps"
@@ -2930,30 +2933,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "gmax",
               "comfort"
             ],
             "why": "La cadera del pie fijo se extiende para subir bajo el estante frontal. Ese movimiento real sostiene PRIMARY detrás del cuádriceps por inferencia del padre inverso y de su anatomía, sin inferir exclusividad del torso erguido."
-          },
-          {
-            "id": "hamstrings",
-            "role": "SECONDARY",
-            "sources": [
-              "ham",
-              "escamilla"
-            ],
-            "why": "Ayudan a la extensión de la cadera del apoyo y coactivan la rodilla durante el descenso. No existe una medición específica de la inversa frontal en estas fuentes; se conserva contribución secundaria por función anatómica."
-          },
-          {
-            "id": "calves",
-            "role": "SECONDARY",
-            "sources": [
-              "calf",
-              "escamilla"
-            ],
-            "why": "El tobillo anterior acompaña el recorrido de la tibia cuando la otra pierna sale hacia atrás. Los plantarflexores ayudan a la salida; se extrapola esta asistencia, sin afirmar activación exclusiva por llevar la barra delante."
           },
           {
             "id": "adductors",
@@ -2963,6 +2948,24 @@
               "escamilla"
             ],
             "why": "Orientan el muslo cargado sobre el pie delantero y pueden ayudar a la extensión de su cadera. Se deduce su rol secundario de la función aductora y extensora, con apoyo indirecto de la zancada frontal cargada."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "ham",
+              "escamilla"
+            ],
+            "why": "Ayudan a la extensión de la cadera del apoyo y coactivan la rodilla durante el descenso. No existe una medición específica de la inversa frontal en estas fuentes; se conserva contribución secundaria por función anatómica."
+          },
+          {
+            "id": "calves",
+            "role": "STABILIZER",
+            "sources": [
+              "calf",
+              "escamilla"
+            ],
+            "why": "El tobillo anterior acompaña el recorrido de la tibia cuando la otra pierna sale hacia atrás. Los plantarflexores ayudan a la salida; se extrapola esta asistencia, sin afirmar activación exclusiva por llevar la barra delante."
           },
           {
             "id": "gluteus_medius",
@@ -3258,7 +3261,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "gmax",
               "kin"
@@ -3266,8 +3269,17 @@
             "why": "Aunque el respaldo recibe la espalda, el fémur delantero cambia de ángulo respecto al torso al bajar y subir el carro. El glúteo mayor participa en la extensión resistida de esa cadera como motor del ascenso; se infiere su rol funcional sin EMG directo en esta máquina."
           },
           {
-            "id": "hamstrings",
+            "id": "adductors",
             "role": "SECONDARY",
+            "sources": [
+              "collings_adductors",
+              "adductor_anatomy"
+            ],
+            "why": "La pierna adelantada extiende la cadera para elevar el carro sobre los raíles con la espalda en el acolchado. La porción extensora del aductor mayor puede cooperar aunque el tronco esté apoyado; el respaldo científico proviene de anatomía y modelado fuera de la Hack."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
             "sources": [
               "hams",
               "emg"
@@ -3276,7 +3288,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "calf",
               "kin"
@@ -3290,15 +3302,6 @@
               "gmed"
             ],
             "why": "Durante el retroceso y el regreso del pie libre, el apoyo delantero soporta una distribución asimétrica de carga. El glúteo medio contribuye al sostén frontal de la pelvis aun con respaldo; se interpreta como ayuda postural, no como abducción activa contra el carro."
-          },
-          {
-            "id": "adductors",
-            "role": "SECONDARY",
-            "sources": [
-              "collings_adductors",
-              "adductor_anatomy"
-            ],
-            "why": "La pierna adelantada extiende la cadera para elevar el carro sobre los raíles con la espalda en el acolchado. La porción extensora del aductor mayor puede cooperar aunque el tronco esté apoyado; el respaldo científico proviene de anatomía y modelado fuera de la Hack."
           }
         ]
       },
@@ -3494,7 +3497,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "gmax",
               "kin"
@@ -3502,8 +3505,17 @@
             "why": "La cadera adelantada pasa de flexión a extensión mientras el tronco sigue el arco del aparato. Es un motor del ascenso junto al cuádriceps; esta clasificación procede de la acción observada y la función extensora, sin un ensayo directo en V-Squat asimétrica."
           },
           {
-            "id": "hamstrings",
+            "id": "adductors",
             "role": "SECONDARY",
+            "sources": [
+              "collings_adductors",
+              "adductor_anatomy"
+            ],
+            "why": "El brazo pivotante asciende cuando el apoyo delantero recupera extensión de cadera bajo las almohadillas. La función isquiocondílea del aductor mayor permite inferir ayuda muscular en ese regreso; las fuerzas calculadas en sentadilla no cuantifican esta zancada en V-Squat."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
             "sources": [
               "hams",
               "emg"
@@ -3512,7 +3524,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "calf",
               "kin"
@@ -3526,15 +3538,6 @@
               "gmed"
             ],
             "why": "El apoyo asimétrico requiere que la pelvis no caiga ni se desvíe sobre el fémur delantero. Se infiere sostén lateral residual pese al respaldo, sin tratar la colocación posterior del otro pie como abducción dinámica resistida."
-          },
-          {
-            "id": "adductors",
-            "role": "SECONDARY",
-            "sources": [
-              "collings_adductors",
-              "adductor_anatomy"
-            ],
-            "why": "El brazo pivotante asciende cuando el apoyo delantero recupera extensión de cadera bajo las almohadillas. La función isquiocondílea del aductor mayor permite inferir ayuda muscular en ese regreso; las fuerzas calculadas en sentadilla no cuantifican esta zancada en V-Squat."
           }
         ]
       },
@@ -3777,30 +3780,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "gmax",
               "comfort"
             ],
             "why": "Extiende la cadera de apoyo durante la subida con la barra abrazada. Se eleva de SECONDARY heredado a PRIMARY porque el retroceso no suprime la extensión cargada del padre; no se usa EMG Zercher inexistente para decidirlo."
-          },
-          {
-            "id": "hamstrings",
-            "role": "SECONDARY",
-            "sources": [
-              "ham",
-              "escamilla"
-            ],
-            "why": "Acompañan la extensión de cadera del pie fijo y la coactivación de rodilla cuando retrocede el otro pie. La función es secundaria por extrapolación del padre y de anatomía, sin que los brazos creen un curl isquiosural."
-          },
-          {
-            "id": "calves",
-            "role": "SECONDARY",
-            "sources": [
-              "calf",
-              "escamilla"
-            ],
-            "why": "La musculatura de la pantorrilla ayuda a sostener y desplazar la tibia sobre el pie delantero. Se infiere asistencia de tobillo durante la subida; el peso en los codos no cambia esa acción a un motor principal."
           },
           {
             "id": "adductors",
@@ -3810,6 +3795,24 @@
               "escamilla"
             ],
             "why": "Aportan orientación y asistencia extensora de la cadera delantera durante el regreso. Se extrapola del aductor mayor y de zancadas cargadas, sin presentar el retroceso Zercher como un ejercicio de aducción directa."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "ham",
+              "escamilla"
+            ],
+            "why": "Acompañan la extensión de cadera del pie fijo y la coactivación de rodilla cuando retrocede el otro pie. La función es secundaria por extrapolación del padre y de anatomía, sin que los brazos creen un curl isquiosural."
+          },
+          {
+            "id": "calves",
+            "role": "STABILIZER",
+            "sources": [
+              "calf",
+              "escamilla"
+            ],
+            "why": "La musculatura de la pantorrilla ayuda a sostener y desplazar la tibia sobre el pie delantero. Se infiere asistencia de tobillo durante la subida; el peso en los codos no cambia esa acción a un motor principal."
           },
           {
             "id": "gluteus_medius",
@@ -3840,6 +3843,7 @@
           },
           {
             "id": "biceps",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "biceps"

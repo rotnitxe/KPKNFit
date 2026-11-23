@@ -109,10 +109,10 @@
                   "primaryMuscles": [
                     "deltoid"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "trapezius"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -178,14 +178,14 @@
                   "replacementPriority": 999
                 }
               },
-              "secondaryMuscles": [
-                "trapezius"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Mancuernas sentado: el torso fijo elimina el impulso y el hombro trabaja limpio."
               ],
               "setupTimeSeconds": 20,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "trapezius"
+              ],
               "technicalDifficulty": 4.8
             },
             "selectedOptions": {
@@ -295,10 +295,10 @@
                   "primaryMuscles": [
                     "deltoid"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "trapezius"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -364,14 +364,14 @@
                   "replacementPriority": 999
                 }
               },
-              "secondaryMuscles": [
-                "trapezius"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Polea sentado: tensión constante y sin impulso posible."
               ],
               "setupTimeSeconds": 25,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "trapezius"
+              ],
               "technicalDifficulty": 4.8
             },
             "selectedOptions": {
@@ -481,10 +481,10 @@
                   "primaryMuscles": [
                     "deltoid"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "trapezius"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -550,14 +550,14 @@
                   "replacementPriority": 999
                 }
               },
-              "secondaryMuscles": [
-                "trapezius"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Máquina sentado: el guiado lleva el trabajo directo al deltoides lateral."
               ],
               "setupTimeSeconds": 45,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "trapezius"
+              ],
               "technicalDifficulty": 4.8
             },
             "selectedOptions": {
@@ -667,10 +667,10 @@
                   "primaryMuscles": [
                     "deltoid"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "trapezius"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -736,14 +736,14 @@
                   "replacementPriority": 999
                 }
               },
-              "secondaryMuscles": [
-                "trapezius"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Kettlebell sentado: el agarre suma estabilidad extra al movimiento estricto."
               ],
               "setupTimeSeconds": 20,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "trapezius"
+              ],
               "technicalDifficulty": 4.8
             },
             "selectedOptions": {
@@ -879,10 +879,10 @@
                   "primaryMuscles": [
                     "deltoid"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "trapezius"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -948,14 +948,14 @@
                   "replacementPriority": 999
                 }
               },
-              "secondaryMuscles": [
-                "trapezius"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Mancuernas a los costados: subes hasta la altura del hombro con los brazos ligeramente abiertos."
               ],
               "setupTimeSeconds": 20,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "trapezius"
+              ],
               "technicalDifficulty": 4.8
             },
             "selectedOptions": {
@@ -1065,10 +1065,10 @@
                   "primaryMuscles": [
                     "deltoid"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "trapezius"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1134,14 +1134,14 @@
                   "replacementPriority": 999
                 }
               },
-              "secondaryMuscles": [
-                "trapezius"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Polea lateral: la tensión constante mantiene el hombro cargado en todo el arco."
               ],
               "setupTimeSeconds": 25,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "trapezius"
+              ],
               "technicalDifficulty": 4.8
             },
             "selectedOptions": {
@@ -1251,10 +1251,10 @@
                   "primaryMuscles": [
                     "deltoid"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "trapezius"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1320,14 +1320,14 @@
                   "replacementPriority": 999
                 }
               },
-              "secondaryMuscles": [
-                "trapezius"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Máquina de elevaciones: el recorrido guiado concentra el deltoides lateral."
               ],
               "setupTimeSeconds": 45,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "trapezius"
+              ],
               "technicalDifficulty": 4.8
             },
             "selectedOptions": {
@@ -1437,10 +1437,10 @@
                   "primaryMuscles": [
                     "deltoid"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "trapezius"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1506,14 +1506,14 @@
                   "replacementPriority": 999
                 }
               },
-              "secondaryMuscles": [
-                "trapezius"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Kettlebell a los costados: el agarre suma trabajo y el movimiento se perciben distinto."
               ],
               "setupTimeSeconds": 20,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "trapezius"
+              ],
               "technicalDifficulty": 4.8
             },
             "selectedOptions": {

@@ -135,7 +135,13 @@ internal fun HomeSessionHero(
             Spacer(Modifier.height(12.dp))
             HeroCountdown(countdown = it, onClick = actions.onOpenCountdown)
         }
-        if (muscles.isNotEmpty()) HomeMuscleChips(muscles = muscles, onOpen = onOpenMuscles)
+        if (muscles.isNotEmpty()) {
+            HomeMuscleChips(
+                muscles = muscles,
+                onOpen = onOpenMuscles,
+                firstChipModifier = Modifier.tourAnchor(TourAnchors.HOME_MUSCLES_BTN),
+            )
+        }
         val buttons = heroButtons(mode = state.mode, actions = actions)
         if (buttons.isNotEmpty()) {
             Spacer(Modifier.height(20.dp))

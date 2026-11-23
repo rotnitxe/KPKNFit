@@ -78,13 +78,17 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_deficit",
               "performanceProfileId": "hams_peso_muerto_convencional_deficit__barbell__peso_muerto_convencional_en_deficit",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -149,12 +153,17 @@
                       "role": "SECONDARY"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -217,14 +226,14 @@
                   ],
                   "preservesIntent": [
                     "hip_hinge_deficit:gluteus_maximus",
-                    "hip_hinge_deficit:hamstrings",
-                    "hip_hinge_deficit:quadriceps"
+                    "hip_hinge_deficit:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "adductors"
               ],
               "setupCues": [
@@ -327,6 +336,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_deficit",
               "performanceProfileId": "hams_peso_muerto_piernas_rigidas_deficit__barbell__peso_muerto_piernas_rigidas_en_deficit",
@@ -384,6 +397,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -568,13 +585,17 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_deficit",
               "performanceProfileId": "hams_peso_muerto_sumo_deficit__barbell__peso_muerto_sumo_en_deficit",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -639,12 +660,17 @@
                       "role": "SECONDARY"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -707,14 +733,14 @@
                   ],
                   "preservesIntent": [
                     "hip_hinge_deficit:gluteus_maximus",
-                    "hip_hinge_deficit:hamstrings",
-                    "hip_hinge_deficit:quadriceps"
+                    "hip_hinge_deficit:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "adductors"
               ],
               "setupCues": [

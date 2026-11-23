@@ -173,12 +173,17 @@ private func legacyExerciseInfo(
 ) -> ExerciseMuscleInfo {
     let profile = configuration.profile
     let rich = profile.richMetadata
+    let limiting = Set(profile.limitingStabilizerMuscles)
     let involved: [InvolvedMuscle] = profile.primaryMuscles.map {
         InvolvedMuscle(muscle: muscleLabel($0), role: .PRIMARY)
     } + profile.secondaryMuscles.map {
         InvolvedMuscle(muscle: muscleLabel($0), role: .SECONDARY)
     } + profile.stabilizerMuscles.map {
-        InvolvedMuscle(muscle: muscleLabel($0), role: .STABILIZER)
+        InvolvedMuscle(
+            muscle: muscleLabel($0),
+            role: .STABILIZER,
+            volumeContribution: limiting.contains($0) ? LIMITING_STABILIZER_CONTRIBUTION : 0.0
+        )
     }
     return ExerciseMuscleInfo(
         id: id ?? definition.id,

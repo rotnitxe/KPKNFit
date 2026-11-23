@@ -581,6 +581,7 @@ fun KPKNApp(
     val isFullscreenWizard =
         currentRoute?.startsWith("session-editor") == true ||
         currentRoute?.startsWith("workout") == true ||
+        currentRoute?.startsWith("progress/exercise") == true ||
         currentRoute?.startsWith("media/") == true ||
         // El reproductor y el CTA de comparación de técnica necesitan su propio borde inferior.
         (currentRoute == KpknRoute.TechniqueHub.route ||
@@ -1691,6 +1692,9 @@ private fun KPKNNavGraph(
                 com.example.kpkn.screens.progress.LocalMuscleVolumePanelOpener provides { volumeProgramId ->
                     navController.navigate(KpknRoute.ProgramFourWeeks.create(volumeProgramId ?: id)) { launchSingleTop = true }
                 },
+                com.example.kpkn.screens.progress.LocalExerciseProgressOpener provides { exerciseId ->
+                    navController.navigate(KpknRoute.ExerciseProgress.create(exerciseId = exerciseId, programId = id)) { launchSingleTop = true }
+                },
             ) {
             val returnToTraining = {
                 if (!navController.popBackStack(KpknRoute.Training.route, inclusive = false)) {
@@ -1947,12 +1951,26 @@ private fun KPKNNavGraph(
                 },
             )
         }
-        composable(KpknRoute.ExerciseProgress.route, arguments = listOf(navArgument(KpknRoute.ExerciseProgress.ARG_EXERCISE_ID) {
-            type = NavType.StringType; nullable = true; defaultValue = null
-        })) { entry ->
+        composable(
+            route = KpknRoute.ExerciseProgress.route,
+            arguments = listOf(
+                navArgument(KpknRoute.ExerciseProgress.ARG_EXERCISE_ID) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument(KpknRoute.ExerciseProgress.ARG_PROGRAM_ID) {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+            ),
+        ) { entry ->
             com.example.kpkn.screens.progress.ExerciseProgressRoute(
-                entry.arguments?.getString(KpknRoute.ExerciseProgress.ARG_EXERCISE_ID)?.takeIf { it.isNotBlank() },
-                { navController.popBackStack() })
+                exerciseId = entry.arguments?.getString(KpknRoute.ExerciseProgress.ARG_EXERCISE_ID)?.takeIf { it.isNotBlank() },
+                onBack = { navController.popBackStack() },
+                programId = entry.arguments?.getString(KpknRoute.ExerciseProgress.ARG_PROGRAM_ID)?.takeIf { it.isNotBlank() },
+            )
         }
         composable(
             route = KpknRoute.MuscleVolumePanel.route,

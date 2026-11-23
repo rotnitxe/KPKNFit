@@ -95,7 +95,7 @@
           },
           {
             "id": "quadriceps",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "escamilla2000",
               "escamilla2002"
@@ -112,6 +112,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "hamlyn2007",
@@ -121,6 +122,7 @@
           },
           {
             "id": "core",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "hamlyn2007"
@@ -129,6 +131,7 @@
           },
           {
             "id": "forearm",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "forearm_anatomy"
@@ -363,6 +366,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "coratella2022",
@@ -381,6 +385,7 @@
           },
           {
             "id": "forearm",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "forearm_anatomy"
@@ -641,7 +646,7 @@
           },
           {
             "id": "quadriceps",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "escamilla2000",
               "escamilla2002"
@@ -659,6 +664,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "escamilla2002"
@@ -667,6 +673,7 @@
           },
           {
             "id": "core",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "escamilla2002"
@@ -675,6 +682,7 @@
           },
           {
             "id": "forearm",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "forearm_anatomy"

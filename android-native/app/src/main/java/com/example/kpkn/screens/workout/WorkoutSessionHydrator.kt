@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.WeekVariant
 import com.example.kpkn.data.models.WorkoutContextProfile
 import com.example.kpkn.data.models.WorkoutHeaderWidgets
 import com.example.kpkn.data.models.WorkoutTag
+import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.isSimpleProgram
 import com.example.kpkn.data.models.performedPurpose
 import com.example.kpkn.data.models.normalizeMobilityCompatibility
@@ -95,6 +96,7 @@ class WorkoutSessionHydrator(
         val program = repository.getProgramById(programId) ?: return false
         var foundSession: Session? = null
         var foundWeekId = ""
+        var foundWeekIsLoopWeek = false
         var foundMacroIdx = 0
         var foundMesoIdx = 0
         var foundBlock: Block? = null
@@ -109,6 +111,7 @@ class WorkoutSessionHydrator(
                         if (s != null) {
                             foundSession = s
                             foundWeekId = week.id
+                            foundWeekIsLoopWeek = week.isLoopWeek
                             foundMacroIdx = macroIdx
                             foundMesoIdx = flattenedMesoIdx
                             foundBlock = block
@@ -120,6 +123,24 @@ class WorkoutSessionHydrator(
             }
         }
 
+        val active = repository.activeProgramState.value?.takeIf { it.programId == programId }
+        val rawSession = foundSession
+        if (rawSession != null &&
+            !foundWeekIsLoopWeek &&
+            program.isSimpleProgram &&
+            program.simpleProgramKind == SimpleProgramKind.CYCLIC &&
+            program.loops.any { it.mode == com.example.kpkn.data.models.LoopMode.PROGRESSIVE_WAVE }
+        ) {
+            val activeCycle = (program.runState?.cycleNumber ?: active?.currentCycleNumber ?: com.example.kpkn.domain.training.LoopEngine.getCurrentCycle(program)).coerceAtLeast(1)
+            val programLogs = repository.getLogsForProgram(programId)
+            val hydratedForWave = com.example.kpkn.domain.training.ExerciseTrainingMax.hydrateSession(program, rawSession)
+            foundSession = com.example.kpkn.domain.training.LoopWaveModulator.applyActiveWavesToSession(
+                program = program,
+                session = hydratedForWave,
+                cycleNumber = activeCycle,
+                workoutLogs = programLogs,
+            )
+        }
         val sessionMissingFromProgram = foundSession == null
         val snapshotForThis = snapshotMatchesLiveSession(
             repository.ongoingWorkout.value,
@@ -147,7 +168,6 @@ class WorkoutSessionHydrator(
             null
         }
 
-        val active = repository.activeProgramState.value?.takeIf { it.programId == programId }
         val resolvedWeekId = resolveWorkoutWeekId(
             program = program,
             templateOrInstanceWeekId = resumedState?.weekId ?: foundWeekId,
@@ -211,6 +231,25 @@ class WorkoutSessionHydrator(
         val restoredActiveProfiles = hydratedProfiles.second.toMutableMap()
         val restoredTags = (resumedState?.exerciseTags ?: emptyMap()).toMutableMap()
         val restoredActiveSubTags = resumedState?.activeSubTags?.toMutableMap() ?: mutableMapOf()
+        val restoredActiveSubTagsBySetKey = (resumedState?.activeSubTagsBySetKey ?: emptyMap()).toMutableMap()
+        exercisesForMode.forEach { exercise ->
+            exercise.sets.forEachIndexed { setIndex, plannedSet ->
+                val baseKey = "${exercise.id}_$setIndex"
+                val seeded = restoredCompletedSets[baseKey]?.subTagIds?.takeIf { it.isNotEmpty() } ?: plannedSet.subTagIds
+                if (seeded.isNotEmpty() && !restoredActiveSubTagsBySetKey.containsKey(baseKey)) {
+                    restoredActiveSubTagsBySetKey[baseKey] = seeded
+                }
+                if (exercise.isEffectivelyUnilateral()) {
+                    listOf("L", "R").forEach { side ->
+                        val sideKey = "${baseKey}_$side"
+                        val sideSeeded = restoredCompletedSets[sideKey]?.subTagIds?.takeIf { it.isNotEmpty() } ?: plannedSet.subTagIds
+                        if (sideSeeded.isNotEmpty() && !restoredActiveSubTagsBySetKey.containsKey(sideKey)) {
+                            restoredActiveSubTagsBySetKey[sideKey] = sideSeeded
+                        }
+                    }
+                }
+            }
+        }
         val restoredUserCreatedTags = resumedState?.userCreatedTags?.toMutableMap() ?: mutableMapOf()
 
         exercisesForMode.forEach { exercise ->
@@ -403,6 +442,7 @@ class WorkoutSessionHydrator(
                 exerciseTags = restoredTags,
                 activeTagsByExercise = restoredActiveTags,
                 activeSubTagsByExercise = restoredActiveSubTags,
+                activeSubTagsBySetKey = restoredActiveSubTagsBySetKey,
                 userCreatedTags = restoredUserCreatedTags,
                 startTimeMs = restoredStartTime,
                 featureFlags = featureFlags,
@@ -530,6 +570,7 @@ class WorkoutSessionHydrator(
                     exerciseTags = restoredTags,
                     activeTags = restoredActiveTags,
                     activeSubTags = restoredActiveSubTags,
+                    activeSubTagsBySetKey = restoredActiveSubTagsBySetKey,
                     userCreatedTags = restoredUserCreatedTags,
                     contextProfilesV3 = hydratedProfiles.first,
                     activeContextProfileByExerciseId = restoredActiveProfiles,

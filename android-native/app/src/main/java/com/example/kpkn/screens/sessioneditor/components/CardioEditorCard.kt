@@ -166,17 +166,30 @@ internal fun CardioEditorCard(
         null -> Unit
         is CardLayer.Value -> {
             val request = current.request
-            CardioValueSheet(
-                kind = request.kind,
-                subtitle = request.subtitle,
-                initialN = request.n,
-                initialMode = request.mode,
-                onApply = { n, mode ->
-                    layer = null
-                    request.apply(n, mode)
-                },
-                onDismiss = { layer = null },
-            )
+            if (request.kind == CardioValueKind.REST_BETWEEN_SETS) {
+                com.example.kpkn.ui.components.KpknRestClockSheet(
+                    title = "Descanso entre series",
+                    primaryLabel = "Series",
+                    initialPrimarySeconds = request.kind.valueOf(request.n).coerceAtLeast(0),
+                    onDismiss = { layer = null },
+                    onConfirm = { seconds, _ ->
+                        layer = null
+                        request.apply(request.kind.nOf(seconds).coerceIn(request.kind.min, request.kind.max), request.mode)
+                    },
+                )
+            } else {
+                CardioValueSheet(
+                    kind = request.kind,
+                    subtitle = request.subtitle,
+                    initialN = request.n,
+                    initialMode = request.mode,
+                    onApply = { n, mode ->
+                        layer = null
+                        request.apply(n, mode)
+                    },
+                    onDismiss = { layer = null },
+                )
+            }
         }
         is CardLayer.Zone -> CardioZoneSheet(
             typeName = typeName,

@@ -84,13 +84,33 @@ data class NutritionEditorBase(
  * redondeo de gramos (±2 kcal cuando hay un cero manual) es la documentada en
  * [scaleMacrosToCalories].
  */
-fun NutritionEditorBase.withCalories(newKcal: Int): NutritionEditorBase {
+/**
+ * Edición de calorías: escala desde [anchor] (si se provee) o desde la base actual.
+ * Si los tres macros están en 0, usa reparto equilibrado 30% P / 45% C / 25% G
+ * para no dejar calorías con macros en cero.
+ */
+fun NutritionEditorBase.withCalories(
+    newKcal: Int,
+    anchor: NutritionEditorBase? = null,
+): NutritionEditorBase {
+    val source = anchor?.takeIf { it.proteinG > 0 || it.carbsG > 0 || it.fatG > 0 } ?: this
+    val hasMacros = source.proteinG > 0 || source.carbsG > 0 || source.fatG > 0
+    val (pSeed, cSeed, fSeed) = if (hasMacros) {
+        Triple(source.proteinG.toDouble(), source.carbsG.toDouble(), source.fatG.toDouble())
+    } else {
+        val safeKcal = newKcal.coerceAtLeast(1).toDouble()
+        Triple(
+            (safeKcal * 0.30) / 4.0,
+            (safeKcal * 0.45) / 4.0,
+            (safeKcal * 0.25) / 9.0,
+        )
+    }
     val (protein, carbs, fat) = scaleMacrosToCalories(
-        proteinG.toDouble(),
-        carbsG.toDouble(),
-        fatG.toDouble(),
+        pSeed,
+        cSeed,
+        fSeed,
         newKcal,
-        preserveZeros = true,
+        preserveZeros = hasMacros,
     )
     return NutritionEditorBase(
         caloriesKcal = newKcal,
@@ -198,9 +218,13 @@ fun NutritionPlanEditorDraft.withProvenance(provenance: NutritionEditorProvenanc
     }
 
 /** Edición de calorías sobre el borrador (base única coherente). */
-fun NutritionPlanEditorDraft.withCalories(newKcal: Int): NutritionPlanEditorDraft {
-    val current = base ?: NutritionEditorBase(0, 0, 0, 0)
-    return copy(base = current.withCalories(newKcal), baseEdited = true)
+fun NutritionPlanEditorDraft.withCalories(
+    newKcal: Int,
+    fallbackBase: NutritionEditorBase? = null,
+    anchor: NutritionEditorBase? = null,
+): NutritionPlanEditorDraft {
+    val current = base ?: fallbackBase ?: NutritionEditorBase(0, 0, 0, 0)
+    return copy(base = current.withCalories(newKcal, anchor = anchor), baseEdited = true)
 }
 
 /** Edición de un macro sobre el borrador (el total energético se actualiza). */
@@ -208,8 +232,9 @@ fun NutritionPlanEditorDraft.withMacro(
     protein: Double? = null,
     carbs: Double? = null,
     fat: Double? = null,
+    fallbackBase: NutritionEditorBase? = null,
 ): NutritionPlanEditorDraft {
-    val current = base ?: NutritionEditorBase(0, 0, 0, 0)
+    val current = base ?: fallbackBase ?: NutritionEditorBase(0, 0, 0, 0)
     return copy(base = current.withMacro(protein = protein, carbs = carbs, fat = fat), baseEdited = true)
 }
 

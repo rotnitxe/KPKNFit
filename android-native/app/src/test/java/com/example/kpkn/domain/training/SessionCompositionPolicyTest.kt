@@ -717,8 +717,8 @@ class SessionCompositionPolicyTest {
 
         val twoHeadsMetadata = volumeRoleMetadata(bridgePrimary = listOf("gluteus_maximus", "gluteus_medius"))
         val inside = nativeGluteRecipe(16)
-        // La dosis previa cuenta ambas cabezas; el techo PRIMARY deduplica su grupo por slot.
-        assertEquals(32.0, SessionCompositionPolicy.weeklyGroupSets(inside.weeks.single(), twoHeadsMetadata).getValue(KpknMuscleGroup.GLUTES), 0.0)
+        // Tanto el total de dosis como el techo PRIMARY deduplican cabezas del mismo grupo por slot.
+        assertEquals(16.0, SessionCompositionPolicy.weeklyGroupSets(inside.weeks.single(), twoHeadsMetadata).getValue(KpknMuscleGroup.GLUTES), 0.0)
         assertEquals(16.0, SessionCompositionPolicy.weeklyPrimaryGroupSets(inside.weeks.single(), twoHeadsMetadata).getValue(KpknMuscleGroup.GLUTES), 0.0)
         val findings = ProgramRecipeValidator.validate(inside, twoHeadsMetadata)
         assertTrue("las cabezas duplicadas no crean exceso principal ni aporte indirecto: $findings", findings.none {
@@ -745,6 +745,31 @@ class SessionCompositionPolicyTest {
             it.rule == "W2" && it.message.contains("CHEST") && it.message.contains("< MEV")
         }
         assertTrue("el mínimo conserva las 8 series de dosis secundaria: $minimumFindings", minimumFindings.isEmpty())
+    }
+
+    @Test
+    fun w2_deduplicates_multiple_secondary_heads_of_back_upper_per_slot() {
+        val backUpperMetadata = ExerciseCompositionMetadataProvider { configurationId ->
+            metadata.metadata(configurationId)?.let { original ->
+                if (configurationId == CatalogIds.BP) {
+                    original.copy(
+                        primaryMuscles = listOf("pectoralis"),
+                        secondaryMuscles = listOf("trapezius", "rhomboids"),
+                    )
+                } else {
+                    original
+                }
+            }
+        }
+        val days = (1..2).map { index ->
+            day("D$index", listOf(slot("bp", SlotRole.T3_ACCESSORY, CatalogIds.BP, rangeRirSets(4, 8, 12, 2), 120)))
+        }
+        val week = weekRecipe(1, 0, "Base", BlockGoal.ACCUMULATION, days)
+        assertEquals(
+            4.0,
+            SessionCompositionPolicy.weeklyGroupSets(week, backUpperMetadata).getValue(KpknMuscleGroup.BACK_UPPER),
+            0.0,
+        )
     }
 
     // ─── B.S1: H11 sobre kg resueltos, H11b (Epley) y ámbitos de exención en glob anclado ───

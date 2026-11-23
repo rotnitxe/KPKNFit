@@ -79,30 +79,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "gmax",
               "bezerra"
             ],
             "why": "La cadera delantera se extiende para elevar y desplazar el cuerpo antes del próximo paso. La actividad glútea registrada en la zancada caminando complementa su anatomía extensora; participa como motor PRIMARY, no solo como freno lateral."
-          },
-          {
-            "id": "hamstrings",
-            "role": "SECONDARY",
-            "sources": [
-              "ham",
-              "bezerra"
-            ],
-            "why": "Contribuyen a la extensión de cadera durante la subida y a la coactivación de rodilla cuando se recibe el paso. La EMG de caminando registra bíceps femoral, sin indicar superioridad sobre el cuádriceps ni justificar que lidere."
-          },
-          {
-            "id": "calves",
-            "role": "SECONDARY",
-            "sources": [
-              "calf",
-              "escamilla"
-            ],
-            "why": "El pie anterior acompaña la subida con trabajo plantarflexor antes de que el posterior adelante. El papel de calves se extrapola de la acción de tobillo y de zancadas cargadas; no se lo presenta como medición EMG específica de caminar."
           },
           {
             "id": "adductors",
@@ -112,6 +94,24 @@
               "escamilla"
             ],
             "why": "La orientación del muslo se sostiene cuando el peso pasa de una pierna a la siguiente; el aductor mayor también puede asistir la extensión de cadera. Es extrapolación anatómica y de zancadas frontales, con papel secundario."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "ham",
+              "bezerra"
+            ],
+            "why": "Contribuyen a la extensión de cadera durante la subida y a la coactivación de rodilla cuando se recibe el paso. La EMG de caminando registra bíceps femoral, sin indicar superioridad sobre el cuádriceps ni justificar que lidere."
+          },
+          {
+            "id": "calves",
+            "role": "STABILIZER",
+            "sources": [
+              "calf",
+              "escamilla"
+            ],
+            "why": "El pie anterior acompaña la subida con trabajo plantarflexor antes de que el posterior adelante. El papel de calves se extrapola de la acción de tobillo y de zancadas cargadas; no se lo presenta como medición EMG específica de caminar."
           },
           {
             "id": "gluteus_medius",

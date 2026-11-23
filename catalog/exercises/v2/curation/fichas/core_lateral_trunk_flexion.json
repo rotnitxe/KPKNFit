@@ -69,8 +69,17 @@
         ],
         "muscles": [
           {
-            "id": "abdominals",
+            "id": "core",
             "role": "PRIMARY",
+            "sources": [
+              "statpearls_quadratus_lumborum",
+              "garcia2012"
+            ],
+            "why": "El cuadrado lumbar, un músculo lateral a la columna entre la cresta ilíaca y la duodécima costilla, y el transverso del abdomen apoyan a los oblicuos. Su acción exacta es difícil de aislar, así que se cuentan como apoyo y no como motor."
+          },
+          {
+            "id": "abdominals",
+            "role": "SECONDARY",
             "sources": [
               "garcia2012",
               "ekstrom2007",
@@ -79,17 +88,8 @@
             "why": "Los oblicuos son, junto al glúteo medio, los que impiden que la cadera caiga: en el estudio de García-Vaquero et al. el puente lateral activó sobre todo los músculos que sostienen el momento lateral, sobre todo los oblicuos, y Ekstrom et al. lo señalan como útil para reforzar el oblicuo externo."
           },
           {
-            "id": "core",
-            "role": "SECONDARY",
-            "sources": [
-              "statpearls_quadratus_lumborum",
-              "garcia2012"
-            ],
-            "why": "El cuadrado lumbar, un músculo lateral a la columna entre la cresta ilíaca y la duodécima costilla, y el transverso del abdomen apoyan a los oblicuos. Su acción exacta es difícil de aislar, así que se cuentan como apoyo y no como motor."
-          },
-          {
             "id": "gluteus_medius",
-            "role": "PRIMARY",
+            "role": "STABILIZER",
             "sources": [
               "ekstrom2007",
               "collings2023",

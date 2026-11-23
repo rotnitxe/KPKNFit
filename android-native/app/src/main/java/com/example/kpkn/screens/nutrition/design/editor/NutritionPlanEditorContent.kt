@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -47,10 +48,10 @@ private const val EntranceGroup = "nutrition.editor"
 private const val TitleIndex = 1
 
 /** Aire bajo el último módulo para que la isla de «Guardar» no lo tape. */
-private val BottomClearance = 120.dp
+private val BottomClearance = 164.dp
 
 /** Con avisos de error, la franja de abajo es más alta: hay que poder llegar al último módulo por encima de ellos. */
-private val BottomClearanceWithErrors = 200.dp
+private val BottomClearanceWithErrors = 240.dp
 
 /**
  * Lo que el editor pide a su ViewModel: un lambda por acción. Sin estado: la pantalla lo arma con el ViewModel y con su estado de interfaz;
@@ -80,6 +81,7 @@ class NutritionPlanEditorActions(
     val onWeeklyDistribution: (NutritionWeeklyDistributionMode) -> Unit = {},
     val onProvenance: (NutritionEditorProvenance) -> Unit = {},
     val onMode: (NutritionPlanEditorMode) -> Unit = {},
+    val onResetRecommendation: (() -> Unit)? = null,
     val onSave: () -> Unit = {},
 )
 
@@ -105,7 +107,11 @@ fun NutritionPlanEditorContent(
     Box(modifier = modifier.fillMaxSize().background(KpknSurface.canvas)) {
         LazyColumn(
             state = listState,
-            modifier = Modifier.fillMaxSize().statusBarsPadding(),
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .imePadding(),
             contentPadding = PaddingValues(
                 start = 16.dp,
                 end = 16.dp,
@@ -167,6 +173,9 @@ fun NutritionPlanEditorContent(
                         onProtein = actions.onProtein,
                         onCarbs = actions.onCarbs,
                         onFat = actions.onFat,
+                        weightKg = com.example.kpkn.domain.nutrition.parseLocalizedNumber(draft.weightText)
+                            ?.let { com.example.kpkn.domain.nutrition.kilogramsFromInput(it, draft.weightUnit) },
+                        onResetRecommendation = actions.onResetRecommendation,
                         modifier = Modifier.fillMaxWidth().kpknEntrance(EntranceGroup, 2),
                     )
                 }
@@ -177,6 +186,7 @@ fun NutritionPlanEditorContent(
                         selectedDay = selectedDay,
                         onWeeklyDistribution = actions.onWeeklyDistribution,
                         onSelectDay = actions.onSelectDay,
+                        distributionStatus = state.distributionStatus,
                         modifier = Modifier.fillMaxWidth().kpknEntrance(EntranceGroup, 3),
                     )
                 }
@@ -210,6 +220,7 @@ fun NutritionPlanEditorContent(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
+                .imePadding()
                 .padding(start = 12.dp, end = 12.dp, bottom = 8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp),
         ) {

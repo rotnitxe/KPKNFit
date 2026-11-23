@@ -249,8 +249,7 @@
               "movementPatternId": "anti_rotation_trunk",
               "performanceProfileId": "bird_dog__default__bird_dog",
               "primaryMuscles": [
-                "erector_spinae",
-                "abdominals"
+                "core"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -296,14 +295,14 @@
                     }
                   ],
                   "primaryMuscles": [
+                    "core"
+                  ],
+                  "secondaryMuscles": [
                     "erector_spinae",
                     "abdominals"
                   ],
-                  "secondaryMuscles": [
-                    "gluteus_maximus",
-                    "core"
-                  ],
                   "stabilizerMuscles": [
+                    "gluteus_maximus",
                     "deltoid"
                   ],
                   "volumeContribution": "direct"
@@ -361,16 +360,15 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "anti_rotation_trunk:erector_spinae",
-                    "anti_rotation_trunk:abdominals"
+                    "anti_rotation_trunk:core"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
-                "core"
+                "erector_spinae",
+                "abdominals"
               ],
               "setupCues": [
                 "Apoya las manos bajo los hombros y las rodillas bajo las caderas, con la espalda neutra y el cuello alineado.",
@@ -378,6 +376,7 @@
               ],
               "setupTimeSeconds": 10,
               "stabilizerMuscles": [
+                "gluteus_maximus",
                 "deltoid"
               ],
               "technicalDifficulty": 3.5

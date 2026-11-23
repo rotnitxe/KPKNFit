@@ -64,6 +64,8 @@ object LoopPresetEngine {
     private const val TEST_CADENCE = 8
     private const val DEFAULT_WEIGHT_STEP_KG = AuthoredProgressionEngine.DEFAULT_ROUNDING_STEP_KG
 
+    fun wavePresets(): List<LoopWaveModulator.WavePresetDefinition> = LoopWaveModulator.wavePresets()
+
     fun preview(
         program: Program,
         presetId: String,
@@ -73,7 +75,10 @@ object LoopPresetEngine {
         val deload = source?.sessions.orEmpty().map { deloadSession(it, equipmentInventory) }
         val cadence = cadencesFor(presetId)
         val cadenceConflicts = cadence.mapNotNull { requested ->
-            program.loops.firstOrNull { it.repeatEveryXLoops.coerceAtLeast(1) == requested }?.let { existing ->
+            program.loops.firstOrNull {
+                it.mode != com.example.kpkn.data.models.LoopMode.PROGRESSIVE_WAVE &&
+                    it.repeatEveryXLoops.coerceAtLeast(1) == requested
+            }?.let { existing ->
                 "Cada $requested ciclos ya lo usa «${existing.title.ifBlank { LoopEngine.getLoopTypeLabel(existing.type) }}». Edítalo o elimínalo antes de aplicar el preset."
             }
         }

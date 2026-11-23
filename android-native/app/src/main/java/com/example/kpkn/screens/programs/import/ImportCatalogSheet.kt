@@ -81,7 +81,6 @@ internal fun ImportCatalogSheetContent(
             .fillMaxWidth()
             .heightIn(max = 620.dp)
             .verticalScroll(rememberScrollState())
-            .imePadding()
             .padding(horizontal = 20.dp, vertical = 12.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {

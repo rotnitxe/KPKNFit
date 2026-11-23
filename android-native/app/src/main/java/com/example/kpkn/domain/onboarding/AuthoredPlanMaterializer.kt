@@ -100,6 +100,7 @@ object AuthoredPlanMaterializer {
             // Como los nativos: el id del plan publicado; la receta efectiva
             // (derivada si hubo adaptación) vive en `sourceRecipe`.
             structureTemplateId = entry.id,
+            highEnergyDay = materialized.highEnergyDay ?: request.baseProgram.highEnergyDay ?: materialized.startDay,
             programEndMode = request.baseProgram.resolveProgramEndMode(
                 catalogIsFinite = entry.duration == com.example.kpkn.data.programs.CatalogDuration.FINITE_CYCLE,
             ),
@@ -253,6 +254,7 @@ object AuthoredPlanMaterializer {
             )
         }
         return program.copy(
+            highEnergyDay = program.highEnergyDay ?: program.startDay,
             schedulePlan = ProgramSchedulePlan(
                 weekStartDay = program.startDay,
                 trainingDays = sessionDays,

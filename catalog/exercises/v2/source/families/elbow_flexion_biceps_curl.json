@@ -109,10 +109,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "forearm"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -176,14 +176,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Mancuerna con palma hacia arriba: el brazo cuelga detrás del tronco y el bíceps estirado hace la mayor parte de la carga."
               ],
               "setupTimeSeconds": 20,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.6
             },
             "selectedOptions": {
@@ -664,10 +664,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "forearm"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -731,14 +731,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Polea con palma hacia arriba: la tensión no se suelta ni un instante y el bíceps queda cargado en todo el arco."
               ],
               "setupTimeSeconds": 25,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.6
             },
             "selectedOptions": {
@@ -1245,11 +1245,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
-                    "forearm"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -1310,15 +1309,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: En polea, el brazo cruza el pecho y sube flexionando: el estiramiento del bíceps es distinto y la tensión constante aumenta la fatiga local de."
               ],
               "setupTimeSeconds": 25,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.6
             },
@@ -1450,10 +1448,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "forearm"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1512,14 +1510,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Barra con palmas arriba arrastrada pegada al cuerpo: los codos van atrás y el bíceps trabaja con la contracción más localizada."
               ],
               "setupTimeSeconds": 35,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.6
             },
             "selectedOptions": {}
@@ -1649,10 +1647,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "forearm"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1715,14 +1713,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Mancuernas sentado en banco plano: tronco firme y cada brazo por su cuenta, sin impulso posible."
               ],
               "setupTimeSeconds": 20,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.6
             },
             "selectedOptions": {
@@ -1832,10 +1830,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "forearm"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -1898,14 +1896,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Polea sentado en banco plano: la tensión constante se suma al tronco fijo."
               ],
               "setupTimeSeconds": 25,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.6
             },
             "selectedOptions": {
@@ -2040,11 +2038,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
-                    "forearm"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -2104,15 +2101,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: En polea con los brazos detrás del cuerpo: el estiramiento inicial del bíceps es enorme y la tensión acompaña toda la subida."
               ],
               "setupTimeSeconds": 25,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.6
             },
@@ -2243,11 +2239,11 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "forearm",
                     "core"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -2305,15 +2301,15 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm",
-                "core"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Colgado del TRX con palmas arriba: tu peso carga el bíceps y el core aguanta el cuerpo."
               ],
               "setupTimeSeconds": 15,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm",
+                "core"
+              ],
               "technicalDifficulty": 4.6
             },
             "selectedOptions": {}
@@ -2442,10 +2438,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "forearm"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -2504,14 +2500,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Con un disco en copa: la palma mira al techo y el bíceps sube el peso con el antebrazo firme."
               ],
               "setupTimeSeconds": 15,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.6
             },
             "selectedOptions": {}
@@ -2840,10 +2836,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "forearm"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -2906,14 +2902,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Mancuerna con el codo en el muslo: la contracción del bíceps queda claramente localizada y el impulso es imposible."
               ],
               "setupTimeSeconds": 20,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.6
             },
             "selectedOptions": {
@@ -3023,10 +3019,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "forearm"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -3089,14 +3085,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Polea con el codo apoyado: tensión constante en el porción acortada del bíceps con un aislamiento mayor."
               ],
               "setupTimeSeconds": 25,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.6
             },
             "selectedOptions": {
@@ -3231,11 +3227,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
-                    "forearm"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -3298,15 +3293,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Barra en banco predicador: el codo fijo y la palma arriba, sin espacio para el impulso."
               ],
               "setupTimeSeconds": 35,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.6
             },
@@ -3417,11 +3411,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
-                    "forearm"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -3484,15 +3477,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Barra EZ en el predicador: el agarre girado alivia las muñecas y la tensión permanece total."
               ],
               "setupTimeSeconds": 30,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.6
             },
@@ -3603,11 +3595,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
-                    "forearm"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -3670,15 +3661,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Mancuernas en el predicador: cada brazo por separado con el codo fijo en el banco."
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.6
             },
@@ -3789,11 +3779,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
-                    "forearm"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -3856,15 +3845,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Máquina predicador: el recorrido guiado te deja cargar el bíceps sin distraerte con el equilibrio."
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.6
             },
@@ -4000,10 +3988,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "forearm"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -4068,14 +4056,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Mancuernas boca abajo en el banco con palmas arriba: el bíceps estirado hace todo el recorrido."
               ],
               "setupTimeSeconds": 20,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.6
             },
             "selectedOptions": {
@@ -4558,10 +4546,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "forearm"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -4626,14 +4614,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Polea boca abajo en el banco: la tensión constante se suma al estiramiento máximo del bíceps."
               ],
               "setupTimeSeconds": 25,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.6
             },
             "selectedOptions": {
@@ -5116,10 +5104,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "forearm"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -5184,14 +5172,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Barra con palmas arriba en el banco: el bíceps estirado carga el peso de ambos brazos a la vez."
               ],
               "setupTimeSeconds": 35,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.6
             },
             "selectedOptions": {
@@ -5700,11 +5688,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
-                    "forearm"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -5768,15 +5755,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Barra recta de pie: el curl tradicional en el entrenamiento de fuerza, con la mayor cantidad de peso posible y la postura estable."
               ],
               "setupTimeSeconds": 35,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.6
             },
@@ -5887,11 +5873,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
-                    "forearm"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -5955,15 +5940,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Barra EZ de pie: el agarre girado cuida las muñecas y la tensión permanece total."
               ],
               "setupTimeSeconds": 30,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.6
             },
@@ -6074,11 +6058,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
-                    "forearm"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -6142,15 +6125,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Mancuernas de pie: cada brazo trabaja por separado y puedes girar la palma al subir."
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.6
             },
@@ -6261,11 +6243,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
-                    "forearm"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -6329,15 +6310,14 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Polea de pie: la tensión constante carga el bíceps en toda la subida y la bajada."
               ],
               "setupTimeSeconds": 25,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "forearm"
               ],
               "technicalDifficulty": 4.6
             },
@@ -8210,10 +8190,10 @@
                   "primaryMuscles": [
                     "biceps"
                   ],
-                  "secondaryMuscles": [
+                  "secondaryMuscles": [],
+                  "stabilizerMuscles": [
                     "forearm"
                   ],
-                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -8276,16 +8256,16 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "forearm"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Inclina el respaldo del banco unos cuarenta y cinco grados y apoya la espalda y la cabeza.",
                 "Toma una mancuerna en cada mano y deja los brazos colgando, estirados y por detrás del tronco.",
                 "Gira las palmas hacia delante antes de empezar."
               ],
               "setupTimeSeconds": 20,
-              "stabilizerMuscles": [],
+              "stabilizerMuscles": [
+                "forearm"
+              ],
               "technicalDifficulty": 4.6
             },
             "selectedOptions": {}

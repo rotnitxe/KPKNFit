@@ -74,10 +74,12 @@ fun SwipeToDeleteCard(
     val revealTrigger = with(density) { 24.dp.adapt().toPx() }
 
     val offsetX = remember { Animatable(0f) }
+    var dragOffset by remember { mutableStateOf<Float?>(null) }
+    val currentOffsetX = dragOffset ?: offsetX.value
     val scope = rememberCoroutineScope()
     var state by remember { mutableStateOf(SwipeDeleteState.Idle) }
     var thresholdReached by remember { mutableStateOf(false) }
-    val deleteRevealProgress = (-offsetX.value / maxReveal).coerceIn(0f, 1f)
+    val deleteRevealProgress = (-currentOffsetX / maxReveal).coerceIn(0f, 1f)
     val deleteSurface = Color.Black
     val deleteAccent = MaterialTheme.colorScheme.error
 
@@ -94,13 +96,23 @@ fun SwipeToDeleteCard(
 
     fun commitDelete() {
         if (state == SwipeDeleteState.Confirmed) return
-        state = SwipeDeleteState.Confirmed
         haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-        scope.launch {
-            if (animateDeletion) {
+        if (animateDeletion) {
+            state = SwipeDeleteState.Confirmed
+            scope.launch {
                 offsetX.animateTo(
                     targetValue = -maxReveal * 1.14f,
                     animationSpec = spring(dampingRatio = 0.82f, stiffness = 620f),
+                )
+                onDelete()
+            }
+        } else {
+            state = SwipeDeleteState.Idle
+            thresholdReached = false
+            scope.launch {
+                offsetX.animateTo(
+                    targetValue = 0f,
+                    animationSpec = spring(dampingRatio = 0.78f, stiffness = 650f),
                 )
             }
             onDelete()
@@ -184,16 +196,13 @@ fun SwipeToDeleteCard(
         // Draggable card
         Box(
             modifier = Modifier
-                .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-                .graphicsLayer {
-                    alpha = 1f - (deleteRevealProgress * 0.08f)
-                }
                 .draggable(
                     orientation = Orientation.Horizontal,
                     state = rememberDraggableState { delta ->
                         // Only allow left swipe; the header owns this gesture.
-                        val next = (offsetX.value + delta).coerceIn(-maxReveal, 0f)
-                        scope.launch { offsetX.snapTo(next) }
+                        val base = dragOffset ?: offsetX.value
+                        val next = (base + delta).coerceIn(-maxReveal, 0f)
+                        dragOffset = next
                         val r = next < -revealTrigger
                         if (r && state == SwipeDeleteState.Idle) state = SwipeDeleteState.Revealed
                         if (!r && state == SwipeDeleteState.Revealed && next > -revealTrigger) {
@@ -206,20 +215,31 @@ fun SwipeToDeleteCard(
                         }
                     },
                     onDragStopped = {
-                        if (offsetX.value <= -deleteThreshold) {
+                        val releasedX = dragOffset ?: offsetX.value
+                        if (releasedX <= -deleteThreshold) {
                             state = SwipeDeleteState.Revealed
                             thresholdReached = false
                             scope.launch {
+                                offsetX.snapTo(releasedX)
+                                dragOffset = null
                                 offsetX.animateTo(
                                     targetValue = -maxReveal,
                                     animationSpec = spring(dampingRatio = 0.78f, stiffness = 650f),
                                 )
                             }
                         } else {
-                            resetReveal()
+                            scope.launch {
+                                offsetX.snapTo(releasedX)
+                                dragOffset = null
+                                resetReveal()
+                            }
                         }
                     },
-                ),
+                )
+                .graphicsLayer {
+                    translationX = currentOffsetX
+                    alpha = 1f - (deleteRevealProgress * 0.08f)
+                },
         ) {
             content()
             // The content darkens as it moves, making the delete action read as

@@ -716,9 +716,22 @@ private fun NutritionPlanEditor(
     var arrival by remember { mutableStateOf<PlanValues?>(null) }
     LaunchedEffect(planValues) { if (arrival == null) arrival = planValues }
 
-    val committed = remember(preparation, nutrition, arrival, state.draft.weightKg) {
+    val rawCommitted = remember(preparation, nutrition, arrival, state.draft.weightKg) {
         nutritionPlanTuningOf(state, arrival)
     } ?: return
+    val isUntouchedAuto = mode == NutritionConfigurationMode.AUTOMATIC &&
+        nutrition?.manualCalorieTargetText.isNullOrBlank() &&
+        nutrition?.manualProteinText.isNullOrBlank() &&
+        nutrition?.manualCarbsText.isNullOrBlank() &&
+        nutrition?.manualFatText.isNullOrBlank() &&
+        nutrition?.paceRateOverrideFractionPerWeek == null
+    val committed = remember(rawCommitted, isUntouchedAuto) {
+        if (isUntouchedAuto && rawCommitted.values != rawCommitted.baseline) {
+            rawCommitted.copy(baseline = rawCommitted.values)
+        } else {
+            rawCommitted
+        }
+    }
 
     val session = remember(state.draft.draftId) { WizardNutritionLiveState(committed) }
     LaunchedEffect(committed) { session.adopt(committed) }
@@ -745,7 +758,8 @@ private fun NutritionPlanEditor(
                             manualFatText = "",
                         )
                     } else {
-                        val clear = mode == NutritionConfigurationMode.AUTOMATIC && tuning.values == tuning.baseline
+                        val clear = mode == NutritionConfigurationMode.AUTOMATIC &&
+                            (tuning.values == tuning.baseline || (arrival != null && tuning.values == arrival))
                         current.withPlanValues(tuning.values, clear)
                     }
                 }

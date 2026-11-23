@@ -334,7 +334,7 @@
           },
           {
             "id": "forearm",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "caufriez2018",
               "bankoff2007",

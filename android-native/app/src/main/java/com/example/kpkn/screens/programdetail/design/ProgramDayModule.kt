@@ -102,6 +102,7 @@ internal data class ProgramDayUi(
     val sessions: List<ProgramSessionUi>,
     val isToday: Boolean,
     val isStartDay: Boolean,
+    val isHighEnergyDay: Boolean = false,
     val isOutsideProgram: Boolean,
     val isDropTarget: Boolean,
     val dateEditable: Boolean,
@@ -245,6 +246,7 @@ private fun ProgramSessionCard(
     Column(
         modifier = Modifier
             .fillMaxWidth()
+            .then(if (anchorFirst) Modifier.tourAnchor(TourAnchors.TRAINING_SESION) else Modifier)
             .onGloballyPositioned { onBounds(it.boundsInWindow()) }
             .graphicsLayer { alpha = cardAlpha }
             .clip(SessionCardShape)
@@ -301,7 +303,6 @@ private fun ProgramSessionCard(
                     color = if (ui.done) WizardColors.textMuted else WizardColors.text,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = if (anchorFirst) Modifier.tourAnchor(TourAnchors.TRAINING_SESION) else Modifier,
                 )
                 // El fantasma de la sesión que se arrastra solo lleva el nombre (`.sess.ghost`).
                 if (!dragging) {
@@ -533,9 +534,9 @@ private fun DayDateColumn(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
-            text = if (today) "HOY" else day.short.uppercase(Locale("es")),
+            text = (if (today) "HOY" else day.short.uppercase(Locale("es"))) + if (day.isHighEnergyDay) " ⚡" else "",
             style = DayEyebrowStyle,
-            color = eyebrowColor,
+            color = if (day.isHighEnergyDay && !today) SymbolPalette.energia else eyebrowColor,
             maxLines = 1,
         )
         val number = day.dateNumber

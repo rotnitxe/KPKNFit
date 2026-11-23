@@ -59,6 +59,9 @@
               ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
               "performanceProfileId": "military_press__barbell__press_militar",
@@ -105,6 +108,9 @@
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "core"
                   ],
                   "primaryMuscles": [
                     "deltoid"
@@ -246,6 +252,9 @@
               ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
               "performanceProfileId": "military_press__dumbbells__press_militar",
@@ -292,6 +301,9 @@
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "core"
                   ],
                   "primaryMuscles": [
                     "deltoid"
@@ -433,6 +445,9 @@
               ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "core"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "vertical_push",
               "performanceProfileId": "military_press__smith_machine__press_militar",
@@ -479,6 +494,9 @@
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "core"
                   ],
                   "primaryMuscles": [
                     "deltoid"
@@ -620,6 +638,9 @@
               ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "core"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "vertical_push",
               "performanceProfileId": "military_press__machine__press_militar",
@@ -666,6 +687,9 @@
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "core"
                   ],
                   "primaryMuscles": [
                     "deltoid"
@@ -807,6 +831,9 @@
               ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "core"
+              ],
               "loadMode": "continuous_cable",
               "movementPatternId": "vertical_push",
               "performanceProfileId": "military_press__cable__press_militar",
@@ -853,6 +880,9 @@
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "core"
                   ],
                   "primaryMuscles": [
                     "deltoid"
@@ -994,6 +1024,9 @@
               ],
               "kineticChain": "ANTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "vertical_push",
               "performanceProfileId": "military_press__kettlebell__press_militar",
@@ -1040,6 +1073,9 @@
                       "jointId": "columna-lumbar",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "core"
                   ],
                   "primaryMuscles": [
                     "deltoid"

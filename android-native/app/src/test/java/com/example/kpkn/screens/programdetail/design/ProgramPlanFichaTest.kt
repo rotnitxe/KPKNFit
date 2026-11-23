@@ -157,7 +157,7 @@ class ProgramPlanFichaTest {
     fun theDescriptionIsTheCatalogSummaryOrTheFirstLineOfTheProgram() {
         assertEquals("Cinco días: dos de fuerza y tres de músculo.", ficha().detail.description)
         assertEquals(
-            "Primera línea",
+            "Primera línea\nSegunda",
             ficha(summary = summary(summaryText = null), description = "\n  Primera línea\nSegunda").detail.description,
         )
         assertEquals("", ficha(summary = summary(summaryText = null)).detail.description)

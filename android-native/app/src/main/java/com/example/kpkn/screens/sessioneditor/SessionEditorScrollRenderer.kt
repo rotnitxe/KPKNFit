@@ -6,6 +6,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.screens.sessioneditor.components.EdRemoval
 import com.example.kpkn.screens.sessioneditor.components.LocalEdRemoval
@@ -68,6 +69,16 @@ import com.example.kpkn.data.models.SupersetGroup
  * pinta su trozo del módulo con el borde que le da [SessionListItem] y no lleva color de grupo.
  */
 @Composable
+private fun rememberTagsForExercise(
+    viewModel: SessionEditorViewModel,
+): (Exercise) -> List<com.example.kpkn.data.models.WorkoutTag> {
+    val workoutTagsMap by viewModel.workoutTags.collectAsStateWithLifecycle()
+    return remember(workoutTagsMap, viewModel) {
+        { target -> viewModel.workoutTagsForExercise(target) }
+    }
+}
+
+@Composable
 internal fun SessionEditorListItem(
     listItem: SessionListItem,
     session: Session,
@@ -102,6 +113,10 @@ internal fun SessionEditorListItem(
 ) {
     val supersetGroupsById = remember(session.supersetGroups) {
         session.supersetGroups.associateBy { it.id }
+    }
+    val workoutTagsMap by viewModel.workoutTags.collectAsStateWithLifecycle()
+    val tagsForExercise: (Exercise) -> List<com.example.kpkn.data.models.WorkoutTag> = remember(workoutTagsMap) {
+        { target -> viewModel.workoutTagsForExercise(target) }
     }
     // El ejercicio cuyo borrado espera el «Deshacer» (ER1b): su fila se cambia por el aviso mientras tanto.
     val pendingRemovalId = uiState.pendingExerciseRemoval?.exerciseId
@@ -668,6 +683,7 @@ private fun LooseExerciseItem(
     val partId = "__loose__"
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
     val coverAccentHex = resolveCoverAccentId(session.background)
+    val tagsForExercise = rememberTagsForExercise(viewModel)
 
     key("loose|${exercise.id}") {
         ExerciseRowOrUndo(
@@ -703,8 +719,9 @@ private fun LooseExerciseItem(
                 onDragEnd = { endExerciseDrag() },
                 onDragCancel = { cancelExerciseDrag() },
                 onUpdateExercise = { updater -> viewModel.updateExercise(null, exercise.id, updater) },
-                tagOptions = viewModel.workoutTagsForExercise(exercise),
+                tagOptions = tagsForExercise(exercise),
                 onSaveTag = viewModel::saveWorkoutTag,
+                onDeleteTag = viewModel::deleteWorkoutTag,
                 onDeleteExercise = { viewModel.requestExerciseRemoval(null, exercise.id) },
                 onAddSet = { side -> viewModel.addSet(null, exercise.id, side) },
                 onUpdateSet = { setId, updater -> viewModel.updateSet(null, exercise.id, setId, updater) },
@@ -770,6 +787,7 @@ private fun PartExerciseItem(
     shiftYForBounds: Float = 0f,
     pendingRemovalId: String? = null,
 ) {
+    val tagsForExercise = rememberTagsForExercise(viewModel)
     key("${part.id}|${exercise.id}") {
         val accentHex = resolveExerciseAccentHex(session, part.color)
         val coverAccentHex = resolveCoverAccentId(session.background)
@@ -806,8 +824,9 @@ private fun PartExerciseItem(
                 onDragEnd = { endExerciseDrag() },
                 onDragCancel = { cancelExerciseDrag() },
                 onUpdateExercise = { updater -> viewModel.updateExercise(part.id, exercise.id, updater) },
-                tagOptions = viewModel.workoutTagsForExercise(exercise),
+                tagOptions = tagsForExercise(exercise),
                 onSaveTag = viewModel::saveWorkoutTag,
+                onDeleteTag = viewModel::deleteWorkoutTag,
                 onDeleteExercise = { viewModel.requestExerciseRemoval(part.id, exercise.id) },
                 onAddSet = { side -> viewModel.addSet(part.id, exercise.id, side) },
                 onUpdateSet = { setId, updater -> viewModel.updateSet(part.id, exercise.id, setId, updater) },
@@ -879,6 +898,7 @@ private fun LooseSupersetItem(
     val accentHex = resolveExerciseAccentHex(session, partColor = null)
     val coverAccentHex = resolveCoverAccentId(session.background)
     val firstMember = supersetMembers.first()
+    val tagsForExercise = rememberTagsForExercise(viewModel)
 
     SupersetGroupEditorCard(
         group = supersetGroup,
@@ -913,8 +933,9 @@ private fun LooseSupersetItem(
         relationshipAnchorName = { member ->
             resolveRelationshipAnchorName(session, member, programCandidatesList)
         },
-        availableTagsForExercise = viewModel::workoutTagsForExercise,
+        availableTagsForExercise = tagsForExercise,
         onSaveWorkoutTag = viewModel::saveWorkoutTag,
+        onDeleteWorkoutTag = viewModel::deleteWorkoutTag,
         onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(null, exerciseId) },
         onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(null, exerciseId, null) },
         onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, null, exerciseId) },
@@ -975,8 +996,9 @@ private fun LooseSupersetItem(
                         onDragEnd = { endExerciseDrag() },
                         onDragCancel = { cancelExerciseDrag() },
                         onUpdateExercise = { updater -> viewModel.updateExercise(null, member.id, updater) },
-                        tagOptions = viewModel.workoutTagsForExercise(member),
+                        tagOptions = tagsForExercise(member),
                         onSaveTag = viewModel::saveWorkoutTag,
+                        onDeleteTag = viewModel::deleteWorkoutTag,
                         // Deslizar un miembro lo saca de la superserie (como antes), con «Deshacer».
                         onDeleteExercise = {
                             viewModel.requestExerciseRemoval(null, member.id, supersetGroupId = supersetGroup.id)
@@ -1048,6 +1070,7 @@ private fun PartSupersetItem(
     val accentHex = resolveExerciseAccentHex(session, part.color)
     val coverAccentHex = resolveCoverAccentId(session.background)
     val firstMember = supersetMembers.first()
+    val tagsForExercise = rememberTagsForExercise(viewModel)
 
     SupersetGroupEditorCard(
         group = supersetGroup,
@@ -1082,8 +1105,9 @@ private fun PartSupersetItem(
         relationshipAnchorName = { member ->
             resolveRelationshipAnchorName(session, member, programCandidatesList)
         },
-        availableTagsForExercise = viewModel::workoutTagsForExercise,
+        availableTagsForExercise = tagsForExercise,
         onSaveWorkoutTag = viewModel::saveWorkoutTag,
+        onDeleteWorkoutTag = viewModel::deleteWorkoutTag,
         onOpenRelationshipPicker = { exerciseId -> viewModel.openRelationshipPicker(part.id, exerciseId) },
         onClearRelationship = { exerciseId -> viewModel.linkExerciseRelativeTo(part.id, exerciseId, null) },
         onRemoveFromSuperset = { groupId, exerciseId -> viewModel.removeExerciseFromSupersetGroup(groupId, part.id, exerciseId) },
@@ -1144,8 +1168,9 @@ private fun PartSupersetItem(
                         onDragEnd = { endExerciseDrag() },
                         onDragCancel = { cancelExerciseDrag() },
                         onUpdateExercise = { updater -> viewModel.updateExercise(part.id, member.id, updater) },
-                        tagOptions = viewModel.workoutTagsForExercise(member),
+                        tagOptions = tagsForExercise(member),
                         onSaveTag = viewModel::saveWorkoutTag,
+                        onDeleteTag = viewModel::deleteWorkoutTag,
                         onDeleteExercise = {
                             viewModel.requestExerciseRemoval(part.id, member.id, supersetGroupId = supersetGroup.id)
                         },

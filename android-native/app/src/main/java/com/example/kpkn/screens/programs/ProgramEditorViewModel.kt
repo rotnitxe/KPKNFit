@@ -231,6 +231,7 @@ class ProgramEditorViewModel(
                 }
                 edited
             } else {
+                val settings = repository.settings.value
                 val program = buildNewProgram(
                     id = targetId,
                     name = name,
@@ -238,7 +239,11 @@ class ProgramEditorViewModel(
                     coverImage = snapshot.coverImage,
                     mode = snapshot.mode,
                     programEndMode = snapshot.programEndMode,
-                )
+                ).let { created ->
+                    created.copy(
+                        highEnergyDay = created.highEnergyDay ?: settings.defaultHighEnergyDay,
+                    )
+                }
                 // persistProgram puede lanzar (no solo devolver Result): un throw
                 // sin capturar dejaría el spinner clavado y el estado sin resolver.
                 try {

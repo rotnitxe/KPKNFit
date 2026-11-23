@@ -69,6 +69,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "romanian_deadlift",
               "performanceProfileId": "hams_peso_muerto_rumano_deficit__barbell__peso_muerto_rumano_en_deficit",
@@ -126,6 +130,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",

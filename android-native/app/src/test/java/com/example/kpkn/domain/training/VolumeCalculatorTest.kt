@@ -571,8 +571,9 @@ class VolumeCalculatorTest {
     }
 
     @Test
-    fun normalizeCanonical_tibial_anterior_stays_separate_from_calf_plantar_flexors() {
-        assertEquals("Tibial Anterior", VolumeCalculator.normalizeCanonicalMuscleGroup("Tibial Anterior"))
+    fun normalizeCanonical_tibial_anterior_maps_to_pantorrillas() {
+        assertEquals("Pantorrillas", VolumeCalculator.normalizeCanonicalMuscleGroup("Tibial Anterior"))
+        assertEquals("Pantorrillas", VolumeCalculator.normalizeCanonicalMuscleGroup("tibial"))
         assertEquals("Pantorrillas", VolumeCalculator.normalizeCanonicalMuscleGroup("Gastrocnemio"))
     }
 
@@ -720,5 +721,118 @@ class VolumeCalculatorTest {
         val delts = result["Deltoides"]
         assertEquals(3.0, pecs!!, 0.01)
         assertEquals(1.5, delts!!, 0.01)
+    }
+
+    @Test
+    fun roleSeparatedVolume_deduplicates_single_canonical_winner_for_glutes() {
+        val db = listOf(
+            ExerciseMuscleInfo(
+                id = "glute_combo",
+                name = "Combo Glúteos",
+                involvedMuscles = listOf(
+                    InvolvedMuscle("Glúteo Mayor", MuscleRole.PRIMARY, 1.0),
+                    InvolvedMuscle("Glúteo Medio", MuscleRole.STABILIZER, 0.4),
+                ),
+            ),
+        )
+        val session = makeSession("s1", listOf(makeExercise("glute_combo", List(4) { makeSet() })))
+        val glutes = VolumeCalculator.calculateRoleSeparatedMuscleVolume(listOf(session), db).getValue("Glúteos")
+        assertEquals(4.0, glutes.directSets, 0.01)
+        assertEquals(0.0, glutes.secondarySets, 0.01)
+        assertEquals(0.0, glutes.stabilizerSets, 0.01)
+        assertEquals(4.0, glutes.totalSets, 0.01)
+    }
+
+    @Test
+    fun calculateVolume_defaults_to_secondary_and_separates_limiting_from_postural_stabilizers() {
+        val db = listOf(
+            ExerciseMuscleInfo(
+                id = "rdl_test",
+                name = "RDL",
+                involvedMuscles = listOf(
+                    InvolvedMuscle("Isquiosurales", MuscleRole.PRIMARY, 1.0),
+                    InvolvedMuscle("Erectores Espinales", MuscleRole.STABILIZER, LIMITING_STABILIZER_CONTRIBUTION),
+                    InvolvedMuscle("Core", MuscleRole.STABILIZER, null),
+                    InvolvedMuscle("Dorsales", MuscleRole.NEUTRALIZER, null),
+                ),
+            ),
+        )
+        val session = makeSession("s1", listOf(makeExercise("rdl_test", List(4) { makeSet() })))
+
+        val defaultVolume = VolumeCalculator.calculateVolume(listOf(session), db.associateBy { it.id })
+        assertEquals(4.0, defaultVolume.muscles.getValue("Isquiosurales").sets, 0.01)
+        assertEquals(1.2, defaultVolume.muscles.getValue("Erectores Espinales").sets, 0.01)
+        assertNull(defaultVolume.muscles["Core"])
+        assertNull(defaultVolume.muscles["Dorsales"])
+
+        val diagnosticVolume = VolumeCalculator.calculateVolume(
+            listOf(session),
+            db.associateBy { it.id },
+            mode = VolumeCountingMode.STABILIZER,
+        )
+        assertEquals(1.2, diagnosticVolume.muscles.getValue("Erectores Espinales").sets, 0.01)
+        assertEquals(0.4, diagnosticVolume.muscles.getValue("Core").sets, 0.01)
+        assertNull(diagnosticVolume.muscles["Dorsales"])
+    }
+
+    @Test
+    fun calculateVolume_excludes_isEmptySlot_sets() {
+        val session = makeSession(
+            "s1",
+            listOf(
+                makeExercise(
+                    "bench",
+                    listOf(
+                        makeSet(),
+                        makeSet(),
+                        ExerciseSet(id = "slot", isEmptySlot = true, targetReps = 10, weight = 60.0),
+                    ),
+                ),
+            ),
+        )
+        val pecs = VolumeCalculator.calculateVolume(
+            listOf(session),
+            exerciseDb.associateBy { it.id },
+        ).muscles.getValue("Pectorales")
+        assertEquals(2.0, pecs.sets, 0.01)
+    }
+
+    @Test
+    fun calculateCompletedWeeklyMuscleVolume_collapses_unilateral_lr_and_excludes_cardio() {
+        val log = WorkoutLog(
+            id = "log1",
+            programId = "p1",
+            sessionId = "s1",
+            sessionName = "Pierna",
+            date = "2026-03-01T10:00:00.000Z",
+            durationMinutes = 45,
+            completedExercises = listOf(
+                CompletedExercise(
+                    exerciseId = "sq1",
+                    exerciseName = "Sentadilla Búlgara",
+                    exerciseDbId = "squat",
+                    sets = listOf(
+                        CompletedSet("l1", weight = 20.0, reps = 10, setIndex = 0, side = "left"),
+                        CompletedSet("r1", weight = 20.0, reps = 10, setIndex = 0, side = "right"),
+                        CompletedSet("l2", weight = 20.0, reps = 10, setIndex = 1, side = "left"),
+                        CompletedSet("r2", weight = 20.0, reps = 10, setIndex = 1, side = "right"),
+                    ),
+                ),
+                CompletedExercise(
+                    exerciseId = "run",
+                    exerciseName = "Trote",
+                    exerciseDbId = "squat",
+                    cardioDetails = CardioDetails(
+                        type = CardioType.RUN_OUTDOOR,
+                        targetDistanceKm = 5.0,
+                        targetDurationSeconds = 1800,
+                    ),
+                    sets = listOf(CompletedSet("c1", reps = 1)),
+                ),
+            ),
+        )
+        val weekly = VolumeCalculator.calculateCompletedWeeklyMuscleVolume(listOf(log), exerciseDb)
+        val quads = weekly.single { it.muscleName == "Cuádriceps" }
+        assertEquals(2.0, quads.weeklySets, 0.01)
     }
 }

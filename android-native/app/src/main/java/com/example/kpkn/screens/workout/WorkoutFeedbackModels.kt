@@ -48,6 +48,7 @@ data class SetAdvancedFeedback(
     val timerElapsedSeconds: Int? = null,
     val timerTargetSeconds: Int? = null,
     val rom: Int? = null,
+    val recordedRomTarget: com.example.kpkn.data.models.PlannedRomTarget? = null,
     val assistedReps: Int? = null,
     val notes: String? = null,
     val techniqueStatus: com.example.kpkn.data.models.RecordedTechniqueStatus? = null,
@@ -286,6 +287,7 @@ fun applyAdvancedFeedback(
         actualIntensityMode = advanced.actualIntensityMode ?: base.actualIntensityMode,
         actualIntensityValue = advanced.actualIntensityValue ?: base.actualIntensityValue,
         rom = advanced.rom,
+        recordedRomTarget = advanced.recordedRomTarget ?: base.recordedRomTarget,
         assistedReps = advanced.assistedReps,
         notes = advanced.notes ?: base.notes,
     )

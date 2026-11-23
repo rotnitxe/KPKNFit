@@ -37,6 +37,10 @@ def normalize_muscle_group(specific_muscle: str) -> str:
     if "deltoides" in low or "hombro" in low:
         return "Deltoides"
 
+    # Pectoral must be checked before generic "alta"/"baja" checks (e.g. "Pectoral porción alta").
+    if "pectoral" in low or "pecho" in low:
+        return "Pectorales"
+
     # Espalda
     if "romboide" in low:
         return "Romboides"
@@ -64,12 +68,14 @@ def normalize_muscle_group(specific_muscle: str) -> str:
         return "Cuádriceps"
     if "glúteo" in low or "gluteo" in low or "tensor fascia" in low or "tensor de la fascia" in low:
         return "Glúteos"
-    if any(k in low for k in ("gemelo", "sóleo", "soleo", "pantorrilla")):
+    if any(k in low for k in ("aductor", "adductor", "pectíneo", "pectineo")):
+        return "Aductores"
+    if any(k in low for k in ("gemelo", "sóleo", "soleo", "pantorrilla", "tibial anterior")) or low == "tibial":
         return "Pantorrillas"
 
-    # Core / Otros
-    if "pectoral" in low or "pecho" in low:
-        return "Pectorales"
+    # Cuello / Core / Otros
+    if "cuello" in low or "cervical" in low:
+        return "Cuello"
     if "core" in low or "transverso" in low or "serrato" in low:
         return "Core"
     if any(k in low for k in ("abdominal", "abdomen", "oblicuo")):
@@ -106,22 +112,25 @@ def calculate_unified_muscle_volume(
     for session in sessions:
         if not session:
             continue
-        all_exercises = (
-            [e for p in session.parts for e in p.exercises]
-            if session.parts
-            else session.exercises
-        )
+        all_exercises = list(session.exercises) + [e for p in session.parts for e in p.exercises]
         for exercise in all_exercises:
             if not exercise or not exercise.sets:
                 continue
-            valid_count = sum(
-                1 for s in exercise.sets
-                if s and (
-                    (s.reps and s.reps > 0)
-                    or (s.weight and s.weight > 0)
-                    or s.targetReps
+            active_sets = [
+                s for s in exercise.sets
+                if s and not getattr(s, "isIneffective", False) and not getattr(s, "isEmptySlot", False)
+            ]
+            if not active_sets:
+                continue
+            counted_sets = [
+                s for s in active_sets
+                if (
+                    (s.completedReps > 0)
+                    if s.completedReps is not None
+                    else ((s.reps and s.reps > 0) or (s.weight and s.weight > 0) or s.targetReps)
                 )
-            )
+            ]
+            valid_count = len(counted_sets) if counted_sets else len(active_sets)
             if valid_count == 0:
                 continue
 
@@ -137,8 +146,16 @@ def calculate_unified_muscle_volume(
                 if not m or not m.muscle:
                     continue
                 name = normalize_muscle_group(m.muscle)
-                mult = MUSCLE_ROLE_MULTIPLIERS.get(m.role.value if hasattr(m.role, 'value') else m.role, 0.0)
-                if mult > unique.get(name, 0):
+                explicit = getattr(m, "volumeContribution", None)
+                if explicit is None:
+                    explicit = getattr(m, "activation", None)
+                role_key = m.role.value if hasattr(m.role, "value") else m.role
+                mult = (
+                    max(0.0, min(1.0, float(explicit)))
+                    if explicit is not None
+                    else MUSCLE_ROLE_MULTIPLIERS.get(role_key, 0.0)
+                )
+                if mult > unique.get(name, 0.0):
                     unique[name] = mult
 
             for name, mult in unique.items():

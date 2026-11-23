@@ -14,6 +14,7 @@ import androidx.compose.ui.test.hasText
 import androidx.compose.ui.test.junit4.StateRestorationTester
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
+import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -114,7 +115,6 @@ class CatalogAuditStateTest {
         val variant = exerciseCatalogVariantTagLabel("dumbbells", "bench_press")
         rule.onNodeWithText("Press").performClick()
         rule.onNodeWithText(variant).performClick()
-        rule.onNodeWithContentDescription("Añadir Press a la selección").performClick()
         rule.onNodeWithTag(CatalogReplaceButtonTag).assertIsEnabled()
         restoration.emulateSavedInstanceStateRestore()
         rule.waitUntil(15_000) { rule.onAllNodesWithText("Press").fetchSemanticsNodes().isNotEmpty() }
@@ -134,10 +134,9 @@ class CatalogAuditStateTest {
         mount(false, fillerCount = 25)
         rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasText("Press"))
         val variant = exerciseCatalogVariantTagLabel("barbell", "bench_press")
-        rule.onNodeWithText("Press").performClick()
+        rule.onAllNodesWithText("Press").onFirst().performClick()
         rule.onNodeWithText(variant).performClick()
-        rule.onNodeWithText("Press").performClick()
-        rule.onNodeWithContentDescription("Añadir Press a la selección").performClick()
+        rule.onAllNodesWithText("Press").onFirst().performClick()
         rule.onNode(hasScrollToIndexAction()).performScrollToIndex(0)
         tapTheChosenName()
         rule.onNodeWithContentDescription("Quitar Press de la selección").assertIsDisplayed()

@@ -110,7 +110,7 @@ internal fun shouldShowPlannedIntensity(
         val modes = setOf(IntensityMode.RPE, IntensityMode.RIR, IntensityMode.FAILURE)
         return if (isUnilateral) activeSideTarget?.let {
             it.intensityMode in modes || it.targetRPE != null || it.targetRIR != null
-        } == true else set.intensityMode in modes || set.targetRPE != null || set.targetRIR != null || set.isFailure
+        } == true else set.intensityMode in modes || set.targetRPE != null || set.targetRIR != null || set.isFailure || set.purpose.isAmrap
     }
     if (isUnilateral) {
         return activeSideTarget?.let { target ->
@@ -292,7 +292,8 @@ internal fun InlineSetRow(
             }
         }
     }
-    val intensityValue = when (set.intensityMode ?: IntensityMode.RPE) {
+    val effectiveIntensityMode = (if (isUnilateral) activeSideTarget?.intensityMode else null) ?: set.intensityMode
+    val intensityValue = when (effectiveIntensityMode ?: IntensityMode.RPE) {
         IntensityMode.RPE -> formatEditableNumber(uniOrSetDbl({ it.targetRPE }, { it?.targetRPE }))
         IntensityMode.RIR -> (uniOrSetInt({ it.targetRIR }, { it?.targetRIR })?.toString()).orEmpty()
         IntensityMode.FAILURE -> ""
@@ -301,15 +302,36 @@ internal fun InlineSetRow(
         IntensityMode.LOAD -> formatEditableNumber(uniOrSetDbl({ it.weight }, { it?.weight }))
     }
 
-    fun updateUniSet(updater: (UnilateralTarget) -> UnilateralTarget): ((ExerciseSet) -> ExerciseSet) {
+    fun updateUniSet(
+        clearAutoWeight: Boolean = true,
+        updater: (UnilateralTarget) -> UnilateralTarget,
+    ): ((ExerciseSet) -> ExerciseSet) {
         val side = activeUniSide
         return { current ->
             val currentSide = (if (side == "L") current.leftTarget else current.rightTarget) ?: UnilateralTarget()
-            val updated = updater(currentSide)
+            val rawUpdated = updater(currentSide)
+            val hasSmartRef = (reference1RM != null && reference1RM > 0.0) || (trainingMax != null && trainingMax > 0.0)
+            val updated = if (clearAutoWeight && hasSmartRef && trainingMode != TrainingMode.RM) {
+                rawUpdated.copy(weight = null)
+            } else {
+                rawUpdated
+            }
             if (unilateralIntensityMode == UnilateralIntensityMode.SHARED) {
                 val mirrored = updated.copy()
-                if (side == "L") current.copy(leftTarget = updated, rightTarget = mirrored)
-                else current.copy(rightTarget = updated, leftTarget = mirrored)
+                val isFailure = (updated.intensityMode ?: current.intensityMode) == IntensityMode.FAILURE
+                current.copy(
+                    leftTarget = if (side == "L") updated else if (current.leftTarget != null) mirrored else null,
+                    rightTarget = if (side == "R") updated else if (current.rightTarget != null) mirrored else null,
+                    weight = if (clearAutoWeight && hasSmartRef && trainingMode != TrainingMode.RM) null else current.weight,
+                    targetReps = updated.targetReps,
+                    targetRepsRange = updated.targetRepsRange,
+                    targetDuration = updated.targetDuration ?: current.targetDuration,
+                    plannedTargetV2 = updated.targetValue ?: current.plannedTargetV2,
+                    intensityMode = updated.intensityMode ?: current.intensityMode,
+                    targetRPE = if (isFailure) null else updated.targetRPE,
+                    targetRIR = if (isFailure) null else updated.targetRIR,
+                    isFailure = isFailure,
+                )
             } else {
                 if (side == "L") current.copy(leftTarget = updated)
                 else current.copy(rightTarget = updated)
@@ -324,7 +346,7 @@ internal fun InlineSetRow(
         val rir = input.safeIntOrNull()
         commitEditedField(if (isUnilateral) updateUniSet { it.copy(targetRIR = rir) } else { current -> current.copy(targetRIR = rir) })
     }
-    val intensityLabel = when (set.intensityMode ?: IntensityMode.RPE) {
+    val intensityLabel = when (effectiveIntensityMode ?: IntensityMode.RPE) {
         IntensityMode.RPE -> "RPE"
         IntensityMode.RIR -> "RIR"
         IntensityMode.FAILURE -> "Fallo"
@@ -332,7 +354,7 @@ internal fun InlineSetRow(
         IntensityMode.AMRAP -> "AMRAP"
         IntensityMode.LOAD -> "Carga"
     }
-    val intensityValueLabel = when (set.intensityMode ?: IntensityMode.RPE) {
+    val intensityValueLabel = when (effectiveIntensityMode ?: IntensityMode.RPE) {
         IntensityMode.RPE -> "RPE"
         IntensityMode.RIR -> "RIR"
         IntensityMode.FAILURE -> "Fallo"
@@ -415,18 +437,19 @@ internal fun InlineSetRow(
         )
     }
     val onIntensityValueCommit: (String) -> Unit = { input ->
+        val mode = effectiveIntensityMode ?: IntensityMode.RPE
         commitEditedField(
-            if (isUnilateral) updateUniSet {
-                when (set.intensityMode ?: IntensityMode.RPE) {
-                    IntensityMode.RPE -> it.copy(targetRPE = input.safeDoubleOrNull(), intensityMode = IntensityMode.RPE)
-                    IntensityMode.RIR -> it.copy(targetRIR = input.safeIntOrNull(), intensityMode = IntensityMode.RIR)
+            if (isUnilateral) updateUniSet(clearAutoWeight = mode != IntensityMode.LOAD) {
+                when (mode) {
+                    IntensityMode.RPE -> it.copy(targetRPE = input.safeDoubleOrNull(), targetRIR = null, intensityMode = IntensityMode.RPE)
+                    IntensityMode.RIR -> it.copy(targetRIR = input.safeIntOrNull(), targetRPE = null, intensityMode = IntensityMode.RIR)
                     IntensityMode.LOAD -> it.copy(weight = input.safeDoubleOrNull())
                     else -> it
                 }
             } else { current ->
                 when (current.intensityMode ?: IntensityMode.RPE) {
-                    IntensityMode.RPE -> current.copy(targetRPE = input.safeDoubleOrNull(), intensityMode = IntensityMode.RPE)
-                    IntensityMode.RIR -> current.copy(targetRIR = input.safeIntOrNull(), intensityMode = IntensityMode.RIR)
+                    IntensityMode.RPE -> current.copy(targetRPE = input.safeDoubleOrNull(), targetRIR = null, intensityMode = IntensityMode.RPE)
+                    IntensityMode.RIR -> current.copy(targetRIR = input.safeIntOrNull(), targetRPE = null, intensityMode = IntensityMode.RIR)
                     IntensityMode.LOAD -> current.copy(weight = input.safeDoubleOrNull(), intensityMode = IntensityMode.LOAD)
                     else -> current
                 }
@@ -440,22 +463,73 @@ internal fun InlineSetRow(
             if (mode == IntensityMode.FAILURE) updated else updated.withoutBeyondFailureTechniques()
         }
         val updater: (ExerciseSet) -> ExerciseSet = {
+            val nextPurpose = if (it.purpose.isAmrap) it.purpose else SetPurpose.NONE
+            val nextMin = if (it.purpose.isAmrap) it.amrapMinimumReps else null
+            val nextScope = if (it.purpose.isAmrap) it.calibrationScope else null
             when (mode) {
-                IntensityMode.RPE -> it.copy(intensityMode = IntensityMode.RPE, isFailure = false, purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null, targetRPE = it.targetRPE ?: 8.0, targetRIR = null, targetPercentageRM = null)
-                IntensityMode.RIR -> it.copy(intensityMode = IntensityMode.RIR, isFailure = false, purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null, targetRIR = it.targetRIR ?: 2, targetRPE = null, targetPercentageRM = null)
-                IntensityMode.FAILURE -> it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null, targetRIR = null, targetRPE = null, targetPercentageRM = null)
+                IntensityMode.RPE -> it.copy(intensityMode = IntensityMode.RPE, isFailure = false, purpose = nextPurpose, amrapMinimumReps = nextMin, calibrationScope = nextScope, targetRPE = it.targetRPE ?: 8.0, targetRIR = null, targetPercentageRM = null)
+                IntensityMode.RIR -> it.copy(intensityMode = IntensityMode.RIR, isFailure = false, purpose = nextPurpose, amrapMinimumReps = nextMin, calibrationScope = nextScope, targetRIR = it.targetRIR ?: 2, targetRPE = null, targetPercentageRM = null)
+                IntensityMode.FAILURE -> it.copy(intensityMode = IntensityMode.FAILURE, isFailure = true, purpose = nextPurpose, amrapMinimumReps = nextMin, calibrationScope = nextScope, targetRIR = null, targetRPE = null, targetPercentageRM = null)
                 else -> it
             }
         }
         if (isUnilateral) {
             val side = activeUniSide
+            val hasSmartRef = (reference1RM != null && reference1RM > 0.0) || (trainingMax != null && trainingMax > 0.0)
+            val isShared = unilateralIntensityMode == UnilateralIntensityMode.SHARED
             commitMode { current ->
                 val currentSide = (if (side == "L") current.leftTarget else current.rightTarget) ?: UnilateralTarget()
-                val temp = ExerciseSet(id = "", targetRPE = currentSide.targetRPE, targetRIR = currentSide.targetRIR, intensityMode = currentSide.intensityMode ?: current.intensityMode, weight = currentSide.weight, targetPercentageRM = current.targetPercentageRM)
+                val temp = ExerciseSet(
+                    id = "",
+                    targetRPE = currentSide.targetRPE,
+                    targetRIR = currentSide.targetRIR,
+                    intensityMode = currentSide.intensityMode ?: current.intensityMode,
+                    weight = if (hasSmartRef && trainingMode != TrainingMode.RM) null else currentSide.weight,
+                    targetPercentageRM = current.targetPercentageRM,
+                    purpose = current.purpose,
+                    amrapMinimumReps = current.amrapMinimumReps,
+                    calibrationScope = current.calibrationScope,
+                )
                 val updated = updater(temp)
-                val newSide = currentSide.copy(targetRPE = updated.targetRPE, targetRIR = updated.targetRIR, intensityMode = updated.intensityMode, weight = updated.weight)
-                if (side == "L") current.copy(leftTarget = newSide, isFailure = updated.isFailure, purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
-                else current.copy(rightTarget = newSide, isFailure = updated.isFailure, purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null, intensityMode = updated.intensityMode, targetPercentageRM = updated.targetPercentageRM)
+                val newSide = currentSide.copy(
+                    targetRPE = updated.targetRPE,
+                    targetRIR = updated.targetRIR,
+                    intensityMode = updated.intensityMode,
+                    weight = updated.weight,
+                )
+                val nextLeft = when {
+                    side == "L" -> newSide
+                    isShared && current.leftTarget != null -> current.leftTarget.copy(
+                        targetRPE = updated.targetRPE,
+                        targetRIR = updated.targetRIR,
+                        intensityMode = updated.intensityMode,
+                        weight = if (hasSmartRef && trainingMode != TrainingMode.RM) null else current.leftTarget.weight,
+                    )
+                    else -> current.leftTarget
+                }
+                val nextRight = when {
+                    side == "R" -> newSide
+                    isShared && current.rightTarget != null -> current.rightTarget.copy(
+                        targetRPE = updated.targetRPE,
+                        targetRIR = updated.targetRIR,
+                        intensityMode = updated.intensityMode,
+                        weight = if (hasSmartRef && trainingMode != TrainingMode.RM) null else current.rightTarget.weight,
+                    )
+                    else -> current.rightTarget
+                }
+                current.copy(
+                    leftTarget = nextLeft,
+                    rightTarget = nextRight,
+                    weight = if (isShared && hasSmartRef && trainingMode != TrainingMode.RM) null else current.weight,
+                    isFailure = updated.isFailure,
+                    purpose = updated.purpose,
+                    amrapMinimumReps = updated.amrapMinimumReps,
+                    calibrationScope = updated.calibrationScope,
+                    intensityMode = updated.intensityMode,
+                    targetRPE = if (isShared) updated.targetRPE else current.targetRPE,
+                    targetRIR = if (isShared) updated.targetRIR else current.targetRIR,
+                    targetPercentageRM = updated.targetPercentageRM,
+                )
             }
         } else {
             commitMode(updater)
@@ -513,7 +587,8 @@ internal fun InlineSetRow(
                     onCommit = onMetricCommit,
                 )
             }
-            if (!isAmrapMode && !isRmMode && !isSoloRpeMode) {
+            val showAmrapBadgeOnly = isAmrapMode && !showPlannedIntensity && set.intensityMode !in setOf(IntensityMode.RPE, IntensityMode.RIR, IntensityMode.FAILURE)
+            if (!isRmMode && !isSoloRpeMode && !showAmrapBadgeOnly) {
                 if (!showPlannedIntensity) {
                     // Botón "Intensidad" con el mismo componente y tamaño que el input de reps.
                     Box(modifier = Modifier.weight(1f)) {
@@ -544,15 +619,7 @@ internal fun InlineSetRow(
                                 .matchParentSize()
                                 .clickable {
                                     showPlannedIntensity = true
-                                    commitEditedField { current ->
-                                        current.copy(
-                                            intensityMode = IntensityMode.RPE,
-                                            targetRPE = current.targetRPE ?: 8.0,
-                                            targetRIR = null,
-                                            isFailure = false,
-                                            purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
-                                        )
-                                    }
+                                    applyIntensityMode(IntensityMode.RPE)
                                 },
                         )
                     }
@@ -611,13 +678,13 @@ internal fun InlineSetRow(
                             }
                         }
                         // En "Fallo" no hay valor que ingresar: solo queda el modo puesto.
-                        if ((set.intensityMode ?: IntensityMode.RPE) != IntensityMode.FAILURE) {
+                        if ((effectiveIntensityMode ?: IntensityMode.RPE) != IntensityMode.FAILURE) {
                             AccentSetValueField(
                                 label = intensityValueLabel,
                                 value = intensityValue,
                                 accentColor = accentColor,
                                 stateKey = "intensity-${set.id}-${setStateKeySuffix}",
-                                keyboardType = if ((set.intensityMode ?: IntensityMode.RPE) == IntensityMode.RPE) KeyboardType.Decimal else KeyboardType.Number,
+                                keyboardType = if ((effectiveIntensityMode ?: IntensityMode.RPE) == IntensityMode.RPE) KeyboardType.Decimal else KeyboardType.Number,
                                 modifier = Modifier.weight(1f),
                                 onCommit = onIntensityValueCommit,
                             )
@@ -720,16 +787,19 @@ internal fun InlineSetRow(
         val plannedReps = uniOrSetInt({ it.targetReps }, { it?.targetReps })
         var rangeMode by remember(set.id, activeUniSide) { mutableStateOf(repRange != null && repRange.min != repRange.max) }
         LaunchedEffect(repRange?.min, repRange?.max) {
-            if (repRange != null && repRange.min != repRange.max) rangeMode = true
+            rangeMode = repRange != null && repRange.min != repRange.max
         }
         val baseReps = plannedReps ?: repRange?.max ?: 8
         val rMin = repRange?.min ?: (baseReps - 2).coerceAtLeast(1)
         val rMax = repRange?.max ?: baseReps
-        fun commitRange(min: Int, max: Int) = commitEditedField(
-            if (isUnilateral) updateUniSet { it.copy(targetReps = max, targetRepsRange = RepRange(min, max)) }
-            else { current -> current.copy(targetReps = max, targetRepsRange = RepRange(min, max)) },
-        )
-        val intensityUnit = set.intensityMode ?: IntensityMode.RPE
+        fun commitRange(min: Int, max: Int) {
+            val normalizedRange = RepRange(min, max).takeIf { min != max }
+            commitEditedField(
+                if (isUnilateral) updateUniSet { it.copy(targetReps = max, targetRepsRange = normalizedRange) }
+                else { current -> current.copy(targetReps = max, targetRepsRange = normalizedRange) },
+            )
+        }
+        val intensityUnit = effectiveIntensityMode ?: IntensityMode.RPE
         val intensityNumber: Double? = when (intensityUnit) {
             IntensityMode.RPE -> uniOrSetDbl({ it.targetRPE }, { it?.targetRPE })
             IntensityMode.RIR -> uniOrSetInt({ it.targetRIR }, { it?.targetRIR })?.toDouble()
@@ -768,6 +838,7 @@ internal fun InlineSetRow(
                     reps = plannedReps ?: repRange?.max,
                     rangeMin = rMin,
                     rangeMax = rMax,
+                    stateKey = "reps-${set.id}-$setStateKeySuffix",
                     onRangeModeChange = { toRange ->
                         rangeMode = toRange
                         if (toRange) commitRange((baseReps - 2).coerceAtLeast(1), baseReps) else onMetricCommit(rMax.toString())
@@ -780,23 +851,16 @@ internal fun InlineSetRow(
                     onCommitMax = { input -> input.safeIntOrNull()?.let { commitRange(rMin, it.coerceIn(rMin, 100)) } },
                 )
             }
-            if (!isSoloRpeMode && !isAmrapMode && !isRmMode) {
+            if (!isSoloRpeMode && !isRmMode) {
                 EdIntensitySection(
                     unit = if (showPlannedIntensity) intensityUnit else null,
                     valueText = intensityNumber?.let(::edNumber).orEmpty(),
                     canDecrement = intensityNumber == null || intensityNumber > (if (intensityIsRpe) 1.0 else 0.0),
                     canIncrement = intensityNumber == null || intensityNumber < (if (intensityIsRpe) 10.0 else 5.0),
+                    stateKey = "intensity-${set.id}-$setStateKeySuffix-$intensityUnit",
                     onAdd = {
                         showPlannedIntensity = true
-                        commitEditedField { current ->
-                            current.copy(
-                                intensityMode = IntensityMode.RPE,
-                                targetRPE = current.targetRPE ?: 8.0,
-                                targetRIR = null,
-                                isFailure = false,
-                                purpose = SetPurpose.NONE, amrapMinimumReps = null, calibrationScope = null,
-                            )
-                        }
+                        applyIntensityMode(IntensityMode.RPE)
                     },
                     onPickUnit = { mode -> applyIntensityMode(mode) },
                     onStep = { direction ->

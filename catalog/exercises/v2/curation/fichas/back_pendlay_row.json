@@ -87,7 +87,7 @@
           },
           {
             "id": "trapezius",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "lehman2004",
               "statpearls_extrinsic_back"
@@ -166,6 +166,20 @@
           }
         ],
         "overrides": {
+          "pendlay_row__barbell": {
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "limiting": true,
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009",
+                  "saeterbakken2015"
+                ],
+                "why": "Sujetan la espalda paralela al suelo, la inclinación en la que el peso del torso y de la carga hace más fuerza sobre la columna. En un remo de pie con barra sin parada los erectores lumbares rondaron el 43 % de su máximo (Fenwick et al.), y remar con peso libre y con los dos brazos los activó más que hacerlo en máquina o con uno (Saeterbakken et al.). La carga se posa un instante entre repeticiones, pero el torso sigue horizontal: no mueven la columna y cuentan como estabilizador."
+              }
+            ]
+          },
           "pendlay_row__cable": {
             "joints": [
               {
@@ -220,6 +234,18 @@
                 ],
                 "why": "Cada muñeca sostiene su mancuerna en neutro y la vuelve a posar en el suelo sin girarla."
               }
+            ],
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "limiting": true,
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009",
+                  "saeterbakken2015"
+                ],
+                "why": "Sujetan la espalda paralela al suelo, la inclinación en la que el peso del torso y de la carga hace más fuerza sobre la columna. En un remo de pie con barra sin parada los erectores lumbares rondaron el 43 % de su máximo (Fenwick et al.), y remar con peso libre y con los dos brazos los activó más que hacerlo en máquina o con uno (Saeterbakken et al.). La carga se posa un instante entre repeticiones, pero el torso sigue horizontal: no mueven la columna y cuentan como estabilizador."
+              }
             ]
           },
           "pendlay_row__kettlebell": {
@@ -246,6 +272,18 @@
                   "statpearls_forearm_compartments"
                 ],
                 "why": "En el arranque la bola tira del asa hacia abajo y la hace girar dentro del puño; la muñeca, en neutro, se queda recta para que la kettlebell no cabecee."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "limiting": true,
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009",
+                  "saeterbakken2015"
+                ],
+                "why": "Sujetan la espalda paralela al suelo, la inclinación en la que el peso del torso y de la carga hace más fuerza sobre la columna. En un remo de pie con barra sin parada los erectores lumbares rondaron el 43 % de su máximo (Fenwick et al.), y remar con peso libre y con los dos brazos los activó más que hacerlo en máquina o con uno (Saeterbakken et al.). La carga se posa un instante entre repeticiones, pero el torso sigue horizontal: no mueven la columna y cuentan como estabilizador."
               }
             ]
           },

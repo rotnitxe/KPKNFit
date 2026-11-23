@@ -62,6 +62,7 @@ internal fun HomeMuscleChips(
     muscles: List<HomeSessionMuscle>,
     onOpen: () -> Unit,
     modifier: Modifier = Modifier,
+    firstChipModifier: Modifier = Modifier,
 ) {
     if (muscles.isEmpty()) return
     val shown = remember(muscles) { homeMuscleOrder(muscles) }
@@ -75,7 +76,13 @@ internal fun HomeMuscleChips(
                     .padding(horizontal = ChipsBleed),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
-                shown.forEach { gauge -> MuscleChip(gauge = gauge, onOpen = onOpen) }
+                shown.forEachIndexed { index, gauge ->
+                    MuscleChip(
+                        gauge = gauge,
+                        onOpen = onOpen,
+                        modifier = if (index == 0) firstChipModifier else Modifier,
+                    )
+                }
             }
             // Solo si queda contenido por la derecha: el degradado va sobre el borde del módulo (la fila cruza 20 dp a cada lado).
             // `maxValue` vale Int.MAX_VALUE hasta medir la fila: el guard evita que el degradado asome un cuadro en las filas que caben.
@@ -95,10 +102,14 @@ internal fun HomeMuscleChips(
  * Nombre del músculo autorado en una zona táctil de48dp; no representa una medición corporal.
  */
 @Composable
-private fun MuscleChip(gauge: HomeSessionMuscle, onOpen: () -> Unit) {
+private fun MuscleChip(
+    gauge: HomeSessionMuscle,
+    onOpen: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val description = "Músculo previsto en la sesión: ${gauge.name}"
     Box(
-        modifier = Modifier
+        modifier = modifier
             .defaultMinSize(minHeight = 48.dp)
             .clickable(
                 interactionSource = remember { MutableInteractionSource() },

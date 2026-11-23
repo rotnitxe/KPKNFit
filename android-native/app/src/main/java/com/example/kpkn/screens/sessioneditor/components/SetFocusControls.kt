@@ -1,9 +1,12 @@
 package com.example.kpkn.screens.sessioneditor.components
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -85,11 +88,16 @@ internal fun EditorSheetDialog(
     title: @Composable (() -> Unit)? = null,
     text: @Composable (() -> Unit)? = null,
     dismissButton: @Composable (() -> Unit)? = null,
+    imeInsets: WindowInsets = WindowInsets.ime,
 ) {
-    KpknSheet(onDismissRequest = onDismissRequest) {
+    KpknSheet(onDismissRequest = onDismissRequest, imeInsets = imeInsets) {
         Column(Modifier.fillMaxWidth().padding(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             title?.invoke()
-            text?.invoke()
+            text?.let {
+                Box(modifier = Modifier.weight(1f, fill = false)) {
+                    it()
+                }
+            }
             confirmButton()
             dismissButton?.invoke()
         }

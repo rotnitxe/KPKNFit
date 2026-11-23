@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
@@ -89,28 +90,33 @@ fun EditorCalculationModule(
                 Spacer(Modifier.weight(1f))
             }
         } else {
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                EditorNumberField(
-                    value = draft.ageText,
-                    onValueChange = onAge,
-                    label = "Edad",
-                    keyboard = KeyboardType.Number,
-                    modifier = Modifier.weight(1f),
-                )
-                EditorNumberField(
-                    value = draft.heightText,
-                    onValueChange = onHeight,
-                    label = "Altura",
-                    unit = "cm",
-                    modifier = Modifier.weight(1f),
-                )
-                EditorNumberField(
-                    value = draft.weightText,
-                    onValueChange = onWeight,
-                    label = "Peso",
-                    unit = draft.weightUnit,
-                    modifier = Modifier.weight(1f),
-                )
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    EditorNumberField(
+                        value = draft.ageText,
+                        onValueChange = onAge,
+                        label = "Edad",
+                        keyboard = KeyboardType.Number,
+                        modifier = Modifier.weight(1f),
+                    )
+                    EditorNumberField(
+                        value = draft.heightText,
+                        onValueChange = onHeight,
+                        label = "Altura",
+                        unit = "cm",
+                        modifier = Modifier.weight(1f),
+                    )
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    EditorNumberField(
+                        value = draft.weightText,
+                        onValueChange = onWeight,
+                        label = "Peso",
+                        unit = draft.weightUnit,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Spacer(Modifier.weight(1f))
+                }
             }
         }
 

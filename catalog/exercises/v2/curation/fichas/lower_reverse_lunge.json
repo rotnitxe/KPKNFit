@@ -79,30 +79,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "gmax",
               "comfort"
             ],
             "why": "Extiende la cadera del apoyo delantero mientras el otro pie regresa. La cinética de la inversa muestra una extensión de cadera cargada; junto con su función anatómica justifica PRIMARY detrás del cuádriceps, también sin carga externa."
-          },
-          {
-            "id": "hamstrings",
-            "role": "SECONDARY",
-            "sources": [
-              "ham",
-              "escamilla"
-            ],
-            "why": "La cadena posterior del muslo contribuye a extender la cadera fija y a coactivar la rodilla durante el retroceso. Es extrapolación anatómica y de EMG de zancadas comparables; no hay aquí evidencia de dominancia isquiosural."
-          },
-          {
-            "id": "calves",
-            "role": "SECONDARY",
-            "sources": [
-              "calf",
-              "escamilla"
-            ],
-            "why": "La musculatura plantarflexora del pie delantero acompaña el movimiento de la tibia y la salida hacia arriba. El antepié posterior permite colocar el apoyo retrasado; el tobillo asiste, sin reemplazar rodilla y cadera como motores."
           },
           {
             "id": "adductors",
@@ -112,6 +94,24 @@
               "escamilla"
             ],
             "why": "Ayudan a orientar el muslo del apoyo delantero y, por la porción posterior del aductor mayor, a la extensión de su cadera. Esta contribución se extrapola de anatomía y zancada cargada frontal, sin medición específica de la inversa."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "ham",
+              "escamilla"
+            ],
+            "why": "La cadena posterior del muslo contribuye a extender la cadera fija y a coactivar la rodilla durante el retroceso. Es extrapolación anatómica y de EMG de zancadas comparables; no hay aquí evidencia de dominancia isquiosural."
+          },
+          {
+            "id": "calves",
+            "role": "STABILIZER",
+            "sources": [
+              "calf",
+              "escamilla"
+            ],
+            "why": "La musculatura plantarflexora del pie delantero acompaña el movimiento de la tibia y la salida hacia arriba. El antepié posterior permite colocar el apoyo retrasado; el tobillo asiste, sin reemplazar rodilla y cadera como motores."
           },
           {
             "id": "gluteus_medius",

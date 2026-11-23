@@ -70,8 +70,17 @@
         ],
         "muscles": [
           {
-            "id": "abdominals",
+            "id": "core",
             "role": "PRIMARY",
+            "sources": [
+              "tsartsapakis2023",
+              "statpearls_abdominal_wall"
+            ],
+            "why": "El transverso del abdomen, la capa profunda de la pared abdominal, aumentó su grosor en ecografía más en el dead bug que en la plancha lateral y en otros tres ejercicios de Pilates (Tsartsapakis et al.). Es una medición de grosor, no de fuerza, por eso trabaja como apoyo del abdomen superficial."
+          },
+          {
+            "id": "abdominals",
+            "role": "SECONDARY",
             "sources": [
               "souza2001",
               "kim2016",
@@ -80,17 +89,8 @@
             "why": "El recto abdominal y los oblicuos son los que trabajan: en el Dying Bug estuvieron igual de activos y su actividad subió con la dificultad, aunque sin pasar del 41 % de la contracción máxima (Souza et al.). Evitan que la zona lumbar se arquee cuando brazo y pierna se alejan del tronco."
           },
           {
-            "id": "core",
-            "role": "SECONDARY",
-            "sources": [
-              "tsartsapakis2023",
-              "statpearls_abdominal_wall"
-            ],
-            "why": "El transverso del abdomen, la capa profunda de la pared abdominal, aumentó su grosor en ecografía más en el dead bug que en la plancha lateral y en otros tres ejercicios de Pilates (Tsartsapakis et al.). Es una medición de grosor, no de fuerza, por eso trabaja como apoyo del abdomen superficial."
-          },
-          {
             "id": "hip_flexors",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "haladay2015",
               "statpearls_iliopsoas"

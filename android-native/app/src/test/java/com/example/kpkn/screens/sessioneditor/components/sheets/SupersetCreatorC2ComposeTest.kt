@@ -24,6 +24,7 @@ import com.example.kpkn.data.models.RepRange
 import com.example.kpkn.data.models.SessionPart
 import com.example.kpkn.data.models.TrainingMode
 import com.example.kpkn.screens.sessioneditor.SupersetDraft
+import com.example.kpkn.screens.sessioneditor.components.EditorOverlayTestHost
 import com.example.kpkn.ui.design.KpknSetFormat
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -31,12 +32,14 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
 
 /**
  * ED-D · C2: el creador único de superseries. La lista sale por partes, con la letra del orden en la insignia de lo marcado, el módulo
  * de rondas y descansos y el atajo al catálogo.
  */
 @RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
 @Config(sdk = [34], application = android.app.Application::class, qualifiers = "w360dp-h880dp-xxhdpi")
 class SupersetCreatorC2ComposeTest {
 
@@ -65,20 +68,22 @@ class SupersetCreatorC2ComposeTest {
         onDraft: (SupersetDraft) -> Unit,
     ) {
         rule.setContent {
-            val density = LocalDensity.current
-            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
-                SupersetMemberPickerSheet(
-                    draft = draft(),
-                    sessionExercises = exercises,
-                    sessionParts = listOf(
-                        SessionPart(id = "p1", name = "Principal", exercises = listOf(sentadilla, peso)),
-                        SessionPart(id = "p2", name = "Accesorios", exercises = listOf(dominadas, cara)),
-                    ),
-                    onUpdateDraft = onDraft,
-                    onConfirm = {},
-                    onOpenCatalog = {},
-                    onDismiss = {},
-                )
+            EditorOverlayTestHost {
+                val density = LocalDensity.current
+                CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
+                    SupersetMemberPickerSheet(
+                        draft = draft(),
+                        sessionExercises = exercises,
+                        sessionParts = listOf(
+                            SessionPart(id = "p1", name = "Principal", exercises = listOf(sentadilla, peso)),
+                            SessionPart(id = "p2", name = "Accesorios", exercises = listOf(dominadas, cara)),
+                        ),
+                        onUpdateDraft = onDraft,
+                        onConfirm = {},
+                        onOpenCatalog = {},
+                        onDismiss = {},
+                    )
+                }
             }
         }
     }
@@ -138,8 +143,12 @@ class SupersetCreatorC2ComposeTest {
         var draft by mutableStateOf(SupersetDraft(exerciseIds = listOf("sent", "peso")))
         sheet({ draft }) { draft = it }
 
-        // El atajo de «Descanso entre ejercicios» con 30 s. La etiqueta usa el espacio duro de `doseTime` («30 s»).
-        rule.onNodeWithText(KpknSetFormat.doseTime(30)).performClick()
+        rule.onNodeWithText("Descanso entre ejercicios").performScrollTo().performClick()
+        rule.mainClock.advanceTimeBy(3_000)
+        rule.waitForIdle()
+        rule.onNodeWithText("30 s").performClick()
+        rule.onNodeWithText("Listo").performClick()
+        rule.mainClock.advanceTimeBy(1_000)
         rule.waitForIdle()
 
         assertEquals(30, draft.restBetweenExercises)

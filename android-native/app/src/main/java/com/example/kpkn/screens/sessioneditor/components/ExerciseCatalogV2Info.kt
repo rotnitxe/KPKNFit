@@ -7,6 +7,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import com.example.kpkn.data.exercises.ExerciseTechniqueImageLookup
+import com.example.kpkn.data.exercises.ExerciseTechniqueImageVariant
 import com.example.kpkn.data.exercises.catalogExerciseIndex
 import com.example.kpkn.data.exercises.catalogv2.CatalogV2ProcessCache
 import com.example.kpkn.data.exercises.catalogv2.toLegacySelection
@@ -150,7 +152,21 @@ internal fun sessionExerciseDetailModel(resolved: ResolvedCatalogExerciseV2): Ca
             definitionId = definition.id,
             catalogConfigurationId = configuration.id,
             selectedImplementation = selectedImplementation,
-        ),
+        ).ifEmpty {
+            ExerciseTechniqueImageLookup.resolveRepresentativeImageResId(
+                definition = definition,
+                resolvedConfigurationId = configuration.id,
+                selectedOptions = configuration.selectedOptions,
+            )?.let { repResId ->
+                listOf(
+                    ExerciseTechniqueImageVariant(
+                        implementation = selectedImplementation ?: "default",
+                        imageResId = repResId,
+                        label = "Técnica",
+                    ),
+                )
+            }.orEmpty()
+        },
         selectedImplementation = selectedImplementation,
         axes = emptyList(),
         configurationLine = exerciseCatalogConfigurationSummary(configuration, definition.id),

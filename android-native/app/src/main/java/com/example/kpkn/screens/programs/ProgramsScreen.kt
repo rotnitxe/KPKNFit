@@ -473,8 +473,13 @@ fun ProgramsScreen(
         BlankProgramSheet(
             suggestedName = viewModel.suggestedBlankProgramName(),
             onDismiss = { showBlankSheet = false },
-            onCreate = { name, coverImage, identityLabel ->
-                val id = viewModel.createBlankProgram(name = name, coverImage = coverImage, identityLabel = identityLabel)
+            onCreate = { name, coverImage, identityLabel, description ->
+                val id = viewModel.createBlankProgram(
+                    name = name,
+                    coverImage = coverImage,
+                    identityLabel = identityLabel,
+                    description = description,
+                )
                 showBlankSheet = false
                 // cr-cero: «Crear y abrir» lleva al programa vacío; si hay uno en curso, antes pasa por «Listo para empezar».
                 if (activeProgram != null) readyProgramId = id else onNavigateToProgram(id)

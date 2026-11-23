@@ -212,6 +212,7 @@ class WorkoutPersistenceController(
                     exerciseTags = state.exerciseTags,
                     activeTags = state.activeTagsByExercise,
                     activeSubTags = state.activeSubTagsByExercise,
+                    activeSubTagsBySetKey = state.activeSubTagsBySetKey,
                     userCreatedTags = state.userCreatedTags,
                     contextProfilesV3 = state.contextProfilesV3,
                     activeContextProfileByExerciseId = state.activeContextProfileByExerciseId,

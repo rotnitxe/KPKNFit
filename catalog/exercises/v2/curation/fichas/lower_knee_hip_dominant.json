@@ -65,7 +65,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "wretenberg1996",
               "bryanton2012",
@@ -84,6 +84,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "swinton2012",
@@ -360,7 +361,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "coratella2021",
               "paoli2009",
@@ -379,6 +380,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "comfort2011",
@@ -631,7 +633,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "paoli2009",
               "kubo2019",
@@ -650,6 +652,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "comfort2011",
@@ -659,6 +662,7 @@
           },
           {
             "id": "core",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "jurik2025"
@@ -667,6 +671,7 @@
           },
           {
             "id": "biceps",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "statpearls_biceps"

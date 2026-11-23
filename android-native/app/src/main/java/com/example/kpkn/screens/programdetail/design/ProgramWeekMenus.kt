@@ -33,6 +33,7 @@ internal fun ProgramWeekMenuSheet(
     sub: String?,
     onEditMeta: (() -> Unit)?,
     onChangeSplit: (() -> Unit)?,
+    onHighEnergyDay: (() -> Unit)? = null,
     onUndoSplit: (() -> Unit)? = null,
     onCopy: () -> Unit,
     pasteLabel: String?,
@@ -54,6 +55,17 @@ internal fun ProgramWeekMenuSheet(
         }
         onChangeSplit?.let {
             LienzoMenuRow(icon = LienzoDumbbellIcon, title = "Cambiar reparto", sub = "Qué entrena cada día", onClick = run(it), divider = !first, tag = "week_menu_split")
+            first = false
+        }
+        onHighEnergyDay?.let {
+            LienzoMenuRow(
+                icon = KpknLineIcons.Flame,
+                title = "Día con más energía",
+                sub = "Coloca la sesión más exigente ese día",
+                onClick = run(it),
+                divider = !first,
+                tag = "week_menu_high_energy_day",
+            )
             first = false
         }
         onUndoSplit?.let {

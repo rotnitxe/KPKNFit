@@ -69,6 +69,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_extension",
               "performanceProfileId": "glutes_hiperextension_45__dumbbells",
@@ -126,6 +129,9 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
                   ],
                   "primaryMuscles": [
                     "gluteus_maximus",
@@ -277,6 +283,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_extension",
               "performanceProfileId": "glutes_hiperextension_45__barbell",
@@ -326,6 +335,9 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
                   ],
                   "primaryMuscles": [
                     "gluteus_maximus",
@@ -488,6 +500,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_extension",
               "performanceProfileId": "glutes_hiperextension_45__plate",
@@ -553,6 +568,9 @@
                       "jointId": "codo",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
                   ],
                   "primaryMuscles": [
                     "gluteus_maximus",
@@ -707,6 +725,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "bodyweight",
               "movementPatternId": "hip_extension",
               "performanceProfileId": "glutes_hiperextension_45__smith_machine",
@@ -756,6 +777,9 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
                   ],
                   "primaryMuscles": [
                     "gluteus_maximus",
@@ -3019,6 +3043,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "biceps"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_extension",
               "performanceProfileId": "glutes_hiperextension_45_zercher",
@@ -3076,6 +3104,10 @@
                       "jointId": "sacroiliaca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "biceps"
                   ],
                   "primaryMuscles": [
                     "gluteus_maximus",

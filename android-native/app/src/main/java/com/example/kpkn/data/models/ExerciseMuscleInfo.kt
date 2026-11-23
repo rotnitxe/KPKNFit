@@ -222,18 +222,21 @@ data class TechnicalAspect(
     val defaultOptionId: String? = null,
 )
 
+const val LIMITING_STABILIZER_CONTRIBUTION = 0.3
+const val DIAGNOSTIC_POSTURAL_STABILIZER_CONTRIBUTION = 0.1
+
 val HYPERTROPHY_ROLE_MULTIPLIERS = mapOf(
     MuscleRole.PRIMARY to 1.0,
     MuscleRole.SECONDARY to 0.5,
-    MuscleRole.STABILIZER to 0.4,
-    MuscleRole.NEUTRALIZER to 0.1
+    MuscleRole.STABILIZER to 0.0,
+    MuscleRole.NEUTRALIZER to 0.0
 )
 
 val VOLUME_CONTRIBUTION_FALLBACKS = mapOf(
     MuscleRole.PRIMARY to 1.0,
     MuscleRole.SECONDARY to 0.5,
-    MuscleRole.STABILIZER to 0.4,
-    MuscleRole.NEUTRALIZER to 0.1
+    MuscleRole.STABILIZER to 0.0,
+    MuscleRole.NEUTRALIZER to 0.0
 )
 
 /** Same language as the catalog: secondary = 0.5 of an effective set. */
@@ -242,8 +245,17 @@ val FATIGUE_ROLE_MULTIPLIERS = VOLUME_CONTRIBUTION_FALLBACKS
 fun resolveMuscleVolumeContribution(
     involvement: InvolvedMuscle,
     capAtOne: Boolean = true,
+    includePosturalStabilizerDiagnostic: Boolean = false,
 ): Double {
-    val fallback = VOLUME_CONTRIBUTION_FALLBACKS[involvement.role] ?: 0.0
-    val raw = involvement.volumeContribution ?: fallback
+    val raw = if (
+        involvement.role == MuscleRole.STABILIZER &&
+        (involvement.volumeContribution == null || involvement.volumeContribution == 0.0) &&
+        includePosturalStabilizerDiagnostic
+    ) {
+        DIAGNOSTIC_POSTURAL_STABILIZER_CONTRIBUTION
+    } else {
+        val fallback = VOLUME_CONTRIBUTION_FALLBACKS[involvement.role] ?: 0.0
+        involvement.volumeContribution ?: fallback
+    }
     return if (capAtOne) raw.coerceIn(0.0, 1.0) else raw.coerceAtLeast(0.0)
 }

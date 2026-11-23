@@ -78,13 +78,17 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
               "performanceProfileId": "conventional_deadlift__barbell__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -149,12 +153,17 @@
                       "role": "SECONDARY"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -222,14 +231,14 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings",
-                    "deadlift:quadriceps"
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "adductors"
               ],
               "setupCues": [
@@ -322,13 +331,17 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
               "performanceProfileId": "conventional_deadlift__barbell__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -393,12 +406,17 @@
                       "role": "SECONDARY"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -468,14 +486,14 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings",
-                    "deadlift:quadriceps"
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "adductors"
               ],
               "setupCues": [
@@ -570,13 +588,17 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "deadlift",
               "performanceProfileId": "conventional_deadlift__smith_machine__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -641,12 +663,17 @@
                       "role": "SECONDARY"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -714,14 +741,14 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings",
-                    "deadlift:quadriceps"
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "adductors"
               ],
               "setupCues": [
@@ -814,13 +841,17 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "deadlift",
               "performanceProfileId": "conventional_deadlift__smith_machine__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -885,12 +916,17 @@
                       "role": "SECONDARY"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -960,14 +996,14 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings",
-                    "deadlift:quadriceps"
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "adductors"
               ],
               "setupCues": [
@@ -1062,13 +1098,17 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
               "performanceProfileId": "conventional_deadlift__dumbbells__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -1133,12 +1173,17 @@
                       "role": "SECONDARY"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -1206,14 +1251,14 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings",
-                    "deadlift:quadriceps"
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "adductors"
               ],
               "setupCues": [
@@ -1306,13 +1351,17 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
               "performanceProfileId": "conventional_deadlift__dumbbells__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -1377,12 +1426,17 @@
                       "role": "SECONDARY"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -1452,14 +1506,14 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings",
-                    "deadlift:quadriceps"
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "adductors"
               ],
               "setupCues": [
@@ -1554,13 +1608,17 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
               "performanceProfileId": "conventional_deadlift__hex_bar__peso_muerto",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -1625,12 +1683,17 @@
                       "role": "SECONDARY"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -1698,14 +1761,14 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings",
-                    "deadlift:quadriceps"
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "adductors"
               ],
               "setupCues": [
@@ -1798,13 +1861,17 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
               "performanceProfileId": "conventional_deadlift__hex_bar__peso_muerto_unilateral",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -1869,12 +1936,17 @@
                       "role": "SECONDARY"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -1944,14 +2016,14 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings",
-                    "deadlift:quadriceps"
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "adductors"
               ],
               "setupCues": [
@@ -2073,13 +2145,17 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
               "performanceProfileId": "sumo_deadlift__barbell__peso_muerto_sumo",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -2144,12 +2220,17 @@
                       "role": "SECONDARY"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -2215,14 +2296,14 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings",
-                    "deadlift:quadriceps"
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "adductors"
               ],
               "setupCues": [
@@ -2314,13 +2395,17 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
               "performanceProfileId": "sumo_deadlift__dumbbells__peso_muerto_sumo",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 1,
@@ -2385,12 +2470,17 @@
                       "role": "SECONDARY"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core",
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
@@ -2456,14 +2546,14 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings",
-                    "deadlift:quadriceps"
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 1
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "adductors"
               ],
               "setupCues": [
@@ -2565,13 +2655,16 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "core"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "deadlift",
               "performanceProfileId": "deadlift_to_knees__barbell__peso_muerto_hasta_la_rodilla",
               "primaryMuscles": [
                 "gluteus_maximus",
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "replacementGroup": "ham_deadlift",
               "replacementPriority": 3,
@@ -2618,12 +2711,17 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "core"
+                  ],
                   "primaryMuscles": [
                     "gluteus_maximus",
-                    "hamstrings",
+                    "hamstrings"
+                  ],
+                  "secondaryMuscles": [
                     "quadriceps"
                   ],
-                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core"
@@ -2685,14 +2783,15 @@
                   ],
                   "preservesIntent": [
                     "deadlift:gluteus_maximus",
-                    "deadlift:hamstrings",
-                    "deadlift:quadriceps"
+                    "deadlift:hamstrings"
                   ],
                   "replacementGroup": "ham_deadlift",
                   "replacementPriority": 3
                 }
               },
-              "secondaryMuscles": [],
+              "secondaryMuscles": [
+                "quadriceps"
+              ],
               "setupCues": [
                 "Coloca los pies bajo la barra, con la barra sobre la mitad del pie y pegada a las espinillas.",
                 "Agarra la barra por fuera de las rodillas, con los brazos estirados y la espalda recta.",

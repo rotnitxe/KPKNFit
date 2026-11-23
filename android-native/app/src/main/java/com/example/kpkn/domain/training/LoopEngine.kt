@@ -54,19 +54,21 @@ object LoopEngine {
         val firstMacro = program.macrocycles.firstOrNull() ?: return program
         val firstBlock = firstMacro.blocks.firstOrNull() ?: return program
         val firstMeso = firstBlock.mesocycles.firstOrNull() ?: return program
-        val existingLoopIds = program.loops.map { it.id }.toSet()
+        val recurringLoops = program.loops.filter { it.mode != LoopMode.PROGRESSIVE_WAVE }
+        val existingLoopIds = recurringLoops.map { it.id }.toSet()
         val existingWeeksByLoop = firstBlock.mesocycles
             .flatMap { it.weeks }
             .filter { it.isLoopWeek && it.loopId != null }
             .associateBy { it.loopId }
 
-        val loopWeeks = program.loops.map { loop ->
+        val loopWeeks = recurringLoops.map { loop ->
             val existing = existingWeeksByLoop[loop.id]
+            val templateSessions = existing?.sessions ?: loop.sessions
             ProgramWeek(
                 id = existing?.id ?: "loop_week_${loop.id}",
                 name = loop.title.ifBlank { getLoopTypeLabel(loop.type) },
                 description = "Loop ${getLoopTypeLabel(loop.type)} · cada ${loop.repeatEveryXLoops.coerceAtLeast(1)} ciclos",
-                sessions = existing?.sessions ?: loop.sessions,
+                sessions = templateSessions,
                 isLoopWeek = true,
                 loopId = loop.id,
             )
@@ -153,7 +155,7 @@ object LoopEngine {
         lookAheadCycles: Int = 12,
     ): List<LoopProjection> {
         if (!program.isSimpleProgram || program.simpleProgramKind != SimpleProgramKind.CYCLIC) return emptyList()
-        val loops = program.loops
+        val loops = program.loops.filter { it.mode != LoopMode.PROGRESSIVE_WAVE }
         if (loops.isEmpty()) return emptyList()
 
         val cycleLength = getCycleLength(program)
@@ -409,7 +411,7 @@ object LoopEngine {
                 message = "La semana de loop ${week.id} no referencia una regla existente.",
             )
         }
-        program.loops.forEach { loop ->
+        program.loops.filter { it.mode != LoopMode.PROGRESSIVE_WAVE }.forEach { loop ->
             val matches = loopWeeks.count { it.loopId == loop.id }
             if (program.isSimpleProgram && program.simpleProgramKind == SimpleProgramKind.CYCLIC && matches == 0) {
                 issues += LoopIssue(

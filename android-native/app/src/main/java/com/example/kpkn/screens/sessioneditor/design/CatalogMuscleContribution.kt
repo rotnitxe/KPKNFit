@@ -10,9 +10,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import com.example.kpkn.data.models.ExerciseMuscleInfo
+import com.example.kpkn.data.models.MuscleRole
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.components.oneSeriesVolumeContributions
-import com.example.kpkn.screens.sessioneditor.components.roleVolumeLabel
+import com.example.kpkn.screens.sessioneditor.components.roleVolumeSummaryLabel
 import com.example.kpkn.ui.design.KpknType
 import androidx.compose.ui.unit.dp
 import java.math.BigDecimal
@@ -32,8 +33,13 @@ internal fun CatalogMuscleContribution(exercise: ExerciseMuscleInfo, modifier: M
         contributions.forEach { contribution ->
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(contribution.muscle, style = KpknType.caption, color = WizardColors.text, modifier = Modifier.weight(1f))
+                val roleAndContribution = if (contribution.role == MuscleRole.STABILIZER && contribution.seriesEquivalent <= 0.0) {
+                    "Estabilizador postural"
+                } else {
+                    "${roleVolumeSummaryLabel(contribution.role, contribution.seriesEquivalent)} · ${catalogEffectiveSetsLabel(contribution.seriesEquivalent)}"
+                }
                 Text(
-                    "${roleVolumeLabel(contribution.role).substringBefore(" · ")} · ${catalogEffectiveSetsLabel(contribution.seriesEquivalent)}",
+                    roleAndContribution,
                     style = KpknType.caption,
                     color = WizardColors.textMuted,
                     modifier = Modifier.weight(1.4f),

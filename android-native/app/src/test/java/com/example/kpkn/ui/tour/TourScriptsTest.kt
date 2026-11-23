@@ -58,14 +58,54 @@ class TourScriptsTest {
     }
 
     @Test
-    fun el_recorrido_de_inicio_termina_en_la_barra_inferior() {
+    fun el_recorrido_de_inicio_usa_las_cuatro_anclas_actualizadas_y_no_menciona_perfil_en_la_barra() {
+        val steps = TourScripts.home()
         assertEquals(
-            listOf(TourAnchors.HOME_SESION, TourAnchors.HOME_RINGS, TourAnchors.HOME_PROGRAMAS, TourAnchors.HOME_BARRA),
-            TourScripts.home(conTorre = true).map { it.anchorId },
+            listOf(
+                TourAnchors.HOME_SESION,
+                TourAnchors.HOME_PROGRAMAS,
+                TourAnchors.HOME_BARRA,
+                TourAnchors.HOME_PERFIL,
+            ),
+            steps.map { it.anchorId },
         )
+        assertEquals(TourAnchors.HOME_MUSCLES_BTN, steps.first().tryAnchorId)
+        val barraStep = steps.first { it.anchorId == TourAnchors.HOME_BARRA }
+        assertFalse("La barra inferior no incluye Perfil", barraStep.body.contains("Perfil", ignoreCase = true))
+    }
+
+    @Test
+    fun los_guiones_de_entreno_y_primera_sesion_siguen_el_orden_actualizado() {
         assertEquals(
-            listOf(TourAnchors.HOME_SESION, TourAnchors.HOME_PROGRAMAS, TourAnchors.HOME_BARRA),
-            TourScripts.home(conTorre = false).map { it.anchorId },
+            listOf(
+                TourAnchors.TRAINING_ESTRUCTURA,
+                TourAnchors.TRAINING_SEMANA,
+                TourAnchors.TRAINING_SESION,
+                TourAnchors.TRAINING_EMPEZAR,
+            ),
+            TourScripts.training.map { it.anchorId },
         )
+        assertEquals(TourAnchors.TRAINING_EX1, TourScripts.training[2].tryAnchorId)
+
+        assertEquals(
+            listOf(
+                TourAnchors.WORKOUT_SERIE,
+                TourAnchors.WORKOUT_DESCANSO,
+                TourAnchors.WORKOUT_SIGUIENTE,
+            ),
+            TourScripts.firstWorkout.map { it.anchorId },
+        )
+        assertEquals(TourAnchors.WORKOUT_LOG_BTN, TourScripts.firstWorkout[0].tryAnchorId)
+    }
+
+    @Test
+    fun nutricion_y_cuerpo_adaptan_su_texto_cuando_no_hay_plan_ni_registros() {
+        val planSinMeta = TourScripts.nutrition(hasActivePlan = false)
+            .first { it.anchorId == TourAnchors.NUTRITION_PLAN }
+        assertTrue(planSinMeta.body.contains("Crear plan"))
+
+        val cuerpoVacio = TourScripts.body(hasEntries = false)
+            .first { it.anchorId == TourAnchors.BODY_TENDENCIA }
+        assertTrue(cuerpoVacio.body.contains("3 pesajes"))
     }
 }

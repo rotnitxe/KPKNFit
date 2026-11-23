@@ -614,6 +614,43 @@ private fun rebuildVolumeProfile(answers: SetupVolumeAnswers): VolumeCalibration
 }
 
 /**
+ * Resuelve el perfil de calibración efectivo del borrador: si las 4 respuestas están completas devuelve
+ * [volumeCalibrationProfile]; si el usuario respondió al menos 1 de las 4 dimensiones, conserva todas sus
+ * respuestas usando `2` únicamente para la dimensión omitida.
+ */
+internal fun SetupWizardDraft.resolvedVolumeCalibrationProfile(): VolumeCalibrationProfile? {
+    volumeCalibrationProfile?.let { return it }
+    val hasAnyDimension = volumeAnswers.technique != null ||
+        volumeAnswers.consistency != null ||
+        volumeAnswers.strength != null ||
+        volumeAnswers.mobility != null
+    if (!hasAnyDimension) return null
+    val style = volumeAnswers.style
+        ?: goalProfile?.let(GoalProfileMapping::trainingStyleOf)
+        ?: goal?.inferredTrainingStyle
+        ?: TrainingStyle.BODYBUILDER
+    val technique = (volumeAnswers.technique ?: 2).coerceIn(1, 3)
+    val consistency = (volumeAnswers.consistency ?: 2).coerceIn(1, 3)
+    val strength = (volumeAnswers.strength ?: 2).coerceIn(1, 3)
+    val mobility = (volumeAnswers.mobility ?: 2).coerceIn(1, 3)
+    val output = VolumeCalibrationEngine.calculate(style, technique, consistency, strength, mobility)
+    return VolumeCalibrationProfile(
+        style,
+        output.score,
+        VolumeCalibrationResponses(
+            technique,
+            consistency,
+            strength,
+            mobility,
+            volumeAnswers.responseState,
+        ),
+        output.recommendations,
+        System.currentTimeMillis(),
+        VolumeCalibrationEngine.REVISION,
+    )
+}
+
+/**
  * T-005 / §13.2 — presencia de UNA clave del subpanel de aparatos, dentro del
  * paso AVAILABILITY (subpanel de EQUIPMENT). Solo presencia: aquí no hay kilos
  * ni cantidades. Sin disponibilidad declarada no se fabrica ninguna.

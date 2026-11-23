@@ -82,6 +82,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import com.example.kpkn.ui.components.KpknAlertDialog
 import com.example.kpkn.ui.components.KpknDropdownMenu
+import com.example.kpkn.ui.components.KpknRestClockSheet
 import com.example.kpkn.ui.components.KpknSheet
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknChip
@@ -183,70 +184,17 @@ internal fun RestSheet(
     onDismiss: () -> Unit,
     onConfirm: (Int, Int?) -> Unit,
 ) {
-    var primary by remember(initialPrimarySeconds) { mutableStateOf(initialPrimarySeconds.coerceAtLeast(0)) }
-    var side by remember(initialSideSeconds) { mutableStateOf(initialSideSeconds?.coerceAtLeast(0)) }
-    // `ed-descanso-ejercicio`: el mismo campo −15 · tiempo · +15 que la serie, con los atajos de siempre.
-    EdSheet(onDismiss = onDismiss) {
-        EdSheetHeader(
-            "Descanso",
-            if (initialSideSeconds != null) "Series y entre lados, en un solo sitio." else "Cuánto esperas antes de la siguiente serie.",
-        )
-        RestSection(
-            label = primaryLabel,
-            seconds = primary,
-            step = 15,
-            presets = listOf(15, 30, 45, 60, 90, 120, 180),
-            onChange = { primary = it },
-        )
-        if (initialSideSeconds != null) {
-            RestSection(
-                label = "Entre lados",
-                seconds = side ?: 0,
-                step = 5,
-                presets = listOf(5, 10, 15, 30),
-                onChange = { side = it },
-            )
-        }
-        val close = LocalEdSheetClose.current
-        EdPrimaryButton(
-            text = "Listo",
-            onClick = {
-                // pulido:ed-J05 closeLayer(cb): baja la hoja y después se guarda el descanso
-                close { onConfirm(primary, if (initialSideSeconds != null) side ?: 0 else null) }
-            },
-        )
-    }
-}
-
-/** Un bloque de la hoja de descanso: rótulo, campo −/+ con el tiempo y atajos (que pasan a la línea siguiente si no caben). */
-@Composable
-private fun RestSection(
-    label: String,
-    seconds: Int,
-    step: Int,
-    presets: List<Int>,
-    onChange: (Int) -> Unit,
-) {
-    EdSection(label = label, headerMin = 0.dp) {
-        EdRestField(
-            seconds = seconds,
-            onStep = { direction -> onChange((seconds + direction * step).coerceIn(0, 900)) },
-            stepLabel = step,
-            scrubbable = false,
-            description = "$label ${KpknSetFormat.doseTime(seconds)}",
-            minusDescription = "Quitar $step segundos a $label",
-            plusDescription = "Sumar $step segundos a $label",
-        )
-        EdFlexRow(modifier = Modifier.fillMaxWidth(), gap = 6.dp, lineGap = 6.dp) {
-            presets.forEach { preset ->
-                EdPresetButton(
-                    text = if (preset < 60) "$preset s" else KpknSetFormat.rest(preset),
-                    on = seconds == preset,
-                    onClick = { onChange(preset) },
-                )
-            }
-        }
-    }
+    KpknRestClockSheet(
+        primaryLabel = primaryLabel,
+        initialPrimarySeconds = initialPrimarySeconds,
+        secondaryLabel = if (initialSideSeconds != null) "Entre lados" else null,
+        initialSecondarySeconds = initialSideSeconds,
+        primaryStepSeconds = 15,
+        secondaryStepSeconds = 5,
+        accentColor = accentColor,
+        onDismiss = onDismiss,
+        onConfirm = onConfirm,
+    )
 }
 
 @Composable

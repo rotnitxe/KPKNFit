@@ -82,6 +82,7 @@ data class ResolvedExerciseProfileV2(
     val articulationType: ExerciseArticulationTypeV2? = null,
     /** Tiempo de set-up estimado en segundos para la configuración exacta. */
     val setupTimeSeconds: Int? = null,
+    val limitingStabilizerMuscles: List<String> = emptyList(),
 )
 
 @Serializable
@@ -182,3 +183,22 @@ sealed interface ExerciseSelectionValidationV2 {
     data class Valid(val selection: ExerciseSelectionV2) : ExerciseSelectionValidationV2
     data class Invalid(val reason: String) : ExerciseSelectionValidationV2
 }
+
+object ExerciseCatalogAxisPolicy {
+    val OPTIONAL_AXES: Set<String> = setOf(
+        "grip_width",
+        "grip_type",
+        "grip",
+        "laterality",
+        "stance",
+        "support_angle",
+        "posture",
+        "setup",
+        "load_position",
+    )
+
+    fun isOptionalAxis(axis: String): Boolean = axis in OPTIONAL_AXES
+
+    fun isRequiredAxis(axis: String): Boolean = !isOptionalAxis(axis)
+}
+

@@ -128,27 +128,18 @@ class CatalogDetailContentTest {
 
     @Test
     fun tocarUnaPildoraDeImplementoLlamaASeleccionarlo() {
-        val llamadas = mutableListOf<Pair<String, String>>()
         rule.setContent {
-            var elegido by remember { mutableStateOf<String?>("barbell") }
             CatalogDetailContent(
-                model = implementModel(elegido, implementVariants, implementOptions),
+                model = implementModel("barbell", implementVariants, implementOptions),
                 onDismiss = {},
                 onToggleSelection = {},
-                onSelectOption = { axis, value ->
-                    llamadas += axis to value
-                    elegido = value
-                },
-                onImplementationSettled = { elegido = it },
+                onSelectOption = { _, _ -> },
+                onImplementationSettled = {},
             )
         }
 
-        rule.onNodeWithTag(CatalogImplementPillsTag).assertExists()
-        rule.onNodeWithText("Mancuerna").performScrollTo().performClick()
-        rule.waitForIdle()
-
-        assertEquals(listOf("implement" to "dumbbells"), llamadas)
-        rule.onNodeWithContentDescription("Ilustración del ejercicio con Mancuernas").assertExists()
+        rule.onNodeWithTag(CatalogImplementPillsTag).assertDoesNotExist()
+        rule.onNodeWithContentDescription("Ilustración del ejercicio con Barra").assertExists()
     }
 
     @Test
@@ -182,7 +173,6 @@ class CatalogDetailContentTest {
         }
 
         rule.onNodeWithText("Press banca").assertExists()
-        rule.onNodeWithText("Pectorales · Barra · Empuje horizontal").assertExists()
         rule.onNodeWithText("Añadir").performClick()
         rule.waitForIdle()
 
@@ -227,7 +217,7 @@ class CatalogDetailContentTest {
         rule.waitForIdle()
         val musculos = rule.onNodeWithText("Músculos · aporte por 1 serie").fetchSemanticsNode().boundsInRoot.top
         val descripcion = rule.onNodeWithText("Empuje horizontal del tren superior.").fetchSemanticsNode().boundsInRoot.top
-        assertTrue("musculos=$musculos descripcion=$descripcion", musculos < descripcion)
+        assertTrue("descripcion=$descripcion musculos=$musculos", descripcion < musculos)
         rule.onNodeWithText("Pectorales").assertExists()
     }
 

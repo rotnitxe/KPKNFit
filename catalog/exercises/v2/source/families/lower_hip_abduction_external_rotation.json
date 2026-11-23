@@ -85,8 +85,7 @@
                     "gluteus_medius"
                   ],
                   "secondaryMuscles": [
-                    "gluteus_maximus",
-                    "hip_flexors"
+                    "gluteus_maximus"
                   ],
                   "stabilizerMuscles": [],
                   "volumeContribution": "direct"
@@ -145,8 +144,7 @@
                 }
               },
               "secondaryMuscles": [
-                "gluteus_maximus",
-                "hip_flexors"
+                "gluteus_maximus"
               ],
               "setupCues": [
                 "Túmbate de lado con la cabeza sobre el brazo de abajo, las caderas flexionadas unos 60° y las rodillas dobladas a unos 90°, con los pies juntos.",
@@ -161,7 +159,7 @@
           }
         ],
         "defaultConfigurationId": "glutes_clamshells_banda__default",
-        "description": "Los clamshells con banda, o almejas, abren la cadera en rotación externa tumbado de lado: con los pies juntos, la rodilla de arriba se separa como la tapa de una almeja contra la banda que rodea los muslos. El glúteo medio trabaja a un nivel moderado, parejo al glúteo mayor, y no por encima de él. Con carga, los flexores de la cadera superaron a los dos glúteos, y tras una serie larga la resonancia mostró más cambio en los rotadores profundos que en el glúteo medio. Si la pelvis rueda hacia atrás, el glúteo medio y el glúteo mayor se activan menos. Frente a la abducción lateral tumbado, la almeja le pide al glúteo medio claramente menos.",
+        "description": "Los clamshells con banda, o almejas, abren la cadera en rotación externa tumbado de lado: con los pies juntos, la rodilla de arriba se separa como la tapa de una almeja contra la banda que rodea los muslos. El glúteo medio trabaja a un nivel moderado, parejo al glúteo mayor, y no por encima de él. Tras una serie larga la resonancia mostró más cambio en los rotadores profundos que en el glúteo medio. Si la pelvis rueda hacia atrás, el glúteo medio y el glúteo mayor se activan menos. Frente a la abducción lateral tumbado, la almeja le pide al glúteo medio claramente menos.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

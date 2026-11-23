@@ -51,6 +51,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
@@ -138,7 +139,7 @@ internal fun SessionEditorFrameBottomBar(
             modifier = modifier
                 .fillMaxWidth()
                 .height(SessionEditorFrameBottomBarHeight)
-                .graphicsLayer { alpha = dimAlpha }
+                .then(if (dimAlpha < 0.999f) Modifier.graphicsLayer { alpha = dimAlpha } else Modifier)
                 .onGloballyPositioned { barBounds = it.boundsInWindow() },
         ) {
             Box(modifier = Modifier.matchParentSize().edGlass(hazeState, EdBarIslandShape))
@@ -292,6 +293,7 @@ private fun FrameTimeButton(
                     ),
                     maxLines = 1,
                     softWrap = false,
+                    overflow = TextOverflow.Ellipsis,
                 )
                 if (limitMinutes != null && limitMinutes > 0) {
                     Text(
@@ -300,6 +302,7 @@ private fun FrameTimeButton(
                         modifier = Modifier.padding(top = 1.dp),
                         maxLines = 1,
                         softWrap = false,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -364,6 +367,7 @@ private fun FrameSplitAdd(
                 style = edText(15f, FontWeight.SemiBold, EdColors.onInk, lineHeight = 18.75f),
                 maxLines = 1,
                 softWrap = false,
+                overflow = TextOverflow.Ellipsis,
             )
         }
         Box(

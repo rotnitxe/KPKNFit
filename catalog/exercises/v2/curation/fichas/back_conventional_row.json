@@ -88,7 +88,7 @@
           },
           {
             "id": "trapezius",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "lehman2004",
               "statpearls_extrinsic_back"
@@ -168,6 +168,20 @@
           }
         ],
         "overrides": {
+          "conventional_row__barbell": {
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "limiting": true,
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009",
+                  "saeterbakken2015"
+                ],
+                "why": "Sujetan la columna con el tronco inclinado y sin apoyo. En el remo de pie con barra los erectores lumbares rondaron el 43 % de su máximo en los dos lados; de los torácicos, el izquierdo llegó al 73 % en la subida y el derecho no varió entre remos (Fenwick et al.). El remo libre bilateral los activó un 34 % más que el remo en máquina (Saeterbakken et al.). No mueven la columna: trabajan en isometría y por eso cuentan como estabilizador."
+              }
+            ]
+          },
           "conventional_row__dumbbells": {
             "joints": [
               {
@@ -192,6 +206,18 @@
                   "statpearls_forearm_compartments"
                 ],
                 "why": "Cada muñeca sostiene su mancuerna en neutro, sin el giro hacia abajo del agarre prono, y puede rotar un poco durante el tirón."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "limiting": true,
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009",
+                  "saeterbakken2015"
+                ],
+                "why": "Sujetan la columna con el tronco inclinado y sin apoyo. En el remo de pie con barra los erectores lumbares rondaron el 43 % de su máximo en los dos lados; de los torácicos, el izquierdo llegó al 73 % en la subida y el derecho no varió entre remos (Fenwick et al.). El remo libre bilateral los activó un 34 % más que el remo en máquina (Saeterbakken et al.). No mueven la columna: trabajan en isometría y por eso cuentan como estabilizador."
               }
             ]
           },
@@ -219,6 +245,18 @@
                   "statpearls_forearm_compartments"
                 ],
                 "why": "La bola cuelga por debajo del asa y el asa tiende a rodar dentro del puño; la muñeca, en neutro, se queda recta para que la carga no cabecee al subir."
+              }
+            ],
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "limiting": true,
+                "role": "STABILIZER",
+                "sources": [
+                  "fenwick2009",
+                  "saeterbakken2015"
+                ],
+                "why": "Sujetan la columna con el tronco inclinado y sin apoyo. En el remo de pie con barra los erectores lumbares rondaron el 43 % de su máximo en los dos lados; de los torácicos, el izquierdo llegó al 73 % en la subida y el derecho no varió entre remos (Fenwick et al.). El remo libre bilateral los activó un 34 % más que el remo en máquina (Saeterbakken et al.). No mueven la columna: trabajan en isometría y por eso cuentan como estabilizador."
               }
             ]
           },

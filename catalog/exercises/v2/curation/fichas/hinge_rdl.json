@@ -94,6 +94,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "coratella2022",
@@ -112,6 +113,7 @@
           },
           {
             "id": "forearm",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "forearm_anatomy"
@@ -874,6 +876,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "coratella2022",
@@ -892,6 +895,7 @@
           },
           {
             "id": "forearm",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "forearm_anatomy"

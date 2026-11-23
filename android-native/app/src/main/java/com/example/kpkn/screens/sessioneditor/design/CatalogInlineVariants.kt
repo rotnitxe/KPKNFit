@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -17,13 +18,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogAxisPolicy
 import com.example.kpkn.screens.onboarding.design.WizardColors
+import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
 import com.example.kpkn.screens.sessioneditor.components.exerciseCatalogAxisLabel
 import com.example.kpkn.screens.sessioneditor.components.exerciseCatalogVariantTagLabel
 import com.example.kpkn.ui.design.KpknChip
@@ -46,21 +52,65 @@ internal fun CatalogInlineVariants(
     onSelect: (String, String) -> Unit,
     onOpenFicha: () -> Unit,
     modifier: Modifier = Modifier,
+    missingAxesPrompt: String? = null,
 ) {
+    val totalSteps = axes.size
     Column(
-        modifier = modifier.padding(start = 60.dp, bottom = 8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = modifier
+            .padding(start = 60.dp, end = 12.dp, bottom = 10.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(KpknSurface.module)
+            .border(1.dp, Color.White.copy(alpha = 0.08f), RoundedCornerShape(16.dp))
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        axes.forEach { axis ->
-            Column(Modifier.testTag("catalog_inline_${axis.id}")) {
-                if (axis.id != "implement") {
+        Text(
+            text = "¿Cómo lo vas a hacer?",
+            style = KpknType.bodyStrong.copy(fontWeight = FontWeight.SemiBold),
+            color = WizardColors.text,
+        )
+        if (!missingAxesPrompt.isNullOrBlank()) {
+            Text(
+                text = missingAxesPrompt,
+                style = KpknType.caption,
+                color = SymbolPalette.energia,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(SymbolPalette.energia.copy(alpha = 0.14f))
+                    .padding(horizontal = 10.dp, vertical = 6.dp),
+            )
+        }
+        axes.forEachIndexed { index, axis ->
+            Column(
+                modifier = Modifier.testTag("catalog_inline_${axis.id}"),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                val axisLabel = exerciseCatalogAxisLabel(axis.id, definitionId)
+                val stepTitle = if (totalSteps > 1) {
+                    "Paso ${index + 1} de $totalSteps · $axisLabel"
+                } else {
+                    axisLabel
+                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     Text(
-                        text = exerciseCatalogAxisLabel(axis.id, definitionId),
+                        text = stepTitle,
                         style = KpknType.caption,
                         color = WizardColors.textMuted,
                     )
+                    if (ExerciseCatalogAxisPolicy.isOptionalAxis(axis.id)) {
+                        Text(
+                            text = "· opcional",
+                            style = KpknType.caption,
+                            color = WizardColors.textFaint,
+                        )
+                    }
                 }
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     axis.values.forEach { value ->
                         val label = exerciseCatalogVariantTagLabel(value, definitionId)
                         if (axis.id == "pulley_height") {

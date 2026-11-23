@@ -173,7 +173,7 @@ class CatalogScreensV2Test {
         val firstAxis = definition.optionAxes.first()
         val variantsTag = "catalog_inline_$firstAxis"
         if (rule.onAllNodesWithTag(variantsTag).fetchSemanticsNodes().isEmpty()) {
-            rule.onNodeWithText(name(id)).performClick()
+            rule.onAllNodesWithText(name(id)).onFirst().performClick()
             rule.waitForIdle()
         }
         val configuration = definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
@@ -191,14 +191,16 @@ class CatalogScreensV2Test {
             rule.waitForIdle()
         }
         if (closeAfter) {
-            rule.onNodeWithText(name(id)).performClick()
+            rule.onAllNodesWithText(name(id)).onFirst().performClick()
             rule.waitForIdle()
         }
     }
 
     private fun selectDefault(id: String) {
         chooseDefaultAxes(id)
-        select(id)
+        if (rule.onAllNodesWithContentDescription("Añadir ${name(id)} a la selección").fetchSemanticsNodes().isNotEmpty()) {
+            select(id)
+        }
     }
 
     private fun optionChip(definitionId: String, value: String): SemanticsMatcher =
@@ -209,8 +211,12 @@ class CatalogScreensV2Test {
         val definition = definition("chest_supported_row")
         val dumbbells = definition.configurations.single { it.id == definition.defaultConfigurationId }
         assertTrue(catalogAxisChoicesComplete(definition, dumbbells.selectedOptions))
-        assertFalse(catalogAxisChoicesComplete(definition, mapOf("implement" to "dumbbells")))
+        // grip_width es un eje secundario opcional; basta con elegir implemento (mancuernas o máquina).
+        assertTrue(catalogAxisChoicesComplete(definition, mapOf("implement" to "dumbbells")))
+        assertTrue(catalogAxisChoicesComplete(definition, mapOf("implement" to "machine")))
+        // En polea, pulley_height es obligatorio y sigue pendiente hasta elegirlo.
         assertFalse(catalogAxisChoicesComplete(definition, mapOf("implement" to "cable")))
+        assertTrue(catalogAxisChoicesComplete(definition, mapOf("implement" to "cable", "pulley_height" to "low")))
         val cable = definition.configurations.first { it.selectedOptions["implement"] == "cable" }
         assertTrue(catalogAxisChoicesComplete(definition, cable.selectedOptions))
     }
@@ -245,7 +251,6 @@ class CatalogScreensV2Test {
         rule.onNodeWithText("En polea").performClick()
         rule.onNodeWithContentDescription("Polea Baja").performClick()
         rule.onNodeWithText("Cerrado").performClick()
-        select(definition.id)
         assertEquals(lowCloseId, selection.single().catalogConfigurationId)
 
         rule.onNode(hasSetTextAction()).performTextReplacement("consulta B")
@@ -270,12 +275,24 @@ class CatalogScreensV2Test {
         val contributions = oneSeriesVolumeContributions(info)
         assertTrue(contributions.any { it.role == MuscleRole.PRIMARY && it.seriesEquivalent == 1.0 })
         assertTrue(contributions.any { it.role == MuscleRole.SECONDARY && it.seriesEquivalent == 0.5 })
-        assertTrue(contributions.any { it.role == MuscleRole.STABILIZER && it.seriesEquivalent == 0.4 })
+        assertTrue(contributions.any { it.role == MuscleRole.STABILIZER && it.seriesEquivalent == 0.0 })
         rule.setContent { CatalogMuscleContribution(info) }
         rule.onNodeWithText("Primario · 1 serie").assertExists()
         rule.onAllNodesWithText("Secundario · 0,5 series").fetchSemanticsNodes().also { assertTrue(it.isNotEmpty()) }
-        rule.onNodeWithText("Estabilizador · 0,4 series").assertExists()
+        rule.onNodeWithText("Estabilizador postural").assertExists()
         rule.onAllNodes(hasText("%", substring = true)).assertCountEquals(0)
+    }
+
+    @Test fun e1AportesMuestranEstabilizadorLimitanteConCeroComaTres() {
+        val catalog = CatalogTestBuilders.real
+        val configurationId = "romanian_deadlift__bilateral__barbell"
+        val info = requireNotNull(catalog.toLegacySelection(ExerciseSelectionV2("romanian_deadlift", configurationId, catalog.catalogRevision)))
+        val contributions = oneSeriesVolumeContributions(info)
+        assertTrue(contributions.any { it.role == MuscleRole.STABILIZER && it.seriesEquivalent == 0.3 })
+        assertTrue(contributions.any { it.role == MuscleRole.STABILIZER && it.seriesEquivalent == 0.0 })
+        rule.setContent { CatalogMuscleContribution(info) }
+        rule.onAllNodesWithText("Estabilizador limitante · 0,3 series").fetchSemanticsNodes().also { assertTrue(it.isNotEmpty()) }
+        rule.onNodeWithText("Estabilizador postural").assertExists()
     }
 
     @Test fun e1RespetaElAporteExplicitoYElPesoNeutralizadorDeEMI() {
@@ -285,15 +302,14 @@ class CatalogScreensV2Test {
         ))
         rule.setContent { CatalogMuscleContribution(info) }
         rule.onNodeWithText("Primario · 0,37 series").assertExists()
-        rule.onNodeWithText("Neutralizador · 0,1 series").assertExists()
+        rule.onNodeWithText("Neutralizador · 0 series").assertExists()
     }
 
-    @Test fun e1LaFilaRealMuestraElAporteAlDesplegarSinAbrirLaFicha() {
+    @Test fun e1LaFilaRealMuestraElFlujoGuiadoSinAporteMuscularInline() {
         mount("bench_press")
         rule.onNodeWithText(name("bench_press")).performClick()
-        chooseDefaultAxes("bench_press", closeAfter = false)
-        rule.onNodeWithTag("catalog_muscle_contribution").assertExists()
-        rule.onNodeWithText("Primario · 1 serie").assertExists()
+        rule.onNodeWithText("¿Cómo lo vas a hacer?").assertExists()
+        rule.onNodeWithTag("catalog_muscle_contribution").assertDoesNotExist()
         rule.onNodeWithTag("exercise-ficha").assertDoesNotExist()
     }
 
@@ -306,7 +322,6 @@ class CatalogScreensV2Test {
         rule.onNodeWithContentDescription("Polea Alta").assertHeightIsAtLeast(48.dp).performClick()
         rule.onNodeWithText("Amplio").performClick()
         rule.onNodeWithContentDescription("Polea Baja").performClick()
-        select("chest_supported_row")
         assertEquals(1, selection.size)
         val chosen = definition("chest_supported_row").configurations.single { it.id == selection.single().catalogConfigurationId }
         assertEquals("cable", chosen.selectedOptions["implement"])
@@ -320,7 +335,7 @@ class CatalogScreensV2Test {
     @Test fun e2CambiarMaterialOcultaLaAlturaInaplicableYPermiteAnadirOtraVariante() {
         mount("bench_press", "chest_supported_row")
         selectDefault("bench_press"); selectDefault("chest_supported_row")
-        rule.onNodeWithText(name("chest_supported_row")).performClick()
+        rule.onAllNodesWithText(name("chest_supported_row")).onFirst().performClick()
         rule.onNodeWithText("Añadir otra variante").performClick()
         rule.onNodeWithText("En polea").performClick()
         rule.onNodeWithContentDescription("Polea Alta").performClick()
@@ -343,10 +358,9 @@ class CatalogScreensV2Test {
         rule.onNodeWithContentDescription("Polea Alta").performClick()
         rule.onNodeWithText("Amplio").performClick()
         restoration.emulateSavedInstanceStateRestore()
-        waitFor("Altura de polea")
+        waitFor("Paso 2 de 3 · Altura de polea")
         rule.onNodeWithContentDescription("Polea Alta").assertIsOn()
         rule.onNodeWithText("Amplio").assertIsOn()
-        select("chest_supported_row")
         assertEquals("chest_supported_row__cable__high__wide", selection.single().catalogConfigurationId)
     }
 

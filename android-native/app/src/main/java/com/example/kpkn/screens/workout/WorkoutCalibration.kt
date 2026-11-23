@@ -52,11 +52,13 @@ internal fun calibrationContextForSet(
     val activeTag = tags.firstOrNull { it.id in state.activeTagsByExercise[exercise.id].orEmpty() }
         ?: tags.firstOrNull { WorkoutTagResolver.namesMatch(it.name, state.exerciseTags[exercise.id]) }
     val tag = recorded?.tagId ?: activeTag?.id ?: profile?.tagId ?: state.exerciseTags[exercise.id]
-    val subTags = state.activeSubTagsByExercise[exercise.id].orEmpty()
+    val key = workoutSetKey(exercise.id, index, side)
+    val subTags = state.activeSubTagsBySetKey[key]
+        ?: recorded?.subTagIds?.takeIf { it.isNotEmpty() }
+        ?: set.subTagIds
     val tech = tags.flatMap { it.subTags }.filter {
         it.id in subTags && it.category in setOf(SubTagCategory.TECNICA, SubTagCategory.MARCA)
     }.map { it.name.lowercase().replace(" ", "_") }.sorted().joinToString("+").ifBlank { null }
-    val key = workoutSetKey(exercise.id, index, side)
     val mode = recorded?.loadMode ?: state.setDrafts[key]?.loadMode
         ?: resolvePersistedLoadModeForSet(exercise.id, index, tag,
             state.persistedLoadModeBySet, state.persistedLoadModeByExercise)

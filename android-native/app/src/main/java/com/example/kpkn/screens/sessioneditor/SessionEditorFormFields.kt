@@ -219,57 +219,13 @@ internal fun DurationPickerDialog(
     onDismiss: () -> Unit,
     onConfirm: (Int) -> Unit,
 ) {
-    var minutes by rememberSaveable(initialTotalSeconds) { mutableStateOf((initialTotalSeconds / 60).coerceIn(0, 59)) }
-    var seconds by rememberSaveable(initialTotalSeconds) { mutableStateOf((initialTotalSeconds % 60).coerceIn(0, 59)) }
-
-    KpknAlertDialog(
-        onDismissRequest = onDismiss,
-        title = { Text("Elegir descanso", fontWeight = FontWeight.Black) },
-        text = {
-            Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
-                Text(
-                    "Ajusta el descanso con un selector visual nativo.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    NativeWheelPicker(
-                        label = "Min",
-                        value = minutes,
-                        range = 0..59,
-                        accentColor = accentColor,
-                        modifier = Modifier.weight(1f),
-                    ) { minutes = it }
-                    NativeWheelPicker(
-                        label = "Seg",
-                        value = seconds,
-                        range = 0..59,
-                        accentColor = accentColor,
-                        modifier = Modifier.weight(1f),
-                    ) { seconds = it }
-                }
-                Text(
-                    "Descanso seleccionado: ${minutes}:${seconds.toString().padStart(2, '0')}",
-                    style = MaterialTheme.typography.labelLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = accentColor,
-                )
-            }
-        },
-        confirmButton = {
-            FilledTonalButton(onClick = { onConfirm(minutes * 60 + seconds) }) {
-                Text("Aplicar")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Cancelar")
-            }
-        },
+    com.example.kpkn.ui.components.KpknRestClockSheet(
+        title = "Elegir descanso",
+        primaryLabel = "Descanso",
+        initialPrimarySeconds = initialTotalSeconds.coerceAtLeast(0),
+        accentColor = accentColor,
+        onDismiss = onDismiss,
+        onConfirm = { seconds, _ -> onConfirm(seconds) },
     )
 }
 

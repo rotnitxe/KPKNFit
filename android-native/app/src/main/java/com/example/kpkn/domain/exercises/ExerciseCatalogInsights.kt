@@ -474,10 +474,11 @@ fun computeExerciseVolumeSummary(info: ExerciseMuscleInfo): ExerciseVolumeSummar
     info.involvedMuscles.forEach { muscle ->
         val name = broadMuscleLabel(muscle.muscle)
         val contribution = resolveMuscleVolumeContribution(muscle, capAtOne = false)
+        if (contribution <= 0.0) return@forEach
         when (muscle.role) {
-            MuscleRole.PRIMARY -> { primary[name] = (primary[name] ?: 0.0) + contribution }
-            MuscleRole.SECONDARY -> { secondary[name] = (secondary[name] ?: 0.0) + contribution }
-            MuscleRole.STABILIZER, MuscleRole.NEUTRALIZER -> { stabilizer[name] = (stabilizer[name] ?: 0.0) + contribution }
+            MuscleRole.PRIMARY -> { primary[name] = maxOf(primary[name] ?: 0.0, contribution) }
+            MuscleRole.SECONDARY -> { secondary[name] = maxOf(secondary[name] ?: 0.0, contribution) }
+            MuscleRole.STABILIZER, MuscleRole.NEUTRALIZER -> { stabilizer[name] = maxOf(stabilizer[name] ?: 0.0, contribution) }
         }
     }
 

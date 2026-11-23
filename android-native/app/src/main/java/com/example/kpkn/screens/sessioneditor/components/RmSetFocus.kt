@@ -19,6 +19,7 @@ import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.estimateRepsFromPercent1RM
 import com.example.kpkn.domain.calculations.percentLoadReferenceKg
 import com.example.kpkn.domain.calculations.percentOfOneRm
+import com.example.kpkn.domain.calculations.resolveSmartLoadReference
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.sessioneditor.formatEditableNumber
 import com.example.kpkn.screens.sessioneditor.rmSetLoadKg
@@ -40,7 +41,11 @@ internal fun RmSetFocus(
     onOpenSmartLoad: (() -> Unit)? = null,
 ) {
     val usesTm = set.loadBasis == LoadBasis.PERCENT_TM
-    val reference = percentLoadReferenceKg(exercise, set)
+    val reference = if (set.loadBasis == null) {
+        resolveSmartLoadReference(exercise)?.kilograms ?: percentLoadReferenceKg(exercise, set)
+    } else {
+        percentLoadReferenceKg(exercise, set)
+    }
     val percent = set.targetPercentageRM
     val oneRmPercent = percentOfOneRm(exercise, set)
     val estimatedReps = oneRmPercent?.let(::estimateRepsFromPercent1RM)

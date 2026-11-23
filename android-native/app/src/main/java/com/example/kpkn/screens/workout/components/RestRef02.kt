@@ -458,6 +458,7 @@ internal fun RestRef02FullscreenScaffold(
     title: String,
     onMinimize: (() -> Unit)?,
     modifier: Modifier = Modifier,
+    contentModifier: Modifier = Modifier,
     bottom: (@Composable ColumnScope.() -> Unit)? = null,
     content: @Composable ColumnScope.(compact: Boolean) -> Unit,
 ) {
@@ -492,7 +493,7 @@ internal fun RestRef02FullscreenScaffold(
                 }
             }
             Column(
-                Modifier.weight(1f).fillMaxWidth().padding(start = horizontal, end = horizontal, top = 2.dp, bottom = 10.dp),
+                Modifier.weight(1f).fillMaxWidth().padding(start = horizontal, end = horizontal, top = 2.dp, bottom = 10.dp).then(contentModifier),
                 verticalArrangement = Arrangement.spacedBy(if (compact) 9.dp else 12.dp),
             ) { content(compact) }
             if (bottom != null) {

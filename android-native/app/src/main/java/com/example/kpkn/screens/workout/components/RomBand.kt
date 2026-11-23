@@ -100,24 +100,87 @@ internal fun RomBand(
     onOpenDetail: () -> Unit,
     modifier: Modifier = Modifier,
     hapticsEnabled: Boolean = true,
+    plannedRom: com.example.kpkn.data.models.PlannedRomTarget? = null,
+    recordedRomTarget: com.example.kpkn.data.models.PlannedRomTarget? = null,
+    onRecordedRomTargetChange: ((com.example.kpkn.data.models.PlannedRomTarget) -> Unit)? = null,
 ) {
     Row(
         modifier.fillMaxWidth().height(RomBandHeight).testTag("live-rom-band"),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        Column(Modifier.widthIn(min = 34.dp), verticalArrangement = Arrangement.Center) {
-            Text("ROM", style = TextStyle(fontFamily = WizardFonts.body, fontSize = 9.sp, lineHeight = 9.sp, fontWeight = FontWeight.SemiBold,
-                letterSpacing = 1.sp), color = RomMuted, maxLines = 1, softWrap = false)
+        val activeTarget = recordedRomTarget ?: plannedRom
+        val displayText = if (activeTarget != null) {
+            com.example.kpkn.domain.workout.RomTargetCatalog.format(activeTarget)
+        } else {
+            "${value.coerceIn(LiveRom.MIN, LiveRom.MAX)} %"
+        }
+        Column(
+            Modifier.widthIn(min = 34.dp, max = 108.dp),
+            verticalArrangement = Arrangement.Center,
+        ) {
+            val labelText = plannedRom?.let {
+                "OBJ ${com.example.kpkn.domain.workout.RomTargetCatalog.format(it)}"
+            } ?: "ROM"
             Text(
-                "${value.coerceIn(LiveRom.MIN, LiveRom.MAX)} %",
+                labelText,
+                style = TextStyle(fontFamily = WizardFonts.body, fontSize = 9.sp, lineHeight = 9.sp, fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 1.sp),
+                color = RomMuted,
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+            )
+            Text(
+                displayText,
                 Modifier.padding(top = 2.dp),
                 style = TextStyle(fontFamily = WizardFonts.body, fontSize = 13.sp, lineHeight = 15.6.sp, fontWeight = FontWeight.SemiBold,
                     fontFeatureSettings = "'tnum' 1, 'lnum' 1"),
-                color = RomInk, maxLines = 1, softWrap = false,
+                color = RomInk,
+                maxLines = 1,
+                overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
             )
         }
-        RomSlider(value, onValueChange, Modifier.weight(1f), hapticsEnabled = hapticsEnabled)
+        val useTargetMode = activeTarget != null && onRecordedRomTargetChange != null
+        val activeFraction = if (useTargetMode) {
+            com.example.kpkn.domain.workout.RomTargetCatalog.sliderFraction(activeTarget!!)
+        } else null
+        val planMarkFraction = if (useTargetMode && plannedRom != null) {
+            com.example.kpkn.domain.workout.RomTargetCatalog.sliderFraction(plannedRom)
+        } else null
+        val sliderValue = if (activeFraction != null) {
+            (LiveRom.MIN + activeFraction * (LiveRom.MAX - LiveRom.MIN)).roundToInt().coerceIn(LiveRom.MIN, LiveRom.MAX)
+        } else {
+            value
+        }
+        val handleFractionChange: ((Float) -> Unit)? = if (useTargetMode) {
+            { rawFraction ->
+                val currentMode = (recordedRomTarget ?: plannedRom)!!.mode
+                val nextTarget = com.example.kpkn.domain.workout.RomTargetCatalog.fromFraction(currentMode, rawFraction.coerceIn(0f, 1f))
+                if (nextTarget != activeTarget) {
+                    onRecordedRomTargetChange!!(nextTarget)
+                    onValueChange(com.example.kpkn.domain.workout.RomTargetCatalog.toApproxPercent(nextTarget).coerceIn(LiveRom.MIN, LiveRom.MAX))
+                }
+            }
+        } else null
+        val handleSliderChange: (Int) -> Unit = if (useTargetMode) {
+            { nextInt ->
+                val nextFraction = ((nextInt - LiveRom.MIN).toFloat() / (LiveRom.MAX - LiveRom.MIN).toFloat()).coerceIn(0f, 1f)
+                handleFractionChange?.invoke(nextFraction)
+            }
+        } else {
+            onValueChange
+        }
+        RomSlider(
+            value = sliderValue,
+            onValueChange = handleSliderChange,
+            modifier = Modifier.weight(1f),
+            hapticsEnabled = hapticsEnabled,
+            fractionOverride = activeFraction,
+            onFractionChange = handleFractionChange,
+            planMarkFraction = planMarkFraction,
+            tipTextOverride = if (useTargetMode) displayText else null,
+            stateDescriptionOverride = if (useTargetMode) displayText else null,
+        )
         Box(
             Modifier.height(RomBandHeight)
                 .clickable(role = Role.Button, onClickLabel = "Abrir detalle del registro", onClick = onOpenDetail)
@@ -148,12 +211,19 @@ internal fun RomSlider(
     modifier: Modifier = Modifier,
     height: Dp = RomBandHeight,
     hapticsEnabled: Boolean = true,
+    fractionOverride: Float? = null,
+    onFractionChange: ((Float) -> Unit)? = null,
+    planMarkFraction: Float? = null,
+    tipTextOverride: String? = null,
+    stateDescriptionOverride: String? = null,
 ) {
     val v = value.coerceIn(LiveRom.MIN, LiveRom.MAX)
     val density = LocalDensity.current
     val haptic = LocalHapticFeedback.current
     val onChange by rememberUpdatedState(onValueChange)
+    val onFracChange by rememberUpdatedState(onFractionChange)
     val current by rememberUpdatedState(v)
+    val currentTip by rememberUpdatedState(tipTextOverride)
     var tipOn by remember { mutableStateOf(false) }
     var touching by remember { mutableStateOf(false) }
     var focused by remember { mutableStateOf(false) }
@@ -172,6 +242,19 @@ internal fun RomSlider(
             if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
         }
     }
+    fun commitFraction(rawFrac: Float) {
+        val cb = onFracChange
+        if (cb != null) {
+            val prevTip = currentTip
+            cb(rawFrac.coerceIn(0f, 1f))
+            if (currentTip != prevTip) {
+                popKey++
+                if (hapticsEnabled) haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+            }
+        } else {
+            commit(LiveRom.snap(LiveRom.MIN + rawFrac.coerceIn(0f, 1f) * (LiveRom.MAX - LiveRom.MIN)))
+        }
+    }
 
     // pulido:lv-S18 (anillo de foco del deslizador)
     Box(
@@ -180,23 +263,27 @@ internal fun RomSlider(
             .focusable()
             .semantics {
                 contentDescription = "ROM, recorrido de la serie"
-                stateDescription = "$v %, ${LiveRom.zone(v).label}"
+                stateDescription = stateDescriptionOverride ?: "$v %, ${LiveRom.zone(v).label}"
                 progressBarRangeInfo = ProgressBarRangeInfo(v.toFloat(), LiveRom.MIN.toFloat()..LiveRom.MAX.toFloat(),
                     (LiveRom.MAX - LiveRom.MIN) / LiveRom.STEP - 1)
-                setProgress { target -> commit(LiveRom.snap(target)); true }
+                setProgress { target ->
+                    val frac = ((target - LiveRom.MIN) / (LiveRom.MAX - LiveRom.MIN).toFloat()).coerceIn(0f, 1f)
+                    if (onFracChange != null) commitFraction(frac) else commit(LiveRom.snap(target))
+                    true
+                }
             }
             .pointerInput(Unit) {
                 awaitEachGesture {
                     val pad = RomPad.toPx()
-                    fun valueAt(x: Float): Int {
+                    fun fracAt(x: Float): Float {
                         val span = (size.width - 2f * pad).coerceAtLeast(1f)
-                        return LiveRom.snap(LiveRom.MIN + (x - pad) / span * (LiveRom.MAX - LiveRom.MIN))
+                        return ((x - pad) / span).coerceIn(0f, 1f)
                     }
                     val down = awaitFirstDown(requireUnconsumed = false)
                     down.consume()
                     touching = true
-                    commit(valueAt(down.position.x))
-                    drag(down.id) { change -> change.consume(); commit(valueAt(change.position.x)) }
+                    commitFraction(fracAt(down.position.x))
+                    drag(down.id) { change -> change.consume(); commitFraction(fracAt(change.position.x)) }
                     touching = false
                 }
             },
@@ -206,17 +293,23 @@ internal fun RomSlider(
             val widthPx = with(density) { maxWidth.toPx() }
             val span = (widthPx - 2f * padPx).coerceAtLeast(1f)
             fun xOf(mark: Int) = padPx + LiveRom.fraction(mark) * span
-            val thumbX = xOf(v)
+            val thumbX = padPx + (fractionOverride?.coerceIn(0f, 1f) ?: LiveRom.fraction(v)) * span
             // Pista (top 16, 4 dp, blanco al 7 %) y tramo hecho en crema hasta el pulgar.
             Box(Modifier.align(Alignment.TopStart).offset(y = 16.dp).fillMaxWidth().height(4.dp).clip(RoundedCornerShape(2.dp))
                 .background(Color(0x12FFFFFF))) {
                 Box(Modifier.fillMaxHeight().width(with(density) { thumbX.toDp() }).background(RomFill))
             }
-            // Marcas 50 / 80 / 100: las que quedan bajo el tramo hecho se oscurecen para leerse sobre el crema.
-            LiveRom.MARKS.forEach { mark ->
-                val x = xOf(mark)
+            if (planMarkFraction != null) {
+                val x = padPx + planMarkFraction.coerceIn(0f, 1f) * span
                 Box(Modifier.offset { IntOffset((x - 1.dp.toPx()).roundToInt(), 12.dp.roundToPx()) }.size(width = 2.dp, height = 12.dp)
-                    .background(if (x < thumbX - with(density) { 3.dp.toPx() }) Color(0x99111111) else Color(0x30FFFFFF), RoundedCornerShape(1.dp)))
+                    .background(if (x < thumbX - with(density) { 3.dp.toPx() }) Color(0x99111111) else Color(0x66FFFFFF), RoundedCornerShape(1.dp)))
+            } else {
+                // Marcas 50 / 80 / 100: las que quedan bajo el tramo hecho se oscurecen para leerse sobre el crema.
+                LiveRom.MARKS.forEach { mark ->
+                    val x = xOf(mark)
+                    Box(Modifier.offset { IntOffset((x - 1.dp.toPx()).roundToInt(), 12.dp.roundToPx()) }.size(width = 2.dp, height = 12.dp)
+                        .background(if (x < thumbX - with(density) { 3.dp.toPx() }) Color(0x99111111) else Color(0x30FFFFFF), RoundedCornerShape(1.dp)))
+                }
             }
             // Pulgar: 20 dp crema con un aro de 4 dp del color de la tarjeta. pulido:lv-S19 lv-A11
             Box(
@@ -230,7 +323,7 @@ internal fun RomSlider(
             if (tipProgress > 0.001f) {
                 // Burbuja de la zona sobre el pulgar (`.lv-rtip`: bottom 34 dp de la pista de 36). pulido:lv-S20
                 Text(
-                    LiveRom.tipText(v),
+                    tipTextOverride ?: LiveRom.tipText(v),
                     Modifier.offset { IntOffset(thumbX.roundToInt(), 0) }
                         .graphicsLayer { alpha = tipProgress; translationY = (1f - tipProgress) * 4.dp.toPx() }
                         .layout { measurable, _ ->

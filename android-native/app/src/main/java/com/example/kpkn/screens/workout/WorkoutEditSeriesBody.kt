@@ -139,20 +139,32 @@ internal fun LiveEditSeriesBody(
         ?: initialSetIndex.coerceIn(0, (sets.size - 1).coerceAtLeast(0))
     val selected = sets.getOrNull(selectedIndex)
     val side = if (unilateral) selectedSide.takeIf { it in orderedSides } ?: orderedSides.first() else null
-    val predicted = remember(exercise.trainingMode, exercise.reference1RM, exercise.referenceTrainingMax, exercise.prFor1RM, exercise.sets) {
-        sets.associate { set -> set.id to calculateSuggestedLoad(exercise, set) }
+    val predicted = remember(exercise.trainingMode, exercise.reference1RM, exercise.referenceTrainingMax, exercise.smartLoadBasis, exercise.loadReference, exercise.prFor1RM, exercise.sets) {
+        buildMap<Pair<String, String?>, Double?> {
+            sets.forEach { set ->
+                put(set.id to null, com.example.kpkn.domain.calculations.calculateSuggestedLoadForTarget(exercise, set, null))
+                put(set.id to "L", com.example.kpkn.domain.calculations.calculateSuggestedLoadForTarget(exercise, set, set.leftTarget))
+                put(set.id to "R", com.example.kpkn.domain.calculations.calculateSuggestedLoadForTarget(exercise, set, set.rightTarget))
+            }
+        }
     }
     fun summaryOf(set: ExerciseSet, ofSide: String?): SetRowSummary = setRowSummary(
         set = set,
         side = ofSide,
         mode = exercise.trainingMode,
         customUnit = exercise.customUnit,
-        predictedWeight = predicted[set.id],
+        predictedWeight = predicted[set.id to ofSide] ?: predicted[set.id to null],
         estimatedMetric = null,
     )
 
     /** La dosis de una serie como la lee la sesión en vivo: «8 × 100 kg» (reps × carga) en Reps y AMRAP; en los demás modos, la del editor. */
-    fun doseOf(set: ExerciseSet): String = liveSetDose(set, exercise.trainingMode, summaryOf(set, null).dose, predicted[set.id])
+    fun doseOf(set: ExerciseSet): String = liveSetDose(
+        set = set,
+        mode = exercise.trainingMode,
+        editorDose = summaryOf(set, side).dose,
+        predictedWeight = predicted[set.id to side] ?: predicted[set.id to null],
+        side = side,
+    )
 
     fun addSet() {
         val lastSet = sets.lastOrNull()
@@ -278,7 +290,7 @@ internal fun LiveEditSeriesBody(
                 horizontalArrangement = Arrangement.spacedBy(gap),
             ) {
                 sets.forEachIndexed { index, set ->
-                    val summary = summaryOf(set, null)
+                    val summary = summaryOf(set, side)
                     LiveEditSetChip(
                         number = index + 1,
                         dose = doseOf(set).replace(" kg", ""),
@@ -385,7 +397,7 @@ internal fun LiveEditSeriesBody(
                             index = selectedIndex,
                             reference1RM = reference1RM,
                             trainingMax = exercise.referenceTrainingMax,
-                            predictedWeight = predicted[selected.id],
+                            predictedWeight = predicted[selected.id to side] ?: predicted[selected.id to null],
                             estimatedMetric = null,
                             trainingMode = exercise.trainingMode,
                             customUnit = exercise.customUnit,
@@ -722,14 +734,28 @@ private fun LiveEditActionChip(
  * espacio inseparable, como la lee la sesión en vivo; sin carga, solo las repeticiones. En los demás modos, la dosis del editor
  * ([editorDose], con el tiempo, la distancia, el %RM…). [predictedWeight] solo cuenta si la serie no tiene carga guardada.
  */
-internal fun liveSetDose(set: ExerciseSet, mode: TrainingMode, editorDose: String, predictedWeight: Double?): String {
+internal fun liveSetDose(
+    set: ExerciseSet,
+    mode: TrainingMode,
+    editorDose: String,
+    predictedWeight: Double?,
+    side: String? = null,
+): String {
     if (mode != TrainingMode.REPS && mode != TrainingMode.AMRAP) return editorDose
+    val target = when (side) {
+        "L" -> set.leftTarget
+        "R" -> set.rightTarget
+        else -> set.leftTarget ?: set.rightTarget
+    }
     val reps = if (set.purpose.isAmrap) {
         set.amrapMinimumReps?.let { "$it+" } ?: "AMRAP"
     } else {
-        set.targetRepsRange?.format() ?: set.targetReps?.toString()
+        target?.targetRepsRange?.format()
+            ?: target?.targetReps?.toString()
+            ?: set.targetRepsRange?.format()
+            ?: set.targetReps?.toString()
     }
-    val kg = (set.weight?.takeIf { it > 0.0 } ?: predictedWeight)?.let { formatMax2Decimals(it).replace('.', ',') }
+    val kg = ((target?.weight ?: set.weight)?.takeIf { it > 0.0 } ?: predictedWeight)?.let { formatMax2Decimals(it).replace('.', ',') }
     return when {
         reps != null && kg != null -> "$reps × $kg kg"
         kg != null -> "$kg kg"

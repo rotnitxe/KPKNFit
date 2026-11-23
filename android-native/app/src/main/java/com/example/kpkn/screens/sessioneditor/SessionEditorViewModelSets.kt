@@ -49,10 +49,26 @@ internal fun ExerciseSet.withSideConfigOf(source: ExerciseSet, side: String, sha
     val sourceTarget = (if (side == "L") source.leftTarget else source.rightTarget) ?: return this
     val touchLeft = side == "L" || sharedSides
     val touchRight = side == "R" || sharedSides
-    return copy(
+    val isFailure = (sourceTarget.intensityMode ?: source.intensityMode) == com.example.kpkn.data.models.IntensityMode.FAILURE
+    val updated = copy(
         leftTarget = if (touchLeft && leftTarget != null) sourceTarget else leftTarget,
         rightTarget = if (touchRight && rightTarget != null) sourceTarget else rightTarget,
     )
+    return if (sharedSides) {
+        updated.copy(
+            weight = sourceTarget.weight ?: updated.weight,
+            targetReps = sourceTarget.targetReps,
+            targetRepsRange = sourceTarget.targetRepsRange,
+            targetDuration = sourceTarget.targetDuration ?: updated.targetDuration,
+            plannedTargetV2 = sourceTarget.targetValue ?: updated.plannedTargetV2,
+            intensityMode = sourceTarget.intensityMode ?: updated.intensityMode,
+            targetRPE = if (isFailure) null else sourceTarget.targetRPE,
+            targetRIR = if (isFailure) null else sourceTarget.targetRIR,
+            isFailure = isFailure,
+        )
+    } else {
+        updated
+    }
 }
 
 /**

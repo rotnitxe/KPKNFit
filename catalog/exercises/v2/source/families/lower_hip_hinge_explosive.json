@@ -171,11 +171,10 @@
                     "hamstrings",
                     "gluteus_maximus"
                   ],
-                  "secondaryMuscles": [
-                    "quadriceps",
-                    "deltoid"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
+                    "quadriceps",
+                    "deltoid",
                     "erector_spinae",
                     "core",
                     "gluteus_medius",
@@ -242,10 +241,7 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "quadriceps",
-                "deltoid"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Coloca la kettlebell un poco delante de tus pies y abre la base para dejarla pasar entre los muslos.",
                 "Inclina el tronco desde la cadera y agarra el asa con ambas manos.",
@@ -253,6 +249,8 @@
               ],
               "setupTimeSeconds": 30,
               "stabilizerMuscles": [
+                "quadriceps",
+                "deltoid",
                 "erector_spinae",
                 "core",
                 "gluteus_medius",
@@ -448,11 +446,10 @@
                     "hamstrings",
                     "gluteus_maximus"
                   ],
-                  "secondaryMuscles": [
-                    "quadriceps",
-                    "deltoid"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [
+                    "quadriceps",
+                    "deltoid",
                     "erector_spinae",
                     "core",
                     "gluteus_medius",
@@ -519,10 +516,7 @@
                   "replacementPriority": null
                 }
               },
-              "secondaryMuscles": [
-                "quadriceps",
-                "deltoid"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Separa los pies para abrir el paso de la campana y agarra el asa por su centro con una mano.",
                 "Deja libre la otra mano y orienta pecho y pelvis hacia el mismo frente.",
@@ -530,6 +524,8 @@
               ],
               "setupTimeSeconds": 30,
               "stabilizerMuscles": [
+                "quadriceps",
+                "deltoid",
                 "erector_spinae",
                 "core",
                 "gluteus_medius",
@@ -648,12 +644,14 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_explosive",
               "performanceProfileId": "power_clean__barbell__cargada_de_potencia",
               "primaryMuscles": [
-                "gluteus_maximus",
-                "quadriceps"
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -736,16 +734,19 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
-                    "gluteus_maximus",
-                    "quadriceps"
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "hamstrings",
-                    "trapezius",
-                    "calves"
+                    "trapezius"
                   ],
                   "stabilizerMuscles": [
+                    "calves",
                     "deltoid",
                     "biceps",
                     "erector_spinae",
@@ -814,17 +815,16 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "hip_hinge_explosive:gluteus_maximus",
-                    "hip_hinge_explosive:quadriceps"
+                    "hip_hinge_explosive:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "hamstrings",
-                "trapezius",
-                "calves"
+                "trapezius"
               ],
               "setupCues": [
                 "Coloca los pies a la anchura de las caderas, con la barra sobre el centro del pie y rozando las espinillas.",
@@ -833,6 +833,7 @@
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
+                "calves",
                 "deltoid",
                 "biceps",
                 "erector_spinae",
@@ -960,12 +961,14 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_explosive",
               "performanceProfileId": "hang_power_clean__barbell__cargada_de_potencia_desde_colgado",
               "primaryMuscles": [
-                "gluteus_maximus",
-                "quadriceps"
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -1048,16 +1051,19 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
-                    "gluteus_maximus",
-                    "quadriceps"
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "hamstrings",
-                    "trapezius",
-                    "calves"
+                    "trapezius"
                   ],
                   "stabilizerMuscles": [
+                    "calves",
                     "deltoid",
                     "biceps",
                     "erector_spinae",
@@ -1126,17 +1132,16 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "hip_hinge_explosive:gluteus_maximus",
-                    "hip_hinge_explosive:quadriceps"
+                    "hip_hinge_explosive:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "hamstrings",
-                "trapezius",
-                "calves"
+                "trapezius"
               ],
               "setupCues": [
                 "Levanta la barra del suelo hasta quedar de pie y déjala colgando a media altura del muslo.",
@@ -1145,6 +1150,7 @@
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
+                "calves",
                 "deltoid",
                 "biceps",
                 "erector_spinae",
@@ -1274,6 +1280,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_explosive",
               "performanceProfileId": "squat_clean__barbell__cargada_completa",
@@ -1366,6 +1375,9 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
                     "quadriceps",
                     "gluteus_maximus"
@@ -1373,10 +1385,10 @@
                   "secondaryMuscles": [
                     "hamstrings",
                     "adductors",
-                    "trapezius",
-                    "calves"
+                    "trapezius"
                   ],
                   "stabilizerMuscles": [
+                    "calves",
                     "deltoid",
                     "biceps",
                     "erector_spinae",
@@ -1455,8 +1467,7 @@
               "secondaryMuscles": [
                 "hamstrings",
                 "adductors",
-                "trapezius",
-                "calves"
+                "trapezius"
               ],
               "setupCues": [
                 "Pon los pies a la anchura de las caderas con la barra sobre el centro del pie, y agárrala por fuera de las rodillas.",
@@ -1465,6 +1476,7 @@
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
+                "calves",
                 "deltoid",
                 "biceps",
                 "erector_spinae",
@@ -1599,12 +1611,14 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_explosive",
               "performanceProfileId": "power_snatch__barbell__arranque_de_potencia",
               "primaryMuscles": [
-                "gluteus_maximus",
-                "quadriceps"
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -1695,18 +1709,21 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
-                    "gluteus_maximus",
-                    "quadriceps"
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "hamstrings",
                     "trapezius",
                     "deltoid",
-                    "triceps",
-                    "calves"
+                    "triceps"
                   ],
                   "stabilizerMuscles": [
+                    "calves",
                     "erector_spinae",
                     "core",
                     "forearm"
@@ -1774,19 +1791,18 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "hip_hinge_explosive:gluteus_maximus",
-                    "hip_hinge_explosive:quadriceps"
+                    "hip_hinge_explosive:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "hamstrings",
                 "trapezius",
                 "deltoid",
-                "triceps",
-                "calves"
+                "triceps"
               ],
               "setupCues": [
                 "Agarra la barra con un agarre muy ancho, de modo que de pie y con los brazos estirados quede en el pliegue de la cadera.",
@@ -1795,6 +1811,7 @@
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
+                "calves",
                 "erector_spinae",
                 "core",
                 "forearm"
@@ -1927,12 +1944,14 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_explosive",
               "performanceProfileId": "hang_power_snatch__barbell__arranque_de_potencia_desde_colgado",
               "primaryMuscles": [
-                "gluteus_maximus",
-                "quadriceps"
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -2023,18 +2042,21 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
-                    "gluteus_maximus",
-                    "quadriceps"
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "hamstrings",
                     "trapezius",
                     "deltoid",
-                    "triceps",
-                    "calves"
+                    "triceps"
                   ],
                   "stabilizerMuscles": [
+                    "calves",
                     "erector_spinae",
                     "core",
                     "forearm"
@@ -2102,19 +2124,18 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "hip_hinge_explosive:gluteus_maximus",
-                    "hip_hinge_explosive:quadriceps"
+                    "hip_hinge_explosive:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "hamstrings",
                 "trapezius",
                 "deltoid",
-                "triceps",
-                "calves"
+                "triceps"
               ],
               "setupCues": [
                 "Levanta la barra del suelo con el agarre ancho de arranque hasta ponerte de pie, con la barra en el pliegue de la cadera.",
@@ -2123,6 +2144,7 @@
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
+                "calves",
                 "erector_spinae",
                 "core",
                 "forearm"
@@ -2257,6 +2279,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_explosive",
               "performanceProfileId": "squat_snatch__barbell__arranque_completo",
@@ -2357,6 +2382,9 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
                     "quadriceps",
                     "gluteus_maximus"
@@ -2366,10 +2394,10 @@
                     "adductors",
                     "trapezius",
                     "deltoid",
-                    "triceps",
-                    "calves"
+                    "triceps"
                   ],
                   "stabilizerMuscles": [
+                    "calves",
                     "gluteus_medius",
                     "erector_spinae",
                     "core",
@@ -2452,8 +2480,7 @@
                 "adductors",
                 "trapezius",
                 "deltoid",
-                "triceps",
-                "calves"
+                "triceps"
               ],
               "setupCues": [
                 "Toma la barra con el agarre ancho de arranque y los brazos estirados.",
@@ -2462,6 +2489,7 @@
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
+                "calves",
                 "gluteus_medius",
                 "erector_spinae",
                 "core",
@@ -2579,12 +2607,14 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_explosive",
               "performanceProfileId": "clean_pull__barbell__tiron_de_cargada",
               "primaryMuscles": [
-                "gluteus_maximus",
-                "quadriceps"
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -2651,16 +2681,19 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
-                    "gluteus_maximus",
-                    "quadriceps"
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "hamstrings",
-                    "trapezius",
-                    "calves"
+                    "trapezius"
                   ],
                   "stabilizerMuscles": [
+                    "calves",
                     "erector_spinae",
                     "core",
                     "forearm"
@@ -2725,17 +2758,16 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "hip_hinge_explosive:gluteus_maximus",
-                    "hip_hinge_explosive:quadriceps"
+                    "hip_hinge_explosive:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "hamstrings",
-                "trapezius",
-                "calves"
+                "trapezius"
               ],
               "setupCues": [
                 "Coloca la barra sobre el centro del pie y toma el agarre por fuera de las rodillas, algo más abierto que los hombros.",
@@ -2744,6 +2776,7 @@
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
+                "calves",
                 "erector_spinae",
                 "core",
                 "forearm"
@@ -2864,12 +2897,14 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_explosive",
               "performanceProfileId": "snatch_pull__barbell__tiron_de_arranque",
               "primaryMuscles": [
-                "gluteus_maximus",
-                "quadriceps"
+                "gluteus_maximus"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -2944,16 +2979,19 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
+                  ],
                   "primaryMuscles": [
-                    "gluteus_maximus",
-                    "quadriceps"
+                    "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
+                    "quadriceps",
                     "hamstrings",
-                    "trapezius",
-                    "calves"
+                    "trapezius"
                   ],
                   "stabilizerMuscles": [
+                    "calves",
                     "erector_spinae",
                     "core",
                     "forearm"
@@ -3019,17 +3057,16 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "hip_hinge_explosive:gluteus_maximus",
-                    "hip_hinge_explosive:quadriceps"
+                    "hip_hinge_explosive:gluteus_maximus"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
+                "quadriceps",
                 "hamstrings",
-                "trapezius",
-                "calves"
+                "trapezius"
               ],
               "setupCues": [
                 "Agarra la barra con el ancho del arranque y los brazos estirados.",
@@ -3038,6 +3075,7 @@
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
+                "calves",
                 "erector_spinae",
                 "core",
                 "forearm"

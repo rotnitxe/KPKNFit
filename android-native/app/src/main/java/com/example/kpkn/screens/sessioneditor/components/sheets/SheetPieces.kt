@@ -81,24 +81,5 @@ internal fun SheetTag(
     )
 }
 
-/**
- * Área de un diálogo del ejercicio (ER1e): llena la pantalla por encima del teclado. El diálogo sigue siendo el de siempre, centrado;
- * solo que su centro es el espacio libre, así sube con el teclado y su campo y su botón quedan a la vista (como hizo SE11 con las hojas).
- * [imeInsets] se cambia en las pruebas para simular el teclado.
- */
-@Composable
-internal fun EditorDialogImeArea(
-    imeInsets: WindowInsets = WindowInsets.ime,
-    content: @Composable () -> Unit,
-) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .windowInsetsPadding(imeInsets),
-    ) {
-        content()
-    }
-}
-
 /** Cifra decimal con coma, como pide la piel («102,5»). Sin decimales, solo la cifra. */
 internal fun formatDecimalComma(value: Double?): String = formatEditableNumber(value).replace('.', ',')

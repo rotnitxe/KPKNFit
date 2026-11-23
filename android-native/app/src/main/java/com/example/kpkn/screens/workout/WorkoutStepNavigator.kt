@@ -374,30 +374,42 @@ class WorkoutStepNavigator(
     fun selectExercise(idx: Int) {
         val state = getState()
         val targetExercise = ports.visibleExercises(state).getOrNull(idx)
-        val targetStep = targetExercise?.let { firstIncompleteStepForExercise(state, it) }
+        val visible = ports.visibleExercises(state)
+        val targetStep = targetExercise?.let {
+            firstIncompleteStepForExercise(state, it)
+                ?: if (it.isCardio) workoutStepPositions(state).firstOrNull { step -> step.exerciseId == it.id } else null
+        }
         val targetSetIdx = targetStep?.setIndex ?: 0
         if (targetStep == null && cardioTimerProtectsSeries(state.cardioTimerState)) {
             ports.onCardioSeriesSelectionBlocked()
             return
         }
         if (targetStep != null && !canSelectStep(state, targetStep)) return
-        ports.stopRestTimer()
+        val fallbackStepKey = targetStep?.stepKey
+            ?: if (targetExercise?.isCardio == true) {
+                WorkoutStepRules.cardioStepKey(targetExercise.id, targetSetIdx)
+            } else if (targetExercise != null) {
+                workoutStepPositions(state).firstOrNull { it.exerciseId == targetExercise.id }?.stepKey
+            } else null
         updateState {
             it.copy(
                 currentExerciseIdx = idx,
                 currentSetIdx = targetSetIdx,
-                activeStepKey = targetStep?.stepKey,
+                activeStepKey = fallbackStepKey,
                 currentAutoRegulation = null,
                 pendingRestSuggestion = null,
                 restModalState = null,
                 postExerciseFeedbackTarget = null,
                 showPostExerciseSheet = false,
                 postExerciseTargetIdx = -1,
+                pendingPostExerciseIdx = -1,
+                showFinishSheet = false,
                 editingState = ports.buildEditingStateForPosition(it.completedSets, targetExercise, targetSetIdx),
                 continuityTransitionTarget = null,
                 continuityFeedbackExerciseId = null,
             )
         }
+        ports.stopRestTimer()
         ports.persistOngoingState(immediate = false)
         ports.speakCurrentStepAnnouncementIfEnabled()
     }
@@ -434,6 +446,7 @@ class WorkoutStepNavigator(
             updateState {
                 it.copy(
                     showPostExerciseSheet = shouldShowFeedback,
+                    isRestMinimized = if (shouldShowFeedback) false else it.isRestMinimized,
                     postExerciseTargetIdx = state.currentExerciseIdx,
                     postExerciseFeedbackTarget = feedbackTarget.takeIf { shouldShowFeedback },
                     pendingPostExerciseIdx = -2,
@@ -478,6 +491,7 @@ class WorkoutStepNavigator(
                 updateState {
                     it.copy(
                         showPostExerciseSheet = true,
+                        isRestMinimized = false,
                         postExerciseTargetIdx = state.currentExerciseIdx,
                         postExerciseFeedbackTarget = feedbackTarget,
                         pendingPostExerciseIdx = nextExerciseIdx,
@@ -491,6 +505,7 @@ class WorkoutStepNavigator(
                     return
                 }
             } else {
+                if (nextExercise.isCardio) ports.stopRestTimer()
                 updateState {
                     it.copy(
                         currentExerciseIdx = nextExerciseIdx,
@@ -507,6 +522,7 @@ class WorkoutStepNavigator(
                 }
             }
         } else {
+            if (nextExercise.isCardio) ports.stopRestTimer()
             updateState {
                 it.copy(
                     currentExerciseIdx = nextExerciseIdx,
@@ -527,11 +543,15 @@ class WorkoutStepNavigator(
     }
 
     fun selectSupersetGroup(groupId: String) {
-        if (getState().showPostExerciseSheet) return
         val state = getState()
         val visible = ports.visibleExercises(state)
-        val targetStep = workoutStepPositions(state).firstOrNull { step ->
-            step.supersetGroupId == groupId &&
+        val groupMemberIds = visible
+            .filter { it.supersetGroupRefOrLegacyId() == groupId }
+            .map { it.id }
+            .toSet()
+        val steps = workoutStepPositions(state)
+        val targetStep = steps.firstOrNull { step ->
+            (step.supersetGroupId == groupId || step.exerciseId in groupMemberIds) &&
                 !isWorkoutStepDone(
                     step = step,
                     visible = visible,
@@ -540,23 +560,29 @@ class WorkoutStepNavigator(
                     mobilityCompletedExerciseIds = state.mobilityCompletedExerciseIds,
                     mobilityTotalCompletedStepKeys = state.mobilityTotalCompletedStepKeys,
                 )
-        } ?: workoutStepPositions(state).firstOrNull { it.supersetGroupId == groupId }
+        } ?: steps.firstOrNull { it.supersetGroupId == groupId || it.exerciseId in groupMemberIds }
             ?: return
         val position = targetStep.positionIn(visible) ?: return
-        if (position.first == state.currentExerciseIdx && position.second == state.currentSetIdx) {
+        if (!state.showPostExerciseSheet && !state.showFinishSheet &&
+            position.first == state.currentExerciseIdx && position.second == state.currentSetIdx
+        ) {
             return
         }
         if (!canSelectStep(state, targetStep)) return
-        ports.stopRestTimer()
         val targetExercise = visible.getOrNull(position.first)
         updateState {
             it.copy(
                 currentExerciseIdx = position.first,
                 currentSetIdx = position.second,
                 activeStepKey = targetStep.stepKey,
+                isRestMinimized = if (it.isRestTimerRunning) true else it.isRestMinimized,
+                showPostExerciseSheet = false,
+                postExerciseTargetIdx = -1,
+                postExerciseFeedbackTarget = null,
+                pendingPostExerciseIdx = -1,
+                showFinishSheet = false,
                 currentAutoRegulation = null,
                 pendingRestSuggestion = null,
-                restModalState = null,
                 editingState = ports.buildEditingStateForPosition(it.completedSets, targetExercise, position.second),
                 continuityTransitionTarget = null,
                 continuityFeedbackExerciseId = null,
@@ -572,7 +598,12 @@ class WorkoutStepNavigator(
         val targetStep = workoutStepPositions(state).firstOrNull { it.stepKey == stepKey } ?: return
         val position = targetStep.positionIn(visible) ?: return
         val targetExercise = visible.getOrNull(position.first)
-        if (position.first == state.currentExerciseIdx && position.second == state.currentSetIdx && state.activeStepKey == stepKey) {
+        if (position.first == state.currentExerciseIdx &&
+            position.second == state.currentSetIdx &&
+            state.activeStepKey == stepKey &&
+            !state.showPostExerciseSheet &&
+            !state.showFinishSheet
+        ) {
             return
         }
         if (!canSelectStep(state, targetStep)) return
@@ -588,20 +619,20 @@ class WorkoutStepNavigator(
                 targetExercise.isEffectivelyUnilateral(),
             )
         )
-        if (!isReviewDuringActiveRest) {
-            ports.stopRestTimer()
-        }
         updateState {
             it.copy(
                 currentExerciseIdx = position.first,
                 currentSetIdx = position.second,
                 activeStepKey = targetStep.stepKey,
+                isRestMinimized = if (it.isRestTimerRunning) true else it.isRestMinimized,
+                showPostExerciseSheet = false,
+                postExerciseTargetIdx = -1,
+                postExerciseFeedbackTarget = null,
+                pendingPostExerciseIdx = -1,
+                showFinishSheet = false,
                 currentAutoRegulation = null,
                 pendingRestSuggestion = if (isReviewDuringActiveRest) it.pendingRestSuggestion else null,
                 restModalState = if (isReviewDuringActiveRest) it.restModalState else null,
-                showPostExerciseSheet = if (isReviewDuringActiveRest) it.showPostExerciseSheet else false,
-                postExerciseTargetIdx = if (isReviewDuringActiveRest) it.postExerciseTargetIdx else -1,
-                postExerciseFeedbackTarget = if (isReviewDuringActiveRest) it.postExerciseFeedbackTarget else null,
                 editingState = if (targetStep.type == WorkoutStepType.WORKING_SET) {
                     ports.buildEditingStateForPosition(it.completedSets, targetExercise, position.second)
                 } else {
@@ -611,8 +642,30 @@ class WorkoutStepNavigator(
                 continuityFeedbackExerciseId = if (isReviewDuringActiveRest) it.continuityFeedbackExerciseId else null,
             )
         }
+        if (!isReviewDuringActiveRest) {
+            ports.stopRestTimer()
+        }
         // Cursor navigation only — never block main on Room (ANR on Siguiente / rail taps).
         ports.persistOngoingState(immediate = false)
+    }
+
+    fun navigateAdjacentExerciseGroup(forward: Boolean) {
+        val state = getState()
+        val visible = ports.visibleExercises(state)
+        if (visible.isEmpty()) return
+        val groups = liveRouteGroups(visible, state.session?.allSupersetGroups().orEmpty())
+        val currentId = visible.getOrNull(state.currentExerciseIdx)?.id ?: return
+        val currentGroupIdx = groups.indexOfFirst { g -> g.members.any { it.id == currentId } }
+        if (currentGroupIdx < 0) return
+        val targetGroupIdx = (currentGroupIdx + if (forward) 1 else -1)
+        if (targetGroupIdx !in groups.indices) return
+        val targetGroup = groups[targetGroupIdx]
+        if (targetGroup.superset && targetGroup.id != null) {
+            selectSupersetGroup(targetGroup.id)
+        } else {
+            val targetExIdx = visible.indexOfFirst { it.id == targetGroup.members.first().id }
+            if (targetExIdx >= 0) selectExercise(targetExIdx)
+        }
     }
 
     fun navigateAdjacentWorkingStep(forward: Boolean) {
@@ -620,7 +673,7 @@ class WorkoutStepNavigator(
         val state = getState()
         val visible = ports.visibleExercises(state)
         val steps = workoutStepPositions(state)
-            .filter { it.type == WorkoutStepType.WORKING_SET }
+            .filter { it.type == WorkoutStepType.WORKING_SET || it.type == WorkoutStepType.CARDIO }
         if (steps.isEmpty()) return
         val currentIdx = steps.indexOfFirst { it.stepKey == state.activeStepKey }
             .takeIf { it >= 0 }
@@ -640,7 +693,6 @@ class WorkoutStepNavigator(
     }
 
     fun selectSupersetRound(roundIdx: Int) {
-        if (getState().showPostExerciseSheet) return
         val state = getState()
         val visible = ports.visibleExercises(state)
         val currentExercise = visible.getOrNull(state.currentExerciseIdx) ?: return
@@ -655,11 +707,10 @@ class WorkoutStepNavigator(
                 step.supersetGroupId == groupId &&
                 step.setIndex == roundIdx
         } ?: return
-        selectWorkoutStep(targetStep.stepKey)
+        selectWorkoutStep(targetStep.stepKey, preserveRestForNextStep = state.isRestTimerRunning)
     }
 
     fun selectExerciseInSupersetRound(exerciseId: String) {
-        if (getState().showPostExerciseSheet) return
         val state = getState()
         val visible = ports.visibleExercises(state)
         val currentExercise = visible.getOrNull(state.currentExerciseIdx) ?: return
@@ -671,7 +722,7 @@ class WorkoutStepNavigator(
                 step.setIndex == roundIdx &&
                 step.exerciseId == exerciseId
         } ?: return
-        selectWorkoutStep(targetStep.stepKey)
+        selectWorkoutStep(targetStep.stepKey, preserveRestForNextStep = state.isRestTimerRunning)
     }
 
     fun jumpToSet(setIdx: Int) {

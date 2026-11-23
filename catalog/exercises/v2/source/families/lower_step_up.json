@@ -75,8 +75,7 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "step_up__barbell__zancada",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -134,15 +133,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "calves",
+                    "gluteus_maximus",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "erector_spinae",
                     "core"
@@ -203,16 +202,14 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps",
-                    "unilateral_knee_dominant:gluteus_maximus"
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "calves",
+                "gluteus_maximus",
                 "adductors"
               ],
               "setupCues": [
@@ -221,6 +218,8 @@
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "erector_spinae",
                 "core"
@@ -300,8 +299,7 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "step_up__smith_machine__zancada",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -359,15 +357,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "calves",
+                    "gluteus_maximus",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "erector_spinae",
                     "core"
@@ -428,16 +426,14 @@
                     "smith_machine"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps",
-                    "unilateral_knee_dominant:gluteus_maximus"
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "calves",
+                "gluteus_maximus",
                 "adductors"
               ],
               "setupCues": [
@@ -447,6 +443,8 @@
               ],
               "setupTimeSeconds": 50,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "erector_spinae",
                 "core"
@@ -540,8 +538,7 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "step_up__dumbbells__zancada",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -615,15 +612,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "calves",
+                    "gluteus_maximus",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "erector_spinae",
                     "core",
@@ -688,16 +685,14 @@
                     "dumbbells"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps",
-                    "unilateral_knee_dominant:gluteus_maximus"
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "calves",
+                "gluteus_maximus",
                 "adductors"
               ],
               "setupCues": [
@@ -706,6 +701,8 @@
               ],
               "setupTimeSeconds": 30,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "erector_spinae",
                 "core",
@@ -808,8 +805,7 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "step_up__kettlebell__zancada",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -891,15 +887,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "calves",
+                    "gluteus_maximus",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "erector_spinae",
                     "core",
@@ -966,16 +962,14 @@
                     "kettlebell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps",
-                    "unilateral_knee_dominant:gluteus_maximus"
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "calves",
+                "gluteus_maximus",
                 "adductors"
               ],
               "setupCues": [
@@ -984,6 +978,8 @@
               ],
               "setupTimeSeconds": 30,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "erector_spinae",
                 "core",
@@ -1080,8 +1076,7 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "step_up__cable__zancada",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -1155,15 +1150,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "calves",
+                    "gluteus_maximus",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "erector_spinae",
                     "core",
@@ -1228,16 +1223,14 @@
                     "cable"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps",
-                    "unilateral_knee_dominant:gluteus_maximus"
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "calves",
+                "gluteus_maximus",
                 "adductors"
               ],
               "setupCues": [
@@ -1247,6 +1240,8 @@
               ],
               "setupTimeSeconds": 35,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "erector_spinae",
                 "core",
@@ -1328,8 +1323,7 @@
               "movementPatternId": "unilateral_knee_dominant",
               "performanceProfileId": "step_up__bodyweight__zancada",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -1387,15 +1381,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "calves",
+                    "gluteus_maximus",
                     "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "erector_spinae",
                     "core"
@@ -1456,16 +1450,14 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant:quadriceps",
-                    "unilateral_knee_dominant:gluteus_maximus"
+                    "unilateral_knee_dominant:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "calves",
+                "gluteus_maximus",
                 "adductors"
               ],
               "setupCues": [
@@ -1474,6 +1466,8 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "erector_spinae",
                 "core"

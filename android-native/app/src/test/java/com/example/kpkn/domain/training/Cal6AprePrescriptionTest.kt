@@ -89,7 +89,7 @@ class Cal6AprePrescriptionTest {
         assertEquals("8 reps: +2,5 % = 102,5", 102.5, next(8), 1e-9)
         assertEquals("5 reps: mantener", 100.0, next(5), 1e-9)
         assertEquals("mantener no redondea una carga fuera de salto", 101.3, next(6, 101.3), 1e-9)
-        assertEquals("4 reps: −0,83 % = 99,17 → 100", 100.0, next(4), 1e-9)
+        assertEquals("4 reps: DROP_SMALL garantiza al menos -1 salto = 97,5", 97.5, next(4), 1e-9)
         assertEquals("2 reps: −2,5 % = 97,5", 97.5, next(2), 1e-9)
         assertEquals("un material de 0,5 kg", 102.5, Apre.nextLoadKg(100.0, 8, ApreVariant.APRE_6, incrementKg = 0.5), 1e-9)
         assertEquals("sin carga no hay carga siguiente", 0.0, Apre.nextLoadKg(0.0, 8, ApreVariant.APRE_6), 0.0)

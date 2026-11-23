@@ -101,25 +101,32 @@ object SessionAssistantEngine {
         liveSession: com.example.kpkn.data.models.Session = currentSession,
     ): List<com.example.kpkn.data.models.MuscleAdvance> {
         val muscleAdvances = mutableListOf<com.example.kpkn.data.models.MuscleAdvance>()
-        val completedByExercise = mutableMapOf<String, Int>()
-        for ((key, _) in completedSets) {
-            var exerciseId = key.substringBeforeLast("_")
-            if (exerciseId.endsWith("_L") || exerciseId.endsWith("_R")) {
-                exerciseId = exerciseId.substringBeforeLast("_")
+        val completedKeysByExercise = mutableMapOf<String, MutableSet<String>>()
+        for ((key, set) in completedSets) {
+            if (set.skipped || set.isWarmup || set.recordedPayloadV3?.skipped == true) continue
+            val strippedSide = key.removeSuffix("_L").removeSuffix("_R")
+            val logicalKey = if (strippedSide == key) {
+                val prefix = key.substringBeforeLast("_")
+                val suffix = key.substringAfterLast("_", "")
+                if (prefix.endsWith("_L") || prefix.endsWith("_R")) "${prefix.dropLast(2)}_$suffix" else key
+            } else {
+                strippedSide
             }
-            completedByExercise[exerciseId] = (completedByExercise[exerciseId] ?: 0) + 1
+            val exerciseId = logicalKey.substringBeforeLast("_")
+            completedKeysByExercise.getOrPut(exerciseId) { linkedSetOf() }.add(logicalKey)
         }
+        val completedByExercise = completedKeysByExercise.mapValues { it.value.size }
 
         for (muscleId in targetMuscles) {
             var plannedSets = 0.0
             for (ex in currentSession.allExercises()) {
                 val muscles = ExerciseMuscleResolver.effectiveMusclesForVolume(ex, exerciseIndex)
-                for (m in muscles) {
-                    if (m.role != com.example.kpkn.data.models.MuscleRole.PRIMARY) continue
-                    val mId = VolumeCalculator.normalizeCanonicalMuscleGroup(m.muscle, m.emphasis)
-                    if (mId == muscleId) {
-                        plannedSets += VolumeCalculator.countEffectiveSets(ex.sets)
-                    }
+                val primaryGroups = muscles
+                    .filter { it.role == com.example.kpkn.data.models.MuscleRole.PRIMARY }
+                    .map { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) }
+                    .distinct()
+                if (muscleId in primaryGroups) {
+                    plannedSets += VolumeCalculator.countEffectiveSets(ex.sets)
                 }
             }
 
@@ -128,12 +135,12 @@ object SessionAssistantEngine {
                 val sets = completedByExercise[ex.id] ?: 0
                 if (sets == 0) continue
                 val muscles = ExerciseMuscleResolver.effectiveMusclesForVolume(ex, exerciseIndex)
-                for (m in muscles) {
-                    if (m.role != com.example.kpkn.data.models.MuscleRole.PRIMARY) continue
-                    val mId = VolumeCalculator.normalizeCanonicalMuscleGroup(m.muscle, m.emphasis)
-                    if (mId == muscleId) {
-                        actualSets += sets
-                    }
+                val primaryGroups = muscles
+                    .filter { it.role == com.example.kpkn.data.models.MuscleRole.PRIMARY }
+                    .map { VolumeCalculator.normalizeCanonicalMuscleGroup(it.muscle, it.emphasis) }
+                    .distinct()
+                if (muscleId in primaryGroups) {
+                    actualSets += sets
                 }
             }
 

@@ -91,7 +91,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "contreras2016",
               "statpearls_gluteus"
@@ -120,13 +120,32 @@
           },
           {
             "id": "core",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "roth2020"
             ],
             "why": "La pared abdominal fija el tronco para que la carga delantera no lo doble; con poco peso, llevarla por delante aumentó la actividad de los músculos del tronco frente a llevarla detrás (Roth et al.)."
           }
-        ]
+        ],
+        "overrides": {
+          "front_squat__barbell": {
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "limiting": true,
+                "role": "STABILIZER",
+                "sources": [
+                  "comfort2011",
+                  "gullett2009",
+                  "yavuz2015",
+                  "statpearls_back"
+                ],
+                "why": "Sostienen la espalda erguida contra una carga que tira del tronco hacia delante. Las lecturas no coinciden: con cargas ligeras y moderadas su actividad en la frontal superó a la de la trasera (Comfort et al.), mientras Gullett et al. y Yavuz et al., este con cargas máximas, no vieron diferencias entre las dos posiciones. En ambos casos trabajan en isometría, sin mover la carga."
+              }
+            ]
+          }
+        }
       },
       "public": {
         "configurations": {
@@ -433,7 +452,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "caterisano2002",
               "kubo2019",
@@ -462,6 +481,7 @@
           },
           {
             "id": "core",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "hamlyn2007"
@@ -470,6 +490,20 @@
           }
         ],
         "overrides": {
+          "high_bar_back_squat__barbell": {
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "limiting": true,
+                "role": "STABILIZER",
+                "sources": [
+                  "hamlyn2007",
+                  "statpearls_back"
+                ],
+                "why": "Sostienen la columna neutra mientras el torso se inclina bajo la carga; en la sentadilla al 80 % del máximo su actividad lumbosacra superó a la del peso muerto al mismo porcentaje (Hamlyn et al.). Trabajan en isometría, por eso suman como estabilizador y no como motor."
+              }
+            ]
+          },
           "high_bar_back_squat__safety_bar": {
             "joints": [
               {
@@ -505,6 +539,16 @@
                   "hecker2019"
                 ],
                 "why": "El yugo y las asas empujan el tronco hacia delante, y las fibras inferiores del trapecio sujetan las escápulas y la espalda alta para frenarlo. Con esta barra su actividad subió un 50 % frente a la barra recta, aun con menos carga (Hecker et al.)."
+              },
+              {
+                "id": "erector_spinae",
+                "limiting": true,
+                "role": "STABILIZER",
+                "sources": [
+                  "hamlyn2007",
+                  "statpearls_back"
+                ],
+                "why": "Sostienen la columna neutra mientras el torso se inclina bajo la carga; en la sentadilla al 80 % del máximo su actividad lumbosacra superó a la del peso muerto al mismo porcentaje (Hamlyn et al.). Trabajan en isometría, por eso suman como estabilizador y no como motor."
               }
             ]
           }
@@ -806,7 +850,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "wretenberg1996",
               "glassbrook2017",
@@ -835,6 +879,7 @@
           },
           {
             "id": "core",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "hamlyn2007"
@@ -852,7 +897,23 @@
             ],
             "why": "Se activan durante la sentadilla: McBride et al. registraron el bíceps femoral junto a los vastos con cargas del 60 al 80 % del 1RM, y la revisión de Glassbrook et al. los cuenta en la cadena posterior que la barra baja permite desarrollar. Aun así, ni Kubo et al. ni Plotkin et al. vieron crecer su volumen con la sentadilla, así que sujetan la rodilla y la cadera sin ser motor."
           }
-        ]
+        ],
+        "overrides": {
+          "low_bar_back_squat__barbell": {
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "limiting": true,
+                "role": "STABILIZER",
+                "sources": [
+                  "glassbrook2017",
+                  "vandentillaar2020"
+                ],
+                "why": "Sostienen la columna neutra con el tronco claramente inclinado, cuando la carga más tira de la espalda hacia la flexión. Glassbrook et al. los asocian a esta colocación, aunque con carga, profundidad y apertura igualadas van den Tillaar et al. midieron menos actividad lumbar baja que con barra alta; en ambos casos trabajan en isometría."
+              }
+            ]
+          }
+        }
       },
       "public": {
         "configurations": {
@@ -1162,7 +1223,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "ikeda2025",
               "anat_glute_max"
@@ -1206,6 +1267,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "roth2020",
@@ -1215,6 +1277,7 @@
           },
           {
             "id": "core",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "roth2020",
@@ -1507,7 +1570,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "caterisano2002",
               "kubo2019",
@@ -1526,6 +1589,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "hamlyn2007",
@@ -1535,6 +1599,7 @@
           },
           {
             "id": "core",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "hamlyn2007"
@@ -1799,7 +1864,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "kinoshita2026",
               "marchetti2023",
@@ -2048,7 +2113,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "wretenberg1996",
               "bryanton2012",
@@ -2067,6 +2132,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "hamlyn2007",
@@ -2076,6 +2142,7 @@
           },
           {
             "id": "core",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "aspe2014",
@@ -2305,7 +2372,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "contreras2016",
               "gullett2009"
@@ -2323,6 +2390,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "comfort2011",
@@ -2333,6 +2401,7 @@
           },
           {
             "id": "core",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "comfort2011",
@@ -2557,7 +2626,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "wretenberg1996",
               "bryanton2012",
@@ -2584,6 +2653,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "hamlyn2007"
@@ -2813,7 +2883,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "bryanton2012",
               "contreras2016",
@@ -3702,7 +3772,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "kang2014",
               "bryanton2012",
@@ -4618,7 +4688,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "bryanton2012",
               "contreras2016",
@@ -4637,6 +4707,7 @@
           },
           {
             "id": "erector_spinae",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "comfort2011",
@@ -4646,6 +4717,7 @@
           },
           {
             "id": "core",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "roth2020"
@@ -4654,6 +4726,7 @@
           },
           {
             "id": "biceps",
+            "limiting": true,
             "role": "STABILIZER",
             "sources": [
               "statpearls_biceps"
@@ -4888,7 +4961,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "paoli2009",
               "larsen2021",
@@ -4927,6 +5000,20 @@
           }
         ],
         "overrides": {
+          "sumo_squat__barbell": {
+            "muscles": [
+              {
+                "id": "erector_spinae",
+                "limiting": true,
+                "role": "STABILIZER",
+                "sources": [
+                  "hamlyn2007",
+                  "park2026"
+                ],
+                "why": "Sostienen la columna neutra de forma isométrica mientras el tronco se inclina algo hacia delante bajo la carga. La sentadilla al 80 % de 1RM activó los erectores lumbosacros más que el peso muerto (Hamlyn et al., 2007) y bajar más los exigió más (Park et al., 2026), pero no mueven la columna: la estabilizan."
+              }
+            ]
+          },
           "sumo_squat__dumbbells": {
             "joints": [
               {

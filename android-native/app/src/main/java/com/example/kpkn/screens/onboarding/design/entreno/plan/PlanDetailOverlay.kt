@@ -185,8 +185,9 @@ fun PlanFichaOverlay(
     onClose: () -> Unit,
     onPrimary: (() -> Unit)? = null,
     onSecondary: (() -> Unit)? = null,
+    descriptionHeaderSlot: (@Composable () -> Unit)? = null,
 ) {
-    PlanFichaOverlay(ficha, onClose, wizardReducedMotion(), onPrimary, onSecondary)
+    PlanFichaOverlay(ficha, onClose, wizardReducedMotion(), onPrimary, onSecondary, descriptionHeaderSlot)
 }
 
 /** La ficha reutilizada con el «reducir movimiento» decidido por quien llama (pruebas). */
@@ -197,6 +198,7 @@ internal fun PlanFichaOverlay(
     reduced: Boolean,
     onPrimary: (() -> Unit)? = null,
     onSecondary: (() -> Unit)? = null,
+    descriptionHeaderSlot: (@Composable () -> Unit)? = null,
 ) {
     // Sin acción no hay botón: la ficha queda en modo lectura.
     val content = if (onPrimary == null) ficha.content.copy(primaryLabel = null) else ficha.content
@@ -209,6 +211,7 @@ internal fun PlanFichaOverlay(
         reduced = reduced,
         ficha = content,
         onSecondary = secondary,
+        descriptionHeaderSlot = descriptionHeaderSlot,
     )
 }
 
@@ -230,6 +233,7 @@ internal fun PlanDetailOverlay(
     onUndoSwap: (String) -> Unit = {},
     ficha: PlanFichaContent? = null,
     onSecondary: (() -> Unit)? = null,
+    descriptionHeaderSlot: (@Composable () -> Unit)? = null,
 ) {
     val scope = rememberCoroutineScope()
     val shown = remember { Animatable(if (reduced) 1f else 0f) }
@@ -255,7 +259,7 @@ internal fun PlanDetailOverlay(
             model, selected, reduced, blur, { shown.value }, onChoose, leave,
             weekStartDay = weekStartDay, siblingLabel = siblingLabel, onSibling = onSibling, phases = phases,
             exercises = exercises, swapOptionsOf = swapOptionsOf, onSwap = onSwap, onUndoSwap = onUndoSwap,
-            ficha = ficha, onSecondary = onSecondary,
+            ficha = ficha, onSecondary = onSecondary, descriptionHeaderSlot = descriptionHeaderSlot,
         )
     }
 }
@@ -284,6 +288,7 @@ internal fun DetailSheet(
     onUndoSwap: (String) -> Unit = {},
     ficha: PlanFichaContent? = null,
     onSecondary: (() -> Unit)? = null,
+    descriptionHeaderSlot: (@Composable () -> Unit)? = null,
 ) {
     val card = model.card
     val accent = goalAccent(card.profile)
@@ -368,7 +373,11 @@ internal fun DetailSheet(
                     },
             ) {
                 Spacer(Modifier.height(20.dp))
-                if (model.description.isNotBlank()) DescriptionBlock(model.description, accent)
+                if (descriptionHeaderSlot != null) {
+                    descriptionHeaderSlot()
+                } else if (model.description.isNotBlank()) {
+                    DescriptionBlock(model.description, accent)
+                }
                 if (siblingLabel != null && onSibling != null) {
                     SiblingVersionAction(label = siblingLabel, onClick = onSibling)
                 }

@@ -67,6 +67,7 @@ import com.example.kpkn.data.repository.CustomExerciseRepository
 import com.example.kpkn.domain.exercises.ExerciseMatchLexicon
 import com.example.kpkn.domain.exercises.SmartExerciseCreator
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseBodyRegionV2
+import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogAxisPolicy
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogRepositoryV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogStateV2
 import com.example.kpkn.domain.exercises.catalogv2.ExerciseCatalogV2
@@ -109,7 +110,6 @@ import com.example.kpkn.screens.sessioneditor.design.CatalogSelectionIsland
 import com.example.kpkn.screens.sessioneditor.design.CatalogSelectionSlot
 import com.example.kpkn.screens.sessioneditor.design.CatalogInlineAxis
 import com.example.kpkn.screens.sessioneditor.design.CatalogInlineVariants
-import com.example.kpkn.screens.sessioneditor.design.CatalogMuscleContribution
 import com.example.kpkn.screens.sessioneditor.design.CatalogFilteredNoResults
 import com.example.kpkn.screens.sessioneditor.design.CatalogTechniqueChoiceBar
 import com.example.kpkn.screens.sessioneditor.design.catalogSelectionSummary
@@ -561,7 +561,6 @@ internal fun ExercisePickerV2Catalog(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .imePadding()
                 .then(if (opaqueSurface) Modifier.statusBarsPadding() else Modifier)
                 .padding(top = if (opaqueSurface) 4.dp else 12.dp),
         ) {
@@ -927,6 +926,7 @@ private fun ColumnScope.CatalogReadyContent(
     // arrancaba en el ejercicio actual y «Reemplazar» caía en su ficha en vez de en el catálogo.
     var expandedDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
     var variantsDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
+    var missingPromptDefinitionId by rememberSaveable { mutableStateOf<String?>(null) }
     var showSupersetConfigurator by rememberSaveable { mutableStateOf(false) }
     val editingCustomExercise = remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
     val deletingCustomExercise = remember { mutableStateOf<ExerciseMuscleInfo?>(null) }
@@ -1183,15 +1183,54 @@ private fun ColumnScope.CatalogReadyContent(
                                 (info.catalogConfigurationId == resolvedConfigurationId || info.id == resolvedConfigurationId)
                         }
                     val isExpanded = expandedDefinitionId == definition.id
+                    val previewConfiguration = effectiveConfiguration
+                        ?: definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+                        ?: definition.configurations.firstOrNull()
                     val shownMuscles = effectiveConfiguration?.profile?.primaryMuscles.orEmpty()
                     val selectedImplementation = effectiveSelectedOptions["implement"]
                     val shownImplementation = catalogShownImplementation(definition, effectiveSelectedOptions, resolvedConfigurationId)
-                    val imageVariants = remember(definition.id, resolvedConfigurationId, shownImplementation) {
-                        exerciseCatalogImageVariants(
+                    val imageVariants = remember(definition.id, resolvedConfigurationId, shownImplementation, effectiveSelectedOptions) {
+                        val baseVariants = exerciseCatalogImageVariants(
                             definitionId = definition.id,
                             catalogConfigurationId = resolvedConfigurationId,
                             selectedImplementation = shownImplementation,
                         )
+                        val representativeResId = ExerciseTechniqueImageLookup.resolveRepresentativeImageResId(
+                            definition = definition,
+                            selectedOptions = effectiveSelectedOptions,
+                            resolvedConfigurationId = resolvedConfigurationId,
+                        )
+                        val matchingVariants = if (baseVariants.isNotEmpty() &&
+                            (shownImplementation == null || selectedCatalogImageVariantIndex(baseVariants, shownImplementation) != null)
+                        ) {
+                            baseVariants
+                        } else {
+                            representativeResId?.let { repResId ->
+                                listOf(
+                                    ExerciseTechniqueImageVariant(
+                                        implementation = shownImplementation ?: "default",
+                                        imageResId = repResId,
+                                        label = "Técnica",
+                                    ),
+                                )
+                            } ?: baseVariants
+                        }
+                        if (representativeResId != null && matchingVariants.firstOrNull()?.imageResId != representativeResId) {
+                            val existingIdx = matchingVariants.indexOfFirst { it.imageResId == representativeResId }
+                            if (existingIdx >= 0) {
+                                listOf(matchingVariants[existingIdx]) + matchingVariants.filterIndexed { i, _ -> i != existingIdx }
+                            } else {
+                                listOf(
+                                    ExerciseTechniqueImageVariant(
+                                        implementation = shownImplementation ?: "default",
+                                        imageResId = representativeResId,
+                                        label = "Técnica",
+                                    ),
+                                ) + matchingVariants
+                            }
+                        } else {
+                            matchingVariants
+                        }
                     }
                     val firstAxis = definition.optionAxes.firstOrNull()
                     val variantValues = remember(definition, firstAxis) {
@@ -1242,7 +1281,8 @@ private fun ColumnScope.CatalogReadyContent(
                         )
                         draftByDefinition.value = draftByDefinition.value + (definition.id to newDraft)
                         val nextConfigId = exactCatalogConfigurationId(definition, newDraft)
-                        if (nextConfigId != null && (addingVariantDefinitionId == definition.id || existingSelections.isNotEmpty() || (editingExisting && !confirmSelection) || (confirmSelection && isSelected))) {
+                        if (nextConfigId != null) {
+                            missingPromptDefinitionId = null
                             val info = exactInfo(catalog, definition, nextConfigId)
                             if (info != null) {
                                 if (addingVariantDefinitionId == definition.id) {
@@ -1252,13 +1292,16 @@ private fun ColumnScope.CatalogReadyContent(
                                         activeSelectionKeyByDefinition.value = activeSelectionKeyByDefinition.value +
                                             (definition.id to (info.catalogConfigurationId ?: info.id))
                                         addingVariantDefinitionId = null
+                                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                         onSelectionChange(next.values.toList())
                                     }
                                 } else if (confirmSelection) {
                                     selectedRows.value = mapOf(definition.id to info)
                                     replacementSelectionIds = listOf(info.id)
+                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     onSelectionChange(listOf(info))
                                 } else if (editingExisting) {
+                                    haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                     onSelect(info)
                                 } else {
                                     val replacementKey = activeSelectionKeyByDefinition.value[definition.id]
@@ -1269,6 +1312,7 @@ private fun ColumnScope.CatalogReadyContent(
                                         selectedRows.value = next
                                         activeSelectionKeyByDefinition.value = activeSelectionKeyByDefinition.value +
                                             (definition.id to (info.catalogConfigurationId ?: info.id))
+                                        haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
                                         onSelectionChange(next.values.toList())
                                     }
                                 }
@@ -1288,6 +1332,7 @@ private fun ColumnScope.CatalogReadyContent(
                             onSelectionChange(next.values.toList())
                         } else if (!axesComplete) {
                             variantsDefinitionId = definition.id
+                            missingPromptDefinitionId = definition.id
                             if (variantValues.isEmpty()) expandedDefinitionId = definition.id
                         } else {
                             val info = exactInfo(catalog, definition, selectedConfigurationId)
@@ -1320,9 +1365,14 @@ private fun ColumnScope.CatalogReadyContent(
                         }
                     }
                     val pattern = remember(definition.canonicalName) { exercisePatternOf(definition.canonicalName) }
-                    val shownPattern = if (resolvedConfigurationId == null) ExercisePattern.GENERIC else pattern
-                    val thumbnailResId = if (resolvedConfigurationId == null) null else selectedCatalogImageVariantIndex(imageVariants, shownImplementation)
-                        ?.let { imageVariants[it].imageResId }
+                    val thumbnailResId = remember(definition.id, resolvedConfigurationId, selectedOptions) {
+                        ExerciseTechniqueImageLookup.resolveRepresentativeImageResId(
+                            definition = definition,
+                            resolvedConfigurationId = resolvedConfigurationId,
+                            selectedOptions = selectedOptions,
+                        )
+                    }
+                    val shownPattern = if (thumbnailResId == null) pattern else ExercisePattern.GENERIC
                     val muscleLabel = shownMuscles.firstOrNull()?.let(::exerciseCatalogMuscleLabel)
                     val materialLabel = effectiveConfiguration?.selectedOptions?.get("implement")
                         ?.takeIf { it.isNotBlank() && it != "default" }
@@ -1335,7 +1385,7 @@ private fun ColumnScope.CatalogReadyContent(
                     )
                     // Al reemplazar (H1), la línea de cada candidato dice su implemento y lo que cambia respecto al ejercicio actual.
                     val subtitle = replacementAnchor
-                        ?.let { catalogReplacementCandidateLine(definition, effectiveConfiguration, it) }
+                        ?.let { catalogReplacementCandidateLine(definition, effectiveConfiguration ?: previewConfiguration, it) }
                         ?: listOfNotNull(muscleLabel, materialLabel).joinToString(" · ")
                     // La línea de coincidencias no repite lo que la fila ya dice (músculo y material), y sin búsqueda no se pinta (SE6b).
                     val searchMatchLabel = catalogMatchLabel(
@@ -1372,15 +1422,14 @@ private fun ColumnScope.CatalogReadyContent(
                                     activeSelectionKeyByDefinition.value = activeSelectionKeyByDefinition.value + (definition.id to activeKey)
                                 }
                                 if (hasVariants) {
-                                    variantsDefinitionId = toggleCatalogDefinitionExpansion(
+                                    val nextVariantsDefinitionId = toggleCatalogDefinitionExpansion(
                                         currentDefinitionId = variantsDefinitionId,
                                         tappedDefinitionId = definition.id,
                                     )
+                                    missingPromptDefinitionId = null
+                                    variantsDefinitionId = nextVariantsDefinitionId
                                 } else {
-                                    expandedDefinitionId = toggleCatalogDefinitionExpansion(
-                                        currentDefinitionId = expandedDefinitionId,
-                                        tappedDefinitionId = definition.id,
-                                    )
+                                    toggleSelection()
                                 }
                             },
                             onToggleSelection = toggleSelection,
@@ -1404,6 +1453,18 @@ private fun ColumnScope.CatalogReadyContent(
                                 }) { Text("Añadir otra variante") }
                             }
                             if (hasOptions) {
+                                val missingAxes = catalogMissingApplicableAxes(definition, selectedOptions)
+                                val missingAxisLabels = missingAxes.map { exerciseCatalogAxisLabel(it, definition.id) }.distinct()
+                                val missingAxesPrompt = if (missingPromptDefinitionId == definition.id && !axesComplete && missingAxisLabels.isNotEmpty()) {
+                                    val formattedAxes = when (missingAxisLabels.size) {
+                                        1 -> missingAxisLabels.single()
+                                        2 -> "${missingAxisLabels[0]} y ${missingAxisLabels[1]}"
+                                        else -> missingAxisLabels.dropLast(1).joinToString(", ") + " y " + missingAxisLabels.last()
+                                    }
+                                    "Elige $formattedAxes para añadir este ejercicio"
+                                } else {
+                                    null
+                                }
                                 CatalogInlineVariants(
                                     definitionId = definition.id,
                                     axes = catalogInlineAxes(definition, selectedOptions, hasExplicitDraft),
@@ -1414,6 +1475,7 @@ private fun ColumnScope.CatalogReadyContent(
                                             tappedDefinitionId = definition.id,
                                         )
                                     },
+                                    missingAxesPrompt = missingAxesPrompt,
                                 )
                             } else if (explicitChoices.isNotEmpty()) {
                                 ExplicitCatalogConfigurationChoices(
@@ -1429,19 +1491,22 @@ private fun ColumnScope.CatalogReadyContent(
                                     modifier = Modifier.padding(start = 60.dp, end = 12.dp, bottom = 8.dp),
                                 )
                             }
-                            if (hasOptions && !axesComplete) {
+                            if (hasOptions && !axesComplete && missingPromptDefinitionId != definition.id) {
                                 val missingAxes = catalogMissingApplicableAxes(definition, selectedOptions)
-                                Text(
-                                    if (missingAxes.isNotEmpty()) {
-                                        "Elige ${missingAxes.joinToString(" y ") { exerciseCatalogAxisLabel(it, definition.id) }} para confirmar esta configuración."
-                                    } else {
-                                        "La selección no identifica una configuración única del catálogo."
-                                    },
-                                    style = KpknType.caption,
-                                    color = WizardColors.textMuted,
-                                    modifier = Modifier.padding(start = 60.dp, end = 12.dp, bottom = 8.dp),
-                                )
-                            } else if (hasOptions && resolvedConfigurationId == null) {
+                                if (missingAxes.isNotEmpty()) {
+                                    val axisLabels = missingAxes.map { exerciseCatalogAxisLabel(it, definition.id) }
+                                    val joinedAxes = when (axisLabels.size) {
+                                        1 -> axisLabels.first()
+                                        else -> "${axisLabels.dropLast(1).joinToString(", ")} y ${axisLabels.last()}"
+                                    }
+                                    Text(
+                                        "Elige $joinedAxes para confirmar esta configuración.",
+                                        style = KpknType.caption,
+                                        color = WizardColors.textMuted,
+                                        modifier = Modifier.padding(start = 60.dp, end = 12.dp, bottom = 8.dp),
+                                    )
+                                }
+                            } else if (hasOptions && resolvedConfigurationId == null && axesComplete) {
                                 Text(
                                     "Esa combinación no existe en el catálogo. Cambia una de las opciones.",
                                     style = KpknType.caption,
@@ -1449,14 +1514,15 @@ private fun ColumnScope.CatalogReadyContent(
                                     modifier = Modifier.padding(start = 60.dp, end = 12.dp, bottom = 8.dp),
                                 )
                             }
-                            effectiveExerciseInfo?.let { info ->
-                                CatalogMuscleContribution(
-                                    exercise = info,
-                                    modifier = Modifier.padding(start = 60.dp, bottom = 12.dp),
-                                )
-                            }
                         }
                         if (isExpanded) {
+                            val selectedOrEffectiveConfiguration = effectiveConfiguration
+                                ?: definition.configurations.firstOrNull { it.id == selectedConfigurationId }
+                            val previewConfiguration = selectedOrEffectiveConfiguration
+                                ?: definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+                                ?: definition.configurations.firstOrNull()
+                            val previewExerciseInfo = effectiveExerciseInfo
+                                ?: previewConfiguration?.let { exactInfo(catalog, definition, it.id) }
                             // La ficha de hoy: una hoja casi a pantalla completa (SE6b). «Añadir» o «Quitar» la cierran, como antes.
                             ExerciseCatalogInfoDialog(
                                 model = CatalogDetailModel(
@@ -1464,7 +1530,7 @@ private fun ColumnScope.CatalogReadyContent(
                                     caption = listOfNotNull(
                                         muscleLabel,
                                         fichaMaterialLabel,
-                                        pattern.label.takeIf { effectiveConfiguration != null && pattern != ExercisePattern.GENERIC },
+                                        pattern.label.takeIf { selectedOrEffectiveConfiguration != null && pattern != ExercisePattern.GENERIC },
                                     ).joinToString(" · ").takeIf { it.isNotBlank() },
                                     description = definition.description.takeIf { it.isNotBlank() },
                                     imageVariants = imageVariants,
@@ -1508,21 +1574,21 @@ private fun ColumnScope.CatalogReadyContent(
                                     } else {
                                         emptyList()
                                     },
-                                    configurationLine = effectiveConfiguration
+                                    configurationLine = selectedOrEffectiveConfiguration
                                         ?.let { exerciseCatalogConfigurationSummary(it, definition.id) }
                                         ?: "Configuración incompleta: selecciona los chips restantes",
-                                    configurationIncomplete = effectiveConfiguration == null,
-                                    muscleInfo = effectiveExerciseInfo?.takeIf { it.involvedMuscles.isNotEmpty() },
-                                    joints = effectiveConfiguration?.profile?.jointInvolvement
+                                    configurationIncomplete = selectedOrEffectiveConfiguration == null,
+                                    muscleInfo = previewExerciseInfo?.takeIf { it.involvedMuscles.isNotEmpty() },
+                                    joints = previewConfiguration?.profile?.jointInvolvement
                                         ?.takeIf { it.isNotEmpty() }
                                         .orEmpty(),
-                                    patternId = effectiveConfiguration?.profile?.movementPatternId,
+                                    patternId = selectedOrEffectiveConfiguration?.profile?.movementPatternId,
                                     isSelected = isSelected,
                                     canSelect = selectedConfigurationId != null,
                                     selectionLabel = singleSelectionLabel,
-                                    setupCues = effectiveConfiguration?.profile?.setupCues.orEmpty(),
-                                    executionCues = effectiveConfiguration?.profile?.executionCues.orEmpty(),
-                                    identityKeys = listOfNotNull(definition.id, effectiveConfiguration?.id).toSet(),
+                                    setupCues = selectedOrEffectiveConfiguration?.profile?.setupCues.orEmpty(),
+                                    executionCues = selectedOrEffectiveConfiguration?.profile?.executionCues.orEmpty(),
+                                    identityKeys = listOfNotNull(definition.id, selectedOrEffectiveConfiguration?.id).toSet(),
                                     context = if (replacement != null) ExerciseFichaContext.REPLACEMENT else ExerciseFichaContext.CATALOG,
                                 ),
                                 onDismiss = { expandedDefinitionId = null },
@@ -1530,8 +1596,8 @@ private fun ColumnScope.CatalogReadyContent(
                                     toggleSelection()
                                     expandedDefinitionId = null
                                 },
-                                onSelectOption = selectOption,
-                                onImplementationSettled = { implementation -> selectOption("implement", implementation) },
+                                onSelectOption = { _, _ -> },
+                                onImplementationSettled = {},
                             )
                         }
                         Box(
@@ -2010,9 +2076,6 @@ private fun CatalogCustomExerciseItem(
                         style = KpknType.caption,
                     )
                 }
-                if (exercise.involvedMuscles.isNotEmpty()) {
-                    CatalogMuscleContribution(exercise)
-                }
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     KpknTextAction(text = "Editar", onClick = onEdit)
                     KpknTextAction(text = "Eliminar", onClick = onDelete, color = WizardColors.danger)
@@ -2028,8 +2091,15 @@ internal fun catalogInlineAxes(
     shownOptions: Map<String, String>,
     hasExplicitDraft: Boolean,
 ): List<CatalogInlineAxis> = definition.optionAxes.mapNotNull { axis ->
-    val configurations = if (axis == "implement") definition.configurations else definition.configurations.filter {
-        shownOptions["implement"] == null || it.selectedOptions["implement"] == shownOptions["implement"]
+    val selectedImplement = shownOptions["implement"]
+    val configurations = if (axis == "implement") {
+        definition.configurations
+    } else if (selectedImplement != null) {
+        definition.configurations.filter { it.selectedOptions["implement"] == selectedImplement }
+    } else if ("implement" in definition.optionAxes && !definition.configurations.all { axis in it.selectedOptions }) {
+        emptyList()
+    } else {
+        definition.configurations
     }
     val values = configurations.mapNotNull { it.selectedOptions[axis] }.distinct()
     if (values.isEmpty()) null else CatalogInlineAxis(
@@ -2053,12 +2123,25 @@ internal fun catalogMissingApplicableAxes(
     val compatible = definition.configurations.filter { configuration ->
         selectedOptions.all { (axis, value) -> configuration.selectedOptions[axis] == value }
     }
+    val hasImplementAxis = "implement" in definition.optionAxes
+    val implementChosen = !selectedOptions["implement"].isNullOrBlank()
     return definition.optionAxes.filter { axis ->
-        compatible.any { axis in it.selectedOptions } && selectedOptions[axis].isNullOrBlank()
+        if (!ExerciseCatalogAxisPolicy.isRequiredAxis(axis)) return@filter false
+        val relevantConfigs = if (axis == "implement") definition.configurations else compatible
+        val distinctValues = relevantConfigs.mapNotNull { it.selectedOptions[axis] }.distinct()
+        val applicableToCompatible = if (axis != "implement" && hasImplementAxis && !implementChosen) {
+            compatible.all { axis in it.selectedOptions }
+        } else {
+            compatible.any { axis in it.selectedOptions }
+        }
+        applicableToCompatible && distinctValues.size > 1 && selectedOptions[axis].isNullOrBlank()
     }
 }
 
-/** Returns an identity only when the person's choices select one materialized row exactly. */
+/**
+ * Returns an identity when all required applicable axes are chosen; any omitted
+ * optional axes resolve via [bestMatchingConfigurationId] against the definition's default.
+ */
 internal fun exactCatalogConfigurationId(
     definition: ExerciseDefinitionV2,
     selectedOptions: Map<String, String>,
@@ -2074,11 +2157,21 @@ internal fun exactCatalogConfigurationId(
         selectedOptions.all { (axis, value) -> configuration.selectedOptions[axis] == value }
     }
     if (compatible.isEmpty()) return null
-    val applicableAxes = compatible.flatMap { configuration ->
-        definition.optionAxes.filter { axis -> axis in configuration.selectedOptions }
+    val requiredApplicableAxes = compatible.flatMap { configuration ->
+        definition.optionAxes.filter { axis ->
+            ExerciseCatalogAxisPolicy.isRequiredAxis(axis) && axis in configuration.selectedOptions
+        }
     }.toSet()
-    if (applicableAxes.any { selectedOptions[it].isNullOrBlank() }) return null
-    return compatible.singleOrNull()?.id
+    val missingRequired = requiredApplicableAxes.any { axis ->
+        val relevantConfigs = if (axis == "implement") definition.configurations else compatible
+        val distinctValues = relevantConfigs.mapNotNull { it.selectedOptions[axis] }.distinct()
+        distinctValues.size > 1 && selectedOptions[axis].isNullOrBlank()
+    }
+    if (missingRequired) return null
+    compatible.singleOrNull()?.let { return it.id }
+    val defaultConfig = definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+        ?: definition.configurations.firstOrNull()
+    return bestMatchingConfigurationId(definition, selectedOptions, defaultConfig)
 }
 
 internal fun explicitConfigurationChoices(definition: ExerciseDefinitionV2): List<ExerciseConfigurationV2> =
@@ -2273,6 +2366,9 @@ private fun draftAfterAxisSelection(
     axis: String,
     value: String,
 ): Map<String, String> {
+    if (ExerciseCatalogAxisPolicy.isOptionalAxis(axis) && selectedOptions[axis] == value) {
+        return selectedOptions - axis
+    }
     val candidate = (selectedOptions - axis) + (axis to value)
     if (definition.configurations.any { configuration ->
             candidate.all { (key, selected) -> configuration.selectedOptions[key] == selected }

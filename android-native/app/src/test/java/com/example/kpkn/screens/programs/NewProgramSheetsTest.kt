@@ -117,7 +117,7 @@ class NewProgramSheetsTest {
             BlankProgramSheet(
                 suggestedName = "Nuevo programa 3",
                 onDismiss = {},
-                onCreate = { name, cover, label -> creado = BlankCreation(name, cover, label) },
+                onCreate = { name, cover, label, _ -> creado = BlankCreation(name, cover, label) },
             )
         }
 
@@ -139,11 +139,16 @@ class NewProgramSheetsTest {
             BlankProgramSheet(
                 suggestedName = "Nuevo programa 3",
                 onDismiss = {},
-                onCreate = { name, cover, label -> creado = BlankCreation(name, cover, label) },
+                onCreate = { name, cover, label, _ -> creado = BlankCreation(name, cover, label) },
             )
         }
 
-        rule.onNode(hasSetTextAction()).performTextReplacement("Mi fuerza")
+        rule.onNode(
+            hasSetTextAction() and (
+                hasTestTag("blank-program-name") or hasAnyAncestor(hasTestTag("blank-program-name"))
+            ),
+            useUnmergedTree = true,
+        ).performTextReplacement("Mi fuerza")
         rule.onNodeWithTag("blank-modality-personalizada").performSemanticsAction(SemanticsActions.OnClick)
         rule.onNode(
             hasSetTextAction() and hasAnyAncestor(hasTestTag("blank-program-custom-modality")),
@@ -164,7 +169,7 @@ class NewProgramSheetsTest {
             BlankProgramSheet(
                 suggestedName = "Nuevo programa 3",
                 onDismiss = {},
-                onCreate = { name, cover, label -> creado = BlankCreation(name, cover, label) },
+                onCreate = { name, cover, label, _ -> creado = BlankCreation(name, cover, label) },
             )
         }
 

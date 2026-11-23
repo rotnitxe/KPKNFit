@@ -83,8 +83,7 @@
               "movementPatternId": "unilateral_knee_dominant_asymmetric",
               "performanceProfileId": "quads_sentadilla_bulgara_jefferson__barbell__sentadilla_bulgara_jefferson",
               "primaryMuscles": [
-                "quadriceps",
-                "gluteus_maximus"
+                "quadriceps"
               ],
               "replacementGroup": null,
               "replacementPriority": 999,
@@ -152,15 +151,15 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "quadriceps",
-                    "gluteus_maximus"
+                    "quadriceps"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "adductors",
-                    "calves"
+                    "gluteus_maximus",
+                    "adductors"
                   ],
                   "stabilizerMuscles": [
+                    "hamstrings",
+                    "calves",
                     "gluteus_medius",
                     "core",
                     "erector_spinae",
@@ -221,17 +220,15 @@
                     "barbell"
                   ],
                   "preservesIntent": [
-                    "unilateral_knee_dominant_asymmetric:quadriceps",
-                    "unilateral_knee_dominant_asymmetric:gluteus_maximus"
+                    "unilateral_knee_dominant_asymmetric:quadriceps"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": 999
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "adductors",
-                "calves"
+                "gluteus_maximus",
+                "adductors"
               ],
               "setupCues": [
                 "Ponte a horcajadas sobre la barra y apoya el empeine posterior en el banco.",
@@ -240,6 +237,8 @@
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
+                "hamstrings",
+                "calves",
                 "gluteus_medius",
                 "core",
                 "erector_spinae",

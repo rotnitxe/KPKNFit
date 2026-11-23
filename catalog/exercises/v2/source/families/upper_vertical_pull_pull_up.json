@@ -63,6 +63,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "pull_up__pronated__wide",
@@ -116,15 +119,19 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
                     "biceps",
-                    "trapezius"
+                    "trapezius",
+                    "rhomboids",
+                    "deltoid"
                   ],
                   "stabilizerMuscles": [
-                    "pectoralis",
                     "core",
                     "erector_spinae",
                     "forearm"
@@ -195,7 +202,9 @@
               },
               "secondaryMuscles": [
                 "biceps",
-                "trapezius"
+                "trapezius",
+                "rhomboids",
+                "deltoid"
               ],
               "setupCues": [
                 "Cuélgate con las palmas al frente y las manos claramente más separadas que los hombros.",
@@ -203,7 +212,6 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
-                "pectoralis",
                 "core",
                 "erector_spinae",
                 "forearm"
@@ -272,6 +280,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "pull_up__pronated__medium",
@@ -325,6 +336,9 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -333,7 +347,6 @@
                     "trapezius"
                   ],
                   "stabilizerMuscles": [
-                    "pectoralis",
                     "core",
                     "erector_spinae",
                     "forearm"
@@ -412,7 +425,6 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
-                "pectoralis",
                 "core",
                 "erector_spinae",
                 "forearm"
@@ -481,6 +493,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "pull_up__pronated__close",
@@ -534,15 +549,17 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "trapezius"
+                    "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "pectoralis",
+                    "trapezius",
                     "core",
                     "erector_spinae",
                     "forearm"
@@ -612,8 +629,7 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "trapezius"
+                "biceps"
               ],
               "setupCues": [
                 "Cuélgate con las palmas al frente y las manos casi juntas, dentro del ancho de los hombros.",
@@ -621,7 +637,7 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
-                "pectoralis",
+                "trapezius",
                 "core",
                 "erector_spinae",
                 "forearm"
@@ -690,6 +706,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "pull_up__supinated__wide",
@@ -743,15 +762,19 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
                     "biceps",
-                    "trapezius"
+                    "trapezius",
+                    "rhomboids",
+                    "deltoid"
                   ],
                   "stabilizerMuscles": [
-                    "pectoralis",
                     "core",
                     "erector_spinae",
                     "forearm"
@@ -822,7 +845,9 @@
               },
               "secondaryMuscles": [
                 "biceps",
-                "trapezius"
+                "trapezius",
+                "rhomboids",
+                "deltoid"
               ],
               "setupCues": [
                 "Cuélgate con las palmas hacia ti y las manos claramente más separadas que los hombros.",
@@ -830,7 +855,6 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
-                "pectoralis",
                 "core",
                 "erector_spinae",
                 "forearm"
@@ -858,7 +882,7 @@
               "automationEligible": true,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "description": "Con las palmas hacia ti y las manos al ancho de los hombros, el bíceps y el pectoral se activan más que en la prona, y el trapecio bajo menos. El codo recorre unos 101°, frente a unos 93° con las palmas al frente.",
+              "description": "Con las palmas hacia ti y las manos al ancho de los hombros, el bíceps se activa más que en la prona, y el trapecio bajo menos. El codo recorre unos 101°, frente a unos 93° con las palmas al frente.",
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Tira con los codos hacia abajo hasta que la barbilla supere la barra.",
@@ -899,6 +923,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "pull_up__supinated__medium",
@@ -952,6 +979,9 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -960,7 +990,6 @@
                     "trapezius"
                   ],
                   "stabilizerMuscles": [
-                    "pectoralis",
                     "core",
                     "erector_spinae",
                     "forearm"
@@ -1039,7 +1068,6 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
-                "pectoralis",
                 "core",
                 "erector_spinae",
                 "forearm"
@@ -1067,7 +1095,7 @@
               "automationEligible": true,
               "bodyRegion": "UPPER",
               "catalogRevision": "v2-approved-2026-09-29-a",
-              "description": "Con las palmas hacia ti y las manos juntas, los codos bajan pegados a las costillas. El bíceps y el pectoral aportan más que con las palmas al frente, sin una medición propia de este ancho.",
+              "description": "Con las palmas hacia ti y las manos juntas, los codos bajan pegados a las costillas. El bíceps aporta más que con las palmas al frente por la supinación, sin una medición propia de este ancho.",
               "equipmentId": "bodyweight",
               "executionCues": [
                 "Sube con los codos pegados a las costillas hasta superar la barra con la barbilla.",
@@ -1108,6 +1136,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "pull_up__supinated__close",
@@ -1161,15 +1192,17 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "trapezius"
+                    "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "pectoralis",
+                    "trapezius",
                     "core",
                     "erector_spinae",
                     "forearm"
@@ -1239,8 +1272,7 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "trapezius"
+                "biceps"
               ],
               "setupCues": [
                 "Cuélgate con las palmas hacia ti y las manos casi juntas.",
@@ -1248,7 +1280,7 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
-                "pectoralis",
+                "trapezius",
                 "core",
                 "erector_spinae",
                 "forearm"
@@ -1317,6 +1349,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "pull_up__neutral__wide",
@@ -1370,15 +1405,19 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
                     "biceps",
-                    "trapezius"
+                    "trapezius",
+                    "rhomboids",
+                    "deltoid"
                   ],
                   "stabilizerMuscles": [
-                    "pectoralis",
                     "core",
                     "erector_spinae",
                     "forearm"
@@ -1449,7 +1488,9 @@
               },
               "secondaryMuscles": [
                 "biceps",
-                "trapezius"
+                "trapezius",
+                "rhomboids",
+                "deltoid"
               ],
               "setupCues": [
                 "Cuélgate de unas asas separadas con las palmas enfrentadas, las manos más abiertas que los hombros.",
@@ -1457,7 +1498,6 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
-                "pectoralis",
                 "core",
                 "erector_spinae",
                 "forearm"
@@ -1526,6 +1566,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "pull_up__neutral__medium",
@@ -1579,6 +1622,9 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -1587,7 +1633,6 @@
                     "trapezius"
                   ],
                   "stabilizerMuscles": [
-                    "pectoralis",
                     "core",
                     "erector_spinae",
                     "forearm"
@@ -1666,7 +1711,6 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
-                "pectoralis",
                 "core",
                 "erector_spinae",
                 "forearm"
@@ -1735,6 +1779,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "pull_up__neutral__close",
@@ -1788,15 +1835,17 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
                   "secondaryMuscles": [
-                    "biceps",
-                    "trapezius"
+                    "biceps"
                   ],
                   "stabilizerMuscles": [
-                    "pectoralis",
+                    "trapezius",
                     "core",
                     "erector_spinae",
                     "forearm"
@@ -1866,8 +1915,7 @@
                 }
               },
               "secondaryMuscles": [
-                "biceps",
-                "trapezius"
+                "biceps"
               ],
               "setupCues": [
                 "Cuélgate de unas asas juntas con las palmas enfrentadas.",
@@ -1875,7 +1923,7 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
-                "pectoralis",
+                "trapezius",
                 "core",
                 "erector_spinae",
                 "forearm"
@@ -1889,7 +1937,7 @@
           }
         ],
         "defaultConfigurationId": "pull_up__pronated__medium",
-        "description": "La Dominada (pull-up) es una tracción vertical en la que el cuerpo cuelga de una barra fija y sube hasta que la barbilla la supera. El dorsal ancho es el motor en todos los agarres, y el bíceps flexiona el codo contra todo el peso corporal aunque las palmas miren al frente, sin llegar al nivel del dorsal. El trapecio bajo arranca el gesto deprimiendo la escápula. Con las palmas hacia ti el bíceps y el pectoral aportan más, y con las palmas al frente pesa más el trapecio bajo. Al no haber apoyo de tronco ni de piernas, nada compensa un balanceo.",
+        "description": "La Dominada (pull-up) es una tracción vertical en la que el cuerpo cuelga de una barra fija y sube hasta que la barbilla la supera. El dorsal ancho es el motor en todos los agarres, y el bíceps flexiona el codo contra todo el peso corporal aunque las palmas miren al frente, sin llegar al nivel del dorsal. El trapecio bajo arranca el gesto deprimiendo la escápula. Con las palmas hacia ti el bíceps gana ventaja mecánica en la flexión del codo, y con las palmas al frente pesa más el trapecio bajo. Al no haber apoyo de tronco ni de piernas, nada compensa un balanceo.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [
@@ -1980,6 +2028,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "rack_chin__default",
@@ -2041,6 +2092,9 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -2052,7 +2106,6 @@
                   "stabilizerMuscles": [
                     "forearm",
                     "rhomboids",
-                    "pectoralis",
                     "core",
                     "erector_spinae"
                   ],
@@ -2131,7 +2184,6 @@
               "stabilizerMuscles": [
                 "forearm",
                 "rhomboids",
-                "pectoralis",
                 "core",
                 "erector_spinae"
               ],
@@ -2220,6 +2272,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "NOT_APPLICABLE",
+              "limitingStabilizerMuscles": [
+                "forearm"
+              ],
               "loadMode": "bodyweight",
               "movementPatternId": "vertical_pull",
               "performanceProfileId": "negative_pull_up__default__dominada_negativa",
@@ -2269,6 +2324,9 @@
                       "role": "STABILIZER"
                     }
                   ],
+                  "limitingStabilizerMuscles": [
+                    "forearm"
+                  ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
                   ],
@@ -2278,7 +2336,6 @@
                     "trapezius"
                   ],
                   "stabilizerMuscles": [
-                    "pectoralis",
                     "core",
                     "erector_spinae",
                     "forearm"
@@ -2357,7 +2414,6 @@
               ],
               "setupTimeSeconds": 20,
               "stabilizerMuscles": [
-                "pectoralis",
                 "core",
                 "erector_spinae",
                 "forearm"
@@ -2368,7 +2424,7 @@
           }
         ],
         "defaultConfigurationId": "negative_pull_up__default",
-        "description": "La Dominada Negativa es una dominada en la que solo se trabaja la bajada: se llega arriba con un salto o con un escalón, con la barbilla sobre la barra, y se desciende despacio hasta colgar con los brazos estirados. El dorsal ancho frena la caída del cuerpo junto con el bíceps y el deltoides posterior, y el antebrazo sostiene el agarre durante todo el recorrido. Sirve a quien todavía no consigue subir su peso: en la electromiografía de dominadas completas, el bíceps y el pectoral se activaron menos en la bajada que en la subida. No es solo un recurso de iniciación: en un estudio con escaladores avanzados, cinco semanas de dominadas con trabajo excéntrico mejoraron la fuerza máxima y la velocidad de la dominada.",
+        "description": "La Dominada Negativa es una dominada en la que solo se trabaja la bajada: se llega arriba con un salto o con un escalón, con la barbilla sobre la barra, y se desciende despacio hasta colgar con los brazos estirados. El dorsal ancho frena la caída del cuerpo junto con el bíceps y el deltoides posterior, y el antebrazo sostiene el agarre durante todo el recorrido. Sirve a quien todavía no consigue subir su peso: en la electromiografía de dominadas completas, el bíceps y los flexores del codo se activaron menos en la bajada que en la subida. No es solo un recurso de iniciación: en un estudio con escaladores avanzados, cinco semanas de dominadas con trabajo excéntrico mejoraron la fuerza máxima y la velocidad de la dominada.",
         "evidence": {
           "confidence": "MEDIUM",
           "evidenceRefs": [

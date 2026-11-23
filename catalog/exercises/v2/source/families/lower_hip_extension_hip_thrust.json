@@ -110,11 +110,11 @@
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -178,15 +178,15 @@
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "setupCues": [
                 "Preparación: Barra sobre la cadera con ambas piernas: la espalda alta se apoya en el banco y el glúteo empuja la pelvis hasta alinearla."
               ],
               "setupTimeSeconds": 35,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "quadriceps"
               ],
               "technicalDifficulty": 4.2
             },
@@ -299,11 +299,11 @@
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -367,15 +367,15 @@
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "setupCues": [
                 "Preparación: Barra con una pierna: el glúteo de un lado trabaja sin ayuda del otro lado y el equilibrio se suma."
               ],
               "setupTimeSeconds": 35,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "quadriceps"
               ],
               "technicalDifficulty": 4.2
             },
@@ -488,11 +488,11 @@
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -556,15 +556,15 @@
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "setupCues": [
                 "Preparación: Smith con ambas piernas: la barra guiada te deja cargar el glúteo sin pensar en el equilibrio."
               ],
               "setupTimeSeconds": 40,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "quadriceps"
               ],
               "technicalDifficulty": 4.2
             },
@@ -677,11 +677,11 @@
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -745,15 +745,15 @@
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "setupCues": [
                 "Preparación: Smith con una pierna: guiado estable y trabajo unilateral del glúteo."
               ],
               "setupTimeSeconds": 40,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "quadriceps"
               ],
               "technicalDifficulty": 4.2
             },
@@ -867,11 +867,11 @@
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -935,15 +935,15 @@
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "setupCues": [
                 "Preparación: Máquina de este empuje de cadera con ambas piernas: la almohadilla y el guiado hacen el resto."
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "quadriceps"
               ],
               "technicalDifficulty": 4.2
             },
@@ -1057,11 +1057,11 @@
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1125,15 +1125,15 @@
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "setupCues": [
                 "Preparación: Máquina con una pierna: cada glúteo trabaja por separado con el guiado de la máquina."
               ],
               "setupTimeSeconds": 45,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "quadriceps"
               ],
               "technicalDifficulty": 4.2
             },
@@ -1246,11 +1246,11 @@
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1314,15 +1314,15 @@
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "setupCues": [
                 "Preparación: Banda sobre la cadera con ambas piernas: la resistencia crece al empujar arriba."
               ],
               "setupTimeSeconds": 10,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "quadriceps"
               ],
               "technicalDifficulty": 4.2
             },
@@ -1435,11 +1435,11 @@
                     "gluteus_maximus"
                   ],
                   "secondaryMuscles": [
-                    "hamstrings",
-                    "quadriceps"
+                    "hamstrings"
                   ],
                   "stabilizerMuscles": [
-                    "core"
+                    "core",
+                    "quadriceps"
                   ],
                   "volumeContribution": "indirect"
                 },
@@ -1503,15 +1503,15 @@
                 }
               },
               "secondaryMuscles": [
-                "hamstrings",
-                "quadriceps"
+                "hamstrings"
               ],
               "setupCues": [
                 "Preparación: Banda con una pierna: el glúteo trabaja sin ayuda del otro lado contra la resistencia elástica."
               ],
               "setupTimeSeconds": 10,
               "stabilizerMuscles": [
-                "core"
+                "core",
+                "quadriceps"
               ],
               "technicalDifficulty": 4.2
             },

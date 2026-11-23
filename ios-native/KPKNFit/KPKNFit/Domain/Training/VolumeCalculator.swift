@@ -97,7 +97,7 @@ public struct VolumeCalculator {
         if lower.contains("glúteo") || lower.contains("gluteo") || lower.contains("tensor de la fascia lata") || lower.contains("tensor fascia") { return "Glúteos" }
         if lower.contains("psoas") { return "Core" }
         if lower.contains("adductor") || lower.contains("aductor") || lower.contains("pectíneo") || lower.contains("pectineo") { return "Aductores" }
-        if lower.contains("gemelo") || lower.contains("pantorrilla") || lower.contains("gastrocnemio") || lower.contains("sóleo") || lower.contains("soleo") { return "Pantorrillas" }
+        if lower.contains("gemelo") || lower.contains("pantorrilla") || lower.contains("gastrocnemio") || lower.contains("sóleo") || lower.contains("soleo") || lower.contains("tibial anterior") || lower == "tibial" { return "Pantorrillas" }
         if lower.contains("cuello") || lower.contains("cervical") { return "Cuello" }
         if lower == "core" || lower.contains("transverso") || lower.contains("serrato") || emphasisLower.contains("core") { return "Core" }
         if lower.contains("abdominal") || lower.contains("abdomen") || lower.contains("oblicuo") || lower.contains("recto del abdomen") { return "Abdomen" }
@@ -121,16 +121,24 @@ public struct VolumeCalculator {
 
     static func resolveMuscleVolumeContribution(
         _ involvement: InvolvedMuscle,
-        capAtOne: Bool = true
+        capAtOne: Bool = true,
+        includePosturalStabilizerDiagnostic: Bool = false
     ) -> Double {
-        let fallback: Double
-        switch involvement.role {
-        case .PRIMARY:     fallback = 1.0
-        case .SECONDARY:   fallback = 0.5
-        case .STABILIZER:  fallback = 0.4
-        case .NEUTRALIZER: fallback = 0.1
+        let raw: Double
+        if involvement.role == .STABILIZER &&
+            (involvement.volumeContribution == nil || involvement.volumeContribution == 0.0) &&
+            includePosturalStabilizerDiagnostic {
+            raw = DIAGNOSTIC_POSTURAL_STABILIZER_CONTRIBUTION
+        } else {
+            let fallback: Double
+            switch involvement.role {
+            case .PRIMARY:     fallback = 1.0
+            case .SECONDARY:   fallback = 0.5
+            case .STABILIZER:  fallback = 0.0
+            case .NEUTRALIZER: fallback = 0.0
+            }
+            raw = involvement.volumeContribution ?? fallback
         }
-        let raw = involvement.volumeContribution ?? fallback
         return capAtOne ? min(max(raw, 0.0), 1.0) : max(raw, 0.0)
     }
 
@@ -151,7 +159,7 @@ public struct VolumeCalculator {
         let exIndex = Dictionary(uniqueKeysWithValues: exerciseList.map { ($0.id.lowercased(), $0) })
 
         for session in sessions {
-            let allExercises = session.parts.isEmpty ? session.exercises : session.parts.flatMap { $0.exercises }
+            let allExercises = session.allExercises()
 
             for exercise in allExercises {
                 let validSetsCount = countEffectiveSets(exercise.sets)
@@ -287,6 +295,51 @@ public struct VolumeCalculator {
         return volumeMap
     }
 
+    private static func sourceRefIdentity(_ sourceRef: JSONValue?) -> String? {
+        guard case .object(let dict) = sourceRef else { return nil }
+        func str(_ key: String) -> String {
+            switch dict[key] {
+            case .string(let s): return s
+            case .integer(let i): return String(i)
+            case .number(let n): return String(n)
+            case .bool(let b): return String(b)
+            default: return ""
+            }
+        }
+        let variant = str("variant")
+        let occurrence = str("exerciseOccurrenceId")
+        let setId = str("setId")
+        if !variant.isEmpty || !occurrence.isEmpty || !setId.isEmpty {
+            return "\(variant)|\(occurrence)|\(setId)"
+        }
+        return dict.keys.sorted().map { "\($0)=\(dict[$0]!)" }.joined(separator: "|")
+    }
+
+    public static func logicalWorkingSets(for exercise: CompletedExercise) -> [CompletedSet] {
+        let working = exercise.sets.filter {
+            !$0.skipped && !$0.isWarmup && $0.recordedPayloadV3?.skipped != true
+        }
+        var identified: [CompletedSet] = []
+        var seenKeys: Set<String> = []
+        var legacy: [CompletedSet] = []
+        for set in working {
+            if let key = sourceRefIdentity(set.sourceRef) {
+                if seenKeys.insert(key).inserted {
+                    identified.append(set)
+                }
+            } else {
+                legacy.append(set)
+            }
+        }
+        let leftAliases: Set<String> = ["left", "l"]
+        let rightAliases: Set<String> = ["right", "r"]
+        let nonUnilateral = legacy.filter { ($0.side ?? "").trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        let leftLegacy = legacy.filter { ($0.side.map { leftAliases.contains($0.lowercased()) }) ?? false }
+        let rightLegacy = legacy.filter { ($0.side.map { rightAliases.contains($0.lowercased()) }) ?? false }
+        let unilateralCollapsed = leftLegacy.count >= rightLegacy.count ? leftLegacy : rightLegacy
+        return identified + nonUnilateral + unilateralCollapsed
+    }
+
     public static func calculateCompletedWeeklyMuscleVolume(
         logs: [WorkoutLog],
         exerciseList: [ExerciseMuscleInfo],
@@ -303,13 +356,13 @@ public struct VolumeCalculator {
                         id: ex.exerciseId,
                         name: ex.exerciseName,
                         exerciseDbId: ex.exerciseDbId,
-                        sets: ex.sets.map { set in
+                        sets: logicalWorkingSets(for: ex).map { set in
                             ExerciseSet(
                                 id: set.id,
                                 targetReps: set.reps,
                                 weight: set.weight,
-                                completedReps: set.skipped ? 0 : set.reps,
-                                isIneffective: set.isWarmup || set.skipped || (set.reps <= 0 && (set.timeSeconds ?? 0) <= 0)
+                                completedReps: set.reps,
+                                isIneffective: set.reps <= 0 && (set.timeSeconds ?? 0) <= 0
                             )
                         }
                     )

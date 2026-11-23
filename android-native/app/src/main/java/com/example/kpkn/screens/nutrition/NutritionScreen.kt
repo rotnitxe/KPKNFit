@@ -69,6 +69,8 @@ import com.example.kpkn.ui.design.rememberIslandVisible
 import com.example.kpkn.ui.adapt.LocalViewportAdapt
 import com.example.kpkn.ui.adapt.adapt
 import com.example.kpkn.ui.locale.LocaleManager
+import com.example.kpkn.ui.tour.TourAnchorScroller
+import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.TourIds
 import com.example.kpkn.ui.tour.TourScripts
 import dev.chrisbanes.haze.HazeState
@@ -124,15 +126,23 @@ fun NutritionScreen(
     val driProfile by viewModel.driProfile.collectAsState()
     // El objetivo de kcal del día que se registra: el aro del registro, «te quedan N» y la escala de la huella.
     val loggerKcalTarget = (goals as? DayGoalsResult.Present)?.goals?.calorieGoal?.takeIf { it > 0 }
-    // Recorrido de Nutrición: se lanza al montar la pantalla (su ViewModel no expone señal de carga). Visto = no arranca.
+    // Recorrido de Nutrición: espera a que userStateLoaded sea true para conocer si hay plan activo. Visto = no arranca.
     val tourHost = LocalKpknOverlayHost.current
-    LaunchedEffect(Unit) { tourHost?.startTour(TourIds.NUTRITION, TourScripts.nutrition) }
+    val activePlan by viewModel.activePlan.collectAsState()
+    val userStateLoaded by viewModel.userStateLoaded.collectAsState()
+    LaunchedEffect(userStateLoaded) {
+        if (userStateLoaded) {
+            tourHost?.startTour(
+                TourIds.NUTRITION,
+                TourScripts.nutrition(hasActivePlan = activePlan != null),
+            )
+        }
+    }
     val mealGroups by viewModel.mealGroups.collectAsState()
     val selectedDate by viewModel.selectedDate.collectAsState()
     var showDayState by rememberSaveable(selectedDate) { mutableStateOf(false) }
     var showNutrients by rememberSaveable(selectedDate) { mutableStateOf(false) }
     val today by viewModel.today.collectAsState()
-    val activePlan by viewModel.activePlan.collectAsState()
     val foodDatabase by viewModel.foodDatabase.collectAsState()
     val trendData by viewModel.trendData.collectAsState()
     val shareMacros by viewModel.shareMacros.collectAsState()
@@ -158,7 +168,6 @@ fun NutritionScreen(
         .collectAsState(initial = com.example.kpkn.data.models.Settings())
     val nutritionRepo = remember { com.example.kpkn.data.repository.NutritionRepository.getInstance() }
     // Raíz de Nutrición (N1): carga del estado del usuario, tira de «Tu día», racha de creatina y la isla al salir la cabecera.
-    val userStateLoaded by viewModel.userStateLoaded.collectAsState()
     val weekStrip by viewModel.weekStrip.collectAsState()
     val creatineStreakDays by viewModel.creatineStreakDays.collectAsState()
     // Suplementos (Pulido v1): la pila, las tomas de hoy, la semana y la hoja abierta (ajustar, aviso de techo o añadir).
@@ -204,6 +213,12 @@ fun NutritionScreen(
     }
     val snackbarHostState = remember { SnackbarHostState() }
     var pendingNutritionSetupDraftId by remember { mutableStateOf<String?>(null) }
+    val weekTrendItemIndex = 7 +
+        (if (pendingNutritionSetupDraftId != null) 1 else 0) +
+        (if (plannedLogs.isNotEmpty()) 1 else 0)
+    TourAnchorScroller(TourAnchors.NUTRITION_ANILLOS) { listState.animateScrollToItem(0) }
+    TourAnchorScroller(TourAnchors.NUTRITION_PLAN) { listState.animateScrollToItem(0) }
+    TourAnchorScroller(TourAnchors.NUTRITION_HISTORIAL) { listState.animateScrollToItem(weekTrendItemIndex) }
     var pendingSetupRefresh by remember { mutableIntStateOf(0) }
     val nutritionContext = androidx.compose.ui.platform.LocalContext.current
     val lifecycleOwner = androidx.lifecycle.compose.LocalLifecycleOwner.current

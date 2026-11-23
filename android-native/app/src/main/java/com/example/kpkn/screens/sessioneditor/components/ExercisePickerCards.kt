@@ -301,18 +301,20 @@ private fun ExercisePickerCanonicalSummary(info: ExerciseMuscleInfo) {
                                 overflow = TextOverflow.Ellipsis,
                             )
                             Text(
-                                compactRoleLabel(contribution.role),
+                                compactRoleLabel(contribution.role, contribution.seriesEquivalent),
                                 style = MaterialTheme.typography.labelSmall,
                                 color = KpknSheetTokens.MutedStrong,
                             )
                         }
-                        Text(
-                            formatSeriesEquivalent(contribution.seriesEquivalent) + " · " +
-                                formatVolumePercent(contribution.seriesEquivalent),
-                            style = MaterialTheme.typography.labelSmall,
-                            fontWeight = FontWeight.SemiBold,
-                            color = KpknSheetTokens.MutedStrong,
-                        )
+                        if (!(contribution.role == MuscleRole.STABILIZER && contribution.seriesEquivalent <= 0.0)) {
+                            Text(
+                                formatSeriesEquivalent(contribution.seriesEquivalent) + " · " +
+                                    formatVolumePercent(contribution.seriesEquivalent),
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = KpknSheetTokens.MutedStrong,
+                            )
+                        }
                     }
                 }
             }
@@ -326,10 +328,10 @@ private fun ExercisePickerCanonicalSummary(info: ExerciseMuscleInfo) {
     }
 }
 
-private fun compactRoleLabel(role: MuscleRole): String = when (role) {
+private fun compactRoleLabel(role: MuscleRole, seriesEquivalent: Double = 0.0): String = when (role) {
     MuscleRole.PRIMARY -> "Principal"
     MuscleRole.SECONDARY -> "Secundario"
-    MuscleRole.STABILIZER -> "Estabilizador"
+    MuscleRole.STABILIZER -> if (seriesEquivalent > 0.0) "Estabilizador limitante" else "Estabilizador postural"
     MuscleRole.NEUTRALIZER -> "Neutralizador"
 }
 

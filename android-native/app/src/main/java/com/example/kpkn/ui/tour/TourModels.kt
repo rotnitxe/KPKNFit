@@ -12,6 +12,10 @@ data class TourStep(
     val title: String,
     val body: String,
     val kind: TourStepKind = TourStepKind.NEXT,
+    val eyebrow: String = "",
+    val tryAnchorId: String? = null,
+    val tryHint: String? = null,
+    val cutoutCornerDp: Float = 22f,
 )
 
 /** Estado observable del recorrido. [tourId] nulo = no hay recorrido activo. */
@@ -19,8 +23,12 @@ data class TourUiState(
     val tourId: String? = null,
     val steps: List<TourStep> = emptyList(),
     val index: Int = 0,
+    val isScrollingToAnchor: Boolean = false,
+    val trySuccessPulse: Boolean = false,
 ) {
     val isActive: Boolean get() = tourId != null
 
     val current: TourStep? get() = steps.getOrNull(index)
+
+    val canGoBack: Boolean get() = index > 0
 }

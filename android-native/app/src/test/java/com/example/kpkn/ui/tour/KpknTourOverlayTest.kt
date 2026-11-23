@@ -11,10 +11,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.click
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithTag
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTouchInput
 import androidx.compose.ui.unit.dp
@@ -162,5 +164,74 @@ class KpknTourOverlayTest {
         rule.waitForIdle()
         assertEquals(1, insideTaps)
         assertEquals(1, host.tour.state.value.index)
+    }
+
+    @Test
+    fun atras_y_escape_seguro_en_pruebalo_y_toast_al_completar() {
+        val seen = FakeSeen()
+        val host = KpknOverlayHostController(tourSeen = seen)
+        var tryBtnTaps = 0
+        rule.setContent {
+            CompositionLocalProvider(
+                LocalKpknOverlayHost provides host,
+                LocalWizardReducedMotion provides true,
+            ) {
+                Box(Modifier.fillMaxSize()) {
+                    Box(Modifier.padding(top = 60.dp, start = 60.dp).size(120.dp).testTag("primera").tourAnchor("a")) {}
+                    Box(Modifier.padding(top = 340.dp, start = 60.dp).size(120.dp).testTag("segunda").tourAnchor("b")) {}
+                    Box(
+                        Modifier
+                            .padding(top = 680.dp, start = 60.dp)
+                            .size(width = 160.dp, height = 56.dp)
+                            .testTag("try_btn")
+                            .tourAnchor("btn")
+                            .clickable { tryBtnTaps++ },
+                    ) {}
+                    KpknOverlayHostContent(host)
+                }
+            }
+        }
+        rule.runOnIdle {
+            host.startTour(
+                "demo",
+                listOf(
+                    step("a", "Primero"),
+                    TourStep(
+                        anchorId = "b",
+                        tryAnchorId = "btn",
+                        title = "Segundo TRY",
+                        body = "Toca el botón o continúa.",
+                        kind = TourStepKind.TRY,
+                        tryHint = "Toca el botón",
+                    ),
+                ),
+            )
+        }
+        rule.waitForIdle()
+        rule.onAllNodesWithTag("tour_prev").assertCountEquals(0)
+        rule.onNodeWithText("Siguiente").assertIsDisplayed()
+
+        // Avanza al paso TRY (index 1): ahora aparece Atrás y Continuar.
+        rule.onNodeWithTag("tour_next").performClick()
+        rule.waitForIdle()
+        assertEquals(1, host.tour.state.value.index)
+        rule.onNodeWithTag("tour_prev").assertIsDisplayed()
+        rule.onNodeWithText("Continuar").assertIsDisplayed()
+
+        // Retrocede a paso 0 con Atrás.
+        rule.onNodeWithTag("tour_prev").performClick()
+        rule.waitForIdle()
+        assertEquals(0, host.tour.state.value.index)
+
+        // Vuelve a paso 1 y sale usando «Continuar» (escape seguro sin tocar try_btn).
+        rule.onNodeWithTag("tour_next").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("tour_next").performClick()
+        rule.waitForIdle()
+
+        assertEquals(0, tryBtnTaps)
+        assertFalse(host.tour.state.value.isActive)
+        assertEquals(listOf("demo"), seen.marked)
+        rule.onNodeWithTag("tour_completed_toast").assertIsDisplayed()
     }
 }

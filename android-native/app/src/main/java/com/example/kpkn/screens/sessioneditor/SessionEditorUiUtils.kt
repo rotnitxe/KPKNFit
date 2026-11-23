@@ -51,10 +51,33 @@ internal fun formatRestSummary(restTime: Int?): String = KpknSetFormat.doseTime(
 
 internal fun formatExerciseCollapsedSummary(exercise: Exercise): String? {
     if (exercise.sets.isEmpty()) return null
-    val timeSets = exercise.sets.filter { it.targetDuration != null && (it.targetDuration ?: 0) > 0 }
-    val reps = exercise.sets.mapNotNull { it.effectiveRepRange()?.format() }.distinct()
-    val durations = timeSets.mapNotNull { it.targetDuration }.distinct()
-    val loads = exercise.sets.mapNotNull { it.weight }.distinct()
+    val unilateral = exercise.isEffectivelyUnilateral()
+    val timeSets = exercise.sets.filter { set ->
+        val dur = if (unilateral) (set.leftTarget?.targetDuration ?: set.rightTarget?.targetDuration ?: set.targetDuration) else set.targetDuration
+        dur != null && dur > 0
+    }
+    val reps = exercise.sets.mapNotNull { set ->
+        val sideRanges = if (unilateral) {
+            listOfNotNull(set.leftTarget, set.rightTarget).mapNotNull { target ->
+                target.targetRepsRange ?: target.targetReps?.let { r -> RepRange(r, r) }
+            }
+        } else {
+            emptyList()
+        }
+        val effectiveRange = if (sideRanges.isNotEmpty()) {
+            RepRange(sideRanges.minOf { it.min }, sideRanges.maxOf { it.max })
+        } else {
+            set.effectiveRepRange()
+        }
+        effectiveRange?.format()
+    }.distinct()
+    val durations = timeSets.mapNotNull { set ->
+        if (unilateral) (set.leftTarget?.targetDuration ?: set.rightTarget?.targetDuration ?: set.targetDuration) else set.targetDuration
+    }.distinct()
+    val loads = exercise.sets.flatMap { set ->
+        val sideLoads = if (unilateral) listOfNotNull(set.leftTarget?.weight, set.rightTarget?.weight) else emptyList()
+        if (sideLoads.isNotEmpty()) sideLoads else listOfNotNull(set.weight)
+    }.distinct()
     val repsPart = when {
         timeSets.size == exercise.sets.size && durations.size == 1 ->
             "${exercise.sets.size} × ${KpknSetFormat.doseTime(durations.first())}"
@@ -97,7 +120,12 @@ internal fun formatExerciseConfigSummary(exercise: Exercise): String {
         if (exercise.warmupSets.isNotEmpty()) add("${exercise.warmupSets.size} aprox")
         if (exercise.mobilitySeries.isNotEmpty()) add("Movilidad")
         // pulido:lv-A04 (el «ROM» de la línea resumen entra con `lv-pin` al encender «Registrar ROM»)
-        if (exercise.trackRom) add("ROM")
+        if (exercise.trackRom) {
+            val romText = exercise.plannedRom?.let {
+                "ROM ${com.example.kpkn.domain.workout.RomTargetCatalog.format(it)}"
+            } ?: "ROM"
+            add(romText)
+        }
         exercise.relativeToCanonicalExerciseId?.let { add("Relacionado") }
     }
     return parts.joinToString(" · ")

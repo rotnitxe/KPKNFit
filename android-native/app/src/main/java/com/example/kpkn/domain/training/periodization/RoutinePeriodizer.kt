@@ -681,6 +681,7 @@ object RoutinePeriodizer {
         return base.copy(
             id = programId,
             structure = ProgramStructure.COMPLEX,
+            highEnergyDay = base.highEnergyDay ?: base.startDay,
             macrocycles = listOf(Macrocycle(id = "$programId-macro", name = "Mi plan", blocks = blocks)),
             tags = base.tags + variant.name,
         )

@@ -265,7 +265,7 @@
         },
         {
           "muscle": "deltoid",
-          "why": "La pistola asistida utiliza asas cargadas delante del cuerpo y extensión dinámica del hombro durante la ayuda; la pistola libre solo mantiene brazos vacíos adelantados como contrapeso. La función extensora de la porción posterior del deltoides (NBK537056/PMID30725741) y los fotogramas 46–48 s del demo original TRX de Stephanie Warwick (Vimeo723800899) sustentan SECONDARY cooperante por inferencia; no hay EMG comparativa ni reparto de fuerza medido. Es diferencia de exposición y recorrido real, no excepción por volumen."
+          "why": "La pistola asistida utiliza asas cargadas delante del cuerpo durante la ayuda; la pistola libre solo mantiene brazos vacíos adelantados como contrapeso. La función estabilizadora de hombro y escápula según StatPearls NBK537056/PMID30725741 sustenta STABILIZER postural por inferencia en el sostén de las correas, sin EMG comparativa ni reparto de volumen adicional."
         }
       ],
       "child": "quads_sentadilla_pistola_asistida_trx",
@@ -725,6 +725,98 @@
         }
       ],
       "title": "En presses por encima de la cabeza el deltoides lidera y el tríceps extiende el codo"
+    },
+    {
+      "applies": {
+        "definitionIds": [
+          "core_plancha",
+          "hollow_body_hold",
+          "dead_bug",
+          "bird_dog",
+          "core_press_pallof",
+          "side_plank"
+        ]
+      },
+      "evidence": "Los ejercicios isométricos de anti-extensión, anti-rotación y estabilidad lateral reclutan primariamente la musculatura profunda lumbopélvica (core) con los abdominales superficiales como secundarios.",
+      "exact": [
+        {
+          "muscle": "core",
+          "role": "PRIMARY"
+        },
+        {
+          "muscle": "abdominals",
+          "role": "SECONDARY"
+        }
+      ],
+      "id": "core.anti-movement-vs-trunk-flexion",
+      "title": "En tareas anti-movimiento puras el core lidera y abdominals es secundario"
+    },
+    {
+      "applies": {
+        "excludeDefinitionIds": [
+          "side_plank"
+        ],
+        "movementPatterns": [
+          "trunk_flexion",
+          "lateral_trunk_flexion",
+          "trunk_rotation"
+        ]
+      },
+      "evidence": "Las flexiones de tronco, inclinaciones laterales dinámicas y rotaciones de tronco concentran el trabajo dinámico en recto abdominal y oblicuos (abdominals).",
+      "exact": [
+        {
+          "muscle": "abdominals",
+          "role": "PRIMARY"
+        }
+      ],
+      "id": "core.trunk-flexion-and-rotation-abdominals",
+      "title": "En tareas dinámicas de flexión y rotación de tronco abdominals es principal"
+    },
+    {
+      "applies": {
+        "definitionIds": [
+          "pullover",
+          "seated_machine_pullover"
+        ]
+      },
+      "evidence": "En pullovers en polea de pie o en máquina sentada la resistencia aplica extensión de hombro desde elevación sin exigir aducción horizontal significativa del pectoral mayor.",
+      "forbid": [
+        {
+          "muscle": "pectoralis",
+          "roles": [
+            "PRIMARY",
+            "SECONDARY",
+            "STABILIZER"
+          ]
+        }
+      ],
+      "id": "pullover.cable-no-pectoralis",
+      "title": "En pullover en polea y en máquina sentada el pectoral no figura en el perfil"
+    },
+    {
+      "applies": {
+        "definitionIds": [
+          "lat_pulldown",
+          "close_grip_lat_pulldown",
+          "pull_up",
+          "rack_chin",
+          "negative_pull_up",
+          "back_dominadas_escapulares"
+        ]
+      },
+      "evidence": "Las tracciones verticales trabajan dorsal ancho, flexores de codo y cintura escapular; la participación mínima del pectoral en EMG inicial no justifica imputar volumen de pectoral.",
+      "forbid": [
+        {
+          "muscle": "pectoralis",
+          "roles": [
+            "PRIMARY",
+            "SECONDARY",
+            "STABILIZER"
+          ]
+        }
+      ],
+      "id": "vertical-pull.no-pectoralis",
+      "title": "En tracciones verticales el pectoral no figura en el perfil muscular"
     }
   ],
   "schemaVersion": 1

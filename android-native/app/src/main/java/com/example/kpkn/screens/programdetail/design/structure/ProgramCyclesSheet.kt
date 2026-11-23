@@ -27,10 +27,8 @@ import com.example.kpkn.ui.design.KpknType
 
 /** Las frases de «Para qué sirven los loops». */
 private val CYCLE_INFO_LINES = listOf(
-    "Un loop no es el evento: es la regla en bucle que programa ese evento cada X vueltas.",
-    "Tu semana base S1 se repite en bucle; al editarla cambia tu semana habitual sin alterar tus semanas de loop.",
-    "El evento se muestra como E1, E2… y es una semana real donde puedes editar sus sesiones.",
-    "Ejemplos: descarga cada 4 loops o competición cada 12 loops.",
+    "Los Loops son una forma entretenida de dinamizar tus entrenos basados en una o más semanas.",
+    "Podrás incluir eventos como semanas de descarga automáticas tras un número de repeticiones, o periodizar aspectos internos de tu rutina —como el RIR o RPE de tus ejercicios— conforme avanza.",
 )
 
 /** Qué ciclo se edita en la hoja: null = uno nuevo. */
@@ -75,6 +73,7 @@ internal fun ProgramCyclesSheet(
             ProgramCycleEditorSheet(
                 loop = target.loop,
                 existing = model.loops,
+                apreExerciseNames = model.apreExerciseNames,
                 onSave = { draft ->
                     onSaveLoop(draft)
                     editing = null
@@ -190,7 +189,7 @@ internal fun ProgramCyclesContent(
         if (model.canAddLoops) {
             StructureSheetGroup(text = "Loops listos")
             ProgramCycleTemplatesModule(
-                templates = programCycleTemplates,
+                templates = programCycleTemplatesFor(model.apreExerciseNames),
                 onAdd = { templateId ->
                     if (templateId == "custom") openEditor(null) else onAddTemplate(templateId)
                 },
@@ -215,6 +214,7 @@ internal fun ProgramCyclesContent(
         ProgramCycleEditorSheet(
             loop = target.loop,
             existing = model.loops,
+            apreExerciseNames = model.apreExerciseNames,
             onSave = { draft ->
                 onSaveLoop(draft)
                 localEditing = null

@@ -33,11 +33,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.drawOutline
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.changedToUpIgnoreConsumed
@@ -82,9 +86,17 @@ internal fun EdSwipeSurface(
     noticeAlpha: () -> Float,
     notice: (@Composable () -> Unit)?,
     modifier: Modifier = Modifier,
+    surfaceColor: Color = EdRowSurface,
+    surfaceShape: Shape = RectangleShape,
+    outerSwipeModifier: Modifier = Modifier,
     row: @Composable () -> Unit,
 ) {
-    Box(modifier = modifier.fillMaxWidth().clipToBounds()) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clipToBounds()
+            .then(outerSwipeModifier),
+    ) {
         Box(
             modifier = Modifier
                 .matchParentSize()
@@ -96,8 +108,12 @@ internal fun EdSwipeSurface(
         Box(
             modifier = Modifier
                 .graphicsLayer { translationX = rowOffsetPx() }
-                // La fila lleva fondo opaco solo mientras se desliza: así la píldora no se ve a través y, en reposo, el módulo conserva sus esquinas.
-                .drawBehind { if (rowOffsetPx() != 0f) drawRect(EdRowSurface) },
+                .drawBehind {
+                    if (rowOffsetPx() != 0f) {
+                        val outline = surfaceShape.createOutline(size, layoutDirection, this)
+                        drawOutline(outline = outline, color = surfaceColor)
+                    }
+                },
         ) {
             row()
         }
@@ -106,7 +122,7 @@ internal fun EdSwipeSurface(
                 modifier = Modifier
                     .matchParentSize()
                     .graphicsLayer { alpha = noticeAlpha() }
-                    .background(EdRowSurface),
+                    .background(surfaceColor, surfaceShape),
             ) {
                 notice()
             }
@@ -116,13 +132,12 @@ internal fun EdSwipeSurface(
 
 /**
  * `.ed-delpill`: la píldora de borrar. Radio 22, de 7 dp bajo el borde de arriba a 7 sobre el de abajo. Apagada, #3a1e1c con la papelera en
- * `danger`; encendida (`armed`), `danger` con #2a0d0a, la papelera al 122 % (0,18 s, resorte) y la palabra «Eliminar» que crece en 0,2 s. Al
- * encenderse, un pequeño rebote de escala (`ed-pop`, 0,26 s).
+ * `danger`; encendida (`armed`), `#D94841` con icono y texto blancos, la papelera al 122 % (0,18 s, resorte) y la palabra «Eliminar» que crece en 0,2 s.
  */
 @Composable
 private fun EdDeletePill(widthPx: () -> Float, armed: Boolean, alphaProvider: () -> Float, popScale: () -> Float) {
     val iconScale by animateFloatAsState(if (armed) 1.22f else 1f, tween(180, easing = EdMotion.Spring), label = "edPillIcon")
-    val content = if (armed) Color(0xFF2A0D0A) else EdColors.danger
+    val content = if (armed) Color.White else EdColors.danger
     Box(
         modifier = Modifier
             .layout { measurable, constraints ->
@@ -136,7 +151,7 @@ private fun EdDeletePill(widthPx: () -> Float, armed: Boolean, alphaProvider: ()
                 scaleY = popScale()
             }
             .clip(RoundedCornerShape(22.dp))
-            .background(if (armed) EdColors.danger else Color(0xFF3A1E1C)),
+            .background(if (armed) Color(0xFFD94841) else Color(0xFF3A1E1C)),
         contentAlignment = Alignment.Center,
     ) {
         Row(
@@ -187,6 +202,10 @@ internal fun EdSwipeDeleteRow(
     onCommit: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    surfaceColor: Color = EdRowSurface,
+    surfaceShape: Shape = RectangleShape,
+    confirmViaRemovalOnly: Boolean = false,
+    deleteActionLabel: String = "Eliminar ejercicio",
     content: @Composable (swipe: Modifier) -> Unit,
 ) {
     val localDensity = LocalDensity.current
@@ -196,6 +215,8 @@ internal fun EdSwipeDeleteRow(
     val latestOnCommit by rememberUpdatedState(onCommit)
     var widthPx by remember { mutableIntStateOf(0) }
     val rowX = remember { Animatable(0f) }
+    var dragOffsetPx by remember { mutableStateOf<Float?>(null) }
+    var isDraggingGesture by remember { mutableStateOf(false) }
     val pillOut = remember { Animatable(0f) }
     val pillAlphaOut = remember { Animatable(1f) }
     val noticeAlpha = remember { Animatable(0f) }
@@ -217,8 +238,8 @@ internal fun EdSwipeDeleteRow(
     var settledOnce by remember { mutableStateOf(false) }
 
     // La salida y la vuelta de la fila siguen al estado del borrado, no al gesto: así también valen los otros caminos (acción de TalkBack, hoja de acciones).
-    LaunchedEffect(gone, widthPx) {
-        if (widthPx <= 0) return@LaunchedEffect
+    LaunchedEffect(gone, widthPx, isDraggingGesture) {
+        if (widthPx <= 0 || isDraggingGesture) return@LaunchedEffect
         val d = localDensity.density
         val outX = -(widthPx + 8f * d)
         val fill = max(0f, widthPx - 16f * d)
@@ -261,8 +282,8 @@ internal fun EdSwipeDeleteRow(
         }
     }
 
-    val swipe = remember(enabled, gone, localDensity.density) {
-        Modifier.pointerInput(enabled, gone) {
+    val swipe = remember(enabled, gone, confirmViaRemovalOnly, localDensity.density) {
+        Modifier.pointerInput(enabled, gone, confirmViaRemovalOnly) {
             if (!enabled || gone) return@pointerInput
             awaitEachGesture {
                 val down = awaitFirstDown(requireUnconsumed = false)
@@ -271,59 +292,97 @@ internal fun EdSwipeDeleteRow(
                 var lastX = down.position.x
                 var lastT = down.uptimeMillis
                 var velocity = 0f
-                while (true) {
-                    val event = awaitPointerEvent()
-                    val change = event.changes.firstOrNull { it.id == down.id } ?: break
-                    val dxDp = (change.position.x - down.position.x) / d
-                    val dyDp = (change.position.y - down.position.y) / d
-                    if (change.changedToUpIgnoreConsumed()) {
-                        if (locked) {
-                            change.consume()
-                            armedByDrag = false
-                            if (edShouldCommit(edReveal(dxDp), velocity)) {
-                                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
-                                committedLocal = true
-                                latestOnCommit()
-                            } else {
-                                // pulido:transicion ed-T22 .ed-row.snap 0,34 s --ed-spring (ed-J26)
-                                scope.launch { rowX.animateTo(0f, tween(if (reduced) 1 else EdSwipe.SnapMillis, easing = EdMotion.Spring)) }
+                var latestDxDp = 0f
+                var finishedNormally = false
+                try {
+                    while (true) {
+                        val event = awaitPointerEvent()
+                        val change = event.changes.firstOrNull { it.id == down.id } ?: break
+                        val dxDp = (change.position.x - down.position.x) / d
+                        val dyDp = (change.position.y - down.position.y) / d
+                        latestDxDp = dxDp
+                        if (change.changedToUpIgnoreConsumed()) {
+                            finishedNormally = true
+                            if (locked) {
+                                change.consume()
+                                val currentOffset = dragOffsetPx ?: rowX.value
+                                armedByDrag = false
+                                val shouldCommit = edShouldCommit(edReveal(dxDp), velocity)
+                                if (shouldCommit) {
+                                    haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                                    if (!confirmViaRemovalOnly) committedLocal = true
+                                    scope.launch {
+                                        rowX.snapTo(currentOffset)
+                                        dragOffsetPx = null
+                                        isDraggingGesture = false
+                                        if (confirmViaRemovalOnly) {
+                                            rowX.animateTo(0f, tween(if (reduced) 1 else EdSwipe.SnapMillis, easing = EdMotion.Spring))
+                                        }
+                                    }
+                                    latestOnCommit()
+                                } else {
+                                    // pulido:transicion ed-T22 .ed-row.snap 0,34 s --ed-spring (ed-J26)
+                                    scope.launch {
+                                        rowX.snapTo(currentOffset)
+                                        dragOffsetPx = null
+                                        isDraggingGesture = false
+                                        rowX.animateTo(0f, tween(if (reduced) 1 else EdSwipe.SnapMillis, easing = EdMotion.Spring))
+                                    }
+                                }
                             }
+                            break
                         }
-                        break
+                        if (!locked) {
+                            if (change.isConsumed) break
+                            val decision = edSwipeDecision(dxDp, dyDp)
+                            if (decision == EdSwipeDecision.Scroll) break
+                            if (decision == EdSwipeDecision.Undecided) continue
+                            locked = true
+                            isDraggingGesture = true
+                        }
+                        change.consume()
+                        val now = change.uptimeMillis
+                        velocity = abs(change.position.x - lastX) / d / max(1L, now - lastT).toFloat()
+                        lastX = change.position.x
+                        lastT = now
+                        val reveal = edReveal(dxDp)
+                        val nowArmed = edArmed(reveal)
+                        if (nowArmed != armedByDrag) {
+                            armedByDrag = nowArmed
+                            // pulido:vibracion ed-J14 tic al pasar el umbral de 104
+                            if (nowArmed) haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                        }
+                        dragOffsetPx = -reveal * d
                     }
-                    if (!locked) {
-                        if (change.isConsumed) break
-                        val decision = edSwipeDecision(dxDp, dyDp)
-                        if (decision == EdSwipeDecision.Scroll) break
-                        if (decision == EdSwipeDecision.Undecided) continue
-                        locked = true
+                } finally {
+                    if (!finishedNormally && isDraggingGesture) {
+                        val currentOffset = dragOffsetPx ?: rowX.value
+                        armedByDrag = false
+                        scope.launch {
+                            rowX.snapTo(currentOffset)
+                            dragOffsetPx = null
+                            isDraggingGesture = false
+                            rowX.animateTo(0f, tween(if (reduced) 1 else EdSwipe.SnapMillis, easing = EdMotion.Spring))
+                        }
+                    } else if (!finishedNormally) {
+                        armedByDrag = false
+                        dragOffsetPx = null
+                        isDraggingGesture = false
                     }
-                    change.consume()
-                    val now = change.uptimeMillis
-                    velocity = abs(change.position.x - lastX) / d / max(1L, now - lastT).toFloat()
-                    lastX = change.position.x
-                    lastT = now
-                    val reveal = edReveal(dxDp)
-                    val nowArmed = edArmed(reveal)
-                    if (nowArmed != armedByDrag) {
-                        armedByDrag = nowArmed
-                        // pulido:vibracion ed-J14 tic al pasar el umbral de 104
-                        if (nowArmed) haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
-                    }
-                    scope.launch { rowX.snapTo(-reveal * d) }
                 }
             }
         }
     }
 
+    val activeOffsetPx = { dragOffsetPx ?: rowX.value }
     EdSwipeSurface(
-        rowOffsetPx = { rowX.value },
+        rowOffsetPx = activeOffsetPx,
         armed = gone || armedByDrag,
         pillWidthPx = {
-            if (gone) pillOut.value else max(0f, -rowX.value - EdSwipe.PillInsetDp * localDensity.density)
+            if (gone) pillOut.value else max(0f, -activeOffsetPx() - EdSwipe.PillInsetDp * localDensity.density)
         },
         pillAlpha = {
-            if (gone) pillAlphaOut.value else if (-rowX.value / localDensity.density > EdSwipe.PillVisibleAfterDp) 1f else 0f
+            if (gone) pillAlphaOut.value else if (-activeOffsetPx() / localDensity.density > EdSwipe.PillVisibleAfterDp) 1f else 0f
         },
         popScale = { pop.value },
         noticeAlpha = { noticeAlpha.value },
@@ -340,14 +399,19 @@ internal fun EdSwipeDeleteRow(
         } else {
             null
         },
+        surfaceColor = surfaceColor,
+        surfaceShape = surfaceShape,
+        outerSwipeModifier = swipe,
         modifier = modifier
             .onSizeChanged { widthPx = it.width }
             .semantics {
                 stateDescription = if (gone) "Eliminado" else "Desliza a la izquierda para eliminar"
                 customActions = listOf(
-                    CustomAccessibilityAction("Eliminar ejercicio") {
+                    CustomAccessibilityAction(deleteActionLabel) {
                         if (!gone) {
-                            committedLocal = true
+                            if (!confirmViaRemovalOnly) {
+                                committedLocal = true
+                            }
                             latestOnCommit()
                         }
                         true
@@ -355,6 +419,6 @@ internal fun EdSwipeDeleteRow(
                 )
             },
     ) {
-        content(swipe)
+        content(Modifier)
     }
 }

@@ -93,8 +93,32 @@ object Apre {
         }
     }
 
+    fun band(
+        variant: ApreVariant,
+        reps: Int,
+        targetRir: Int?,
+        targetRpe: Double?,
+    ): Band = band(variant, effectiveRepsForTable(reps, targetRir, targetRpe))
+
     /** Las repeticiones que cuentan: las hechas menos las de mala técnica (Mann: 13 hechas con 2 malas son 11). */
     fun validReps(reps: Int, badTechniqueReps: Int = 0): Int = (reps - badTechniqueReps.coerceAtLeast(0)).coerceAtLeast(0)
+
+    /**
+     * #14.2 · Reps efectivas cuando el usuario configura APRE con ahorro de fatiga (`targetRIR` o `targetRPE`):
+     * suma el RIR real (o `10 - RPE`, acotado `0..5`) para no disparar falsas bajadas de peso.
+     */
+    fun effectiveRepsForTable(
+        validReps: Int,
+        targetRir: Int? = null,
+        targetRpe: Double? = null,
+    ): Int {
+        val reserve = when {
+            targetRir != null -> targetRir.coerceIn(0, 5)
+            targetRpe != null -> kotlin.math.round(10.0 - targetRpe).toInt().coerceIn(0, 5)
+            else -> 0
+        }
+        return (validReps.coerceAtLeast(0) + reserve).coerceAtLeast(0)
+    }
 
     /** El XRM de [variant] a partir de un 1RM, con la equivalencia de Mann, redondeado al material. */
     fun xrmKg(oneRmKg: Double, variant: ApreVariant, incrementKg: Double = DEFAULT_INCREMENT_KG): Double =
@@ -102,22 +126,60 @@ object Apre {
 
     /**
      * La carga siguiente: [loadKg] ajustada por la banda de [validReps]. Con «mantener» la carga no se toca (aunque no esté en el
-     * salto del material); si no, se redondea al material. Sirve para las dos veces que la tabla se usa: serie 3 → serie 4 y serie 4 → XRM.
+     * salto del material); si no, se redondea al material garantizando al menos ±1 salto mínimo en bandas SMALL y LARGE (#14.2).
      */
     fun nextLoadKg(loadKg: Double, validReps: Int, variant: ApreVariant, incrementKg: Double = DEFAULT_INCREMENT_KG): Double {
         if (loadKg <= 0.0) return 0.0
         val band = band(variant, validReps)
         if (band == Band.HOLD) return loadKg
-        return LoadSuggestionEngine.roundLoad(loadKg * (1.0 + band.percent / 100.0), incrementKg)
+        val step = incrementKg.coerceAtLeast(0.5)
+        val raw = LoadSuggestionEngine.roundLoad(loadKg * (1.0 + band.percent / 100.0), step)
+        return when (band) {
+            Band.DROP_SMALL, Band.DROP_LARGE -> minOf(raw, loadKg - step).coerceAtLeast(step)
+            Band.RAISE_SMALL, Band.RAISE_LARGE -> maxOf(raw, loadKg + step)
+            Band.HOLD -> loadKg
+        }
     }
+
+    fun nextLoadKg(
+        loadKg: Double,
+        validReps: Int,
+        variant: ApreVariant,
+        targetRir: Int?,
+        targetRpe: Double?,
+        incrementKg: Double = DEFAULT_INCREMENT_KG,
+    ): Double = nextLoadKg(
+        loadKg = loadKg,
+        validReps = effectiveRepsForTable(validReps, targetRir, targetRpe),
+        variant = variant,
+        incrementKg = incrementKg,
+    )
 
     /** La carga de la serie 4 de la misma sesión: el XRM ajustado por las repeticiones válidas de la serie 3. */
     fun set4LoadKg(xrmLoadKg: Double, set3ValidReps: Int, variant: ApreVariant, incrementKg: Double = DEFAULT_INCREMENT_KG): Double =
         nextLoadKg(xrmLoadKg, set3ValidReps, variant, incrementKg)
 
+    fun set4LoadKg(
+        xrmLoadKg: Double,
+        set3ValidReps: Int,
+        variant: ApreVariant,
+        targetRir: Int?,
+        targetRpe: Double?,
+        incrementKg: Double = DEFAULT_INCREMENT_KG,
+    ): Double = nextLoadKg(xrmLoadKg, set3ValidReps, variant, targetRir, targetRpe, incrementKg)
+
     /** El XRM de la semana siguiente: la carga de la serie 4 ajustada por las repeticiones válidas de esa misma serie 4. */
     fun nextWeekXrmKg(set4LoadKg: Double, set4ValidReps: Int, variant: ApreVariant, incrementKg: Double = DEFAULT_INCREMENT_KG): Double =
         nextLoadKg(set4LoadKg, set4ValidReps, variant, incrementKg)
+
+    fun nextWeekXrmKg(
+        set4LoadKg: Double,
+        set4ValidReps: Int,
+        variant: ApreVariant,
+        targetRir: Int?,
+        targetRpe: Double?,
+        incrementKg: Double = DEFAULT_INCREMENT_KG,
+    ): Double = nextLoadKg(set4LoadKg, set4ValidReps, variant, targetRir, targetRpe, incrementKg)
 
     /** La versión de APRE que corresponde a un mínimo de AMRAP de [xrmReps] repeticiones (10, 6 o 3); null si no es ninguna. */
     fun variantOfXrmReps(xrmReps: Int): ApreVariant? = ApreVariant.entries.firstOrNull { it.xrmReps == xrmReps }

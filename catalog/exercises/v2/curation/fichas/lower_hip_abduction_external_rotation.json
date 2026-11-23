@@ -58,14 +58,6 @@
               "kim2026"
             ],
             "why": "Asiste con una contribución real pero igual o algo menor que la del glúteo medio: 34 % de la contracción máxima en DiStefano et al. y también 34 % en McBeth et al., y menos aún con la pelvis reclinada (Willcox y Burden). Al flexionar la cadera disminuye el brazo de rotación externa de varios músculos, pero el glúteo mayor destaca por su gran capacidad de rotarla hacia fuera (Delp et al.). Esa rotación la comparte con rotadores profundos que la ontología no recoge (piriforme, obturador interno y gemelo superior), cuyos cambios de T2 tras 40 almejas (14,5, 24,2 y 18,7 %) superaron al 4,5 % del glúteo medio en la RM funcional de Kim et al. Por eso es secundario: asiste, pero ni lidera las mediciones ni es el músculo al que apunta el ejercicio."
-          },
-          {
-            "id": "hip_flexors",
-            "role": "SECONDARY",
-            "sources": [
-              "mcbeth2012"
-            ],
-            "why": "En la almeja con carga, McBeth et al. midieron los flexores de la cadera al 54 % de la contracción máxima, por encima del glúteo medio (33 %) y del glúteo mayor (34 %). No abren la rodilla: la cadera se queda flexionada unos 60° y ellos sostienen ese ángulo mientras el muslo gira. Por eso asisten, y no son el motor del gesto."
           }
         ]
       },
@@ -85,7 +77,7 @@
             ]
           }
         },
-        "description": "Los clamshells con banda, o almejas, abren la cadera en rotación externa tumbado de lado: con los pies juntos, la rodilla de arriba se separa como la tapa de una almeja contra la banda que rodea los muslos. El glúteo medio trabaja a un nivel moderado, parejo al glúteo mayor, y no por encima de él. Con carga, los flexores de la cadera superaron a los dos glúteos, y tras una serie larga la resonancia mostró más cambio en los rotadores profundos que en el glúteo medio. Si la pelvis rueda hacia atrás, el glúteo medio y el glúteo mayor se activan menos. Frente a la abducción lateral tumbado, la almeja le pide al glúteo medio claramente menos."
+        "description": "Los clamshells con banda, o almejas, abren la cadera en rotación externa tumbado de lado: con los pies juntos, la rodilla de arriba se separa como la tapa de una almeja contra la banda que rodea los muslos. El glúteo medio trabaja a un nivel moderado, parejo al glúteo mayor, y no por encima de él. Tras una serie larga la resonancia mostró más cambio en los rotadores profundos que en el glúteo medio. Si la pelvis rueda hacia atrás, el glúteo medio y el glúteo mayor se activan menos. Frente a la abducción lateral tumbado, la almeja le pide al glúteo medio claramente menos."
       },
       "sources": [
         {

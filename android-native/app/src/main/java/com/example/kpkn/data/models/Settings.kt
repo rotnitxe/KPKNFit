@@ -133,6 +133,8 @@ data class Settings(
     val algorithmSettings: AlgorithmSettings = AlgorithmSettings(),
     /** Global volume reference captured by the setup wizard, even without a program. */
     val volumeCalibrationProfile: VolumeCalibrationProfile? = null,
+    /** Día con más energía elegido en onboarding o ProgramDetail (1 = Lunes .. 7 = Domingo). */
+    val defaultHighEnergyDay: Int? = null,
 
     val reducedMotionMode: Boolean = false,
     val hapticIntensity: HapticIntensity = HapticIntensity.MEDIUM,

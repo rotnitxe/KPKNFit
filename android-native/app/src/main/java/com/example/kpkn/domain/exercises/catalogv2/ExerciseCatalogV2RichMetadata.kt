@@ -31,6 +31,7 @@ data class ExerciseAnatomyMetadataV2(
     val jointActions: List<String> = emptyList(),
     val jointInvolvement: List<JointInvolvementV2> = emptyList(),
     val volumeContribution: String? = null,
+    val limitingStabilizerMuscles: List<String> = emptyList(),
 )
 
 @Serializable
@@ -117,6 +118,7 @@ fun ResolvedExerciseProfileV2.toRichMetadata(
         stabilizerMuscles = stabilizerMuscles,
         jointActions = jointInvolvement.flatMap { it.actions }.distinct(),
         jointInvolvement = jointInvolvement,
+        limitingStabilizerMuscles = limitingStabilizerMuscles,
     ),
     biomechanics = ExerciseBiomechanicsMetadataV2(
         movementPatternId = movementPatternId,

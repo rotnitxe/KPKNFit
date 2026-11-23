@@ -475,8 +475,8 @@ class WorkoutEditSeriesSheetBoardTest {
         tap(LIVE_EDIT_SMART_LOAD_TAG)
         rule.waitForIdle()
 
-        rule.onNodeWithText("Base para sugerencias").assertExists()
-        rule.onNodeWithText("Base efectiva:", substring = true).assertExists()
+        rule.onNodeWithText("1RM directo").assertExists()
+        rule.onNodeWithText("Base activa:", substring = true).assertExists()
     }
 
     @Test
@@ -566,8 +566,8 @@ class WorkoutEditSeriesSheetBoardTest {
     @Test fun cargaInteligenteRecalculaRmAlCambiarLaReferencia() {
         mount(rmExercise(), initialSetIndex = 0)
         tap(LIVE_EDIT_SMART_LOAD_TAG)
-        rule.onNode(hasSetTextAction() and hasAnyAncestor(hasAnySibling(hasText("1RM referencial"))), useUnmergedTree = true).performTextReplacement("150")
-        rule.onNode(hasSetTextAction() and hasAnyAncestor(hasAnySibling(hasText("1RM referencial"))), useUnmergedTree = true).performImeAction()
+        rule.onNode(hasSetTextAction() and hasAnyAncestor(hasAnySibling(hasText("1RM referencial (kg)"))), useUnmergedTree = true).performTextReplacement("150")
+        rule.onNode(hasSetTextAction() and hasAnyAncestor(hasAnySibling(hasText("1RM referencial (kg)"))), useUnmergedTree = true).performImeAction()
         rule.waitForIdle()
         tapText("Listo")
         confirm()

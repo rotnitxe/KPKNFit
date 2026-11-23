@@ -19,4 +19,6 @@ interface TrainingObservationDao {
     suspend fun all(): List<TrainingObservationEntity>
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun preserve(original: TrainingObservationEntity)
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertWellbeing(observation: TrainingObservationEntity)
 }

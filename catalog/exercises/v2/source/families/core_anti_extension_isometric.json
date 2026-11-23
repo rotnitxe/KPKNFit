@@ -243,7 +243,7 @@
               "movementPatternId": "anti_extension_isometric",
               "performanceProfileId": "hollow_body_hold__default__hollow_body_hold",
               "primaryMuscles": [
-                "abdominals"
+                "core"
               ],
               "replacementGroup": null,
               "replacementPriority": null,
@@ -279,14 +279,13 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "abdominals"
-                  ],
-                  "secondaryMuscles": [
-                    "hip_flexors"
-                  ],
-                  "stabilizerMuscles": [
                     "core"
                   ],
+                  "secondaryMuscles": [
+                    "abdominals",
+                    "hip_flexors"
+                  ],
+                  "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
                 "biomechanics": {
@@ -341,13 +340,14 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "anti_extension_isometric:abdominals"
+                    "anti_extension_isometric:core"
                   ],
                   "replacementGroup": null,
                   "replacementPriority": null
                 }
               },
               "secondaryMuscles": [
+                "abdominals",
                 "hip_flexors"
               ],
               "setupCues": [
@@ -355,9 +355,7 @@
                 "Recoge el mentón y lleva las costillas hacia la pelvis antes de despegar nada."
               ],
               "setupTimeSeconds": 10,
-              "stabilizerMuscles": [
-                "core"
-              ],
+              "stabilizerMuscles": [],
               "technicalDifficulty": 4.0
             },
             "selectedOptions": {}

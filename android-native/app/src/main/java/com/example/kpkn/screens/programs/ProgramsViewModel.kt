@@ -229,19 +229,33 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         mode: ProgramMode = ProgramMode.HYPERTROPHY,
         coverImage: String? = null,
         identityLabel: String? = null,
+        description: String? = null,
     ): String {
         val programId = UUID.randomUUID().toString()
         // El número sale del mayor «Nuevo programa N» que ya existe (contar nombres repetía números tras borrar uno).
         val nextNumber = nextBlankProgramNumber(repository.programs.value.map { it.name })
+        val resolvedMode = com.example.kpkn.screens.programdetail.design.programModeFromIdentityLabel(identityLabel) ?: mode
+        val customIdentityLabel = identityLabel?.trim()?.takeIf {
+            it.isNotEmpty() && com.example.kpkn.screens.programdetail.design.programModeFromIdentityLabel(it) == null
+        }
         val base = buildNewProgram(
             id = programId,
             name = name?.trim()?.takeIf { it.isNotEmpty() } ?: "Nuevo programa $nextNumber",
-            mode = mode,
+            mode = resolvedMode,
         )
+        val settings = repository.settings.value
+        val defaultEnergyDay = settings.defaultHighEnergyDay
+        val profileScore = settings.volumeCalibrationProfile?.athleteProfileScore
+        val recommendations = settings.volumeCalibrationProfile?.recommendations.orEmpty()
         repository.addProgram(
             base.copy(
+                description = description?.trim()?.takeIf(String::isNotEmpty) ?: base.description,
                 coverImage = coverImage ?: base.coverImage,
-                identityLabel = identityLabel?.trim()?.takeIf(String::isNotEmpty),
+                identityLabel = customIdentityLabel,
+                highEnergyDay = base.highEnergyDay ?: defaultEnergyDay,
+                startDay = base.startDay ?: defaultEnergyDay,
+                athleteProfileScore = base.athleteProfileScore ?: profileScore,
+                volumeRecommendations = base.volumeRecommendations.ifEmpty { recommendations },
             ),
         )
         return programId
@@ -297,6 +311,7 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
                 coverImage = "gradient://ember",
                 structure = template.type,
                 mode = templateMode,
+                highEnergyDay = repository.settings.value.defaultHighEnergyDay,
                 volumeRecommendations = pending?.recommendations ?: suggested?.recommendations.orEmpty(),
                 athleteProfileScore = pending?.score ?: suggested?.score,
                 volumeSystem = if (pending != null || suggested != null) com.example.kpkn.data.models.VolumeSystem.KPNK else null,
@@ -345,6 +360,7 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
             structure = ProgramStructure.SIMPLE,
             mode = protocolMode,
             powerliftingProfile = profile,
+            highEnergyDay = repository.settings.value.defaultHighEnergyDay,
             selectedSplitId = protocol.defaultSplit,
             volumeRecommendations = calibration?.recommendations ?: suggested?.recommendations.orEmpty(),
             athleteProfileScore = calibration?.score ?: suggested?.score,
@@ -400,6 +416,24 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
      * estado SUGGESTED para que la tarjeta «Tu volumen» diga de dónde sale; un perfil ya declarado nunca se pisa.
      */
     private fun suggestedCalibrationFor(mode: ProgramMode): com.example.kpkn.domain.training.VolumeCalibrationOutput {
+        val existingProfile = repository.settings.value.volumeCalibrationProfile
+        if (existingProfile != null) {
+            val score = existingProfile.athleteProfileScore
+            val recs = existingProfile.recommendations.ifEmpty {
+                com.example.kpkn.domain.training.VolumeCalibrationEngine.calculate(
+                    style = score.trainingStyle,
+                    technique = score.technicalScore,
+                    consistency = score.consistencyScore,
+                    strength = score.strengthScore,
+                    mobility = score.mobilityScore,
+                ).recommendations
+            }
+            return com.example.kpkn.domain.training.VolumeCalibrationOutput(
+                mode = mode,
+                score = score,
+                recommendations = recs,
+            )
+        }
         val suggested = com.example.kpkn.domain.training.VolumeCalibrationEngine.suggested(mode)
         repository.updateSettings { settings ->
             if (settings.volumeCalibrationProfile != null) settings else settings.copy(

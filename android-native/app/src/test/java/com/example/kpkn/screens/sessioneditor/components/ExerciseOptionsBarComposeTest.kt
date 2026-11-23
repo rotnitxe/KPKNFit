@@ -321,24 +321,23 @@ class ExerciseOptionsBarComposeTest {
     }
 
     @Test
-    fun elModuloLadosTieneOrdenLadosYDescansoEntreLados() {
+    fun elModuloLadosTieneOrdenLadosYEspejaAlVolverALadosIguales() {
         val unilateral = press.toggledBilateralUnilateral()
-        var orderToggled: Exercise? = null
+        var current by mutableStateOf(unilateral)
         setEditorContent {
             SideOptionsModule(
-                exercise = unilateral,
-                onUpdateExercise = { transform -> orderToggled = transform(unilateral) },
-                onOpenSideRest = {},
+                exercise = current,
+                onUpdateExercise = { transform -> current = transform(current) },
             )
         }
-        // B5: el orden de lados se dice en L y R (con flecha, como el lienzo), nunca I/D.
+        // B5: el orden de lados se dice en L y R (con flecha, como el lienzo), nunca I/D; sin chip duplicado de descanso entre lados.
         rule.onNodeWithText("Orden L → R").assertExists()
         rule.onNodeWithText("Lados iguales").assertExists()
-        rule.onNodeWithText("Entre lados 0:15").assertExists()
+        rule.onNodeWithText("Entre lados 0:15").assertDoesNotExist()
         rule.onNodeWithText("Orden L → R").performClick()
         assertEquals(
             com.example.kpkn.data.models.UnilateralSideOrder.RIGHT_LEFT,
-            orderToggled!!.unilateralSideOrder,
+            current.unilateralSideOrder,
         )
     }
 }

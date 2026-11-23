@@ -57,6 +57,8 @@ data class NutritionPlanCommitRequest(
      * reemplaza solo si la fila de hoy es de OTRO plan.
      */
     val captureTodaySnapshot: Boolean = true,
+    /** When true, explicitly replaces today's snapshot even for the same plan (e.g. from Editar plan). */
+    val updateTodaySnapshot: Boolean = false,
     /** Solo el check-in: comprueba la base exacta y fija hoy con el plan anterior, incluso sin snapshot previo. */
     val preserveTodayFrom: NutritionPlan? = null,
 )
@@ -169,6 +171,7 @@ class NutritionPlanCommitCoordinator(
                         val target = planDayTargetForDate(request.preserveTodayFrom ?: request.plan, today, NutritionGoalSource.PLAN_FORECAST)
                         val snapshot = dailyGoalSnapshotOf(target, today, System.currentTimeMillis()).toEntity()
                         if (request.preserveTodayFrom != null) db.nutritionDao().insertDailyGoalSnapshot(snapshot)
+                        else if (request.updateTodaySnapshot) db.nutritionDao().replaceDailyGoalSnapshot(snapshot)
                         else db.nutritionDao().pinTodayGoalSnapshot(snapshot, today.toString())
                     }
 

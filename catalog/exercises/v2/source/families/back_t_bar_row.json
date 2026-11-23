@@ -278,6 +278,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "t_bar_row__t_bar__wide__remo_barra_t",
@@ -343,6 +346,9 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
                   ],
                   "primaryMuscles": [
                     "latissimus_dorsi",
@@ -722,6 +728,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "t_bar_row__t_bar__medium__remo_barra_t",
@@ -786,6 +795,9 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
                   ],
                   "primaryMuscles": [
                     "latissimus_dorsi"
@@ -1165,6 +1177,9 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "horizontal_pull",
               "performanceProfileId": "t_bar_row__t_bar__close__remo_barra_t",
@@ -1229,6 +1244,9 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae"
                   ],
                   "primaryMuscles": [
                     "latissimus_dorsi"

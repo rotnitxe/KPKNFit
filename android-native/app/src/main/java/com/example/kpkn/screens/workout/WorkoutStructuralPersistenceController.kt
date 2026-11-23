@@ -1237,6 +1237,7 @@ class WorkoutStructuralPersistenceController(
                 exerciseTags = it.exerciseTags - exerciseId,
                 activeTagsByExercise = it.activeTagsByExercise - exerciseId,
                 activeSubTagsByExercise = it.activeSubTagsByExercise - exerciseId,
+                activeSubTagsBySetKey = it.activeSubTagsBySetKey.filterKeys { key -> !key.startsWith("${exerciseId}_") },
                 loadSuggestions = it.loadSuggestions.filterKeys { key -> !key.startsWith("${exerciseId}_") },
                 setDrafts = it.setDrafts.filterKeys { key -> !key.startsWith("${exerciseId}_") },
                 manualLoadOverrides = it.manualLoadOverrides.filterKeys { key -> !key.startsWith("${exerciseId}_") },

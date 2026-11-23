@@ -100,7 +100,7 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "kipp_forces",
               "glute_max_anatomy"
@@ -108,8 +108,17 @@
             "why": "Extiende la cadera cargada del pie elevado y participa directamente en levantar el tronco. El modelado de step-up confirma demanda dependiente de carga; no es solo sostén postural ni desaparece con carga frontal."
           },
           {
-            "id": "hamstrings",
+            "id": "adductors",
             "role": "SECONDARY",
+            "sources": [
+              "collings_adductors",
+              "adductor_anatomy"
+            ],
+            "why": "Al subir desde el pie elevado, la porción isquiocondílea del aductor mayor asiste a la extensión de cadera que eleva cuerpo y carga. Collings estimó su fuerza en step-up mediante un modelo asistido por EMG; ese resultado no ordena los motores del ejercicio."
+          },
+          {
+            "id": "hamstrings",
+            "role": "STABILIZER",
             "sources": [
               "simenz_stepup",
               "kipp_forces"
@@ -118,7 +127,7 @@
           },
           {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "calf_anatomy",
               "kipp_forces"
@@ -165,15 +174,6 @@
               "deltoid_anatomy"
             ],
             "why": "Las mancuernas suspendidas traccionan hacia abajo el brazo aducido; el deltoides ayuda a resistir el desplazamiento inferior del hombro. Ese sostén glenohumeral está descrito anatómicamente y se extrapola al transporte durante el step-up, sin EMG exclusivo."
-          },
-          {
-            "id": "adductors",
-            "role": "SECONDARY",
-            "sources": [
-              "collings_adductors",
-              "adductor_anatomy"
-            ],
-            "why": "Al subir desde el pie elevado, la porción isquiocondílea del aductor mayor asiste a la extensión de cadera que eleva cuerpo y carga. Collings estimó su fuerza en step-up mediante un modelo asistido por EMG; ese resultado no ordena los motores del ejercicio."
           }
         ],
         "overrides": {

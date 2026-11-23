@@ -166,6 +166,7 @@ import com.example.kpkn.screens.workout.components.RestTimerOverlay
 import com.example.kpkn.screens.workout.components.RestTimerPill
 import com.example.kpkn.screens.workout.components.VolumeAdvanceModal
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.tour.TourAnchorScroller
 import com.example.kpkn.ui.tour.TourAnchors
 import com.example.kpkn.ui.tour.TourIds
 import com.example.kpkn.ui.tour.TourScripts
@@ -444,6 +445,16 @@ fun WorkoutScreen(
 
     // Recorrido de la primera sesión: cuando ya cargó y la hoja de preparación se cerró (si no, taparía el recorrido).
     val tourHost = LocalKpknOverlayHost.current
+    TourAnchorScroller(TourAnchors.WORKOUT_SERIE) {
+        if (uiState.isRestTimerRunning && !uiState.isRestMinimized) {
+            viewModel.toggleRestMinimized()
+        }
+    }
+    TourAnchorScroller(TourAnchors.WORKOUT_SIGUIENTE) {
+        if (uiState.isRestTimerRunning && !uiState.isRestMinimized) {
+            viewModel.toggleRestMinimized()
+        }
+    }
     LaunchedEffect(showReadinessSheet) {
         if (!showReadinessSheet) tourHost?.startTour(TourIds.FIRST_WORKOUT, TourScripts.firstWorkout)
     }
@@ -1084,7 +1095,7 @@ fun WorkoutScreen(
                     structureSheets.exerciseContextForceMemberActions = false
                     structureSheets.exerciseContextExerciseId = id
                 },
-                onNavigateAdjacentExercise = liveSetStepperHolder.onNavigateAdjacentExercise,
+                onNavigateAdjacentExercise = { forward -> viewModel.navigateAdjacentWorkingStep(forward) },
                 stepperSnapshotProvider = { liveSetStepperHolder.snapshot },
                 recordVisible = recordFabHolder.visible && uiState.seriesTypeTarget == null,
                 recordEnabled = canStartWorkoutRecording(uiState) && canInvokeWorkoutRecordFab(
@@ -1110,6 +1121,8 @@ fun WorkoutScreen(
                 sessionCompletedCount = livePaceWork.completed,
                 sessionTotalCount = livePaceWork.total,
                 restActive = uiState.isRestTimerRunning,
+                restRemainingSeconds = if (uiState.isRestTimerRunning) restTimerRemaining else uiState.restModalState?.activeSeconds,
+                restPlannedSeconds = uiState.restModalState?.plannedSeconds,
                 onEndRest = { viewModel.stopRestTimer() },
                 modifier = Modifier.align(Alignment.BottomCenter).imePadding().navigationBarsPadding()
                     .padding(start = 16.dp, end = 16.dp, bottom = 8.dp).zIndex(5f),
@@ -1131,6 +1144,9 @@ fun WorkoutScreen(
         currentSetNumber = liveRoadmapActiveSetNumber(liveSetStepperHolder.snapshot),
         warmupCompletedIds = uiState.warmupCompletedExerciseIds,
         mobilityCompletedIds = uiState.mobilityCompletedExerciseIds,
+        mobilityTotalCompletedStepKeys = uiState.mobilityTotalCompletedStepKeys,
+        restActive = uiState.isRestTimerRunning,
+        restRemainingSeconds = if (uiState.isRestTimerRunning) restTimerRemaining else uiState.restModalState?.activeSeconds,
         activeStepKey = uiState.activeStepKey,
         onSelectStep = viewModel::selectWorkoutStep,
         supersetGroups = modeSession.allSupersetGroups(),
@@ -1153,8 +1169,9 @@ fun WorkoutScreen(
         },
         onSelectSet = { id, index ->
             // La clave del paso lleva el lado en los unilaterales por lados; una clave que no existe se ignora.
-            viewModel.selectWorkoutStep(WorkoutStepRules.workingStepKey(id, index))
-            viewModel.selectWorkoutStep(WorkoutStepRules.workingStepKey(id, index, "left"))
+            viewModel.selectWorkoutStep(WorkoutStepRules.workingStepKey(id, index), preserveRestForNextStep = uiState.isRestTimerRunning)
+            viewModel.selectWorkoutStep(WorkoutStepRules.workingStepKey(id, index, "left"), preserveRestForNextStep = uiState.isRestTimerRunning)
+            viewModel.selectWorkoutStep(WorkoutStepRules.workingStepKey(id, index, "right"), preserveRestForNextStep = uiState.isRestTimerRunning)
         },
         onReorder = {
             structureSheets.reorderSheetExerciseIds = visibleExercises.map { it.id }
@@ -1324,6 +1341,10 @@ fun WorkoutScreen(
             },
             feedbackExerciseCount = feedbackExercises.size,
             forceShowForFeedback = isShowingFeedback,
+            pagerVisible = liveSessionView == LiveSessionView.CARDS &&
+                currentExercise?.isCardio != true &&
+                !uiState.showFinishSheet &&
+                !showingPostExerciseCardDock,
             onOpenTechniqueAnalysis = onOpenTechniqueAnalysis,
         )
     }

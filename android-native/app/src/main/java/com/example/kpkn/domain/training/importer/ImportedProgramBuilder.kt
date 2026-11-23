@@ -183,6 +183,7 @@ object ImportedProgramBuilder {
             programEndMode = com.example.kpkn.data.models.ProgramEndMode.REPEATING,
             macrocycles = listOf(Macrocycle(id = "$programId-macro", name = "Mi plan", blocks = listOf(block))),
             startDay = trainingDays.firstOrNull(),
+            highEnergyDay = trainingDays.firstOrNull(),
             schedulePlan = if (trainingDays.isEmpty()) {
                 null
             } else {

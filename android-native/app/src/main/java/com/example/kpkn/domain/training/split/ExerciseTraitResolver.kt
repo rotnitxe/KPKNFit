@@ -251,7 +251,7 @@ internal object ExerciseNameTraits {
         ),
         Rule(
             listOf("curl femoral", "leg curl", "curl de pierna", "curl de isquio", "curl nordico", "nordic"),
-            PatternFamily.KNEE_FLEXION, listOf(HAMS), listOf(CALVES), compound = false,
+            PatternFamily.KNEE_FLEXION, listOf(HAMS), compound = false,
         ),
         Rule(
             listOf("extension de cuadriceps", "leg extension", "extension de piernas", "sillon de cuadriceps"),
@@ -263,11 +263,11 @@ internal object ExerciseNameTraits {
         ),
         Rule(
             listOf("sentadilla", "squat", "prensa", "leg press", "hack"),
-            PatternFamily.SQUAT, listOf(QUADS, GLUTES), listOf(ADDUCTORS), compound = true,
+            PatternFamily.SQUAT, listOf(QUADS), listOf(GLUTES, ADDUCTORS), compound = true,
         ),
         Rule(
             listOf("zancada", "lunge", "bulgara", "desplante", "step up", "subida al cajon"),
-            PatternFamily.SQUAT, listOf(QUADS, GLUTES), listOf(HAMS, CALVES), compound = true,
+            PatternFamily.SQUAT, listOf(QUADS), listOf(GLUTES, ADDUCTORS), compound = true,
         ),
         Rule(
             listOf("pajaros", "rear delt", "deltoide posterior", "deltoides posterior", "vuelo posterior", "face pull", "facepull", "reverse fly", "aperturas posteriores"),
@@ -310,7 +310,7 @@ internal object ExerciseNameTraits {
         ),
         Rule(
             listOf("remo", "row"),
-            PatternFamily.HORIZONTAL_PULL, listOf(LATS, UPPER), listOf(BICEPS, REAR), compound = true,
+            PatternFamily.HORIZONTAL_PULL, listOf(LATS), listOf(UPPER, BICEPS, REAR), compound = true,
             none = listOf("rowing", "ergometro", "concept"),
         ),
         Rule(
@@ -319,7 +319,7 @@ internal object ExerciseNameTraits {
         ),
         Rule(
             listOf("pullover"),
-            PatternFamily.VERTICAL_PULL, listOf(LATS), listOf(C), compound = false,
+            PatternFamily.VERTICAL_PULL, listOf(LATS), compound = false,
         ),
         Rule(
             listOf("aperturas", "apertura", "fly", "flyes", "cruce de poleas", "crossover", "cross over", "pec deck", "contractora"),

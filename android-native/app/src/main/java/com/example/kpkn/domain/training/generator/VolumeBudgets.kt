@@ -92,7 +92,7 @@ internal class VolumeBudgets(
 
         /** Multiplicador del techo duro de los co-motores de los compuestos de pierna (ver KDoc de la clase). */
         const val COMOVER_FACTOR = 1.5
-        private val COMOVERS = setOf(Muscles.GLUTES, Muscles.ERECTORS)
+        private val COMOVERS = setOf(Muscles.ERECTORS)
 
         private fun levelFactor(level: RoutineLevel): Double = when (level) {
             RoutineLevel.NOVICE -> 0.75

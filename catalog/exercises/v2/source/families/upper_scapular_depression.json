@@ -67,7 +67,6 @@
               "movementPatternId": "scapular_depression",
               "performanceProfileId": "back_dominadas_escapulares__bodyweight__dominadas_escapulares",
               "primaryMuscles": [
-                "latissimus_dorsi",
                 "trapezius"
               ],
               "replacementGroup": "back_pullup_scapular",
@@ -116,15 +115,14 @@
                     }
                   ],
                   "primaryMuscles": [
-                    "latissimus_dorsi",
                     "trapezius"
                   ],
                   "secondaryMuscles": [
+                    "latissimus_dorsi",
                     "rhomboids"
                   ],
                   "stabilizerMuscles": [
-                    "forearm",
-                    "pectoralis"
+                    "forearm"
                   ],
                   "volumeContribution": "direct"
                 },
@@ -177,7 +175,6 @@
                     "bodyweight"
                   ],
                   "preservesIntent": [
-                    "scapular_depression:latissimus_dorsi",
                     "scapular_depression:trapezius"
                   ],
                   "replacementGroup": "back_pullup_scapular",
@@ -185,6 +182,7 @@
                 }
               },
               "secondaryMuscles": [
+                "latissimus_dorsi",
                 "rhomboids"
               ],
               "setupCues": [
@@ -194,8 +192,7 @@
               ],
               "setupTimeSeconds": 10,
               "stabilizerMuscles": [
-                "forearm",
-                "pectoralis"
+                "forearm"
               ],
               "technicalDifficulty": 4.0
             },

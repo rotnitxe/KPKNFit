@@ -74,6 +74,19 @@ def validate_profile(value: Any, path: str, allow_draft: bool) -> None:
     require(value["primaryMuscles"], f"{path}.profile.primaryMuscles cannot be empty")
     all_listed = value["primaryMuscles"] + value["secondaryMuscles"] + value["stabilizerMuscles"]
     require(len(all_listed) == len(set(all_listed)), f"{path}.profile lists a muscle in more than one role")
+    limiting = value.get("limitingStabilizerMuscles", [])
+    require(
+        isinstance(limiting, list) and all(isinstance(item, str) and item.strip() for item in limiting),
+        f"{path}.profile.limitingStabilizerMuscles must be a list of non-empty strings",
+    )
+    require(
+        len(limiting) == len(set(limiting)),
+        f"{path}.profile.limitingStabilizerMuscles contains duplicates",
+    )
+    require(
+        set(limiting).issubset(value["stabilizerMuscles"]),
+        f"{path}.profile.limitingStabilizerMuscles must be a subset of stabilizerMuscles",
+    )
     require(isinstance(value["description"], str) and len(value["description"].strip()) >= 40, f"{path}.profile.description is too short")
     require(not re.search(r"(?i)\b(?:ejecuta|mantén|mantener|configura|adopta|controla|asegura|evita|sigue|selecciona)\b", value["description"]), f"{path}.profile.description must be descriptive, not instructional")
     joints = value.get("jointInvolvement")
@@ -149,6 +162,10 @@ def validate_rich_metadata(
     require(anatomy.get("primaryMuscles") == profile["primaryMuscles"], f"{path}.richMetadata.anatomy.primaryMuscles mismatch")
     require(anatomy.get("secondaryMuscles") == profile["secondaryMuscles"], f"{path}.richMetadata.anatomy.secondaryMuscles mismatch")
     require(anatomy.get("stabilizerMuscles") == profile["stabilizerMuscles"], f"{path}.richMetadata.anatomy.stabilizerMuscles mismatch")
+    require(
+        (anatomy.get("limitingStabilizerMuscles") or []) == (profile.get("limitingStabilizerMuscles") or []),
+        f"{path}.richMetadata.anatomy.limitingStabilizerMuscles mismatch",
+    )
     require(anatomy.get("jointInvolvement") == profile["jointInvolvement"], f"{path}.richMetadata.anatomy.jointInvolvement mismatch")
     biomechanics = rich.get("biomechanics")
     require(isinstance(biomechanics, dict), f"{path}.profile.richMetadata.biomechanics must be an object")

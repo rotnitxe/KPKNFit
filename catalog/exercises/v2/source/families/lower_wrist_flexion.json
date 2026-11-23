@@ -94,9 +94,7 @@
                   "primaryMuscles": [
                     "forearm"
                   ],
-                  "secondaryMuscles": [
-                    "biceps"
-                  ],
+                  "secondaryMuscles": [],
                   "stabilizerMuscles": [],
                   "volumeContribution": "direct"
                 },
@@ -154,9 +152,7 @@
                   "replacementPriority": 4
                 }
               },
-              "secondaryMuscles": [
-                "biceps"
-              ],
+              "secondaryMuscles": [],
               "setupCues": [
                 "Preparación: Barra tras la espalda con los antebrazos extendidos: flexionas la muñeca contra la barra."
               ],

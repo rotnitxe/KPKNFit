@@ -229,6 +229,9 @@ private fun presentGenerated(
         },
     )
     val appliedBag = draft.trainingOptions.orderPriorities.filterValues { points -> points > 0 }
+    val resolvedProfile = draft.resolvedVolumeCalibrationProfile()
+    val effectiveScore = draft.athleteProfileScore ?: resolvedProfile?.athleteProfileScore
+    val effectiveRecommendations = draft.volumeRecommendations.ifEmpty { resolvedProfile?.recommendations.orEmpty() }
     return draft.trainingOptions.applyTo(placed).copy(
         id = draft.commitId.ifBlank { program.id },
         name = programNameFor(entry),
@@ -236,6 +239,8 @@ private fun presentGenerated(
         structureTemplateId = entry.id,
         powerliftingProfile = draft.powerliftingProfile,
         planOrderPriorities = appliedBag.takeIf { it.isNotEmpty() },
+        athleteProfileScore = placed.athleteProfileScore ?: effectiveScore,
+        volumeRecommendations = placed.volumeRecommendations.ifEmpty { effectiveRecommendations },
     ).withCatalogCover(entry.id)
 }
 

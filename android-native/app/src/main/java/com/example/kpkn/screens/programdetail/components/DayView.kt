@@ -51,6 +51,11 @@ import com.example.kpkn.screens.programdetail.design.ProgramStartDayDialog
 import com.example.kpkn.screens.programdetail.design.capitalizedDayName
 import com.example.kpkn.screens.programdetail.design.sessionMenuSubtitle
 import com.example.kpkn.ui.components.icons.KpknLineIcons
+import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.tour.TourAnchors
+import com.example.kpkn.ui.tour.TourIds
+import com.example.kpkn.ui.tour.TourUiState
+import androidx.compose.runtime.collectAsState
 import com.example.kpkn.screens.programdetail.design.ScheduleCopy
 import com.example.kpkn.screens.programdetail.design.agendaRows
 import com.example.kpkn.screens.programdetail.design.dayDateSheetTitle
@@ -154,6 +159,7 @@ fun DayView(
     completedSessionIds: Set<String> = emptySet(),
     /** «Sesión» en cada descanso, también en los tramos plegados (la rutina, s-simple). */
     addSessionOnRest: Boolean = false,
+    highEnergyDay: Int? = null,
     modifier: Modifier = Modifier,
 ) {
     val startDay = program.startDay ?: 1
@@ -225,6 +231,20 @@ fun DayView(
     }
     // La primera sesión de la semana lleva las anclas del recorrido (`training.sesion` y `training.empezar`).
     val anchorDayId = days.firstOrNull { day -> dayLayout.any { it.dayId == day.id } }?.id
+    val anchorSessionId = anchorDayId?.let { id -> dayLayout.firstOrNull { it.dayId == id }?.session?.id }
+    val tourHost = LocalKpknOverlayHost.current
+    val tourUiState by tourHost?.tour?.state?.collectAsState() ?: remember { mutableStateOf(TourUiState()) }
+    LaunchedEffect(tourUiState.tourId, tourUiState.current?.anchorId, anchorSessionId) {
+        val currentAnchor = tourUiState.current?.anchorId
+        if (
+            tourUiState.tourId == TourIds.TRAINING &&
+            (currentAnchor == TourAnchors.TRAINING_SESION || currentAnchor == TourAnchors.TRAINING_EMPEZAR) &&
+            anchorSessionId != null &&
+            anchorSessionId !in expandedSessions
+        ) {
+            expandedSessions = expandedSessions + anchorSessionId
+        }
+    }
 
     LaunchedEffect(sessions) {
         val draggingId = dragState.draggedSessionId
@@ -360,6 +380,7 @@ fun DayView(
             sessions = dayLayout.filter { it.dayId == day.id }.map { sessionUiOf(it) },
             isToday = day.id == todayDayId,
             isStartDay = day.id == startDay,
+            isHighEnergyDay = day.id == highEnergyDay,
             isOutsideProgram = day.id in outsideProgramDays,
             isDropTarget = dragState.draggedSessionId != null && dragState.targetDayId == day.id,
             dateEditable = isCalendarized && selectedWeekId != null,

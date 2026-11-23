@@ -8,7 +8,9 @@ import com.example.kpkn.data.models.SessionRequirement
 import com.example.kpkn.data.models.WeekExecutionKind
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.domain.exercises.normalizeExerciseIdentityToken
 import com.example.kpkn.domain.time.ActivityLocalDate
+import com.example.kpkn.domain.training.ExerciseProgress
 import com.example.kpkn.domain.training.ProgramDetailHelpers
 import com.example.kpkn.domain.training.progress.LiftTrend
 import com.example.kpkn.domain.training.progress.LiftTrendEngine
@@ -104,6 +106,20 @@ internal data class ProgressWorkTotals(
     val weeks: List<ProgressTonnageBar>,
 )
 
+/** Resumen de un ejercicio del programa (con sesiones registradas o planificado pendiente de registro). */
+internal data class ProgramExerciseProgressSummary(
+    val key: String,
+    val name: String,
+    val subtitle: String,
+    val status: LiftTrendStatus,
+    val currentKg: Double?,
+    val deltaKg: Double?,
+    val points: List<Double>,
+    val sessionsCount: Int,
+    val plannedSetsCount: Int,
+    val isLogged: Boolean,
+)
+
 /** Todo lo que pinta la pestaña Progreso para un alcance, ya calculado. */
 internal data class ProgramProgressUi(
     /** Eyebrow del resumen: «En 4 semanas» o, con una sola semana, «Semana 1». */
@@ -134,6 +150,8 @@ internal data class ProgramProgressUi(
     val liftDetails: Map<String, ProgressLiftDetail>,
     /** Una rutina cuenta por semana de calendario: su alcance de semana es «Esta semana». */
     val isRoutine: Boolean = false,
+    /** Todos los ejercicios del programa en el alcance (registrados primero, seguidos de planificados sin registro). */
+    val programExercises: List<ProgramExerciseProgressSummary> = emptyList(),
 ) {
     /** Ejercicios con sesiones en el alcance. */
     val allLiftsCount: Int
@@ -211,6 +229,60 @@ internal fun buildProgramProgress(
     )
     val early = trends.none { it.status != LiftTrendStatus.NO_TREND }
     val deloadWeek = programWeeks.firstOrNull { it.isDeload && (currentPosition < 0 || it.position > currentPosition) }
+    val loggedExerciseSummaries = rows.map { row ->
+        val trend = trends.first { it.exerciseKey == row.key }
+        ProgramExerciseProgressSummary(
+            key = row.key,
+            name = row.name,
+            subtitle = row.caption,
+            status = row.status,
+            currentKg = row.currentKg,
+            deltaKg = row.deltaKg,
+            points = row.points,
+            sessionsCount = trend.sessions,
+            plannedSetsCount = 0,
+            isLogged = true,
+        )
+    }
+    val loggedKeys = rows.map { it.key }.toSet()
+    val loggedNormNames = rows.map { normalizeExerciseIdentityToken(it.name) }.toSet()
+    val rawScopeWeekIds = scopeWeeks.map { it.id.substringBefore('@') }.toSet()
+    val plannedExercisesInScope = program.macrocycles
+        .flatMap { it.blocks }
+        .flatMap { it.mesocycles }
+        .flatMap { it.weeks }
+        .filter { !it.isLoopWeek && (rawScopeWeekIds.isEmpty() || it.id in rawScopeWeekIds) }
+        .flatMap { it.sessions }
+        .flatMap { it.allExercises() }
+    val plannedSummaries = plannedExercisesInScope
+        .groupBy { ExerciseProgress.identity(it) }
+        .mapNotNull { (key, exercises) ->
+            val sample = exercises.first()
+            val normName = normalizeExerciseIdentityToken(sample.name)
+            if (key in loggedKeys || normName in loggedNormNames) return@mapNotNull null
+            val totalSets = exercises.sumOf { ex -> ex.sets.size }
+            val variantLabel = listOfNotNull(
+                sample.variantName?.takeIf(String::isNotBlank),
+                sample.selectedAspects?.values?.joinToString(" · ")?.takeIf(String::isNotBlank),
+            ).joinToString(" · ")
+            val subtitle = buildList {
+                if (variantLabel.isNotBlank()) add(variantLabel)
+                add("$totalSets series en el plan")
+                add("Sin registros aún")
+            }.joinToString(" · ")
+            ProgramExerciseProgressSummary(
+                key = key,
+                name = sample.name,
+                subtitle = subtitle,
+                status = LiftTrendStatus.NO_TREND,
+                currentKg = null,
+                deltaKg = null,
+                points = emptyList(),
+                sessionsCount = 0,
+                plannedSetsCount = totalSets,
+                isLogged = false,
+            )
+        }
     return ProgramProgressUi(
         // En una rutina, «Semana N» chocaría con el número de ciclo de la cabecera: su única semana es «Esta semana».
         periodLabel = if (routine != null && (scope == ProgressScope.WEEK || started.size == 1)) ROUTINE_WEEK_LABEL else periodLabelOf(started),
@@ -266,6 +338,7 @@ internal fun buildProgramProgress(
             )
         },
         isRoutine = routine != null,
+        programExercises = loggedExerciseSummaries + plannedSummaries,
     )
 }
 

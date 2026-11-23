@@ -61,7 +61,7 @@ internal fun HeaderSheet(onDismiss: () -> Unit, modifier: Modifier = Modifier, d
     }
     KpknSheet(onDismissRequest = onDismiss, dismissible = dismissible, stableHeightFraction = stableHeightFraction, showDragHandle = showDragHandle,
         backdropScrim = scrim, additionalGlassScrim = panelTint, surfaceColor = surfaceColor, lienzo = lienzo,
-        modifier = if (lienzo != null) modifier.imePadding() else modifier.imePadding().graphicsLayer { translationY = exit * travel; alpha = 1f - exit }) {
+        modifier = if (lienzo != null) modifier else modifier.graphicsLayer { translationY = exit * travel; alpha = 1f - exit }) {
         val animatedDismiss = LocalKpknSheetDismiss.current
         content { if (lienzo != null && animatedDismiss != null) animatedDismiss() else if (dismissible) closing = true }
     }

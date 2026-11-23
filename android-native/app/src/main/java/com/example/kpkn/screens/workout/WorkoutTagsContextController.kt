@@ -513,6 +513,24 @@ class WorkoutTagsContextController(
                 activeSubTagsByExercise = it.activeSubTagsByExercise.mapValues { (exId, subIds) ->
                     if (exId == exerciseId) subIds.filter { id -> id != subTagId } else subIds
                 },
+                activeSubTagsBySetKey = it.activeSubTagsBySetKey.mapValues { (key, subIds) ->
+                    if (key.startsWith("${exerciseId}_")) subIds.filter { id -> id != subTagId } else subIds
+                },
+            )
+        }
+        persistOngoingState()
+    }
+
+    fun toggleSubTagForSet(setKey: String, subTagId: String) {
+        updateState { state ->
+            val currentSubIds = state.activeSubTagsBySetKey[setKey].orEmpty()
+            val updatedSubIds = if (subTagId in currentSubIds) {
+                currentSubIds - subTagId
+            } else {
+                currentSubIds + subTagId
+            }
+            state.copy(
+                activeSubTagsBySetKey = state.activeSubTagsBySetKey + (setKey to updatedSubIds),
             )
         }
         persistOngoingState()
@@ -538,6 +556,7 @@ class WorkoutTagsContextController(
             it.copy(
                 activeTagsByExercise = it.activeTagsByExercise - exerciseId,
                 activeSubTagsByExercise = it.activeSubTagsByExercise - exerciseId,
+                activeSubTagsBySetKey = it.activeSubTagsBySetKey.filterKeys { key -> !key.startsWith("${exerciseId}_") },
                 exerciseTags = it.exerciseTags - exerciseId,
             )
         }
@@ -558,8 +577,13 @@ class WorkoutTagsContextController(
         return tagsForExercise(exerciseId).filter { it.id in tagIds }
     }
 
-    fun activeSubTags(exerciseId: String): List<WorkoutSubTag> {
-        val subTagIds = getState().activeSubTagsByExercise[exerciseId].orEmpty()
+    fun activeSubTags(exerciseId: String, setKey: String? = null): List<WorkoutSubTag> {
+        val state = getState()
+        val subTagIds = setKey?.let { state.activeSubTagsBySetKey[it] }
+            ?: state.activeSubTagsBySetKey.entries
+                .firstOrNull { (key, value) -> key.startsWith("${exerciseId}_") && value.isNotEmpty() }
+                ?.value
+            ?: state.activeSubTagsByExercise[exerciseId].orEmpty()
         return tagsForExercise(exerciseId).flatMap { it.subTags }.filter { it.id in subTagIds }
     }
 

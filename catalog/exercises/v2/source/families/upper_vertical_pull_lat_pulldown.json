@@ -128,7 +128,6 @@
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core",
-                    "pectoralis",
                     "forearm",
                     "rhomboids"
                   ],
@@ -209,7 +208,6 @@
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
-                "pectoralis",
                 "forearm",
                 "rhomboids"
               ],
@@ -357,7 +355,6 @@
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core",
-                    "pectoralis",
                     "forearm",
                     "rhomboids"
                   ],
@@ -438,7 +435,6 @@
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
-                "pectoralis",
                 "forearm",
                 "rhomboids"
               ],
@@ -571,7 +567,6 @@
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core",
-                    "pectoralis",
                     "forearm",
                     "rhomboids"
                   ],
@@ -651,7 +646,6 @@
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
-                "pectoralis",
                 "forearm",
                 "rhomboids"
               ],
@@ -799,7 +793,6 @@
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core",
-                    "pectoralis",
                     "forearm",
                     "rhomboids"
                   ],
@@ -880,7 +873,6 @@
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
-                "pectoralis",
                 "forearm",
                 "rhomboids"
               ],
@@ -1013,7 +1005,6 @@
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core",
-                    "pectoralis",
                     "forearm",
                     "rhomboids"
                   ],
@@ -1093,7 +1084,6 @@
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
-                "pectoralis",
                 "forearm",
                 "rhomboids"
               ],
@@ -1241,7 +1231,6 @@
                   "stabilizerMuscles": [
                     "erector_spinae",
                     "core",
-                    "pectoralis",
                     "forearm",
                     "rhomboids"
                   ],
@@ -1322,7 +1311,6 @@
               "stabilizerMuscles": [
                 "erector_spinae",
                 "core",
-                "pectoralis",
                 "forearm",
                 "rhomboids"
               ],
@@ -1476,12 +1464,11 @@
                   ],
                   "secondaryMuscles": [
                     "biceps",
-                    "trapezius",
-                    "deltoid"
+                    "trapezius"
                   ],
                   "stabilizerMuscles": [
+                    "deltoid",
                     "erector_spinae",
-                    "pectoralis",
                     "core",
                     "forearm",
                     "rhomboids"
@@ -1551,8 +1538,7 @@
               },
               "secondaryMuscles": [
                 "biceps",
-                "trapezius",
-                "deltoid"
+                "trapezius"
               ],
               "setupCues": [
                 "Siéntate de cara a la polea y ajusta los apoyos para que los muslos queden fijos.",
@@ -1561,8 +1547,8 @@
               ],
               "setupTimeSeconds": 35,
               "stabilizerMuscles": [
+                "deltoid",
                 "erector_spinae",
-                "pectoralis",
                 "core",
                 "forearm",
                 "rhomboids"

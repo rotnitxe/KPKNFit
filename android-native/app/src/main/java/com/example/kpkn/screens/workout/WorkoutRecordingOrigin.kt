@@ -12,7 +12,7 @@ internal fun preserveRecordingOrigin(previous: CompletedSet?, next: CompletedSet
         recordedAtMs = previous.recordedAtMs,
         contextProfileId = previous.contextProfileId,
         contextKey = previous.contextKey,
-        tagId = previous.tagId, tagName = previous.tagName, subTagIds = previous.subTagIds,
+        tagId = previous.tagId, tagName = previous.tagName,
         setupProfileId = previous.setupProfileId, machineBrand = previous.machineBrand,
         recordedPayloadV3 = next.recordedPayloadV3?.let { payload ->
             payload.copy(contextProfileId = old?.contextProfileId,

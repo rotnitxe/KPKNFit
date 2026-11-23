@@ -69,6 +69,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_lengthened",
               "performanceProfileId": "stiff_leg_deadlift__bilateral__barbell",
@@ -126,6 +130,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -291,6 +299,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_lengthened",
               "performanceProfileId": "stiff_leg_deadlift__unilateral__barbell",
@@ -350,6 +362,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -517,6 +533,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge_lengthened",
               "performanceProfileId": "stiff_leg_deadlift__bilateral__smith_machine",
@@ -574,6 +594,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -739,6 +763,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "guided_external_load",
               "movementPatternId": "hip_hinge_lengthened",
               "performanceProfileId": "stiff_leg_deadlift__unilateral__smith_machine",
@@ -798,6 +826,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -965,6 +997,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_lengthened",
               "performanceProfileId": "stiff_leg_deadlift__bilateral__dumbbells",
@@ -1022,6 +1058,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -1187,6 +1227,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_lengthened",
               "performanceProfileId": "stiff_leg_deadlift__unilateral__dumbbells",
@@ -1246,6 +1290,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -1413,6 +1461,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "BILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_lengthened",
               "performanceProfileId": "stiff_leg_deadlift__bilateral__hex_bar",
@@ -1470,6 +1522,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",
@@ -1635,6 +1691,10 @@
               ],
               "kineticChain": "POSTERIOR",
               "laterality": "UNILATERAL",
+              "limitingStabilizerMuscles": [
+                "erector_spinae",
+                "forearm"
+              ],
               "loadMode": "free_external_load",
               "movementPatternId": "hip_hinge_lengthened",
               "performanceProfileId": "stiff_leg_deadlift__unilateral__hex_bar",
@@ -1694,6 +1754,10 @@
                       "jointId": "muñeca",
                       "role": "STABILIZER"
                     }
+                  ],
+                  "limitingStabilizerMuscles": [
+                    "erector_spinae",
+                    "forearm"
                   ],
                   "primaryMuscles": [
                     "hamstrings",

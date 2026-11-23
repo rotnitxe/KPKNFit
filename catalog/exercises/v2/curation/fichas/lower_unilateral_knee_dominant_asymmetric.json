@@ -89,21 +89,12 @@
           },
           {
             "id": "gluteus_maximus",
-            "role": "PRIMARY",
+            "role": "SECONDARY",
             "sources": [
               "arakawa2023",
               "mccurdy2018"
             ],
             "why": "Extiende la cadera adelantada desde la flexión del punto bajo mientras la barra cuelga entre los muslos. Esa extensión contra carga fundamenta el papel motor compartido con el cuádriceps; Arakawa y McCurdy respaldan el trabajo de cadera en búlgaras estándar, extrapolado aquí sin ensayos específicos del agarre Jefferson."
-          },
-          {
-            "id": "hamstrings",
-            "role": "SECONDARY",
-            "sources": [
-              "andersen2014",
-              "mccurdy2018"
-            ],
-            "why": "Ayudan a extender la cadera de trabajo con la rodilla moviéndose al mismo tiempo. Su ayuda se extrapola de la actividad de isquiosurales medida en la búlgara habitual; la barra entre los muslos no convierte el gesto en una flexión de rodilla aislada ni acredita que lideren la subida."
           },
           {
             "id": "adductors",
@@ -114,8 +105,17 @@
             "why": "El aductor mayor ayuda a extender la cadera adelantada desde el fondo. La barra entre los muslos necesita espacio, pero no demuestra por sí sola una mayor contribución aductora; se extrapola la función extensora estimada por Collings en sentadilla y step-up, sin un modelo de esta especialidad."
           },
           {
+            "id": "hamstrings",
+            "role": "STABILIZER",
+            "sources": [
+              "andersen2014",
+              "mccurdy2018"
+            ],
+            "why": "Ayudan a extender la cadera de trabajo con la rodilla moviéndose al mismo tiempo. Su ayuda se extrapola de la actividad de isquiosurales medida en la búlgara habitual; la barra entre los muslos no convierte el gesto en una flexión de rodilla aislada ni acredita que lideren la subida."
+          },
+          {
             "id": "calves",
-            "role": "SECONDARY",
+            "role": "STABILIZER",
             "sources": [
               "mackey2021"
             ],

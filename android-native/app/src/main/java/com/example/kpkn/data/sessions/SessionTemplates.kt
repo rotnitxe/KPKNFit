@@ -4072,6 +4072,7 @@ private fun expandedCommonTemplates(): List<SessionTemplate> {
             SessionTemplateFocusCategory.CUADRICEPS, SessionTemplateFocusCategory.PIERNAS -> listOf(
                 listOf(v3Exercise(id, "principal", if (index % 2 == 0) "quads_sentadilla_hack__machine" else "belt_squat__bilateral", 3, 8, 7.5, 150)),
                 listOf(
+                    v3Exercise(id, "bisagra", if (index % 2 == 0) "hip_thrust__bilateral__machine" else "romanian_deadlift__bilateral__dumbbells", 2, 10, 7.5, 120),
                     v3Exercise(id, "unilateral", "bulgarian_split_squat__dumbbells", 2, 8, 7.5, 105),
                     v3Exercise(id, "extension", "quads_extension_cuadriceps__machine__unilateral", 2, 12, 8.0, 75),
                     v3Exercise(id, "pantorrilla", "calf_raise__unilateral__machine", 2, 12, 8.0, 60),

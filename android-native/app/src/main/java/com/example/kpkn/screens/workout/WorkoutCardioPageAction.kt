@@ -52,7 +52,7 @@ internal fun isCardioPageActionAllowed(
     if (pageExerciseId.isBlank() || pageSetIndex < 0) return false
     return activeExerciseId == pageExerciseId &&
         activeSetIndex == pageSetIndex &&
-        activeStepKey == WorkoutStepRules.cardioStepKey(pageExerciseId, pageSetIndex)
+        (activeStepKey == null || activeStepKey == WorkoutStepRules.cardioStepKey(pageExerciseId, pageSetIndex))
 }
 
 internal data class CardioPageIdentity(

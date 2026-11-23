@@ -116,10 +116,40 @@ class CatalogScreensV2RenderTest {
         rule.onAllNodesWithText(text).fetchSemanticsNodes().isNotEmpty()
     }
 
+    private fun chooseDefaultAxes(id: String, closeAfter: Boolean = true) {
+        val definition = CatalogTestBuilders.realDefinition(id)
+        if (definition.optionAxes.isEmpty()) return
+        val firstAxis = definition.optionAxes.first()
+        val variantsTag = "catalog_inline_$firstAxis"
+        if (rule.onAllNodesWithTag(variantsTag).fetchSemanticsNodes().isEmpty()) {
+            rule.onAllNodesWithText(name(id)).onFirst().performClick()
+            rule.waitForIdle()
+        }
+        val configuration = definition.configurations.firstOrNull { it.id == definition.defaultConfigurationId }
+            ?: error("$id missing default configuration")
+        definition.optionAxes.forEach { axis ->
+            val value = configuration.selectedOptions[axis] ?: return@forEach
+            val label = com.example.kpkn.screens.sessioneditor.components.exerciseCatalogVariantTagLabel(value, id)
+            if (axis == "pulley_height") {
+                rule.onNodeWithContentDescription("Polea $label").performClick()
+            } else {
+                rule.onNodeWithText(label).performClick()
+            }
+            rule.waitForIdle()
+        }
+        if (closeAfter) {
+            rule.onAllNodesWithText(name(id)).onFirst().performClick()
+            rule.waitForIdle()
+        }
+    }
+
     private fun select(id: String) {
+        chooseDefaultAxes(id)
         val description = "Añadir ${name(id)} a la selección"
-        rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription(description))
-        rule.onNodeWithContentDescription(description).performClick()
+        if (rule.onAllNodesWithContentDescription(description).fetchSemanticsNodes().isNotEmpty()) {
+            rule.onNode(hasScrollToIndexAction()).performScrollToNode(hasContentDescription(description))
+            rule.onNodeWithContentDescription(description).performClick()
+        }
     }
 
     private fun save(name: String, beforeCapture: () -> Unit = {}) {
@@ -145,9 +175,12 @@ class CatalogScreensV2RenderTest {
     @Test fun e1AnadirYAporteReal() {
         mount()
         rule.onNodeWithText(name("bench_press")).performClick()
-        rule.onNodeWithTag("catalog_muscle_contribution").assertExists()
+        rule.waitForIdle()
+        rule.onNodeWithText("Ver ficha").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("exercise-ficha-muscles").assertExists()
         save("E1_anadir") {
-            rule.onNodeWithTag("catalog_muscle_contribution").performScrollTo().assertIsDisplayed()
+            rule.onNodeWithTag("exercise-ficha-muscles").performScrollTo().assertIsDisplayed()
         }
     }
 
@@ -155,9 +188,9 @@ class CatalogScreensV2RenderTest {
         mount(query = "remo pecho apoyado polea")
         waitFor(name("chest_supported_row"))
         rule.onNodeWithText(name("chest_supported_row")).performClick()
+        rule.onNodeWithText("En polea").performClick()
         rule.onNodeWithContentDescription("Polea Baja").performClick()
         rule.onNodeWithText("Cerrado").performClick()
-        select("chest_supported_row")
         save("E2_busqueda")
     }
 

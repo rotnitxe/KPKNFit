@@ -68,7 +68,7 @@ fun VideoImportSheet(
     KpknSheet(onDismissRequest = onDismiss, dismissible = !state.isImporting) {
         VideoImportContent(
             state, recentExercises, onPickVideo, onChooseRecent, onOpenCatalog, onWeightChange, onAnalyze,
-            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).imePadding().padding(horizontal = 20.dp, vertical = 16.dp),
+            Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp, vertical = 16.dp),
         )
     }
 }

@@ -59,25 +59,39 @@ object ProgramCurrentWeekResolver {
     fun cyclicInstances(
         program: Program,
         cycleNumber: Int,
+        workoutLogs: List<WorkoutLog> = emptyList(),
     ): List<ProgramProgressEngine.WeekInstance> {
         val repeatsComplex = program.structure == com.example.kpkn.data.models.ProgramStructure.COMPLEX &&
             !program.hasExplicitEnd &&
             !program.requiresNativeWeekInstances()
         if ((!program.isSimpleProgram && !repeatsComplex) || cycleNumber <= 0) return emptyList()
         val hierarchy = ProgramHierarchyIndex(program)
+        val waveLabel = LoopWaveModulator.activeWaveLabel(program, cycleNumber)
+        val hasProgressiveWave = program.loops.any { it.mode == com.example.kpkn.data.models.LoopMode.PROGRESSIVE_WAVE }
         val base = hierarchy.orderedWeeks()
             .filterNot { it.week.isLoopWeek }
             .map { location ->
                 val instanceId = ProgramProgressEngine.instanceIdFor(cycleNumber, location.week.id)
+                val resolved = HybridOccurrenceResolver.resolveWeek(
+                    program, location.week, program.runState?.runId, cycleNumber, instanceId,
+                )
+                val forWave = if (hasProgressiveWave) {
+                    resolved.copy(sessions = resolved.sessions.map { ExerciseTrainingMax.hydrateSession(program, it) })
+                } else {
+                    resolved
+                }
+                val modulated = LoopWaveModulator.applyActiveWavesToWeek(program, forWave, cycleNumber, workoutLogs)
                 ProgramProgressEngine.WeekInstance(
                     instanceId = instanceId,
                     templateWeekId = location.week.id,
                     cycleNumber = cycleNumber,
-                    week = HybridOccurrenceResolver.resolveWeek(
-                        program, location.week, program.runState?.runId, cycleNumber, instanceId,
-                    ).copy(
+                    week = modulated.copy(
                         id = instanceId,
-                        name = if (cycleNumber > 1) "${location.week.name} (C$cycleNumber)" else location.week.name,
+                        name = when {
+                            waveLabel != null -> "${location.week.name} · $waveLabel"
+                            cycleNumber > 1 -> "${location.week.name} (C$cycleNumber)"
+                            else -> location.week.name
+                        },
                     ),
                     macroIndex = location.macroIndex,
                     blockIndex = location.blockIndex,
@@ -108,7 +122,7 @@ object ProgramCurrentWeekResolver {
         } else {
             null
         }
-        val instances = cycle?.let { cyclicInstances(program, it) }.orEmpty()
+        val instances = cycle?.let { cyclicInstances(program, it, history) }.orEmpty()
 
         fun itemForInstance(instance: ProgramProgressEngine.WeekInstance): CurrentWeekItem =
             CurrentWeekItem(
