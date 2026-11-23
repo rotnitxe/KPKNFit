@@ -730,19 +730,23 @@ class NutritionViewModel(
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, DailyEnergyBalance())
 
+    private var applyPlanSettingsJob: Job? = null
+
     private fun applyPlanToSettings(plan: NutritionPlan) {
-        val goalObjective = when (plan.direction) {
-            PlanDirection.DEFICIT -> CalorieGoalObjective.DEFICIT
-            PlanDirection.SURPLUS -> CalorieGoalObjective.SURPLUS
-            PlanDirection.MAINTENANCE, PlanDirection.PROFESSIONAL -> CalorieGoalObjective.MAINTENANCE
-            // Legacy plans are not reinterpreted from target/body values.
-            null -> programRepo.settings.value.calorieGoalObjective
-        }
-        // La pantalla vuelve a sincronizar el plan activo en cada visita: si los ajustes ya coinciden no hay nada que escribir
-        // (cada `updateSettings` regraba la fila de ajustes en Room).
-        val current = programRepo.settings.value
-        if (settingsWithPlanGoals(current, plan, goalObjective) == current) return
-        viewModelScope.launch {
+        applyPlanSettingsJob?.cancel()
+        applyPlanSettingsJob = viewModelScope.launch {
+            programRepo.isReady.first { it }
+            val current = programRepo.settings.value
+            val goalObjective = when (plan.direction) {
+                PlanDirection.DEFICIT -> CalorieGoalObjective.DEFICIT
+                PlanDirection.SURPLUS -> CalorieGoalObjective.SURPLUS
+                PlanDirection.MAINTENANCE, PlanDirection.PROFESSIONAL -> CalorieGoalObjective.MAINTENANCE
+                // Legacy plans are not reinterpreted from target/body values.
+                null -> current.calorieGoalObjective
+            }
+            // La pantalla vuelve a sincronizar el plan activo en cada visita: si los ajustes ya coinciden no hay nada que escribir
+            // (cada `updateSettings` regraba la fila de ajustes en Room).
+            if (settingsWithPlanGoals(current, plan, goalObjective) == current) return@launch
             programRepo.updateSettings { settingsWithPlanGoals(it, plan, goalObjective) }
         }
     }

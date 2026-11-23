@@ -79,10 +79,11 @@ fun BodyProgressScreen(
     val history by bodyViewModel.history.collectAsState()
     val bodyUiState by bodyViewModel.uiState.collectAsState()
     val schedule by bodyViewModel.measurementSchedule.collectAsState()
-    // Recorrido de Cuerpo: espera a que bodyUiState.loaded sea true para no recortar skeletons. Visto = no arranca.
+    // Recorrido de Cuerpo: espera a que bodyUiState.loaded y ProgramRepository.isReady sean true para leer tourSeen real.
     val tourHost = LocalKpknOverlayHost.current
-    LaunchedEffect(bodyUiState.loaded) {
-        if (bodyUiState.loaded) {
+    val repoReady by ProgramRepository.getInstance().isReady.collectAsState()
+    LaunchedEffect(bodyUiState.loaded, repoReady) {
+        if (bodyUiState.loaded && repoReady) {
             tourHost?.startTour(TourIds.BODY, TourScripts.body(hasEntries = history.isNotEmpty()))
         }
     }

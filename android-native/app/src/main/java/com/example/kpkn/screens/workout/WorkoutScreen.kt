@@ -455,8 +455,9 @@ fun WorkoutScreen(
             viewModel.toggleRestMinimized()
         }
     }
-    LaunchedEffect(showReadinessSheet) {
-        if (!showReadinessSheet) tourHost?.startTour(TourIds.FIRST_WORKOUT, TourScripts.firstWorkout)
+    val repoReady by com.example.kpkn.data.repository.ProgramRepository.getInstance().isReady.collectAsStateWithLifecycle()
+    LaunchedEffect(showReadinessSheet, repoReady) {
+        if (!showReadinessSheet && repoReady) tourHost?.startTour(TourIds.FIRST_WORKOUT, TourScripts.firstWorkout)
     }
 
     val modeSession = remember(session, uiState.activeMode) {

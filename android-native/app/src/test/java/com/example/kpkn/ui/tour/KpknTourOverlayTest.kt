@@ -4,9 +4,14 @@ import android.app.Application
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.platform.testTag
@@ -24,6 +29,7 @@ import com.example.kpkn.screens.onboarding.design.LocalWizardReducedMotion
 import com.example.kpkn.ui.components.KpknOverlayHostContent
 import com.example.kpkn.ui.components.KpknOverlayHostController
 import com.example.kpkn.ui.components.LocalKpknOverlayHost
+import com.example.kpkn.ui.components.rememberKpknOverlayHostController
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -233,5 +239,154 @@ class KpknTourOverlayTest {
         assertFalse(host.tour.state.value.isActive)
         assertEquals(listOf("demo"), seen.marked)
         rule.onNodeWithTag("tour_completed_toast").assertIsDisplayed()
+    }
+
+    @Test
+    fun recorrido_con_lazy_column_y_tour_anchor_scroller_no_falla_con_host_de_compose() {
+        val seen = FakeSeen()
+        lateinit var host: KpknOverlayHostController
+        rule.setContent {
+            host = rememberKpknOverlayHostController(tourSeen = seen)
+            val listState = rememberLazyListState()
+            CompositionLocalProvider(
+                LocalKpknOverlayHost provides host,
+                LocalWizardReducedMotion provides true,
+            ) {
+                TourAnchorScroller("item_0") { listState.animateScrollToItem(0) }
+                TourAnchorScroller("item_4") { listState.animateScrollToItem(4) }
+                Box(Modifier.fillMaxSize()) {
+                    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+                        items(5) { idx ->
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(320.dp)
+                                    .padding(16.dp)
+                                    .tourAnchor("item_$idx"),
+                            ) {}
+                        }
+                    }
+                    KpknOverlayHostContent(host)
+                }
+            }
+        }
+        rule.runOnIdle {
+            assertTrue(host.tourAnchors.hasScroller("item_4"))
+            host.startTour("scroll-compose", listOf(step("item_0", "Inicio"), step("item_4", "Fondo")))
+        }
+        rule.waitForIdle()
+        rule.onNodeWithText("Inicio").assertIsDisplayed()
+
+        rule.onNodeWithTag("tour_next").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("Fondo").assertIsDisplayed()
+
+        rule.onNodeWithTag("tour_prev").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("Inicio").assertIsDisplayed()
+
+        rule.onNodeWithTag("tour_next").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithTag("tour_next").performClick()
+        rule.waitForIdle()
+
+        assertFalse(host.tour.state.value.isActive)
+        assertEquals(listOf("scroll-compose"), seen.marked)
+        rule.onNodeWithTag("tour_completed_toast").assertIsDisplayed()
+    }
+
+    @Test
+    fun recorrido_con_lazy_column_y_controlador_sin_reloj_usa_reloj_del_scroller() {
+        val seen = FakeSeen()
+        val host = KpknOverlayHostController(tourSeen = seen)
+        rule.setContent {
+            val listState = rememberLazyListState()
+            CompositionLocalProvider(
+                LocalKpknOverlayHost provides host,
+                LocalWizardReducedMotion provides true,
+            ) {
+                TourAnchorScroller("item_0") { listState.animateScrollToItem(0) }
+                TourAnchorScroller("item_4") { listState.animateScrollToItem(4) }
+                Box(Modifier.fillMaxSize()) {
+                    LazyColumn(state = listState, modifier = Modifier.fillMaxSize()) {
+                        items(5) { idx ->
+                            Box(
+                                Modifier
+                                    .fillMaxWidth()
+                                    .height(320.dp)
+                                    .padding(16.dp)
+                                    .tourAnchor("item_$idx"),
+                            ) {}
+                        }
+                    }
+                    KpknOverlayHostContent(host)
+                }
+            }
+        }
+        rule.runOnIdle {
+            assertTrue(host.tourAnchors.hasScroller("item_4"))
+            host.startTour("scroll-fallback", listOf(step("item_0", "Arriba"), step("item_4", "Abajo")))
+        }
+        rule.waitForIdle()
+        rule.onNodeWithText("Arriba").assertIsDisplayed()
+
+        rule.onNodeWithTag("tour_next").performClick()
+        rule.waitForIdle()
+        rule.onNodeWithText("Abajo").assertIsDisplayed()
+
+        rule.onNodeWithTag("tour_next").performClick()
+        rule.waitForIdle()
+
+        assertFalse(host.tour.state.value.isActive)
+        assertEquals(listOf("scroll-fallback"), seen.marked)
+    }
+
+    @Test
+    fun transicion_animada_de_ancla_grande_a_pequena_no_lanza_por_overshoot_de_resorte() {
+        val seen = FakeSeen()
+        val host = KpknOverlayHostController(tourSeen = seen)
+        rule.setContent {
+            CompositionLocalProvider(
+                LocalKpknOverlayHost provides host,
+                LocalWizardReducedMotion provides false,
+            ) {
+                Box(Modifier.fillMaxSize()) {
+                    Box(
+                        Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .padding(16.dp)
+                            .tourAnchor("wide"),
+                    ) {}
+                    Box(
+                        Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(top = 48.dp, end = 24.dp)
+                            .size(28.dp)
+                            .tourAnchor("tiny"),
+                    ) {}
+                    KpknOverlayHostContent(host)
+                }
+            }
+        }
+        rule.runOnIdle {
+            host.startTour("spring", listOf(step("wide", "Grande"), step("tiny", "Pequeno")))
+        }
+        rule.waitForIdle()
+
+        rule.mainClock.autoAdvance = false
+        rule.onNodeWithTag("tour_next").performClick()
+        repeat(60) {
+            rule.mainClock.advanceTimeByFrame()
+        }
+        rule.mainClock.autoAdvance = true
+        rule.waitForIdle()
+
+        rule.onNodeWithText("Pequeno").assertIsDisplayed()
+        rule.onNodeWithTag("tour_next").performClick()
+        rule.waitForIdle()
+        assertFalse(host.tour.state.value.isActive)
+        assertEquals(listOf("spring"), seen.marked)
     }
 }

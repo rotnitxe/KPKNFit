@@ -126,12 +126,14 @@ fun NutritionScreen(
     val driProfile by viewModel.driProfile.collectAsState()
     // El objetivo de kcal del día que se registra: el aro del registro, «te quedan N» y la escala de la huella.
     val loggerKcalTarget = (goals as? DayGoalsResult.Present)?.goals?.calorieGoal?.takeIf { it > 0 }
-    // Recorrido de Nutrición: espera a que userStateLoaded sea true para conocer si hay plan activo. Visto = no arranca.
+    // Recorrido de Nutrición: espera a que userStateLoaded y ProgramRepository.isReady sean true para leer tourSeen real.
     val tourHost = LocalKpknOverlayHost.current
     val activePlan by viewModel.activePlan.collectAsState()
     val userStateLoaded by viewModel.userStateLoaded.collectAsState()
-    LaunchedEffect(userStateLoaded) {
-        if (userStateLoaded) {
+    val repoReady by remember { com.example.kpkn.data.repository.ProgramRepository.getInstance().isReady }
+        .collectAsState()
+    LaunchedEffect(userStateLoaded, repoReady) {
+        if (userStateLoaded && repoReady) {
             tourHost?.startTour(
                 TourIds.NUTRITION,
                 TourScripts.nutrition(hasActivePlan = activePlan != null),
@@ -329,8 +331,8 @@ fun NutritionScreen(
         viewModel.consumeReuseMessage()
     }
 
-    LaunchedEffect(activePlan?.id, activePlan?.calorieTarget, activePlan?.proteinGoal, activePlan?.carbGoal, activePlan?.fatGoal) {
-        if (activePlan != null) {
+    LaunchedEffect(activePlan?.id, activePlan?.calorieTarget, activePlan?.proteinGoal, activePlan?.carbGoal, activePlan?.fatGoal, repoReady) {
+        if (activePlan != null && repoReady) {
             viewModel.syncActivePlanGoalsToSettings()
         }
     }

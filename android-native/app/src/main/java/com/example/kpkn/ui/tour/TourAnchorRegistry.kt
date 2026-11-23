@@ -2,10 +2,14 @@ package com.example.kpkn.ui.tour
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MonotonicFrameClock
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
+import kotlin.coroutines.coroutineContext
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.composed
 import androidx.compose.ui.geometry.Rect
@@ -74,8 +78,16 @@ fun TourAnchorScroller(
     val host = LocalKpknOverlayHost.current
     val registry = host?.tourAnchors
     val latestOnReveal by rememberUpdatedState(onReveal)
-    val wrapper = remember(anchorId) {
-        val block: suspend () -> Unit = { latestOnReveal() }
+    val scrollScope = rememberCoroutineScope()
+    val frameClock = remember(scrollScope) { scrollScope.coroutineContext[MonotonicFrameClock] }
+    val wrapper = remember(anchorId, frameClock) {
+        val block: suspend () -> Unit = {
+            if (frameClock != null && coroutineContext[MonotonicFrameClock] == null) {
+                withContext(frameClock) { latestOnReveal() }
+            } else {
+                latestOnReveal()
+            }
+        }
         block
     }
     DisposableEffect(registry, anchorId, wrapper) {

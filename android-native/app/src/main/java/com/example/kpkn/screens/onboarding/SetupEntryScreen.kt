@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.kpkn.data.onboarding.SetupDraftCandidate
 import com.example.kpkn.data.onboarding.SetupDraftResolver
+import com.example.kpkn.data.onboarding.SetupDraftScope
 import com.example.kpkn.data.onboarding.persistenceFactory
 import com.example.kpkn.data.repository.ProgramRepository
 import com.example.kpkn.screens.onboarding.design.WizardColors
@@ -59,7 +60,7 @@ fun SetupEntryScreen(
     LaunchedEffect(pendingStart, loading, loadError, candidates) {
         if (!pendingStart || loading || loadError) return@LaunchedEffect
         pendingStart = false
-        val saved = candidates.maxByOrNull { it.updatedAtEpochMs }
+        val saved = selectRecoverableFullDraft(candidates)
         if (saved != null) onStart("RESUME", saved.draftId)
         else onStart("FULL", "setup-wizard:full:${UUID.randomUUID()}")
     }
@@ -82,3 +83,11 @@ fun SetupEntryScreen(
     }
     SetupWelcomeScreen(onStart = { pendingStart = true })
 }
+
+internal fun selectRecoverableFullDraft(candidates: List<SetupDraftCandidate>): SetupDraftCandidate? =
+    candidates
+        .filter {
+            (it.scope == SetupDraftScope.FULL || it.scope == SetupDraftScope.LEGACY_RESUME) &&
+                !SetupDraftResolver.isPendingNutritionDraft(it.draftId)
+        }
+        .maxByOrNull { it.updatedAtEpochMs }

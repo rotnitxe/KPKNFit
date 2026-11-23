@@ -359,9 +359,12 @@ fun ProgramDetailScreen(
 
     val bundledCover = rememberProgramCover(programCoverEntryIdOf(p.coverImage), with(density) { 88.dp.roundToPx() })
 
-    // Recorrido de Entreno: la primera vez que se entra en un programa ya cargado (visto = el controlador no arranca).
+    // Recorrido de Entreno: la primera vez que se entra en un programa ya cargado con el repositorio hidratado.
     val tourHost = LocalKpknOverlayHost.current
-    LaunchedEffect(p.id) { tourHost?.startTour(TourIds.TRAINING, TourScripts.training) }
+    val repoReady by ProgramRepository.getInstance().isReady.collectAsState()
+    LaunchedEffect(p.id, repoReady) {
+        if (repoReady) tourHost?.startTour(TourIds.TRAINING, TourScripts.training)
+    }
 
     val scroll = rememberScrollState()
     val desiredScrollTopPx = with(density) { 116.dp.toPx() }

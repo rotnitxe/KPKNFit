@@ -204,4 +204,43 @@ class TourControllerTest {
         assertTrue(tour.start("nuevo", listOf(step("a"))))
         assertFalse(tour.start("otro", listOf(step("a"))))
     }
+
+    @Test
+    fun no_arranca_mientras_store_no_esta_listo() = runTest {
+        val unreadyStore = object : TourSeenStore {
+            override fun isReady(): Boolean = false
+            override fun seenIds(): Set<String> = emptySet()
+            override fun markSeen(tourId: String) = Unit
+        }
+        val tour = TourController(scope = this, seen = unreadyStore, hasAnchor = { true })
+
+        assertFalse(tour.start("home", listOf(step("a"))))
+        assertFalse(tour.state.value.isActive)
+    }
+
+    @Test
+    fun fallo_en_reveal_anchor_no_crashea_y_permite_continuar_o_saltar() = runTest {
+        val seen = FakeSeen()
+        val tour = TourController(
+            scope = this,
+            seen = seen,
+            hasAnchor = { true },
+            hasScroller = { id -> id == "b" },
+            revealAnchor = { throw IllegalStateException("No MonotonicFrameClock") },
+        )
+        assertTrue(tour.start("home", listOf(step("a"), step("b"), step("c"))))
+
+        tour.next()
+        runCurrent()
+
+        assertEquals(1, tour.state.value.index)
+        assertFalse(tour.state.value.isScrollingToAnchor)
+
+        tour.next()
+        assertEquals(2, tour.state.value.index)
+
+        tour.skip()
+        assertFalse(tour.state.value.isActive)
+        assertEquals(listOf("home"), seen.marked)
+    }
 }

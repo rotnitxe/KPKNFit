@@ -241,9 +241,12 @@ fun ProfileScreen(
     onOpenHabits: () -> Unit = {},
     onOpenExerciseProgress: (String?) -> Unit = {},
 ) {
-    // Recorrido de Perfil: la primera vez que se abre. El icono de ajustes y la competición están en esta pantalla.
+    // Recorrido de Perfil: la primera vez que se abre con el repositorio hidratado.
     val tourHost = LocalKpknOverlayHost.current
-    LaunchedEffect(Unit) { tourHost?.startTour(TourIds.PROFILE, TourScripts.profile) }
+    val repoReady by ProgramRepository.getInstance().isReady.collectAsState()
+    LaunchedEffect(repoReady) {
+        if (repoReady) tourHost?.startTour(TourIds.PROFILE, TourScripts.profile)
+    }
     val context = LocalContext.current
     val state by viewModel.uiState.collectAsState()
     var sheet by remember { mutableStateOf<ProfileSheet?>(null) }

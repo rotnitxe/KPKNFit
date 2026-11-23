@@ -1,5 +1,6 @@
 package com.example.kpkn.ui.tour
 
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -49,7 +50,7 @@ class TourController(
 
     /** Arranca [tourId] si tiene pasos, no hay otro activo y no se ha visto. Devuelve si arrancó. */
     fun start(tourId: String, steps: List<TourStep>): Boolean {
-        if (steps.isEmpty() || _state.value.isActive || tourId in seen.seenIds()) return false
+        if (!seen.isReady() || steps.isEmpty() || _state.value.isActive || tourId in seen.seenIds()) return false
         _state.value = TourUiState(tourId = tourId, steps = steps, index = 0)
         prepareCurrentStep()
         return true
@@ -137,6 +138,10 @@ class TourController(
             if (needsReveal) {
                 try {
                     revealAnchor?.invoke(step.anchorId)
+                } catch (cancel: CancellationException) {
+                    throw cancel
+                } catch (_: Throwable) {
+                    // Scroll failures (disposed list, out-of-bounds index, etc.) must never crash the app.
                 } finally {
                     val now = _state.value
                     if (now.tourId == current.tourId && now.index == current.index) {

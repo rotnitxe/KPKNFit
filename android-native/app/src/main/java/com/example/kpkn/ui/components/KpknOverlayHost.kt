@@ -29,6 +29,7 @@ import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
@@ -72,8 +73,10 @@ private const val TOUR_COMPLETED_TOAST_MS = 3_000L
  * Mirrors the Home overlay registration pattern: entries live in observable state that
  * MainActivity reads directly, so presenting a sheet always triggers a visible recomposition.
  */
-class KpknOverlayHostController(tourSeen: TourSeenStore = SettingsTourSeenStore) {
-    private val hostScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate)
+class KpknOverlayHostController(
+    tourSeen: TourSeenStore = SettingsTourSeenStore,
+    private val hostScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main.immediate),
+) {
     private var toastDismissJob: Job? = null
 
     var entries by mutableStateOf<Map<Any, @Composable () -> Unit>>(emptyMap())
@@ -246,5 +249,9 @@ fun KpknPortal(
 }
 
 @Composable
-fun rememberKpknOverlayHostController(): KpknOverlayHostController =
-    remember { KpknOverlayHostController() }
+fun rememberKpknOverlayHostController(
+    tourSeen: TourSeenStore = SettingsTourSeenStore,
+): KpknOverlayHostController {
+    val scope = rememberCoroutineScope()
+    return remember(scope, tourSeen) { KpknOverlayHostController(tourSeen = tourSeen, hostScope = scope) }
+}

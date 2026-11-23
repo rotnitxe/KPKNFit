@@ -7,6 +7,7 @@ import com.example.kpkn.data.models.*
 import com.example.kpkn.testsupport.SyncRoomExecutor
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -70,6 +71,57 @@ class ProgramRepositoryStartupFlushTest {
         withTimeout(5_000) { repository.ongoingWorkoutCorrupt.first { it } }
         repository.flushPendingWrites()
         assertEquals(raw, room.stateDao().getOngoingWorkout()?.data)
+    }
+
+    @Test fun preHydrationUpdateSettingsMustNotOverwritePersistedSettingsAndMergesAfterHydration() = runBlocking {
+        val mainDispatcher = StandardTestDispatcher()
+        Dispatchers.setMain(mainDispatcher)
+        val seed = KpknDatabase.buildPersistent(context, dbName)
+        seed.settingsDao().upsert(
+            Settings(
+                username = "Matias",
+                onboardingCompleted = true,
+                tourSeen = setOf("tour-body"),
+            ).toEntity(),
+        )
+        seed.close()
+
+        val repository = ProgramRepository.initForTestsWithDatabaseFile(context, dbName)
+        assertFalse(repository.isReady.value)
+
+        // Simulate a restored screen triggering updateSettings before Room hydration completes.
+        repository.updateSettings { current ->
+            current.copy(tourSeen = current.tourSeen + "tour-home")
+        }
+
+        val room = repository.databaseForTests()
+        val beforeHydration = room.settingsDao().get()?.toSettings()
+        assertNotNull(beforeHydration)
+        assertTrue(beforeHydration!!.onboardingCompleted)
+        assertEquals("Matias", beforeHydration.username)
+        assertEquals(setOf("tour-body"), beforeHydration.tourSeen)
+
+        withTimeout(5_000) {
+            while (!repository.isReady.value) {
+                mainDispatcher.scheduler.runCurrent()
+                delay(10)
+            }
+        }
+        withTimeout(5_000) {
+            while (room.settingsDao().get()?.toSettings()?.tourSeen != setOf("tour-body", "tour-home")) {
+                delay(10)
+            }
+        }
+
+        val hydrated = repository.settings.value
+        assertTrue(hydrated.onboardingCompleted)
+        assertEquals("Matias", hydrated.username)
+        assertEquals(setOf("tour-body", "tour-home"), hydrated.tourSeen)
+
+        val persisted = room.settingsDao().get()!!.toSettings()
+        assertTrue(persisted.onboardingCompleted)
+        assertEquals("Matias", persisted.username)
+        assertEquals(setOf("tour-body", "tour-home"), persisted.tourSeen)
     }
 }
 

@@ -29,8 +29,6 @@ import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.onboarding.design.WizardFonts
 import com.example.kpkn.screens.onboarding.design.WizardSpacing
 import com.example.kpkn.screens.onboarding.design.entreno.SymbolPalette
-import com.example.kpkn.ui.components.LocalHazeState
-import com.example.kpkn.ui.components.kpknGlass
 
 private val InviteShape = RoundedCornerShape(22.dp)
 private val InviteFallbackBg = Color(0xFF151515).copy(alpha = 0.94f)
@@ -45,12 +43,7 @@ fun HomeTourInviteBanner(
     onLater: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val haze = LocalHazeState.current
-    val surface = if (haze != null) {
-        Modifier.kpknGlass(haze, InviteShape, withBorder = false)
-    } else {
-        Modifier.clip(InviteShape).background(InviteFallbackBg)
-    }
+    val surface = Modifier.clip(InviteShape).background(InviteFallbackBg)
     Row(
         modifier = modifier
             .fillMaxWidth()

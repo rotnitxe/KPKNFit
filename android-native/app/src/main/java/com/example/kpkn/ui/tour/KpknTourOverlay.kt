@@ -444,16 +444,29 @@ private class TourCut {
     val corner = Animatable(0f)
     var placed by mutableStateOf(false)
 
-    fun toRect(): Rect = Rect(left.value, top.value, right.value, bottom.value)
+    fun toRect(): Rect = Rect(
+        left = min(left.value, right.value),
+        top = min(top.value, bottom.value),
+        right = max(left.value, right.value),
+        bottom = max(top.value, bottom.value),
+    )
 
-    fun clampedCorner(rect: Rect): Float =
-        corner.value.coerceIn(0f, min(rect.width, rect.height) / 2f)
+    fun clampedCorner(rect: Rect): Float {
+        val maxCorner = (min(rect.width, rect.height) / 2f).coerceAtLeast(0f)
+        return corner.value.coerceIn(0f, maxCorner)
+    }
 
     fun toIntRect(screenW: Int, screenH: Int): IntRect {
-        val l = left.value.roundToInt().coerceIn(0, screenW)
-        val t = top.value.roundToInt().coerceIn(0, screenH)
-        val r = right.value.roundToInt().coerceIn(l, screenW)
-        val b = bottom.value.roundToInt().coerceIn(t, screenH)
+        val safeW = screenW.coerceAtLeast(0)
+        val safeH = screenH.coerceAtLeast(0)
+        val minL = min(left.value, right.value)
+        val maxR = max(left.value, right.value)
+        val minT = min(top.value, bottom.value)
+        val maxB = max(top.value, bottom.value)
+        val l = minL.roundToInt().coerceIn(0, safeW)
+        val t = minT.roundToInt().coerceIn(0, safeH)
+        val r = maxR.roundToInt().coerceIn(l, safeW)
+        val b = maxB.roundToInt().coerceIn(t, safeH)
         return IntRect(l, t, r, b)
     }
 }

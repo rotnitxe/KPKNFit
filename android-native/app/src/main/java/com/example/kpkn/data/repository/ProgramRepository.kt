@@ -37,6 +37,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.channels.awaitClose
@@ -606,16 +607,11 @@ class ProgramRepository private constructor(
             val nextQueue = _programQueue.value.filterNot { it == programId }
             if (_activeProgramState.value?.programId == programId) clearActiveProgram()
             _programQueue.value = nextQueue
-            _settings.update {
+            updateSettings {
                 it.copy(
                     archivedProgramIds = it.archivedProgramIds + programId,
                     programQueueIds = nextQueue,
                 )
-            }
-            scope.launch {
-                PersistenceWriteCoordinator.mutex.withLock {
-                    db.settingsDao().upsert(_settings.value.toEntity())
-                }
             }
             return ProgramArchiveResult.Archived
         } finally {
@@ -624,12 +620,7 @@ class ProgramRepository private constructor(
     }
 
     fun restoreArchivedProgram(programId: String) {
-        _settings.update { it.copy(archivedProgramIds = it.archivedProgramIds.filterNot { id -> id == programId }) }
-        scope.launch {
-            PersistenceWriteCoordinator.mutex.withLock {
-                db.settingsDao().upsert(_settings.value.toEntity())
-            }
-        }
+        updateSettings { it.copy(archivedProgramIds = it.archivedProgramIds.filterNot { id -> id == programId }) }
     }
 
     fun permanentlyDeleteProgram(programId: String): ProgramDeleteResult {
@@ -942,11 +933,22 @@ class ProgramRepository private constructor(
             val nextQueue = _programQueue.value.filterNot { it == programId }
             _programQueue.value = nextQueue
             if (_activeProgramState.value?.programId == programId) clearActiveProgram()
-            _settings.update {
+            val deleteTransform: (Settings) -> Settings = {
                 it.copy(
                     programQueueIds = nextQueue,
                     archivedProgramIds = it.archivedProgramIds.filterNot { id -> id == programId },
                 )
+            }
+            val shouldPersistSettings = synchronized(settingsStateLock) {
+                if (!hasHydratedFromDb) {
+                    pendingSettingsUpdates += deleteTransform
+                    false
+                } else {
+                    _settings.update(deleteTransform)
+                    ExerciseNicknameResolver.nicknames = _settings.value.exerciseNicknames
+                    settingsRevision.incrementAndGet()
+                    !settingsCorrupt
+                }
             }
             scope.launch {
                 PersistenceWriteCoordinator.mutex.withLock {
@@ -958,7 +960,19 @@ class ProgramRepository private constructor(
                             }
                         }
                     }
-                    db.settingsDao().upsert(_settings.value.toEntity())
+                    if (shouldPersistSettings && hasHydratedFromDb && !settingsCorrupt) {
+                        val (revision, snapshot) = synchronized(settingsStateLock) {
+                            settingsRevision.get() to _settings.value
+                        }
+                        if (revision > persistedSettingsRevision) {
+                            db.settingsDao().upsert(snapshot.toEntity())
+                            synchronized(settingsStateLock) {
+                                if (revision > persistedSettingsRevision) {
+                                    persistedSettingsRevision = revision
+                                }
+                            }
+                        }
+                    }
                 }
             }
             return ProgramDeleteResult.Deleted
@@ -991,12 +1005,7 @@ class ProgramRepository private constructor(
 
     private fun persistProgramQueue(queue: List<String>) {
         _programQueue.value = queue
-        _settings.update { it.copy(programQueueIds = queue) }
-        scope.launch {
-            PersistenceWriteCoordinator.mutex.withLock {
-                db.settingsDao().upsert(_settings.value.toEntity())
-            }
-        }
+        updateSettings { it.copy(programQueueIds = queue) }
     }
 
     fun clearPrograms() {
@@ -1013,6 +1022,10 @@ class ProgramRepository private constructor(
             _activeProgramState.value = null
             _ongoingWorkout.value = null
             _ongoingWorkoutCorrupt.value = false
+            synchronized(settingsStateLock) {
+                pendingSettingsUpdates.clear()
+                settingsCorrupt = false
+            }
             db.programDao().deleteAll()
             persistActiveProgramStateIfLatest(null, activeVersion)
             db.stateDao().clearOngoingWorkout()
@@ -2709,32 +2722,79 @@ class ProgramRepository private constructor(
     private val _replacementDecisions = MutableStateFlow<List<ExerciseReplacementDecisionV2>>(emptyList())
     val replacementDecisions: StateFlow<List<ExerciseReplacementDecisionV2>> = _replacementDecisions.asStateFlow()
 
+    private val settingsStateLock = Any()
+    private val pendingSettingsUpdates = mutableListOf<(Settings) -> Settings>()
+    @Volatile private var settingsCorrupt = false
     private val settingsRevision = AtomicLong()
-    private var persistedSettingsRevision = 0L
+    @Volatile private var persistedSettingsRevision = 0L
 
     fun updateSettings(update: (Settings) -> Settings) {
-        _settings.update(update)
-        settingsRevision.incrementAndGet()
-        ExerciseNicknameResolver.nicknames = _settings.value.exerciseNicknames
-        scope.launch { persistSettingsIfDirty() }
+        val shouldPersist = synchronized(settingsStateLock) {
+            if (!hasHydratedFromDb) {
+                pendingSettingsUpdates += update
+                false
+            } else {
+                _settings.update(update)
+                ExerciseNicknameResolver.nicknames = _settings.value.exerciseNicknames
+                settingsRevision.incrementAndGet()
+                !settingsCorrupt
+            }
+        }
+        if (shouldPersist) {
+            scope.launch { persistSettingsIfDirty() }
+        }
     }
 
     private suspend fun persistSettingsIfDirty() {
+        if (!hasHydratedFromDb || settingsCorrupt) return
         PersistenceWriteCoordinator.mutex.withLock {
-            val revision = settingsRevision.get()
+            if (!hasHydratedFromDb || settingsCorrupt) return
+            val (revision, snapshot) = synchronized(settingsStateLock) {
+                settingsRevision.get() to _settings.value
+            }
             if (revision > persistedSettingsRevision) {
-                db.settingsDao().upsert(_settings.value.toEntity())
-                persistedSettingsRevision = revision
+                db.settingsDao().upsert(snapshot.toEntity())
+                synchronized(settingsStateLock) {
+                    if (revision > persistedSettingsRevision) {
+                        persistedSettingsRevision = revision
+                    }
+                }
             }
         }
     }
 
     /** Guarda solo el material y confirma Room antes de cerrar el editor. */
     suspend fun saveEquipmentInventory(inventory: EquipmentInventory) = withContext(Dispatchers.IO) {
+        isReady.first { it }
         PersistenceWriteCoordinator.mutex.withLock {
-            db.settingsDao().upsert(_settings.value.copy(equipmentInventory = inventory).toEntity())
-            withContext(Dispatchers.Main.immediate) {
-                _settings.update { it.copy(equipmentInventory = inventory) }
+            if (!hasHydratedFromDb || settingsCorrupt) return@withLock
+            val snapshot = synchronized(settingsStateLock) { _settings.value }
+            val candidate = snapshot.copy(equipmentInventory = inventory)
+            db.settingsDao().upsert(candidate.toEntity())
+            var needsResync = false
+            synchronized(settingsStateLock) {
+                val latest = _settings.value
+                val next = latest.copy(equipmentInventory = inventory)
+                _settings.value = next
+                val revision = settingsRevision.incrementAndGet()
+                if (latest == snapshot) {
+                    persistedSettingsRevision = revision
+                } else {
+                    needsResync = true
+                }
+            }
+            if (needsResync) {
+                val (revision, latestSnapshot) = synchronized(settingsStateLock) {
+                    settingsRevision.get() to _settings.value
+                }
+                if (revision > persistedSettingsRevision) {
+                    db.settingsDao().upsert(latestSnapshot.toEntity())
+                    synchronized(settingsStateLock) {
+                        if (revision > persistedSettingsRevision) {
+                            persistedSettingsRevision = revision
+                        }
+                    }
+                }
             }
         }
     }
@@ -2757,8 +2817,13 @@ class ProgramRepository private constructor(
             db.stateDao().getActiveProgram()?.toActiveProgramState()
         }
         withContext(Dispatchers.Main.immediate) {
-            _settings.value = settings
-            ExerciseNicknameResolver.nicknames = settings.exerciseNicknames
+            synchronized(settingsStateLock) {
+                pendingSettingsUpdates.clear()
+                settingsCorrupt = false
+                _settings.value = settings
+                ExerciseNicknameResolver.nicknames = settings.exerciseNicknames
+                persistedSettingsRevision = settingsRevision.get()
+            }
             if (program != null) {
                 // Reserva + publicación del programa atómicas entre sí, con el
                 // mismo monitor que el resto de escritores de esta caché.
@@ -3185,14 +3250,27 @@ class ProgramRepository private constructor(
                     persistActiveProgramStateAsync(normalizedActiveProgram)
                 }
 
+                var shouldPersistMergedSettings = false
                 withContext(Dispatchers.Main) {
                     _programs.value = programs
-                    _programQueue.value = settings.programQueueIds.filter { id ->
+                    val mergedSettings = synchronized(settingsStateLock) {
+                        this@ProgramRepository.settingsCorrupt = settingsCorrupt
+                        val queued = pendingSettingsUpdates.toList()
+                        pendingSettingsUpdates.clear()
+                        val merged = queued.fold(settings) { acc, transform -> transform(acc) }
+                        _settings.value = merged
+                        ExerciseNicknameResolver.nicknames = merged.exerciseNicknames
+                        hasHydratedFromDb = true
+                        if (queued.isNotEmpty() && !settingsCorrupt) {
+                            settingsRevision.incrementAndGet()
+                            shouldPersistMergedSettings = true
+                        }
+                        merged
+                    }
+                    _programQueue.value = mergedSettings.programQueueIds.filter { id ->
                         programs.any { it.id == id }
                     }
                     _history.value = logs
-                    _settings.value = settings
-                    ExerciseNicknameResolver.nicknames = settings.exerciseNicknames
                     _activeProgramState.value = normalizedActiveProgram
                     _ongoingWorkout.value = ongoingWorkout
                     _ongoingWorkoutCorrupt.value = ongoingCorrupt
@@ -3201,8 +3279,10 @@ class ProgramRepository private constructor(
                     _contextProfiles.value = contextProfiles
                     _workoutTags.value = workoutTags
                     _replacementDecisions.value = replacementDecisions
-                    hasHydratedFromDb = true
                     _isReady.value = true
+                }
+                if (shouldPersistMergedSettings) {
+                    scope.launch { persistSettingsIfDirty() }
                 }
             }.onFailure { error ->
                 if (error is CancellationException) throw error

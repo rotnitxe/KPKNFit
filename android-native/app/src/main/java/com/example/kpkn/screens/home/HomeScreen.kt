@@ -615,8 +615,10 @@ private fun HomeWithProgram(
         seenKeys = summaryStore.seenKeys()
     }
     val tourHost = LocalKpknOverlayHost.current
+    val repoReady by ProgramRepository.getInstance().isReady.collectAsState()
     val tourUiState by tourHost?.tour?.state?.collectAsState() ?: remember { mutableStateOf(TourUiState()) }
-    val showTourInvite = tourHost != null &&
+    val showTourInvite = repoReady &&
+        tourHost != null &&
         TourIds.HOME !in homeSettings.tourSeen &&
         !tourHost.isTourSeen(TourIds.HOME) &&
         !tourUiState.isActive
