@@ -88,7 +88,10 @@ internal fun CockpitSessionSummary(
         val paceWork = remember(exercises, completedSets, omittedSetKeys) {
             com.example.kpkn.screens.workout.sessionPaceWork(exercises, completedSets, omittedSetKeys)
         }
-        SessionPaceEstimate(startTimeMs, paceWork.completed, paceWork.total, targetMinutes)
+        val remainingRestSec = remember(exercises, completedSets, omittedSetKeys) {
+            com.example.kpkn.screens.workout.remainingPlannedRestSeconds(exercises, completedSets, omittedSetKeys)
+        }
+        SessionPaceEstimate(startTimeMs, paceWork.completed, paceWork.total, targetMinutes, remainingRestSec)
         metrics.calories.hint?.let { Text(it, style = KpknType.caption, color = WizardColors.textMuted) }
         Text("RUTA", style = KpknType.eyebrow, color = WizardColors.textMuted)
         val groupByMember = remember(exercises, supersetGroups) {

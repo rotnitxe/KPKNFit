@@ -275,7 +275,18 @@ private fun homeHeroPages(
         )
     }
 
-    val dayItems = sessions.filter { it.dayOfWeek == day.dayOfWeek.value }
+    val isRolling = activeProgram != null && com.example.kpkn.domain.training.CycleScheduleEngine.isRollingCycle(activeProgram)
+    val cycleLen = activeProgram?.let(com.example.kpkn.domain.training.CycleScheduleEngine::normalizedCycleLength) ?: 7
+    val targetDayIndex = if (isRolling && activeProgram != null) {
+        com.example.kpkn.domain.training.CycleScheduleEngine.dayIndexForDate(
+            anchorDate = com.example.kpkn.domain.training.CycleScheduleEngine.effectiveAnchorDate(activeProgram, today),
+            targetDate = day,
+            cycleLengthDays = cycleLen,
+        )
+    } else {
+        day.dayOfWeek.value
+    }
+    val dayItems = sessions.filter { it.dayOfWeek == targetDayIndex || targetDayIndex in it.session.assignedDays }
     if (dayItems.isEmpty()) {
         return listOf(
             HomeHeroPage(
@@ -288,10 +299,13 @@ private fun homeHeroPages(
                     body = homeHeroNextLine(
                         weekDays,
                         HomeWeekResolver.nextSession(activeProgram, sessions, weekDays, day),
-                        // Sin sesión datada, la del programa en su semana: la misma función que Program Detail.
+                        // Sin sesión datada, la del programa en su semana o ciclo: la misma función que Program Detail.
                         programNextSessionOf(
-                            sessions = weekDays.mapNotNull { d -> d.sessionName?.let { d.date.dayOfWeek.value to it } },
-                            today = day.dayOfWeek.value,
+                            sessions = weekDays.mapNotNull { d ->
+                                d.sessionName?.let { (d.cycleDayIndex ?: d.date.dayOfWeek.value) to it }
+                            },
+                            today = targetDayIndex,
+                            cycleLengthDays = cycleLen,
                         ),
                     ),
                     countdown = countdown,

@@ -794,8 +794,11 @@ private fun FinishDetailDeck(
                 else Text("Sin ejercicios comparables en esta sesión.", style = Lx.inter(12.sp), color = Lx.Faint)
             }
             FinishDeckTab.MUSCULOS -> {
-                if (model.muscles.isNotEmpty()) MusclesModuleContent(model)
-                else Text("Sin volumen muscular registrado.", style = Lx.inter(12.sp), color = Lx.Faint)
+                if (model.muscles.isNotEmpty() || model.intensitySummary.hasIntensityData || model.intensitySummary.limitingFactorTallies.isNotEmpty()) {
+                    MusclesModuleContent(model)
+                } else {
+                    Text("Sin volumen muscular registrado.", style = Lx.inter(12.sp), color = Lx.Faint)
+                }
             }
         }
     }
@@ -912,6 +915,197 @@ private fun MusclesModuleContent(model: FinishModel) {
                 style = Lx.inter(11.sp),
                 color = Lx.Muted,
             )
+        }
+        val summary = model.intensitySummary
+        if (summary.hasIntensityData || summary.limitingFactorTallies.isNotEmpty()) {
+            Spacer(Modifier.height(10.dp))
+            FinishIntensityAndLimitingSection(summary)
+        }
+    }
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun FinishIntensityAndLimitingSection(
+    summary: com.example.kpkn.domain.training.insights.MuscleIntensitySummary,
+) {
+    var bodySide by rememberSaveable { mutableStateOf(com.example.kpkn.screens.progress.BodySide.FRONT) }
+    var selectedRegion by rememberSaveable { mutableStateOf<String?>(summary.top3Muscles.firstOrNull()?.muscleName) }
+    val heatPaints = remember(summary) {
+        com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.paints(summary)
+    }
+    val regionDescriptions = remember(summary) {
+        com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.regionDescriptions(summary)
+    }
+    val summaryDescription = remember(summary) {
+        com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.summaryDescription(summary)
+    }
+
+    Column(
+        modifier = Modifier.fillMaxWidth().testTag("finish-intensity-section"),
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        if (summary.top3Muscles.isNotEmpty()) {
+            Text("TOP 3 INTENSIDAD MEDIA", style = Lx.inter(10.sp, FontWeight.SemiBold, 1.2.sp), color = Lx.Faint)
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                summary.top3Muscles.forEachIndexed { rank, muscle ->
+                    Column(
+                        Modifier.weight(1f)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Color(0x0DFFFFFF))
+                            .clickable(role = Role.Button) { selectedRegion = muscle.muscleName }
+                            .padding(horizontal = 9.dp, vertical = 8.dp)
+                            .testTag("finish-top-intensity-$rank"),
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                    ) {
+                        Text(
+                            "#${rank + 1} · ${muscle.muscleName}",
+                            style = Lx.inter(11.sp, FontWeight.SemiBold),
+                            color = Lx.Ink,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            "RPE ${finishGrouped(muscle.weightedRpeMean, 1)} · RIR ${finishGrouped(muscle.weightedRirMean, 1)}",
+                            style = Lx.num(10.5.sp),
+                            color = Lx.Mus,
+                            maxLines = 1,
+                        )
+                        if (muscle.failureSetCount > 0) {
+                            Text(
+                                "Fallo ×${muscle.failureSetCount}",
+                                style = Lx.inter(9.5.sp, FontWeight.SemiBold),
+                                color = Color(0xFFE5484D),
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        if (summary.hasIntensityData) {
+            Row(
+                Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("MAPA DE CALOR · RIR / RPE", style = Lx.inter(10.sp, FontWeight.SemiBold, 1.2.sp), color = Lx.Faint)
+                Row(
+                    Modifier.clip(RoundedCornerShape(50)).background(Color(0x0DFFFFFF)).padding(2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp),
+                ) {
+                    BaselineChip("Frente", bodySide == com.example.kpkn.screens.progress.BodySide.FRONT) {
+                        bodySide = com.example.kpkn.screens.progress.BodySide.FRONT
+                    }
+                    BaselineChip("Espalda", bodySide == com.example.kpkn.screens.progress.BodySide.BACK) {
+                        bodySide = com.example.kpkn.screens.progress.BodySide.BACK
+                    }
+                }
+            }
+            Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                com.example.kpkn.screens.progress.design.MuscleVolumeBodyMap(
+                    side = bodySide,
+                    paints = heatPaints,
+                    selected = selectedRegion,
+                    onSelect = { selectedRegion = it },
+                    summary = summaryDescription,
+                    regionDescriptions = regionDescriptions,
+                    bodyHeight = 220.dp,
+                )
+            }
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.legendEntries.forEach { (paint, label) ->
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Box(Modifier.size(8.dp).clip(CircleShape).background(paint.fill).border(1.dp, paint.edge, CircleShape))
+                        Text(label, style = Lx.inter(9.5.sp), color = Lx.Faint)
+                    }
+                }
+            }
+            selectedRegion?.let { regionName ->
+                val row = summary.muscles.firstOrNull { it.muscleName == regionName }
+                if (row != null) {
+                    Text(
+                        "$regionName · RPE ${finishGrouped(row.weightedRpeMean, 1)} · RIR ${finishGrouped(row.weightedRirMean, 1)} · ${row.ratedSetCount} series medidas" +
+                            if (row.failureSetCount > 0) " (${row.failureSetCount} al fallo)" else "",
+                        style = Lx.inter(11.sp),
+                        color = Lx.Muted,
+                    )
+                }
+            }
+        }
+
+        if (summary.exercises.isNotEmpty()) {
+            Text("INTENSIDAD POR EJERCICIO", style = Lx.inter(10.sp, FontWeight.SemiBold, 1.2.sp), color = Lx.Faint)
+            summary.exercises.forEach { ex ->
+                Column(
+                    Modifier.fillMaxWidth()
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(Color(0x07FFFFFF))
+                        .padding(horizontal = 10.dp, vertical = 7.dp),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            ex.exerciseName,
+                            Modifier.weight(1f),
+                            style = Lx.inter(12.sp, FontWeight.Medium),
+                            color = Lx.Ink,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        val scoreText = if (ex.meanRpe != null && ex.meanRir != null) {
+                            buildString {
+                                append("RPE ${finishGrouped(ex.meanRpe, 1)} · RIR ${finishGrouped(ex.meanRir, 1)}")
+                                if (ex.failureSetCount > 0) append(" · Fallo ×${ex.failureSetCount}")
+                            }
+                        } else {
+                            "Sin intensidad"
+                        }
+                        Text(scoreText, style = Lx.num(11.sp), color = Lx.Muted)
+                    }
+                    if (ex.limitingFactors.isNotEmpty()) {
+                        Text(
+                            "Limitante: " + ex.limitingFactors.joinToString(", ") { factor ->
+                                if (factor.autoLinkedCore) "${factor.label} (+Core)"
+                                else factor.label
+                            },
+                            style = Lx.inter(10.5.sp),
+                            color = Color(0xFFE0B341),
+                        )
+                    }
+                }
+            }
+        }
+
+        if (summary.limitingFactorTallies.isNotEmpty()) {
+            Text("CUELLOS DE BOTELLA REPORTADOS", style = Lx.inter(10.sp, FontWeight.SemiBold, 1.2.sp), color = Lx.Faint)
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                verticalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                summary.limitingFactorTallies.forEach { tally ->
+                    val suffix = when {
+                        tally.autoLinkedCoreCount > 0 -> " → ${tally.linkedMuscleNames.joinToString(", ")}"
+                        tally.linkedMuscleNames.isNotEmpty() -> " · ${tally.linkedMuscleNames.joinToString(", ")}"
+                        else -> ""
+                    }
+                    Text(
+                        "${tally.label}$suffix",
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(Color(0x14E0B341))
+                            .padding(horizontal = 8.dp, vertical = 5.dp),
+                        style = Lx.inter(10.5.sp, FontWeight.Medium),
+                        color = Lx.Ink,
+                    )
+                }
+            }
         }
     }
 }

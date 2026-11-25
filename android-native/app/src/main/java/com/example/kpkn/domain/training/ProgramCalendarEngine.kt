@@ -71,8 +71,9 @@ data class ProgramCalendarProjection(
     fun scheduledDateFor(session: Session, weekId: String): LocalDate? {
         val week = weeks.firstOrNull { it.weekId == weekId || it.weekInstanceId == weekId } ?: return null
         if (week.sessionDates.containsKey(session.id)) return week.sessionDates[session.id]
-        val day = session.dayOfWeek?.coerceIn(1, 7) ?: return week.startDate
-        return week.trainingDayDates[day]
+        val maxDay = kotlin.math.max(7, week.trainingDayDates.keys.maxOrNull() ?: 7)
+        val day = session.dayOfWeek?.coerceIn(1, maxDay) ?: return week.startDate
+        return week.trainingDayDates[day] ?: if (maxDay > 7) week.startDate.plusDays((day - 1).toLong()) else null
     }
 
     /** Accepted clock times remain separate from day identity; two sessions may share one date. */
@@ -158,6 +159,7 @@ object ProgramCalendarEngine {
         val start: LocalDate = anchorDate
         var cursor = start
         var globalWeekIndex = 0
+        val cycleLen = CycleScheduleEngine.normalizedCycleLength(program)
         val weeks = mutableListOf<CalendarWeekProjection>()
 
         program.macrocycles.forEachIndexed { macroIndex, macro ->
@@ -173,7 +175,7 @@ object ProgramCalendarEngine {
                             program, week, identity?.runId, identity?.cycleNumber, identity?.weekInstanceId,
                         )
                         val weekStart = cursor
-                        val weekEnd = weekStart.plusDays(6)
+                        val weekEnd = weekStart.plusDays((cycleLen - 1).toLong())
                         val trainingDays = resolveTrainingDays(program, effectiveWeek, includeOccurrenceOverlays = false) +
                             keyDateDaysInWeek(program, week, weekStart, weekEnd)
                         val dayDates = trainingDatesFor(
@@ -181,10 +183,11 @@ object ProgramCalendarEngine {
                             weekEnd = weekEnd,
                             trainingDays = trainingDays,
                             explicit = effectiveWeek.trainingDayDates,
+                            cycleLengthDays = cycleLen,
                         )
                         val marks = program.keyDates.filter { keyDateIntersects(it, weekStart, weekEnd) }
                         val resolvedDays = dayDates.keys
-                        val outsideDays = (1..7).filter { day ->
+                        val outsideDays = (1..cycleLen).filter { day ->
                             day !in resolvedDays && week.sessions.any { it.dayOfWeek == day }
                         }.toSet()
                         weeks += CalendarWeekProjection(
@@ -291,29 +294,30 @@ object ProgramCalendarEngine {
         // Prefer the executable sessions owned by this week whenever they
         // declare days; the plan below remains the program-wide contract for
         // empty/legacy weeks.
+        val cycleLen = CycleScheduleEngine.normalizedCycleLength(program)
         val fromCompetition = effectiveWeek.sessions
             .filter { it.isCompetitionMeet }
-            .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
+            .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..cycleLen } }
             .toSet()
         val fromExecutableSessions = effectiveWeek.sessions
             .filter(SessionTemplateEngine::sessionHasExecutableContent)
-            .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
+            .mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..cycleLen } }
             .toSet()
         if (fromExecutableSessions.isNotEmpty() || fromCompetition.isNotEmpty()) {
             return fromExecutableSessions + fromCompetition
         }
 
-        val fromWeek = effectiveWeek.trainingDayDates.keys.filter { it in 1..7 }
+        val fromWeek = effectiveWeek.trainingDayDates.keys.filter { it in 1..cycleLen }
         if (fromWeek.isNotEmpty()) return fromWeek.toSet()
 
-        val fromPlan = program.resolvedSchedulePlan().trainingDays.filter { it in 1..7 }
+        val fromPlan = program.resolvedSchedulePlan().trainingDays.filter { it in 1..cycleLen }
         if (fromPlan.isNotEmpty()) return fromPlan.toSet()
         if (program.isSimpleProgram) {
-            val fromSessions = effectiveWeek.sessions.mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..7 } }
+            val fromSessions = effectiveWeek.sessions.mapNotNull { it.dayOfWeek?.takeIf { day -> day in 1..cycleLen } }
             if (fromSessions.isNotEmpty()) return fromSessions.toSet()
             return program.suggestCalendarTrainingDays()
         }
-        return (1..7).toSet()
+        return (1..cycleLen).toSet()
     }
 
     private fun floatingOccurrenceProjection(program: Program): ProgramCalendarProjection? {
@@ -354,15 +358,26 @@ object ProgramCalendarEngine {
         weekEnd: LocalDate,
         trainingDays: Set<Int>,
         explicit: Map<Int, String>,
+        cycleLengthDays: Int = CycleScheduleEngine.MIN_CYCLE_DAYS,
     ): Map<Int, LocalDate> {
         return trainingDays.mapNotNull { day ->
             val explicitDate = parseIsoDate(explicit[day])
-            val resolved = explicitDate ?: dateForDay(weekStart, weekEnd, day) ?: return@mapNotNull null
+            val resolved = explicitDate ?: dateForDay(weekStart, weekEnd, day, cycleLengthDays) ?: return@mapNotNull null
             if (resolved.isBefore(weekStart) || resolved.isAfter(weekEnd)) null else day to resolved
         }.toMap()
     }
 
-    private fun dateForDay(start: LocalDate, end: LocalDate, day: Int): LocalDate? {
+    private fun dateForDay(
+        start: LocalDate,
+        end: LocalDate,
+        day: Int,
+        cycleLengthDays: Int = CycleScheduleEngine.MIN_CYCLE_DAYS,
+    ): LocalDate? {
+        if (cycleLengthDays > CycleScheduleEngine.MIN_CYCLE_DAYS) {
+            if (day !in 1..cycleLengthDays) return null
+            val candidate = start.plusDays((day - 1).toLong())
+            return if (!candidate.isAfter(end)) candidate else null
+        }
         var cursor = start
         while (!cursor.isAfter(end)) {
             if (cursor.dayOfWeek.value == day) return cursor

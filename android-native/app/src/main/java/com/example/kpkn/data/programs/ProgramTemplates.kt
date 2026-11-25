@@ -329,5 +329,5 @@ fun ProgramTemplateOption.buildProgramDraft(baseProgram: Program): Program {
                 blocks = blocks,
             ),
         ),
-    )
+    ).let(com.example.kpkn.domain.training.ProgramLineageNormalizer::ensureSessionLineageIds)
 }

@@ -20,6 +20,10 @@ data class HomeWeekDay(
     val isToday: Boolean,
     val kind: HomeDayKind,
     val sessionName: String?,
+    /** Etiqueta corta de ciclo rotativo (`D1..DN`) cuando el ciclo supera 7 días; null en semanas estándar L–D. */
+    val cycleDayLabel: String? = null,
+    /** Índice 1-based dentro del ciclo rotativo cuando supera 7 días. */
+    val cycleDayIndex: Int? = null,
 )
 
 /** La siguiente sesión del programa después de un día: su fecha y su nombre (lo que lee el descanso de «Tu semana»). */
@@ -76,9 +80,45 @@ object HomeWeekResolver {
     }
 
     /**
+     * Versión consciente del programa: si el programa usa un ciclo rotativo > 7 días, proyecta todos los días `D1..DN`
+     * anclados a calendario real; si es de 7 días, delega exactamente en [week].
+     */
+    fun weekForProgram(
+        program: Program,
+        sessions: List<TodaySessionItem>,
+        today: LocalDate,
+    ): List<HomeWeekDay> {
+        if (!CycleScheduleEngine.isRollingCycle(program)) {
+            return week(sessions, program.startDay, today)
+        }
+        val cycleLength = CycleScheduleEngine.normalizedCycleLength(program)
+        val anchorDate = CycleScheduleEngine.effectiveAnchorDate(program, today)
+        val slots = CycleScheduleEngine.projectedCycleDates(
+            anchorDate = anchorDate,
+            cycleLengthDays = cycleLength,
+            referenceDate = today,
+        )
+        val sessionByDay = sessions
+            .sortedBy { if (it.session.isMainSession) 0 else 1 }
+            .associateBy { it.dayOfWeek }
+        return slots.map { slot ->
+            val session = sessionByDay[slot.dayIndex]
+            HomeWeekDay(
+                date = slot.date,
+                letter = letters[slot.date.dayOfWeek.value - 1],
+                isToday = slot.date == today,
+                kind = kindOf(session, slot.date, today),
+                sessionName = session?.session?.name,
+                cycleDayLabel = CycleScheduleEngine.dayShortLabel(slot.dayIndex),
+                cycleDayIndex = slot.dayIndex,
+            )
+        }
+    }
+
+    /**
      * La siguiente sesión del programa después de [after] (un día de descanso, por ejemplo). Primero mira «Tu semana» ([weekDays]);
-     * si no queda nada en ella, sigue por las semanas que vienen después de la de [sessions]. Cada una cae en los 7 días que siguen a
-     * la anterior, con el día ISO de cada sesión; un programa calendarizado usa las fechas de su calendario. Null si no hay programa,
+     * si no queda nada en ella, sigue por las semanas que vienen después de la de [sessions]. Cada una cae en los N días que siguen a
+     * la anterior, con el día de ciclo de cada sesión; un programa calendarizado usa las fechas de su calendario. Null si no hay programa,
      * no se sabe en qué semana va o no queda ninguna sesión.
      */
     fun nextSession(
@@ -92,21 +132,40 @@ object HomeWeekResolver {
         }
         val windowStart = weekDays.firstOrNull()?.date ?: return null
         if (program == null) return null
+        val isRolling = CycleScheduleEngine.isRollingCycle(program)
+        val cycleLen = CycleScheduleEngine.normalizedCycleLength(program)
         val weekId = sessions.firstOrNull()?.location?.weekId ?: return null
         val weeks = program.allWeekLocations()
         val current = weeks.indexOfFirst { it.week.id == weekId }
         if (current < 0) return null
+        if (isRolling) {
+            val anchorDate = CycleScheduleEngine.effectiveAnchorDate(program, after)
+            val weekSessions = weeks.getOrNull(current)?.week?.sessions.orEmpty()
+            val candidateDays = (1L..cycleLen.toLong()).mapNotNull { delta ->
+                val candidateDate = after.plusDays(delta)
+                val dayIdx = CycleScheduleEngine.dayIndexForDate(anchorDate, candidateDate, cycleLen)
+                val match = weekSessions
+                    .sortedBy { if (it.isMainSession) 0 else 1 }
+                    .firstOrNull { it.dayOfWeek == dayIdx || dayIdx in it.assignedDays }
+                match?.let { HomeNextSession(candidateDate, it.name) }
+            }
+            if (candidateDays.isNotEmpty()) return candidateDays.minByOrNull { it.date }
+        }
         val calendar = ProgramCalendarEngine.project(program).takeIf { it.enabled }
         val startIso = windowStart.dayOfWeek.value
         return weeks.drop(current + 1).withIndex().flatMap { (ahead, location) ->
             // La principal va primero: si dos sesiones caen el mismo día, gana la principal.
             location.week.sessions.sortedBy { if (it.isMainSession) 0 else 1 }.mapNotNull { session ->
-                val date = if (calendar?.weeks?.any { it.weekId == location.week.id || it.weekInstanceId == location.week.id } == true) {
+                val date = if (!isRolling && calendar?.weeks?.any { it.weekId == location.week.id || it.weekInstanceId == location.week.id } == true) {
                     calendar.scheduledDateFor(session, location.week.id)
                 } else {
-                    // La semana que sigue a «Tu semana» (ahead = 0) cae en los 7 días siguientes a ella.
-                    (session.dayOfWeek ?: session.assignedDays.firstOrNull())?.let { iso ->
-                        windowStart.plusDays(7L * (ahead + 1) + Math.floorMod(iso - startIso, 7))
+                    (session.dayOfWeek ?: session.assignedDays.firstOrNull())?.let { day ->
+                        if (isRolling) {
+                            windowStart.plusDays(cycleLen.toLong() * (ahead + 1) + (day - 1).coerceAtLeast(0))
+                        } else {
+                            // La semana que sigue a «Tu semana» (ahead = 0) cae en los 7 días siguientes a ella.
+                            windowStart.plusDays(7L * (ahead + 1) + Math.floorMod(day - startIso, 7))
+                        }
                     }
                 }
                 date?.takeIf { it.isAfter(after) }?.let { HomeNextSession(it, session.name) }
@@ -116,15 +175,16 @@ object HomeWeekResolver {
 
     /**
      * Línea del programa activo. La cuenta de progreso excluye semanas especiales materializadas para loops. Las semanas especiales
-     * conservan su nombre; una rutina cíclica de una semana base se presenta como «Rutina semanal».
-     * [today] no cambia la línea; va en la firma por el contrato de la cabecera.
+     * conservan su nombre; una rutina cíclica de una semana base se presenta como «Rutina semanal» (o «Ciclo Nd · Día X/N» si > 7d).
      */
     fun programLine(
         program: Program?,
         sessions: List<TodaySessionItem>,
-        @Suppress("UNUSED_PARAMETER") today: LocalDate,
+        today: LocalDate,
     ): HomeProgramLine? {
         if (program == null) return null
+        val isRolling = CycleScheduleEngine.isRollingCycle(program)
+        val cycleLen = CycleScheduleEngine.normalizedCycleLength(program)
         val weekId = sessions.firstOrNull()?.location?.weekId
         val weeks = program.allWeekLocations()
         val position = weekId?.let { id -> weeks.indexOfFirst { it.week.id == id } }?.takeIf { it >= 0 }
@@ -141,6 +201,11 @@ object HomeWeekResolver {
             it.isLoopWeek || it.executionKind != com.example.kpkn.data.models.WeekExecutionKind.TRAINING
         } == true
         val weekLabel = when {
+            isRolling -> {
+                val anchorDate = CycleScheduleEngine.effectiveAnchorDate(program, today)
+                val todayDayIdx = CycleScheduleEngine.dayIndexForDate(anchorDate, today, cycleLen)
+                "Ciclo ${cycleLen}d · Día $todayDayIdx/$cycleLen"
+            }
             currentWeek == null -> null
             isSpecialWeek -> currentWeek.name
             repeatingSingleWeek -> "Rutina semanal"

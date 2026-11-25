@@ -344,10 +344,6 @@ private fun PlanCardInfo(
             .padding(horizontal = 28.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        card.scopeLabel?.let { scope ->
-            Text(scope,style = WizardTypography.bodySmall,color = WizardColors.textMuted,textAlign = TextAlign.Center)
-            Spacer(Modifier.height(8.dp))
-        }
         PlanActions(card, isSelected, onOpen, onSelect)
         Spacer(Modifier.height(2.dp))
         Text(
@@ -355,7 +351,7 @@ private fun PlanCardInfo(
             style = WizardTypography.bodySmall,
             color = WizardColors.textMuted,
             textAlign = TextAlign.Center,
-            maxLines = 5,
+            maxLines = 2,
             overflow = TextOverflow.Ellipsis,
         )
     }

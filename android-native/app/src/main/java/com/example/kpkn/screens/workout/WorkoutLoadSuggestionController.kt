@@ -7,6 +7,8 @@ import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.LoadModeV2
 import com.example.kpkn.data.models.isEffectivelyUnilateral
 import com.example.kpkn.data.models.resolveMuscleVolumeContribution
+import com.example.kpkn.domain.calculations.LoadRoundDirection
+import com.example.kpkn.domain.calculations.LoadRounding
 import com.example.kpkn.domain.calculations.calculateSuggestedLoad
 import com.example.kpkn.domain.calculations.percentLoadReferenceKg
 import com.example.kpkn.data.protocols.LoadBasis
@@ -203,6 +205,38 @@ class WorkoutLoadSuggestionController(
         } else null
         val tagId = state.activeTagsByExercise[exercise.id]?.firstOrNull() ?: exercise.workoutTagId
         val unitMode = set.unitModeV2 ?: exercise.trainingMode.toUnitModeV2()
+        val stepKg = ports.loadIncrementKg(exercise, setIdx)?.takeIf { it.isFinite() && it > 0.0 }
+            ?: LoadRounding.DEFAULT_INCREMENT_KG
+        val priorSetsInSession = state.completedSets.entries
+            .mapNotNull { (key, completed) ->
+                val parsed = parseCompletedSetKey(key) ?: return@mapNotNull null
+                if (parsed.exerciseId != exercise.id || parsed.setIdx >= setIdx) return@mapNotNull null
+                if (side != null && parsed.side != null && parsed.side != side) return@mapNotNull null
+                parsed.setIdx to completed
+            }
+            .sortedBy { it.first }
+            .map { it.second }
+        val intraSession = if (manual == null && mode == LoadModeV2.LOAD && unitMode == UnitModeV2.REPS && priorSetsInSession.isNotEmpty()) {
+            WorkoutSetLoadAdaptation.suggestNextSetLoad(
+                priorSetsInSession = priorSetsInSession,
+                nextSet = set,
+                previousPlannedSet = exercise.sets.getOrNull(setIdx - 1),
+                expectedSide = side,
+                expectedLoadMode = mode,
+                expectedUnitMode = unitMode,
+                stepKg = stepKg,
+            )
+        } else null
+        if (intraSession != null) {
+            return WorkoutLoadSuggestionUi(
+                suggestedWeight = intraSession.weightKg,
+                originalWeight = authored ?: intraSession.weightKg,
+                reason = intraSession.reason,
+                isRecalculated = intraSession.isAdjusted,
+                source = if (intraSession.isAdjusted) WorkoutLoadSuggestionSource.ADAPTATION else WorkoutLoadSuggestionSource.HISTORY,
+                suggestedLoadMode = mode,
+            )
+        }
         val previousActual = if (manual == null && mode == LoadModeV2.LOAD && unitMode == UnitModeV2.REPS) {
             ports.lastComparableSet(exercise, setIdx, side, tagId, mode, unitMode)
         } else null
@@ -211,7 +245,7 @@ class WorkoutLoadSuggestionController(
             WorkoutSetLoadAdaptation.reductionPercent(it, set, side, mode, unitMode)
         }
         val adapted = if (reduction != null && actualLoad != null) {
-            WorkoutSetLoadAdaptation.reducedLoadKg(actualLoad, reduction, ports.loadIncrementKg(exercise, setIdx))
+            WorkoutSetLoadAdaptation.reducedLoadKg(actualLoad, reduction, stepKg)
         } else null
         val historical = if (actualLoad != null && previousActual != null) {
             if (previousActual.reps == (set.targetReps ?: set.plannedRepAnchor()) && reduction == null) actualLoad
@@ -220,9 +254,15 @@ class WorkoutLoadSuggestionController(
         val value = manual ?: authored ?: shared ?: homologated?.suggestedWeightKg ?: historical
             ?: if (mode == LoadModeV2.BODYWEIGHT) 0.0 else return null
         if (!value.isFinite() || value < 0.0) return null
+        val roundedValue = when {
+            manual != null -> manual
+            mode == LoadModeV2.BODYWEIGHT || value <= 0.0 -> value
+            else -> LoadRounding.roundToStep(value, stepKg, LoadRoundDirection.NEAREST)
+        }
+        val suggestedWeight = adapted ?: roundedValue
         return WorkoutLoadSuggestionUi(
-            suggestedWeight = adapted ?: value,
-            originalWeight = authored ?: homologated?.ownReferenceWeightKg ?: value,
+            suggestedWeight = suggestedWeight,
+            originalWeight = authored ?: homologated?.ownReferenceWeightKg ?: suggestedWeight,
             reason = when {
                 adapted != null && reduction == 20 -> "Reducir 20 % · reps bajo el mínimo o ROM incompleto"
                 adapted != null && reduction == 15 -> "Reducir 15 % · esfuerzo mayor al objetivo"

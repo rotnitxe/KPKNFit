@@ -930,18 +930,32 @@ private fun ListRowWithEditor(
         quickKeyboardField?.let { field ->
             val editingWeight = field == "weight"
             val unit = liveSetUnitMode(displayedRow.exercise, displayedRow.planned)
-            val currentWeight = activeDraft?.weightText?.takeIf { displayedRow.completed == null && it.isNotBlank() }
-                ?: initialWeight(displayedRow)
-            val currentValue = activeDraft?.valueText?.takeIf { displayedRow.completed == null && it.isNotBlank() }
-                ?: initialValue(displayedRow)
-            val qtyLabel = if (unit == UnitModeV2.REPS) "REPS" else unitLabel(unit).uppercase()
             val loadStepKey = exerciseLoadIncrementKey(displayedRow.exercise)
             val exerciseLoadStep = calibrationIncrement(
                 exercise = displayedRow.exercise,
                 set = displayedRow.planned,
                 inventory = settings.resolvedEquipmentInventory(),
                 customIncrementsKg = settings.exerciseLoadIncrementsKg,
+                defaultStepKg = com.example.kpkn.domain.calculations.LoadRounding.defaultStepKg(settings),
             )
+            val sessionPriorWeight = uiState.loadSuggestions[row.key]?.suggestedWeight?.takeIf { it > 0.0 }
+                ?: uiState.completedSets.entries.mapNotNull { (k, completed) ->
+                    val parsed = parseCompletedSetKey(k) ?: return@mapNotNull null
+                    if (parsed.exerciseId != displayedRow.exercise.id || parsed.setIdx >= displayedRow.setIndex) return@mapNotNull null
+                    if (displayedRow.side != null && parsed.side != null && parsed.side != displayedRow.side) return@mapNotNull null
+                    if (completed.isWarmup || completed.skipped || completed.weight <= 0.0) return@mapNotNull null
+                    parsed.setIdx to (completed.originalLoad ?: completed.weight)
+                }.maxByOrNull { it.first }?.second
+            val resolvedInitialWeight = initialWeight(displayedRow).ifBlank {
+                sessionPriorWeight?.let {
+                    listNumber(com.example.kpkn.domain.calculations.LoadRounding.roundToStep(it, exerciseLoadStep))
+                }.orEmpty()
+            }
+            val currentWeight = activeDraft?.weightText?.takeIf { displayedRow.completed == null && it.isNotBlank() }
+                ?: resolvedInitialWeight
+            val currentValue = activeDraft?.valueText?.takeIf { displayedRow.completed == null && it.isNotBlank() }
+                ?: initialValue(displayedRow)
+            val qtyLabel = if (unit == UnitModeV2.REPS) "REPS" else unitLabel(unit).uppercase()
             val keyboardFields = listOf(
                 WorkoutKeyboardField(
                     label = "KG",
@@ -949,7 +963,8 @@ private fun ListRowWithEditor(
                     initialValue = currentWeight,
                     allowDecimal = true,
                     kind = LiveInputFieldKind.WEIGHT,
-                    previousValue = displayedRow.planned.weight?.takeIf { it > 0.0 }?.let(::listNumber),
+                    previousValue = displayedRow.planned.weight?.takeIf { it > 0.0 }?.let(::listNumber)
+                        ?: sessionPriorWeight?.let(::listNumber),
                     stepDelta = exerciseLoadStep,
                 ),
                 WorkoutKeyboardField(
@@ -972,11 +987,14 @@ private fun ListRowWithEditor(
                 fields = keyboardFields,
                 initialFieldIndex = if (editingWeight) 0 else 1,
                 showFieldTabs = true,
-                initialMode = LiveInputDockMode.LENS,
+                initialMode = uiState.preferredInputDockMode,
                 allowCustomLoadStep = true,
                 loadStepKg = exerciseLoadStep,
                 onLoadStepKgChange = { step ->
                     viewModel.setExerciseLoadIncrementKg(loadStepKey, step)
+                },
+                onModeChange = { dockMode ->
+                    viewModel.setPreferredLiveInputDockMode(dockMode)
                 },
                 onApplyFields = { values ->
                     if (viewModel.uiState.value.activeTagsByExercise[row.exercise.id].orEmpty() != activeTagIds) {
@@ -1576,8 +1594,22 @@ private fun InlineSetEditor(
         com.example.kpkn.domain.workout.RomTargetCatalog.toApproxPercent(it).coerceIn(10, 100)
     } ?: 100
     var mode by rememberSaveable(row.key) { mutableStateOf(savedDraft?.effortMode ?: row.completed?.actualIntensityMode?.takeIf { it == IntensityMode.RPE || it == IntensityMode.RIR } ?: if (row.completed?.rpe != null) IntensityMode.RPE else if (row.completed?.rir != null) IntensityMode.RIR else effortModeOf(row.planned)) }
+    val inlineFallbackWeight = remember(row.key, uiState.completedSets, uiState.loadSuggestions) {
+        uiState.loadSuggestions[row.key]?.suggestedWeight?.takeIf { it > 0.0 }?.let(::listNumber)
+            ?: uiState.completedSets.entries.mapNotNull { (k, completed) ->
+                val parsed = parseCompletedSetKey(k) ?: return@mapNotNull null
+                if (parsed.exerciseId != row.exercise.id || parsed.setIdx >= row.setIndex) return@mapNotNull null
+                if (row.side != null && parsed.side != null && parsed.side != row.side) return@mapNotNull null
+                if (completed.isWarmup || completed.skipped || completed.weight <= 0.0) return@mapNotNull null
+                parsed.setIdx to (completed.originalLoad ?: completed.weight)
+            }.maxByOrNull { it.first }?.second?.let(::listNumber)
+            .orEmpty()
+    }
     var weightText by rememberSaveable(row.key, row.planned.weight) {
-        mutableStateOf(savedDraft?.takeIf { it.weightManuallyFixed == true }?.weightText ?: initialWeight(row))
+        mutableStateOf(
+            savedDraft?.takeIf { it.weightManuallyFixed == true }?.weightText
+                ?: initialWeight(row).ifBlank { inlineFallbackWeight },
+        )
     }
     var valueText by rememberSaveable(row.key) { mutableStateOf(savedDraft?.valueText ?: initialValue(row)) }
     var effort by rememberSaveable(row.key) {
@@ -1969,6 +2001,7 @@ private fun InlineSetEditor(
                     set = row.planned,
                     inventory = settings.resolvedEquipmentInventory(),
                     customIncrementsKg = settings.exerciseLoadIncrementsKg,
+                    defaultStepKg = com.example.kpkn.domain.calculations.LoadRounding.defaultStepKg(settings),
                 )
                 val editorFields = listOf(
                     WorkoutKeyboardField(
@@ -2030,7 +2063,8 @@ private fun InlineSetEditor(
                                 Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-value-${row.key}", "Cantidad realizada", !busy && !timedClockRunning,
                                 decimal = unit != UnitModeV2.REPS, allowColon = unit == UnitModeV2.TIME,
                                 fields = editorFields, activeContextIndex = 1, onApplyFields = applyEditorFields,
-                                allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange)
+                                allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange,
+                                initialMode = uiState.preferredInputDockMode, onModeChange = viewModel::setPreferredLiveInputDockMode)
                             Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "m"; else -> "reps" }, Modifier.padding(start = 4.dp, bottom = 5.dp),
                                 style = Body.copy(fontSize = 13.sp, fontFeatureSettings = "'tnum' 1, 'lnum' 1", platformStyle = PlatformTextStyle(includeFontPadding = false)),
                                 color = WizardColors.textFaint, maxLines = 1, softWrap = false)
@@ -2043,7 +2077,8 @@ private fun InlineSetEditor(
                                 ListMetricField(weightText, { weightText = it; persist() }, metric.copy(fontSize = 28.sp, lineHeight = 34.sp),
                                     Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-weight-${row.key}", "Carga en kg", !busy, placeholder = "—",
                                     fields = editorFields, activeContextIndex = 0, onApplyFields = applyEditorFields,
-                                    allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange)
+                                    allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange,
+                                    initialMode = uiState.preferredInputDockMode, onModeChange = viewModel::setPreferredLiveInputDockMode)
                                 Text("kg", Modifier.padding(start = 4.dp, bottom = 6.dp), style = Body.copy(fontSize = 13.sp,
                                     fontFeatureSettings = "'tnum' 1, 'lnum' 1", platformStyle = PlatformTextStyle(includeFontPadding = false)),
                                     color = WizardColors.textFaint, maxLines = 1, softWrap = false)
@@ -2058,7 +2093,8 @@ private fun InlineSetEditor(
                                 Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-value-${row.key}", "Cantidad realizada", !busy && !timedClockRunning,
                                 decimal = unit != UnitModeV2.REPS, allowColon = unit == UnitModeV2.TIME,
                                 fields = editorFields, activeContextIndex = 1, onApplyFields = applyEditorFields,
-                                allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange)
+                                allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange,
+                                initialMode = uiState.preferredInputDockMode, onModeChange = viewModel::setPreferredLiveInputDockMode)
                             Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "m"; else -> "reps" }, Modifier.padding(start = 4.dp, bottom = 5.dp),
                                 style = Body.copy(fontSize = 13.sp, fontFeatureSettings = "'tnum' 1, 'lnum' 1", platformStyle = PlatformTextStyle(includeFontPadding = false)),
                                 color = WizardColors.textFaint, maxLines = 1, softWrap = false)
@@ -2071,7 +2107,8 @@ private fun InlineSetEditor(
                             ListMetricField(weightText, { weightText = it; persist() }, metric.copy(fontSize = 28.sp, lineHeight = 34.sp),
                                 Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-weight-${row.key}", "Carga en kg", !busy, placeholder = "—",
                                 fields = editorFields, activeContextIndex = 0, onApplyFields = applyEditorFields,
-                                allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange)
+                                allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange,
+                                initialMode = uiState.preferredInputDockMode, onModeChange = viewModel::setPreferredLiveInputDockMode)
                             Text("kg", Modifier.padding(start = 4.dp, bottom = 6.dp), style = Body.copy(fontSize = 13.sp,
                                 fontFeatureSettings = "'tnum' 1, 'lnum' 1", platformStyle = PlatformTextStyle(includeFontPadding = false)),
                                 color = WizardColors.textFaint, maxLines = 1, softWrap = false)
@@ -2085,7 +2122,8 @@ private fun InlineSetEditor(
                                 Modifier.widthIn(min = 44.dp).width(IntrinsicSize.Max), "live-list-value-${row.key}", "Cantidad realizada", !busy && !timedClockRunning,
                                 decimal = unit != UnitModeV2.REPS, allowColon = unit == UnitModeV2.TIME,
                                 fields = editorFields, activeContextIndex = 1, onApplyFields = applyEditorFields,
-                                allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange)
+                                allowCustomLoadStep = true, loadStepKg = exerciseLoadStep, onLoadStepKgChange = onStepChange,
+                                initialMode = uiState.preferredInputDockMode, onModeChange = viewModel::setPreferredLiveInputDockMode)
                             Text(when (unit) { UnitModeV2.TIME -> "s"; UnitModeV2.DISTANCE -> "m"; else -> "reps" }, Modifier.padding(start = 2.dp, bottom = 5.dp),
                                 style = Body.copy(fontSize = 13.sp, fontFeatureSettings = "'tnum' 1, 'lnum' 1", platformStyle = PlatformTextStyle(includeFontPadding = false)),
                                 color = WizardColors.textFaint, maxLines = 1, softWrap = false)
@@ -2327,6 +2365,8 @@ private fun ListMetricField(
     allowCustomLoadStep: Boolean = false,
     loadStepKg: Double = 2.5,
     onLoadStepKgChange: ((Double) -> Unit)? = null,
+    initialMode: LiveInputDockMode = LiveInputDockMode.LENS,
+    onModeChange: ((LiveInputDockMode) -> Unit)? = null,
 ) {
     var keyboardOpen by remember(tag) { mutableStateOf(false) }
     WorkoutNumericTriggerBox(
@@ -2364,6 +2404,7 @@ private fun ListMetricField(
         activeContextIndex = activeContextIndex,
         fields = fields,
         initialFieldIndex = activeContextIndex ?: 0,
+        initialMode = initialMode,
         showFieldTabs = fields.size > 1,
         allowCustomLoadStep = allowCustomLoadStep,
         loadStepKg = loadStepKg,
@@ -2371,6 +2412,7 @@ private fun ListMetricField(
         onApplyFields = onApplyFields,
         onDismiss = { keyboardOpen = false },
         onApply = onChange,
+        onModeChange = onModeChange,
     )
 }
 

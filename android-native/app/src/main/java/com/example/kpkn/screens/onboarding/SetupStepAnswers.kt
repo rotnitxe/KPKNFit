@@ -1189,7 +1189,12 @@ private fun SetupWizardDraft.typedSelections(step: SetupStepId): Set<String> = w
 
     SetupStepId.GENDER -> profileGender?.name?.lowercase().let { setOfNotNull(it) }
 
-    SetupStepId.NUTRITION_START -> nutritionDraft?.configurationMode?.name?.lowercase().let { setOfNotNull(it) }
+    SetupStepId.NUTRITION_START ->
+        if (isAnsweredForSelection(step)) {
+            nutritionDraft?.configurationMode?.name?.lowercase().let { setOfNotNull(it) }
+        } else {
+            emptySet()
+        }
 
     SetupStepId.NUTRITION_ELIGIBILITY -> buildSet {
         nutritionDraft?.let { n ->
@@ -1204,7 +1209,12 @@ private fun SetupWizardDraft.typedSelections(step: SetupStepId): Set<String> = w
         ?.takeIf { it != PlanDirection.PROFESSIONAL }
         ?.name?.lowercase().let { setOfNotNull(it) }
 
-    SetupStepId.NUTRITION_DISTRIBUTION -> nutritionDraft?.weeklyDistribution?.name?.lowercase().let { setOfNotNull(it) }
+    SetupStepId.NUTRITION_DISTRIBUTION ->
+        if (isAnsweredForSelection(step)) {
+            nutritionDraft?.weeklyDistribution?.name?.lowercase().let { setOfNotNull(it) }
+        } else {
+            emptySet()
+        }
 
     SetupStepId.NUTRITION_HISTORY_CONTEXT -> weightTrend.let { setOfNotNull(it) }
 

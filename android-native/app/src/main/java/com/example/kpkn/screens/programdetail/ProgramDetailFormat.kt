@@ -128,7 +128,8 @@ private fun Program.weeksInOrder(): List<ProgramWeek> =
  */
 internal fun programTrainingWeekdays(program: Program, weekId: String?): Set<Int> {
     val week = program.weeksInOrder().firstOrNull { it.id == weekId } ?: return emptySet()
-    return week.sessions.mapNotNull { it.dayOfWeek }.filter { it in 1..7 }.toSet()
+    val maxDay = com.example.kpkn.domain.training.CycleScheduleEngine.normalizedCycleLength(program)
+    return week.sessions.mapNotNull { it.dayOfWeek }.filter { it in 1..maxDay }.toSet()
 }
 
 /** La semana en curso: la del estado de ejecución del programa o, si no hay, la primera. Null si el programa no tiene semanas. */

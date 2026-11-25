@@ -14,7 +14,7 @@ internal fun eligibleWorkoutRmEstimate(
     expectedLoadMode: LoadModeV2? = null,
 ): Double? {
     if (set.skipped || set.isWarmup || set.isFailedSet || set.reps <= 0 ||
-        set.techniqueStatus != null || set.dropSets.isNotEmpty() || set.restPauses.isNotEmpty() ||
+        set.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN || set.dropSets.isNotEmpty() || set.restPauses.isNotEmpty() ||
         set.timeSeconds != null || set.distanceKm != null || set.recordedPayloadV3?.durationSeconds != null
     ) return null
     val unit = set.recordedPayloadV3?.unitMode ?: set.homologatedResultV3?.unitMode

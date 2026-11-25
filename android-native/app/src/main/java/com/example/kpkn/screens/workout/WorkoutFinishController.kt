@@ -300,6 +300,7 @@ class WorkoutFinishController(
                             notes = fb.notes,
                             perceivedIntensityRpe = fb.perceivedIntensityRpe,
                             perceivedFailure = fb.perceivedFailure,
+                            limitingFactors = fb.limitingFactors,
                         )
                     },
                     omittedExercises = omittedExercises,

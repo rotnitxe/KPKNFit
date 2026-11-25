@@ -89,7 +89,8 @@ internal fun setupToggleExclusive(
 internal fun SetupWizardDraft.setupSelectionOf(step: SetupStepId, vararg fallback: String?): Set<String> {
     val stored = selectedValues(step)
     if (stored.isNotEmpty()) return stored
-    return fallback.filterNotNull().toSet()
+    val alreadyAnswered = step in declaredSteps || stepProgress.answers[step]?.canPersistAsDeclared() == true
+    return if (alreadyAnswered) fallback.filterNotNull().toSet() else emptySet()
 }
 
 /**

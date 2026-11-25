@@ -430,7 +430,8 @@ internal fun buildCloneDayOptions(
             block.mesocycles.forEach { meso ->
                 meso.weeks.forEachIndexed { weekIndex, week ->
                     val occurrence = PlanMaterializer.weekOccurrenceOf(week, weekIndex)
-                    (1..7).forEach { day ->
+                    val maxCycleDay = com.example.kpkn.domain.training.CycleScheduleEngine.normalizedCycleLength(program)
+                    (1..maxCycleDay).forEach { day ->
                         val existing = week.sessions.firstOrNull { it.dayOfWeek == day }
                         options += SessionCloneDayOption(
                             key = "$macroIndex|$globalMesoIndex|${week.id}|$day",

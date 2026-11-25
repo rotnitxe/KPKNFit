@@ -545,7 +545,7 @@ class SetExecutionCardEffortTest {
     }
 
     @Test
-    fun elPanelGuiadoDeDropsSeAbreEncimaYLaTarjetaNoCambiaDeTamano() {
+    fun elPanelGuiadoDeDropsSeIntegraEnLaTarjetaSinCambiarDeTamano() {
         mostrar(Caso("conDrops", ejercicio(serieConDrops()), serieConDrops()))
         val base = alturaDeLaTarjeta()
         rule.onNodeWithText("Drop-set · tramo 1 de 2").assertDoesNotExist()
@@ -553,12 +553,13 @@ class SetExecutionCardEffortTest {
         marcar(0)
         pulsarCheck()
 
-        rule.onNodeWithText("Técnica en curso").assertExists()
+        rule.onNodeWithTag("guided-technique-inline-banner").assertExists()
         rule.onNodeWithText("Drop-set · tramo 1 de 2").assertExists()
+        rule.onNodeWithText("Técnica en curso").assertDoesNotExist()
         assertEquals(com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN, registros.single().advanced.techniqueStatus)
         assertTrue(registros.single().advanced.dropSets.isEmpty())
         val alto = alturaDeLaTarjeta()
-        assertTrue("con el panel guiado la tarjeta mide $alto dp y $base dp antes de abrirlo", abs(alto - base) <= 0.5f)
+        assertTrue("con el tramo integrado la tarjeta mide $alto dp y $base dp antes de abrirlo", abs(alto - base) <= 0.5f)
     }
 
     @Test
@@ -573,9 +574,9 @@ class SetExecutionCardEffortTest {
         rule.onNodeWithText("Drop-set · tramo 1 de 1").assertExists()
         assertEquals(com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN, registros.single().advanced.techniqueStatus)
         assertTrue("la sugerencia no es una miniserie realizada", registros.single().advanced.dropSets.isEmpty())
-        rule.onNodeWithText("Terminar técnica con lo realizado").performClick()
-        rule.onNodeWithText("Guardar lo realizado").performClick()
+        rule.onNodeWithTag("guided-technique-finish").performClick()
         rule.waitForIdle()
+        rule.onNodeWithText("¿Terminar la técnica?").assertDoesNotExist()
         assertEquals(1, registros.size)
         assertTrue(registros.single().advanced.dropSets.isEmpty())
         assertEquals(com.example.kpkn.data.models.RecordedTechniqueStatus.SKIPPED, registros.single().advanced.techniqueStatus)

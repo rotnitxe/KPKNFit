@@ -86,12 +86,14 @@ internal fun calibrationIncrement(
     set: ExerciseSet,
     inventory: EquipmentInventory? = null,
     customIncrementsKg: Map<String, Double> = emptyMap(),
+    defaultStepKg: Double? = null,
 ): Double {
     val key = exerciseLoadIncrementKey(exercise)
     customIncrementsKg[key]?.takeIf { it.isFinite() && it in 0.1..25.0 }?.let { return it }
     customIncrementsKg[exercise.id]?.takeIf { it.isFinite() && it in 0.1..25.0 }?.let { return it }
     inventory?.machines?.singleOrNull { it.configurationId != null && it.configurationId == exercise.catalogConfigurationId }
         ?.incrementKg?.takeIf { it.isFinite() && it > 0 }?.let { return it }
+    defaultStepKg?.takeIf { it.isFinite() && it in 0.1..25.0 }?.let { return it }
     val equipment = listOfNotNull(exercise.setupDetails?.equipmentNotes, set.machineBrand,
         exercise.contextProfilesV3.firstOrNull { it.id == set.contextProfileIdV3 }?.machineBrand,
         exercise.name).joinToString(" ").lowercase()

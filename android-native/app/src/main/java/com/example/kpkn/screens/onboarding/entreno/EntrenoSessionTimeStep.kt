@@ -72,6 +72,7 @@ internal fun EntrenoSessionTimeStep(state: SetupWizardState, vm: SetupWizardView
             modifier = Modifier.alpha(if (declared == null && pending == null) UNDECLARED_ALPHA else 1f),
             range = EntrenoStepValues.SESSION_MINUTES_MIN..EntrenoStepValues.SESSION_MINUTES_MAX,
             step = EntrenoStepValues.SESSION_MINUTES_STEP,
+            declared = declared != null || pending != null,
         )
         EntrenoStepNote(sessionTimeHint(pending ?: declared), textAlign = TextAlign.Center)
     }

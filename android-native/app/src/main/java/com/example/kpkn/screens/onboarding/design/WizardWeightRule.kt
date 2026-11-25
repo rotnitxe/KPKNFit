@@ -227,18 +227,25 @@ fun WizardWeightRule(
             },
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        if (showReading) Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        if (showReading) Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = "${WizardWeightScale.format(currentDisplay)} ${unit.code}",
                 style = WizardTypography.measure,
-                color = if (touched || emphasized) WizardColors.text else WizardColors.textMuted,
+                color = if (touched || emphasized || valueKg != null) WizardColors.text else WizardColors.textMuted.copy(alpha = 0.7f),
                 modifier = Modifier
                     .clickable { confirm() }
                     // Valor central estable para pruebas: el texto grande que se
                     // toca para confirmar exactamente el valor mostrado.
                     .testTag("setup-weight-value")
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
             )
+            if (!touched && !emphasized && valueKg == null) {
+                Text(
+                    text = "Toca o desliza para confirmar",
+                    style = WizardTypography.note,
+                    color = WizardColors.textMuted,
+                )
+            }
         }
         BoxWithConstraints(
             Modifier

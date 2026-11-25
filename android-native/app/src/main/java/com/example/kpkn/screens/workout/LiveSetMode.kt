@@ -87,7 +87,14 @@ internal data class LiveRmValues(
 }
 
 /** Uses the same rounding, TM contract and rep estimate as Calculations.kt. */
-internal fun liveRmValues(exercise: Exercise, set: ExerciseSet, percent: Double, oneRm: Double?, actualWeight: Double? = null): LiveRmValues {
+internal fun liveRmValues(
+    exercise: Exercise,
+    set: ExerciseSet,
+    percent: Double,
+    oneRm: Double?,
+    actualWeight: Double? = null,
+    roundStepKg: Double? = null,
+): LiveRmValues {
     val tm = exercise.referenceTrainingMax?.takeIf { it.isFinite() && it > 0 }
     val usesTm = set.loadBasis == LoadBasis.PERCENT_TM
     val actual = actualWeight?.takeIf { it.isFinite() && it > 0 }
@@ -97,6 +104,10 @@ internal fun liveRmValues(exercise: Exercise, set: ExerciseSet, percent: Double,
         exercise.copy(trainingMode = TrainingMode.RM, reference1RM = reference, prFor1RM = null),
         set.copy(targetPercentageRM = bounded),
     )?.takeIf { it.isFinite() && it > 0 }
+        ?.let { raw ->
+            val safeStep = roundStepKg?.takeIf { it.isFinite() && it > 0.0 }
+            if (safeStep != null) com.example.kpkn.domain.calculations.LoadRounding.roundToStep(raw, safeStep) else raw
+        }
     val estimate = if (reference != null && weight != null) estimateRepsFromPercent1RM(weight / reference * 100) else null
     return LiveRmValues(bounded, weight, estimate, reference, tm, usesTm)
 }

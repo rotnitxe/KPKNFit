@@ -45,6 +45,7 @@ data class MuscleVolumePanelActions(
     val onSide: (BodySide) -> Unit = {},
     val onToggleMuscle: (String) -> Unit = {},
     val onSelectRegion: (String) -> Unit = {},
+    val onMetricMode: (MusclePanelMetricMode) -> Unit = {},
 ) {
     companion object {
         fun from(viewModel: MuscleVolumePanelViewModel, onBack: () -> Unit): MuscleVolumePanelActions = MuscleVolumePanelActions(
@@ -57,6 +58,7 @@ data class MuscleVolumePanelActions(
             onSide = viewModel::selectSide,
             onToggleMuscle = viewModel::toggleMuscle,
             onSelectRegion = viewModel::selectRegion,
+            onMetricMode = viewModel::selectMetricMode,
         )
     }
 }
@@ -109,9 +111,17 @@ fun MuscleVolumePanelContent(
     val panel = state.panel
     Column(modifier = modifier.testTag("muscle-volume-panel"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Column(Modifier.padding(top = 4.dp, bottom = 4.dp)) {
-            Text("Volumen por músculo", style = KpknType.display, color = WizardColors.text)
             Text(
-                text = "Series registradas, no recuperación ni carga.",
+                text = if (state.metricMode == MusclePanelMetricMode.INTENSITY) "Intensidad media por músculo" else "Volumen por músculo",
+                style = KpknType.display,
+                color = WizardColors.text,
+            )
+            Text(
+                text = if (state.metricMode == MusclePanelMetricMode.INTENSITY) {
+                    "RIR global / RPE ponderado (1,0 · 0,5 · 0,3) y factores limitantes."
+                } else {
+                    "Series registradas, no recuperación ni carga."
+                },
                 style = KpknType.body,
                 color = WizardColors.textMuted,
             )
@@ -124,6 +134,13 @@ fun MuscleVolumePanelContent(
                 )
             }
         }
+        KpknSegmentedControl(
+            options = listOf("Volumen", "Intensidad"),
+            selectedIndex = state.metricMode.ordinal,
+            onSelect = { actions.onMetricMode(MusclePanelMetricMode.entries[it]) },
+            size = KpknSegmentedSize.Compact,
+            modifier = Modifier.testTag("muscle-panel-section-toggle"),
+        )
         KpknSegmentedControl(
             options = listOf("Lista", "Cuerpo"),
             selectedIndex = state.view.ordinal,
@@ -143,6 +160,11 @@ fun MuscleVolumePanelContent(
         }
         when {
             state.loading && panel == null -> KpknSkeletonModule(lines = 4)
+            state.metricMode == MusclePanelMetricMode.INTENSITY -> MuscleIntensityPanelContent(
+                state = state,
+                actions = actions,
+                modifier = Modifier.kpknEntrance("progreso-intensidad", 1),
+            )
             state.view == MuscleVolumeView.BODY -> MuscleVolumeBodyModule(
                 state = state,
                 actions = actions,
@@ -158,6 +180,151 @@ fun MuscleVolumePanelContent(
                 modifier = Modifier.kpknEntrance("progreso-volumen", 1),
             )
         }
-        if (panel != null) MuscleVolumeUnassignedNote(panel.unassignedCount)
+        if (panel != null && state.metricMode == MusclePanelMetricMode.VOLUME) {
+            MuscleVolumeUnassignedNote(panel.unassignedCount)
+        }
+    }
+}
+
+@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+@Composable
+private fun MuscleIntensityPanelContent(
+    state: MuscleVolumePanelUiState,
+    actions: MuscleVolumePanelActions,
+    modifier: Modifier = Modifier,
+) {
+    val summary = state.intensitySummary
+    if (summary == null || (!summary.hasIntensityData && summary.limitingFactorTallies.isEmpty())) {
+        MuscleVolumeEmpty(days = state.request.window.days)
+        return
+    }
+    Column(modifier = modifier.testTag("muscle-intensity-panel"), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        if (summary.top3Muscles.isNotEmpty()) {
+            com.example.kpkn.ui.design.KpknModule {
+                com.example.kpkn.ui.design.KpknModuleHeader("Top 3 intensidad media")
+                Spacer(Modifier.height(8.dp))
+                androidx.compose.foundation.layout.Row(
+                    modifier = androidx.compose.ui.Modifier.padding(bottom = 2.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    summary.top3Muscles.forEachIndexed { idx, row ->
+                        androidx.compose.foundation.layout.Column(
+                            modifier = androidx.compose.ui.Modifier
+                                .weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(2.dp),
+                        ) {
+                            Text("#${idx + 1} ${row.muscleName}", style = KpknType.caption, color = WizardColors.textMuted, maxLines = 1)
+                            Text(
+                                "RPE ${com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.formatDecimal1(row.weightedRpeMean)}",
+                                style = KpknType.bodyStrong,
+                                color = WizardColors.text,
+                            )
+                            Text(
+                                "RIR ${com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.formatDecimal1(row.weightedRirMean)}" +
+                                    if (row.failureSetCount > 0) " · Fallo ×${row.failureSetCount}" else "",
+                                style = KpknType.caption,
+                                color = WizardColors.textMuted,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        if (state.view == MuscleVolumeView.BODY) {
+            val paints = androidx.compose.runtime.remember(summary) {
+                com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.paints(summary)
+            }
+            val descriptions = androidx.compose.runtime.remember(summary) {
+                com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.regionDescriptions(summary)
+            }
+            val descSummary = androidx.compose.runtime.remember(summary) {
+                com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.summaryDescription(summary)
+            }
+            com.example.kpkn.ui.design.KpknModule(modifier = Modifier.testTag("muscle-intensity-body-module")) {
+                com.example.kpkn.ui.design.KpknModuleHeader("Mapa de calor muscular")
+                Spacer(Modifier.height(8.dp))
+                KpknSegmentedControl(
+                    options = listOf("Frente", "Espalda"),
+                    selectedIndex = state.side.ordinal,
+                    onSelect = { actions.onSide(BodySide.entries[it]) },
+                    size = KpknSegmentedSize.Compact,
+                )
+                Spacer(Modifier.height(12.dp))
+                androidx.compose.foundation.layout.Box(
+                    modifier = androidx.compose.ui.Modifier.align(androidx.compose.ui.Alignment.CenterHorizontally),
+                ) {
+                    com.example.kpkn.screens.progress.design.MuscleVolumeBodyMap(
+                        side = state.side,
+                        paints = paints,
+                        selected = state.selectedMuscle,
+                        onSelect = actions.onSelectRegion,
+                        summary = descSummary,
+                        regionDescriptions = descriptions,
+                    )
+                }
+                Spacer(Modifier.height(10.dp))
+                state.selectedMuscle?.let { selectedName ->
+                    val row = summary.muscles.firstOrNull { it.muscleName == selectedName }
+                    Text(
+                        text = if (row != null) {
+                            "$selectedName · RPE ${com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.formatDecimal1(row.weightedRpeMean)} · RIR ${com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.formatDecimal1(row.weightedRirMean)} (${row.ratedSetCount} series, ${row.failureSetCount} al fallo)"
+                        } else {
+                            "$selectedName · Sin series con RIR/RPE en esta ventana."
+                        },
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                    )
+                }
+            }
+        } else {
+            com.example.kpkn.ui.design.KpknModule(modifier = Modifier.testTag("muscle-intensity-list-module")) {
+                com.example.kpkn.ui.design.KpknModuleHeader("Intensidad por grupo muscular")
+                Spacer(Modifier.height(8.dp))
+                summary.muscles.forEach { row ->
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(2.dp),
+                        modifier = Modifier.padding(vertical = 4.dp),
+                    ) {
+                        androidx.compose.foundation.layout.Row(horizontalArrangement = Arrangement.SpaceBetween) {
+                            Text(row.muscleName, style = KpknType.bodyStrong, color = WizardColors.text, modifier = Modifier.weight(1f))
+                            Text(
+                                "RPE ${com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.formatDecimal1(row.weightedRpeMean)} · RIR ${com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.formatDecimal1(row.weightedRirMean)}" +
+                                    if (row.failureSetCount > 0) " · Fallo ×${row.failureSetCount}" else "",
+                                style = KpknType.caption,
+                                color = WizardColors.textMuted,
+                            )
+                        }
+                        if (row.topExercises.isNotEmpty()) {
+                            Text(
+                                row.topExercises.joinToString(" · "),
+                                style = KpknType.caption,
+                                color = WizardColors.textFaint,
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        if (summary.limitingFactorTallies.isNotEmpty()) {
+            com.example.kpkn.ui.design.KpknModule(modifier = Modifier.testTag("muscle-intensity-bottlenecks")) {
+                com.example.kpkn.ui.design.KpknModuleHeader("Factores limitantes reportados")
+                Spacer(Modifier.height(8.dp))
+                androidx.compose.foundation.layout.FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    summary.limitingFactorTallies.forEach { tally ->
+                        val note = if (tally.linkedMuscleNames.isNotEmpty()) " → ${tally.linkedMuscleNames.joinToString(", ")}" else ""
+                        com.example.kpkn.ui.design.KpknChip(
+                            text = "${tally.label} (×${tally.count})$note",
+                            selected = tally.autoLinkedCoreCount > 0,
+                            onClick = {},
+                        )
+                    }
+                }
+            }
+        }
     }
 }

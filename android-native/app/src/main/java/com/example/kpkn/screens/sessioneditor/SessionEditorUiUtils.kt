@@ -233,7 +233,7 @@ internal fun sessionEditorDayLabel(dayOfWeek: Int?): String = when (dayOfWeek) {
     5 -> "Viernes"
     6 -> "Sábado"
     7 -> "Domingo"
-    else -> "Sin día"
+    else -> if (dayOfWeek != null && dayOfWeek in 8..21) "Día $dayOfWeek" else "Sin día"
 }
 
 internal fun sessionEditorDayLabelShort(dayOfWeek: Int?): String = when (dayOfWeek) {
@@ -244,8 +244,8 @@ internal fun sessionEditorDayLabelShort(dayOfWeek: Int?): String = when (dayOfWe
     5 -> "Vie"
     6 -> "Sáb"
     7 -> "Dom"
-     else -> "?"
- }
+    else -> if (dayOfWeek != null && dayOfWeek in 8..21) "D$dayOfWeek" else "?"
+}
 
 internal fun smartReferenceMetricLabel(mode: TrainingMode, customUnit: String?): String = when (mode) {
     TrainingMode.REPS,

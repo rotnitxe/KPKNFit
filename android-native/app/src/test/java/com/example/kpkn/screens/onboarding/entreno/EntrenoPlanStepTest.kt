@@ -214,10 +214,15 @@ class EntrenoPlanStepTest {
         rule.onNodeWithText("Tu programa").assertExists()
         rule.onNodeWithTag("setup-plan-card-$TAILORED").assertExists()
         rule.onNodeWithTag("setup-plan-choose-$TAILORED").assertExists()
-        rule.onNodeWithText("Cabe en tus 60 minutos.").assertExists()
         rule.onNodeWithTag(ANOTHER_VERSION_TAG).assertExists()
-        rule.onNodeWithText("Podrás modificarlo libremente después.").assertExists()
         rule.onNodeWithTag(DEFER_TAG).assertExists()
+        // Razones y aviso de edición libre viven en el detalle para no saturar la tarjeta principal.
+        rule.onNodeWithText("Podrás modificarlo libremente después.").assertDoesNotExist()
+        tap("setup-plan-open-$TAILORED")
+        rule.onNodeWithTag(PLAN_DETAIL_TAG).assertExists()
+        rule.onNodeWithText("Cabe en tus 60 minutos.").assertExists()
+        rule.onNodeWithText("Podrás modificarlo libremente después.").assertExists()
+        tapInDialog(PLAN_DETAIL_CLOSE_TAG)
     }
 
     @Test

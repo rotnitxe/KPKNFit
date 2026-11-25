@@ -89,6 +89,12 @@ data class Settings(
     val exerciseNicknames: Map<String, String> = emptyMap(),
     /** Incremento personalizado por ejercicio (kg) para el deslizador de carga en vivo. Vacío = heurística/inventario. */
     val exerciseLoadIncrementsKg: Map<String, Double> = emptyMap(),
+    /** Incremento de placas por defecto (kg) para redondear cargas sugeridas. */
+    val defaultLoadIncrementKg: Double = 2.5,
+    /** Incremento de placas por defecto (lb) cuando la unidad es LBS. */
+    val defaultLoadIncrementLb: Double = 5.0,
+    /** Último modo usado en el teclado numérico en vivo ("LENS" o "KEYPAD"). */
+    val preferredLiveInputDockMode: String = "LENS",
     val showPRsInWorkout: Boolean = true,
     /** Preferencia heredada: se conserva al importar; el cálculo usa el modelo único versionado StrengthModel. */
     val oneRMFormula: OneRMFormula = OneRMFormula.BRZYCKI,

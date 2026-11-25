@@ -103,7 +103,6 @@ class LiveSessionLineRenderSheetTest {
     }
     @Test fun route() = sheet(LiveSessionDestination.ROUTE)
     @Test fun milestones() = sheet(LiveSessionDestination.MILESTONES)
-    @Test fun timer() = sheet(LiveSessionDestination.TIMER)
     @Test fun rm() = sheet(LiveSessionDestination.RM)
     @Test fun notes() = sheet(LiveSessionDestination.NOTES)
     @Test fun photos() {

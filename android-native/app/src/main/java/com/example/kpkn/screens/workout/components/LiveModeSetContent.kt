@@ -73,6 +73,9 @@ internal fun LiveModeNumberField(
     sizeSp: Int = 28,
     preserveEntryWhileFocused: Boolean = false,
     allowDecimal: Boolean = true,
+    preferredInputDockMode: com.example.kpkn.domain.workout.LiveInputDockMode =
+        com.example.kpkn.domain.workout.LiveInputDockMode.LENS,
+    onPreferredInputDockModeChange: ((com.example.kpkn.domain.workout.LiveInputDockMode) -> Unit)? = null,
 ) {
     var keyboardOpen by remember(tag) { mutableStateOf(false) }
     WorkoutNumericTriggerBox(
@@ -114,10 +117,12 @@ internal fun LiveModeNumberField(
         initialValue = value,
         allowDecimal = allowDecimal && !time,
         allowColon = time,
+        initialMode = preferredInputDockMode,
         showFieldTabs = false,
         allowCustomLoadStep = allowDecimal && !time,
         onDismiss = { keyboardOpen = false },
         onApply = onChange,
+        onModeChange = onPreferredInputDockModeChange,
     )
 }
 

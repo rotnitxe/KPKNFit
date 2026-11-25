@@ -162,6 +162,33 @@ class CompletedExercise(BaseModel):
 
 
 
+class LimitingFactorReport(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    id: str
+    label: str
+    category: str = "MUSCLE"
+    linkedMuscleIds: list[str] = []
+    linkedJointIds: list[str] = []
+    autoLinkedCore: bool = False
+
+
+class ExerciseDiscomfortReport(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    exerciseId: str
+    exerciseDbId: Optional[str] = None
+    canonicalExerciseId: Optional[str] = None
+    exerciseName: str = ""
+    technicalQuality: int = 8
+    discomfortIds: list[str] = []
+    notes: Optional[str] = None
+    perceivedIntensityRpe: Optional[float] = None
+    perceivedFailure: bool = False
+    reportedAfterSetIndex: Optional[int] = None
+    limitingFactors: list[LimitingFactorReport] = []
+
+
 class WorkoutLog(BaseModel):
     model_config = ConfigDict(extra="allow")
     id: str
@@ -177,6 +204,7 @@ class WorkoutLog(BaseModel):
     fatigueLevel: Optional[float] = None
     mentalClarity: Optional[float] = None
     sessionVariant: Optional[str] = None
+    postExerciseReports: list[ExerciseDiscomfortReport] = []
 
 
 class SleepLog(BaseModel):
@@ -301,9 +329,23 @@ class Macrocycle(BaseModel):
     blocks: list[Block] = []
 
 
+class ProgramSchedulePlan(BaseModel):
+    model_config = ConfigDict(extra="allow")
+
+    anchorDate: Optional[str] = None
+    weekStartDay: Optional[int] = None
+    trainingDays: list[int] = []
+    targetEndDate: Optional[str] = None
+    mode: str = "FLOATING"
+    cycleLengthDays: int = 7
+    cycleAnchorDate: Optional[str] = None
+
+
 class Program(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     id: str
     name: str = ""
+    weekDays: Optional[int] = None
+    schedulePlan: Optional[ProgramSchedulePlan] = None
     macrocycles: list[Macrocycle] = []

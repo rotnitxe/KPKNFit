@@ -137,6 +137,40 @@ public struct OmittedExercise: Codable {
     }
 }
 
+// ─── LimitingFactorReport ────────────────────────────────────────────────────
+
+public enum LimitingFactorCategory: String, Codable {
+    case MUSCLE
+    case JOINT
+    case MOVEMENT_WORK
+    case CARDIO
+}
+
+public struct LimitingFactorReport: Codable {
+    public let id: String
+    public let label: String
+    public let category: LimitingFactorCategory
+    public let linkedMuscleIds: [String]
+    public let linkedJointIds: [String]
+    public let autoLinkedCore: Bool
+
+    public init(
+        id: String,
+        label: String,
+        category: LimitingFactorCategory,
+        linkedMuscleIds: [String] = [],
+        linkedJointIds: [String] = [],
+        autoLinkedCore: Bool = false
+    ) {
+        self.id = id
+        self.label = label
+        self.category = category
+        self.linkedMuscleIds = linkedMuscleIds
+        self.linkedJointIds = linkedJointIds
+        self.autoLinkedCore = autoLinkedCore
+    }
+}
+
 // ─── ExerciseDiscomfortReport ────────────────────────────────────────────────
 
 public struct ExerciseDiscomfortReport: Codable {
@@ -149,6 +183,7 @@ public struct ExerciseDiscomfortReport: Codable {
     public let notes: String?
     public let perceivedIntensityRpe: Double?
     public let perceivedFailure: Bool
+    public let limitingFactors: [LimitingFactorReport]?
 
     public init(
         exerciseId: String,
@@ -159,7 +194,8 @@ public struct ExerciseDiscomfortReport: Codable {
         discomfortIds: [String] = [],
         notes: String? = nil,
         perceivedIntensityRpe: Double? = nil,
-        perceivedFailure: Bool = false
+        perceivedFailure: Bool = false,
+        limitingFactors: [LimitingFactorReport]? = nil
     ) {
         self.exerciseId = exerciseId
         self.exerciseDbId = exerciseDbId
@@ -170,6 +206,7 @@ public struct ExerciseDiscomfortReport: Codable {
         self.notes = notes
         self.perceivedIntensityRpe = perceivedIntensityRpe
         self.perceivedFailure = perceivedFailure
+        self.limitingFactors = limitingFactors
     }
 }
 

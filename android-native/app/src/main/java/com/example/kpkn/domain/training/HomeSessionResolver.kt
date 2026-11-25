@@ -110,13 +110,24 @@ object HomeSessionResolver {
         ongoing: OngoingWorkoutState?,
         today: LocalDate = SystemAppClock.today(java.time.ZoneId.systemDefault()),
     ): List<TodaySessionItem> {
+        val isRolling = CycleScheduleEngine.isRollingCycle(program)
+        val cycleLen = CycleScheduleEngine.normalizedCycleLength(program)
+        val effectiveDay = if (isRolling) {
+            CycleScheduleEngine.dayIndexForDate(
+                anchorDate = CycleScheduleEngine.effectiveAnchorDate(program, today),
+                targetDate = today,
+                cycleLengthDays = cycleLen,
+            )
+        } else {
+            currentDayOfWeek
+        }
         val currentItem = ProgramCurrentWeekResolver.todayItem(
             program = program,
             activeState = active,
             history = history,
             today = today,
             ongoing = ongoing,
-            dayOfWeek = currentDayOfWeek,
+            dayOfWeek = effectiveDay,
         ) ?: return emptyList()
         val weekLocation = WeekLocation(
             macroIndex = currentItem.macroIndex,
@@ -181,11 +192,11 @@ object HomeSessionResolver {
         }
 
         return sessions.map { session ->
-            val isToday = if (projection != null) {
+            val isToday = if (projection != null && !isRolling) {
                 projection.scheduledDateFor(session, resolvedWeekLocation.week.id) == today
             } else {
-                val day = session.dayOfWeek ?: session.assignedDays.firstOrNull() ?: currentDayOfWeek
-                day == currentDayOfWeek
+                session.matchesDay(effectiveDay) ||
+                    (session.dayOfWeek == null && session.assignedDays.isEmpty() && effectiveDay == currentDayOfWeek)
             }
             val matchingLog = history.find { log ->
                 logMatchesSession(
@@ -206,7 +217,7 @@ object HomeSessionResolver {
                     weekId = resolvedWeekLocation.week.id,
                 ),
                 isCompleted = matchingLog != null,
-                dayOfWeek = session.dayOfWeek ?: session.assignedDays.firstOrNull() ?: currentDayOfWeek,
+                dayOfWeek = session.dayOfWeek ?: session.assignedDays.firstOrNull() ?: effectiveDay,
                 log = matchingLog,
                 isOngoing = ongoing?.programId == program.id && ongoing.session.id == session.id,
                 isToday = isToday,

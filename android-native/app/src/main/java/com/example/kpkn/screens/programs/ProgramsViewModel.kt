@@ -18,6 +18,7 @@ import com.example.kpkn.data.models.ProgramStructure
 import com.example.kpkn.data.models.ProgramWeek
 import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.data.models.isSimpleProgram
+import com.example.kpkn.data.models.resolvedSchedulePlan
 import com.example.kpkn.data.models.totalProgramWeeks
 import com.example.kpkn.data.programs.PersonalizedPlanCatalog
 import com.example.kpkn.data.programs.programModeFor
@@ -230,6 +231,7 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         coverImage: String? = null,
         identityLabel: String? = null,
         description: String? = null,
+        cycleLengthDays: Int = 7,
     ): String {
         val programId = UUID.randomUUID().toString()
         // El número sale del mayor «Nuevo programa N» que ya existe (contar nombres repetía números tras borrar uno).
@@ -247,11 +249,25 @@ class ProgramsViewModel(application: Application) : AndroidViewModel(application
         val defaultEnergyDay = settings.defaultHighEnergyDay
         val profileScore = settings.volumeCalibrationProfile?.athleteProfileScore
         val recommendations = settings.volumeCalibrationProfile?.recommendations.orEmpty()
+        val normalizedCycleDays = cycleLengthDays.coerceIn(
+            com.example.kpkn.domain.training.CycleScheduleEngine.MIN_CYCLE_DAYS,
+            com.example.kpkn.domain.training.CycleScheduleEngine.MAX_CYCLE_DAYS,
+        )
+        val cyclePlan = if (normalizedCycleDays > 7) {
+            base.resolvedSchedulePlan().copy(
+                cycleLengthDays = normalizedCycleDays,
+                cycleAnchorDate = LocalDate.now().toString(),
+            )
+        } else {
+            base.schedulePlan
+        }
         repository.addProgram(
             base.copy(
                 description = description?.trim()?.takeIf(String::isNotEmpty) ?: base.description,
                 coverImage = coverImage ?: base.coverImage,
                 identityLabel = customIdentityLabel,
+                weekDays = normalizedCycleDays,
+                schedulePlan = cyclePlan,
                 highEnergyDay = base.highEnergyDay ?: defaultEnergyDay,
                 startDay = base.startDay ?: defaultEnergyDay,
                 athleteProfileScore = base.athleteProfileScore ?: profileScore,
@@ -492,30 +508,32 @@ fun buildNewProgram(
     coverImage: String = "gradient://ember",
     mode: ProgramMode = ProgramMode.HYPERTROPHY,
     programEndMode: com.example.kpkn.data.models.ProgramEndMode = com.example.kpkn.data.models.ProgramEndMode.REPEATING,
-): Program = Program(
-    id = id,
-    name = name,
-    description = description,
-    coverImage = coverImage,
-    structure = ProgramStructure.SIMPLE,
-    mode = mode,
-    programEndMode = programEndMode,
-    macrocycles = listOf(
-        Macrocycle(
-            id = UUID.randomUUID().toString(),
-            name = "Macrociclo 1",
-            blocks = listOf(
-                Block(
-                    id = UUID.randomUUID().toString(),
-                    name = "Bloque 1",
-                    mesocycles = listOf(
-                        Mesocycle(
-                            id = UUID.randomUUID().toString(),
-                            name = "Mesociclo 1",
-                            weeks = listOf(
-                                ProgramWeek(
-                                    id = UUID.randomUUID().toString(),
-                                    name = "Semana 1",
+): Program = com.example.kpkn.domain.training.ProgramLineageNormalizer.ensureSessionLineageIds(
+    Program(
+        id = id,
+        name = name,
+        description = description,
+        coverImage = coverImage,
+        structure = ProgramStructure.SIMPLE,
+        mode = mode,
+        programEndMode = programEndMode,
+        macrocycles = listOf(
+            Macrocycle(
+                id = UUID.randomUUID().toString(),
+                name = "Macrociclo 1",
+                blocks = listOf(
+                    Block(
+                        id = UUID.randomUUID().toString(),
+                        name = "Bloque 1",
+                        mesocycles = listOf(
+                            Mesocycle(
+                                id = UUID.randomUUID().toString(),
+                                name = "Mesociclo 1",
+                                weeks = listOf(
+                                    ProgramWeek(
+                                        id = UUID.randomUUID().toString(),
+                                        name = "Semana 1",
+                                    ),
                                 ),
                             ),
                         ),

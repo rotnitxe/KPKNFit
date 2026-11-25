@@ -148,22 +148,32 @@ private val SPANISH_LOCALE: Locale = Locale("es")
  * «Siguiente: jueves · Pierna A»: la sesión que toca después de [today] (1 = lunes … 7 = domingo), dando la vuelta a la semana. La del
  * propio día cuenta solo dentro de siete días. [sessions] son pares (día, nombre); las que no tienen día se ignoran. Null si ninguna.
  */
-internal fun programNextSessionOf(sessions: List<Pair<Int, String>>, today: Int): ProgramNextSession? {
+internal fun programNextSessionOf(
+    sessions: List<Pair<Int, String>>,
+    today: Int,
+    cycleLengthDays: Int = 7,
+): ProgramNextSession? {
+    val cycleLen = cycleLengthDays.coerceIn(7, 21)
     val next = sessions
-        .filter { it.first in 1..7 }
-        .minByOrNull { daysUntil(it.first, today) }
+        .filter { it.first in 1..cycleLen }
+        .minByOrNull { daysUntil(it.first, today, cycleLen) }
         ?: return null
-    val dayName = DayOfWeek.of(next.first).getDisplayName(TextStyle.FULL, SPANISH_LOCALE).lowercase(SPANISH_LOCALE)
+    val dayName = if (cycleLen > 7) {
+        "día ${next.first}"
+    } else {
+        DayOfWeek.of(next.first).getDisplayName(TextStyle.FULL, SPANISH_LOCALE).lowercase(SPANISH_LOCALE)
+    }
     val name = next.second.trim()
     val label = if (name.isEmpty()) "Siguiente: $dayName" else "Siguiente: $dayName · $name"
     val description = if (name.isEmpty()) "Siguiente sesión: $dayName" else "Siguiente sesión: $dayName, $name"
     return ProgramNextSession(dayOfWeek = next.first, label = label, description = description)
 }
 
-/** Días desde [today] hasta [day] dentro de la semana: 1 para el día siguiente y 7 para el mismo día de la semana siguiente. */
-private fun daysUntil(day: Int, today: Int): Int {
-    val distance = ((day - today) % 7 + 7) % 7
-    return if (distance == 0) 7 else distance
+/** Días desde [today] hasta [day] dentro del ciclo: 1 para el día siguiente y [cycleLengthDays] para la vuelta completa. */
+private fun daysUntil(day: Int, today: Int, cycleLengthDays: Int = 7): Int {
+    val safeLen = cycleLengthDays.coerceIn(7, 21)
+    val distance = ((day - today) % safeLen + safeLen) % safeLen
+    return if (distance == 0) safeLen else distance
 }
 
 /** La línea «Hoy también» bajo la fila de acciones: otra sesión de hoy y su duración estimada. */

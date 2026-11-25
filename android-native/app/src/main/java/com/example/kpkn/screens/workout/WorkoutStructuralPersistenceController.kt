@@ -125,7 +125,12 @@ class WorkoutStructuralPersistenceController(
                     val expectedLineage = (change as? PendingStructuralChange.UpdateExercisePrescription)?.sourceLogicalLineageId
                         ?: state.session?.logicalLineageId
                         ?: logicalLineageFor(program, source)
-                    sourceOnlyBecauseLineageIsMissing = expectedLineage.isNullOrBlank()
+                    val hasFutureWeeks = com.example.kpkn.domain.training.ProgramLineageNormalizer.hasFutureWeeksOfVariant(
+                        program = program,
+                        sourceWeekOrdinal = location.programWeekOrdinal,
+                        variant = location.weekVariant,
+                    )
+                    sourceOnlyBecauseLineageIsMissing = expectedLineage.isNullOrBlank() && hasFutureWeeks
                     repository.commitLiveProgramLineageEditNow(
                         programId = programId,
                         weekId = location.weekId,
@@ -168,7 +173,7 @@ class WorkoutStructuralPersistenceController(
                     return@launchPersistenceWork
                 }
                 if (sourceOnlyBecauseLineageIsMissing) {
-                    ports.onScopeNotice("Este plan no tiene una identidad de linaje fiable. El cambio se guardó solo en esta sesión; las semanas futuras no se modificaron.")
+                    ports.onScopeNotice("El cambio se guardó solo en esta sesión; las semanas futuras no se modificaron.")
                 }
                 ports.invalidateEditorDraft(nowMs)
                 updateState { current ->
@@ -1009,10 +1014,16 @@ class WorkoutStructuralPersistenceController(
                     ports.onMutationRejected("No se pudo guardar el reemplazo en el programa. Se conserva tu sesión; reintenta o elige «Solo esta vez».")
                     return@launchPersistenceWork
                 }
-                if (prompt.sourceLogicalLineageId.isNullOrBlank()) {
-                    ports.onScopeNotice("Este plan no tiene una identidad de linaje fiable. El reemplazo se guardó solo en esta sesión; las semanas futuras no se modificaron.")
-                }
                 val decisionLocation = commit?.let { findSessionLocation(it.program, sessionId, state) }
+                val hasFutureWeeks = commit != null && decisionLocation != null &&
+                    com.example.kpkn.domain.training.ProgramLineageNormalizer.hasFutureWeeksOfVariant(
+                        program = commit.program,
+                        sourceWeekOrdinal = decisionLocation.programWeekOrdinal,
+                        variant = prompt.activeMode,
+                    )
+                if (prompt.sourceLogicalLineageId.isNullOrBlank() && hasFutureWeeks) {
+                    ports.onScopeNotice("El reemplazo se guardó solo en esta sesión; las semanas futuras no se modificaron.")
+                }
                 decisionLocation?.let { loc ->
                     runCatching {
                         repository.createAndSaveReplacementDecision(

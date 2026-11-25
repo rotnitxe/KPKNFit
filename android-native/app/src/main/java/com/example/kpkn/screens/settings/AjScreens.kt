@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import com.example.kpkn.data.models.WeightUnit
+import com.example.kpkn.domain.calculations.LoadRounding
 import com.example.kpkn.screens.onboarding.design.wizardReducedMotion
 import com.example.kpkn.ui.design.KpknSurface
 import com.example.kpkn.ui.design.motion.KpknMotion
@@ -119,10 +120,13 @@ internal fun AjMainScreen(
     onHelp: () -> Unit,
     onDelete: () -> Unit,
     enter: com.example.kpkn.ui.design.motion.KpknAnimation? = null,
+    loadIncrementLabel: String = "2,5 kg",
+    onLoadIncrement: () -> Unit = {},
 ) {
     AjPage("Ajustes", onBack, enter = enter) {
         AjGroup("Preferencias")
         AjRow(AjIcons.Ruler, "Unidades", onUnits, value = unitLabel(unit), modifier = Modifier.testTag("aj-row-units"))
+        AjRow(AjIcons.Gym, "Incremento de carga", onLoadIncrement, value = loadIncrementLabel, modifier = Modifier.testTag("aj-row-load-increment"))
         AjRow(
             AjIcons.Bell, "Recordatorios", onReminders,
             value = if (activeReminders > 0) "$activeReminders ${if (activeReminders == 1) "activo" else "activos"}" else "Sin activar",
@@ -342,6 +346,44 @@ internal fun ColumnScope.AjUnitsContent(unit: WeightUnit, onPick: (WeightUnit) -
         Column {
             AjOption("Kilogramos", unit == WeightUnit.KG, { onPick(WeightUnit.KG) }, sub = "kg", divider = false, tag = "aj-unit-kg")
             AjOption("Libras", unit == WeightUnit.LBS, { onPick(WeightUnit.LBS) }, sub = "lb", tag = "aj-unit-lb")
+        }
+    }
+}
+
+@Composable
+internal fun AjLoadIncrementSheet(
+    unit: WeightUnit,
+    selectedStep: Double,
+    onPick: (Double) -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AjSheet(onDismiss) { AjLoadIncrementContent(unit, selectedStep, onPick) }
+}
+
+@Composable
+internal fun ColumnScope.AjLoadIncrementContent(
+    unit: WeightUnit,
+    selectedStep: Double,
+    onPick: (Double) -> Unit,
+) {
+    val options = if (unit == WeightUnit.LBS) LoadRounding.LB_INCREMENT_OPTIONS else LoadRounding.KG_INCREMENT_OPTIONS
+    val defaultOption = if (unit == WeightUnit.LBS) LoadRounding.DEFAULT_INCREMENT_LB else LoadRounding.DEFAULT_INCREMENT_KG
+    run {
+        AjSheetTitle("Incremento de carga")
+        AjSheetSub("Redondeo de cargas sugeridas y paso por defecto durante la sesión.")
+        Column {
+            options.forEachIndexed { index, option ->
+                val isSelected = kotlin.math.abs(selectedStep - option) < 1e-4
+                val isRecommended = kotlin.math.abs(option - defaultOption) < 1e-4
+                AjOption(
+                    title = LoadRounding.formatIncrementLabel(option, unit),
+                    selected = isSelected,
+                    onClick = { onPick(option) },
+                    sub = if (isRecommended) "Estándar recomendado" else null,
+                    divider = index > 0,
+                    tag = "aj-load-increment-$index",
+                )
+            }
         }
     }
 }

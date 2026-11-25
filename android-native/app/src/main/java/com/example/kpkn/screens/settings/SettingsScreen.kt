@@ -39,6 +39,7 @@ import com.example.kpkn.data.diagnostics.KpknDiagnosticLogger
 import com.example.kpkn.data.export.CsvExportService
 import com.example.kpkn.data.models.WeightUnit
 import com.example.kpkn.data.repository.ProgramRepository
+import com.example.kpkn.domain.calculations.LoadRounding
 import com.example.kpkn.domain.nutrition.areMealRemindersAvailable
 import com.example.kpkn.screens.settings.export.CsvExportSheet
 import com.example.kpkn.screens.settings.export.CsvExportViewModel
@@ -56,7 +57,7 @@ internal enum class AjRoute(val parent: AjRoute?) {
     Main(null), Reminders(Main), Permissions(Main), Copy(Main), Help(Main), Diagnostics(Help),
 }
 
-private enum class AjSheetKind { Units, Time, Save, Restore, Csv, Sources, Delete }
+private enum class AjSheetKind { Units, LoadIncrement, Time, Save, Restore, Csv, Sources, Delete }
 
 private class AjToastData(val id: Int, val message: String, val kind: AjToastKind)
 
@@ -251,6 +252,8 @@ fun SettingsScreen(
                 onBack = ::goBack, onUnits = { openSheet(AjSheetKind.Units) }, onReminders = { go(AjRoute.Reminders) },
                 onPermissions = { go(AjRoute.Permissions) }, onHealth = onOpenHealthConnect, onCopy = { go(AjRoute.Copy) },
                 onHelp = { go(AjRoute.Help) }, onDelete = { openSheet(AjSheetKind.Delete) }, enter = enter,
+                loadIncrementLabel = LoadRounding.formatIncrementLabel(LoadRounding.defaultStepInDisplayUnit(settings), settings.weightUnit),
+                onLoadIncrement = { openSheet(AjSheetKind.LoadIncrement) },
             )
             AjRoute.Reminders -> AjRemindersScreen(
                 notifications = permissionStates[AjPerm.Notifications] ?: AjPermState.DENIED,
@@ -303,6 +306,24 @@ fun SettingsScreen(
                 // aj-J02: la hoja se cierra sola 280 ms después de elegir, para ver el valor marcado
                 { unit -> viewModel.update { it.copy(weightUnit = unit) }; scope.launch { delay(280); closeSheet() } },
                 ::closeSheet,
+            )
+            AjSheetKind.LoadIncrement -> AjLoadIncrementSheet(
+                unit = settings.weightUnit,
+                selectedStep = LoadRounding.defaultStepInDisplayUnit(settings),
+                onPick = { step ->
+                    viewModel.update { current ->
+                        if (current.weightUnit == WeightUnit.LBS) {
+                            current.copy(
+                                defaultLoadIncrementLb = step,
+                                defaultLoadIncrementKg = LoadRounding.equivalentKgStepForLb(step),
+                            )
+                        } else {
+                            current.copy(defaultLoadIncrementKg = step)
+                        }
+                    }
+                    scope.launch { delay(280); closeSheet() }
+                },
+                onDismiss = ::closeSheet,
             )
             AjSheetKind.Time -> {
                 val current = when (timeKey) {

@@ -228,15 +228,11 @@ private fun GeneralReveal(
             onSelect = onChoose,
             onOpen = onOpen,
         )
-        reveal.reasons.take(MAX_REASONS).forEach { reason ->
-            Text(text = reason, style = WizardTypography.bodySmall, color = WizardColors.textMuted)
-        }
         EntrenoTextAction(
             label = ANOTHER_VERSION_LABEL,
             onClick = onAnotherVersion,
             modifier = Modifier.testTag(ANOTHER_VERSION_TAG),
         )
-        Text(text = PlanCopy.EDIT_FREELY, style = WizardTypography.note, color = WizardColors.textMuted)
     }
 }
 

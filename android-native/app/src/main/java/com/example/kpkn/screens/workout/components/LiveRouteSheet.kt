@@ -49,6 +49,7 @@ import com.example.kpkn.screens.workout.WorkoutStepRules
 import com.example.kpkn.screens.workout.cockpitSessionMetrics
 import com.example.kpkn.screens.workout.displayWorkoutExerciseName
 import com.example.kpkn.screens.workout.liveRouteGroups
+import com.example.kpkn.screens.workout.remainingPlannedRestSeconds
 import com.example.kpkn.screens.workout.sessionPaceWork
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.motion.kpknAnimate
@@ -111,9 +112,13 @@ internal fun LiveRouteSheetContent(
     restRemainingSeconds: Int? = null,
     activeStepKey: String? = null,
     onSelectStep: (String) -> Unit = {},
+    ultraFastApplied: Boolean = false,
 ) {
     val groups = remember(exercises, supersetGroups) { liveRouteGroups(exercises, supersetGroups) }
     val paceWork = remember(exercises, completedSets, omittedSetKeys) { sessionPaceWork(exercises, completedSets, omittedSetKeys) }
+    val remainingRestSec = remember(exercises, completedSets, omittedSetKeys) {
+        remainingPlannedRestSeconds(exercises, completedSets, omittedSetKeys)
+    }
     if (restActive) {
         val restClock = restRemainingSeconds?.let(com.example.kpkn.ui.design.KpknSetFormat::rest)
         Row(
@@ -155,6 +160,47 @@ internal fun LiveRouteSheetContent(
             Box(Modifier.fillMaxWidth(fraction).height(4.dp).clip(RoundedCornerShape(2.dp)).background(Ruta.Ink))
         }
     }
+    if (onAddExercise != null || onReorder != null) {
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(bottom = 10.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            onAddExercise?.let { add ->
+                Row(
+                    modifier = Modifier
+                        .weight(1f)
+                        .heightIn(min = 42.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Ruta.Chip)
+                        .clickable(role = Role.Button, onClick = add)
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .testTag("live-route-add"),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally),
+                ) {
+                    Icon(KpknLineIcons.Plus, null, Modifier.size(16.dp), tint = Ruta.Ink)
+                    Text("Añadir ejercicio", style = inter(13f, FontWeight.SemiBold), color = Ruta.Ink, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                }
+            }
+            onReorder?.let { reorder ->
+                Row(
+                    modifier = Modifier
+                        .heightIn(min = 42.dp)
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(Ruta.Chip)
+                        .clickable(role = Role.Button, onClick = reorder)
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                        .testTag("live-route-reorder"),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp, Alignment.CenterHorizontally),
+                ) {
+                    Icon(KpknLineIcons.Grip, null, Modifier.size(15.dp), tint = Ruta.Mut)
+                    Text("Reordenar", style = inter(12.5f, FontWeight.Medium), color = Ruta.Mut, maxLines = 1)
+                }
+            }
+        }
+    }
     var cardioHeader = false
     groups.forEachIndexed { position, group ->
         if (group.cardio && !cardioHeader) {
@@ -165,8 +211,6 @@ internal fun LiveRouteSheetContent(
             warmupCompletedIds, mobilityCompletedIds, mobilityTotalCompletedStepKeys, activeStepKey, onSelectStep,
             onSelectExercise, onSelectSuperset, onSelectSet, onOpenExerciseOptions, onOpenSupersetOptions)
     }
-    onReorder?.let { RouteMenuRow("Reordenar pendientes", KpknLineIcons.Grip, it, Modifier.padding(top = 10.dp).testTag("live-route-reorder")) }
-    onAddExercise?.let { RouteMenuRow("Añadir ejercicio", KpknLineIcons.Plus, it, Modifier.testTag("live-route-add")) }
 
     val metrics = remember(exercises, completedSets, completedExercises, omittedSetKeys, liveEnergySummary, bodyWeight) {
         cockpitSessionMetrics(exercises, completedSets, completedExercises, omittedSetKeys, liveEnergySummary, bodyWeight)
@@ -186,7 +230,7 @@ internal fun LiveRouteSheetContent(
                 startTimeMs.takeIf { it > 0L }?.let { "min" }, Modifier.weight(1f))
         }
     }
-    Box(Modifier.padding(top = 14.dp)) { SessionPaceEstimate(startTimeMs, paceWork.completed, paceWork.total, targetMinutes) }
+    Box(Modifier.padding(top = 14.dp)) { SessionPaceEstimate(startTimeMs, paceWork.completed, paceWork.total, targetMinutes, remainingRestSec, ultraFastApplied) }
 }
 
 /** `.lv2-cd`: «CARDIO» en azul con un filete que llena el resto de la línea. */
@@ -195,16 +239,6 @@ private fun CardioHeader() {
     Row(Modifier.fillMaxWidth().padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
         Text("CARDIO", style = inter(11f, FontWeight.SemiBold, 14f).copy(letterSpacing = 1.4.sp), color = Ruta.Blue)
         Box(Modifier.weight(1f).height(1.dp).background(Ruta.Blue.copy(alpha = 0.2f)))
-    }
-}
-
-/** `.lv2-mn`: fila de 54 dp con filete superior, icono de 18 dp y texto de 14 sp. */
-@Composable
-private fun RouteMenuRow(label: String, icon: ImageVector, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    Row(modifier.fillMaxWidth().heightIn(min = 54.dp).topLine().clickable(role = Role.Button, onClick = onClick),
-        verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-        Icon(icon, null, Modifier.size(18.dp), tint = Ruta.Mut)
-        Text(label, style = inter(14f), color = Ruta.Ink)
     }
 }
 

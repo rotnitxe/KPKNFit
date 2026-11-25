@@ -472,8 +472,6 @@ private fun NutritionActivityContent(state: SetupWizardState, vm: SetupWizardVie
 private fun NutritionManualCaloriesContent(state: SetupWizardState, vm: SetupWizardViewModel) {
     val step = SetupStepId.NUTRITION_MANUAL_CALORIES
     val nutrition = state.draft.nutritionDraft
-    // El subtítulo del paso ya dice «tus valores reales»: aquí solo lo que añade.
-    SetupBodyHint(text = "Dejar un campo vacío es válido.")
     SetupBodyTextField(
         label = "Calorías (kcal)",
         initial = nutrition?.manualCalorieTargetText.orEmpty(),
@@ -498,8 +496,6 @@ private fun NutritionManualCaloriesContent(state: SetupWizardState, vm: SetupWiz
 private fun NutritionManualCarbsFatContent(state: SetupWizardState, vm: SetupWizardViewModel) {
     val step = SetupStepId.NUTRITION_MANUAL_CARBS_FAT
     val nutrition = state.draft.nutritionDraft
-    // El subtítulo del paso ya dice «tus valores reales»: aquí solo lo que añade.
-    SetupBodyHint(text = "Dejar un campo vacío es válido.")
     SetupBodyTextField(
         label = "Hidratos (g)",
         initial = nutrition?.manualCarbsText.orEmpty(),
@@ -548,10 +544,6 @@ private fun NutritionDistributionContent(state: SetupWizardState, vm: SetupWizar
             vm.setStepChoice(step, value)
         },
     )
-    SetupBodyHint(
-        text = "Los dos repartos mantienen el mismo presupuesto semanal: solo cambia cómo se reparte entre los días.",
-        modifier = Modifier.padding(top = 4.dp),
-    )
 }
 
 // ─── NUTRITION_WEIGH_INS ────────────────────────────────────────────────────
@@ -585,10 +577,15 @@ private fun NutritionWeighInsContent(state: SetupWizardState, vm: SetupWizardVie
             }
         },
     )
-    SetupBodyHint(
-        text = "Hacen falta unas dos semanas de pesajes y comidas para el primer ajuste.",
-        modifier = Modifier.padding(top = 4.dp),
-    )
+    if (state.draft.historicalWeighIns.isEmpty()) {
+        WizardChoiceCard(
+            title = "Omitir pesajes por ahora",
+            subtitle = "Puedes empezar sin pesajes previos y añadirlos más adelante.",
+            selected = false,
+            onClick = { vm.skipStep(step) },
+            modifier = Modifier.testTag("setup-weighins-skip-inline"),
+        )
+    }
 }
 
 // ─── NUTRITION_RESULT ───────────────────────────────────────────────────────

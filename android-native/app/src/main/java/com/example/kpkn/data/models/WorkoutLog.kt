@@ -82,6 +82,24 @@ data class OmittedExercise(
 )
 
 @Serializable
+enum class LimitingFactorCategory {
+    MUSCLE,
+    JOINT,
+    MOVEMENT_WORK,
+    CARDIO,
+}
+
+@Serializable
+data class LimitingFactorReport(
+    val id: String,
+    val label: String,
+    val category: LimitingFactorCategory,
+    val linkedMuscleIds: List<String> = emptyList(),
+    val linkedJointIds: List<String> = emptyList(),
+    val autoLinkedCore: Boolean = false,
+)
+
+@Serializable
 data class ExerciseDiscomfortReport(
     val exerciseId: String,
     val exerciseDbId: String? = null,
@@ -94,6 +112,8 @@ data class ExerciseDiscomfortReport(
     val perceivedFailure: Boolean = false,
     /** Serie tras la que se reportó la molestia; null en históricos anteriores a este campo. */
     val reportedAfterSetIndex: Int? = null,
+    /** Factores limitantes reportados tras el ejercicio (músculo, articulación, trabajo de agarre/bracing o cardio). */
+    val limitingFactors: List<LimitingFactorReport> = emptyList(),
 )
 
 @Serializable
@@ -253,6 +273,7 @@ data class PostExerciseFeedback(
     val perceivedFailure: Boolean = false,
     /** Discomforts the athlete marked as still present (linked/previous). */
     val stillPresentDiscomfortIds: List<String> = emptyList(),
+    val limitingFactors: List<LimitingFactorReport> = emptyList(),
 )
 
 /** Discomforts that should still affect later series. `"none"` means all resolved. */

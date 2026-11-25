@@ -308,8 +308,9 @@ internal struct PostExerciseFeedback {
     var notes: String?
     var perceivedIntensityRpe: Double?
     var perceivedFailure: Bool
+    var limitingFactors: [LimitingFactorReport]
 
-    init(exerciseId: String, exerciseDbId: String? = nil, canonicalExerciseId: String? = nil, exerciseName: String, technicalQuality: Int, discomfortIds: [String] = [], notes: String? = nil, perceivedIntensityRpe: Double? = nil, perceivedFailure: Bool = false) {
+    init(exerciseId: String, exerciseDbId: String? = nil, canonicalExerciseId: String? = nil, exerciseName: String, technicalQuality: Int, discomfortIds: [String] = [], notes: String? = nil, perceivedIntensityRpe: Double? = nil, perceivedFailure: Bool = false, limitingFactors: [LimitingFactorReport] = []) {
         self.exerciseId = exerciseId
         self.exerciseDbId = exerciseDbId
         self.canonicalExerciseId = canonicalExerciseId
@@ -319,6 +320,7 @@ internal struct PostExerciseFeedback {
         self.notes = notes
         self.perceivedIntensityRpe = perceivedIntensityRpe
         self.perceivedFailure = perceivedFailure
+        self.limitingFactors = limitingFactors
     }
 }
 

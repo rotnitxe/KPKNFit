@@ -273,6 +273,7 @@ fun ProgramDetailScreen(
     var showTmEditor by rememberSaveable { mutableStateOf(false) }
     var showPlanSheet by rememberSaveable { mutableStateOf(false) }
     var showHighEnergyDaySheet by rememberSaveable { mutableStateOf(false) }
+    var showCycleSheet by rememberSaveable { mutableStateOf(false) }
     var showMoreMenu by rememberSaveable { mutableStateOf(false) }
     var showDeleteProgramConfirm by rememberSaveable { mutableStateOf(false) }
     var blockedDeleteSessionId by remember { mutableStateOf<String?>(null) }
@@ -420,11 +421,25 @@ fun ProgramDetailScreen(
     )
     val coverKind = heroCoverKind(p.coverImage, hasBundledCover = bundledCover != null)
     val identity = remember(p.id, p.structureTemplateId, p.coverImage) { coverIdentityForProgram(p) }
+    val cycleLen = com.example.kpkn.domain.training.CycleScheduleEngine.normalizedCycleLength(p)
+    val isRollingCycle = cycleLen > 7
+    val todayCycleDay = remember(p, cycleLen, isRollingCycle) {
+        if (isRollingCycle) {
+            com.example.kpkn.domain.training.CycleScheduleEngine.dayIndexForDate(
+                anchorDate = com.example.kpkn.domain.training.CycleScheduleEngine.effectiveAnchorDate(p),
+                targetDate = java.time.LocalDate.now(),
+                cycleLengthDays = cycleLen,
+            )
+        } else {
+            java.time.LocalDate.now().dayOfWeek.value
+        }
+    }
     // La siguiente sesión de la semana que se ve: la fila de acciones la enseña en un día sin sesión («Siguiente: viernes · Pierna B»).
-    val nextSession = remember(displayedSessions) {
+    val nextSession = remember(displayedSessions, todayCycleDay, cycleLen) {
         programNextSessionOf(
             sessions = displayedSessions.mapNotNull { session -> session.dayOfWeek?.let { it to session.name } },
-            today = java.time.LocalDate.now().dayOfWeek.value,
+            today = todayCycleDay,
+            cycleLengthDays = cycleLen,
         )
     }
     // Cinta de fases y «Bloque X de Y»: cada semana con la fase de su bloque. La semana actual sale de la línea de Home (1 = la primera).
@@ -452,7 +467,7 @@ fun ProgramDetailScreen(
     }
     val blockLabel = currentBlockIndex?.takeIf { roadmapBlocks.size > 1 }?.let { "Bloque ${it + 1} de ${roadmapBlocks.size}" }
     // «Hoy también»: otra sesión de hoy, la que sigue a la de la acción principal y todavía no está hecha.
-    val todayDayOfWeek = java.time.LocalDate.now().dayOfWeek.value
+    val todayDayOfWeek = todayCycleDay
     val primarySessionId = primarySession?.session?.id
     val todayAlso = displayedSessions
         .filter { it.dayOfWeek == todayDayOfWeek }
@@ -790,6 +805,7 @@ fun ProgramDetailScreen(
                         onOpenProgram = onOpenProgram,
                         onOpenSplitPage = { showSplitPage = true },
                         onOpenHighEnergyDay = { showHighEnergyDaySheet = true },
+                        onOpenCycleSheet = { showCycleSheet = true },
                         copiedWeekState = copiedWeekState,
                         exerciseTmSheetState = exerciseTmSheetState,
                     )
@@ -876,6 +892,121 @@ fun ProgramDetailScreen(
                     onClick = {
                         viewModel.updateHighEnergyDay(selectedEnergyDay, alsoStartWeek)
                         showHighEnergyDaySheet = false
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+        }
+    }
+    if (showCycleSheet && p != null) {
+        val minDays = com.example.kpkn.domain.training.CycleScheduleEngine.MIN_CYCLE_DAYS
+        val maxDays = com.example.kpkn.domain.training.CycleScheduleEngine.MAX_CYCLE_DAYS
+        var selectedDays by rememberSaveable(p.id, cycleLen) { mutableIntStateOf(cycleLen) }
+        var selectedTodayDay by rememberSaveable(p.id, todayCycleDay, selectedDays) {
+            mutableIntStateOf(todayCycleDay.coerceIn(1, selectedDays))
+        }
+        com.example.kpkn.ui.components.KpknSheet(onDismissRequest = { showCycleSheet = false }) {
+            @OptIn(ExperimentalLayoutApi::class)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(14.dp),
+            ) {
+                Text("Duración del ciclo", style = com.example.kpkn.ui.design.KpknType.dialogTitle, color = WizardColors.text)
+                Text(
+                    text = if (selectedDays > 7) {
+                        "Ciclo rotativo de $selectedDays días: al pasar de vuelta el Día 1 avanza en el calendario con fechas reales."
+                    } else {
+                        "Semana estándar de 7 días (Lunes a Domingo). Súbelo entre 8 y 21 días para repartir más descansos."
+                    },
+                    style = com.example.kpkn.ui.design.KpknType.body,
+                    color = WizardColors.textMuted,
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    com.example.kpkn.domain.training.CycleScheduleEngine.CYCLE_LENGTH_PRESETS.forEach { preset ->
+                        com.example.kpkn.ui.design.KpknChip(
+                            text = "$preset días",
+                            selected = selectedDays == preset,
+                            onClick = {
+                                selectedDays = preset
+                                selectedTodayDay = selectedTodayDay.coerceIn(1, preset)
+                            },
+                        )
+                    }
+                }
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                ) {
+                    Text(
+                        text = "Ajuste fino ($minDays–$maxDays días)",
+                        style = com.example.kpkn.ui.design.KpknType.bodyStrong,
+                        color = WizardColors.text,
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    ) {
+                        com.example.kpkn.ui.design.KpknChip(
+                            text = "−",
+                            selected = false,
+                            onClick = {
+                                if (selectedDays > minDays) {
+                                    selectedDays -= 1
+                                    selectedTodayDay = selectedTodayDay.coerceIn(1, selectedDays)
+                                }
+                            },
+                        )
+                        Text(
+                            text = "$selectedDays d",
+                            style = com.example.kpkn.ui.design.KpknType.bodyStrong,
+                            color = WizardColors.text,
+                        )
+                        com.example.kpkn.ui.design.KpknChip(
+                            text = "+",
+                            selected = false,
+                            onClick = {
+                                if (selectedDays < maxDays) {
+                                    selectedDays += 1
+                                    selectedTodayDay = selectedTodayDay.coerceIn(1, selectedDays)
+                                }
+                            },
+                        )
+                    }
+                }
+                if (selectedDays > 7) {
+                    Text(
+                        text = "¿Qué día del ciclo corresponde a hoy?",
+                        style = com.example.kpkn.ui.design.KpknType.bodyStrong,
+                        color = WizardColors.text,
+                    )
+                    FlowRow(
+                        horizontalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        (1..selectedDays).forEach { dayIdx ->
+                            com.example.kpkn.ui.design.KpknChip(
+                                text = "Día $dayIdx",
+                                selected = selectedTodayDay == dayIdx,
+                                onClick = { selectedTodayDay = dayIdx },
+                            )
+                        }
+                    }
+                }
+                com.example.kpkn.ui.design.KpknPrimaryPill(
+                    text = "Aplicar",
+                    onClick = {
+                        viewModel.updateCycleLengthDays(selectedDays)
+                        if (selectedDays > 7) {
+                            viewModel.reanchorTodayAsCycleDay(selectedTodayDay)
+                        }
+                        showCycleSheet = false
                     },
                     modifier = Modifier.fillMaxWidth(),
                 )
@@ -1079,6 +1210,14 @@ fun ProgramDetailScreen(
                     ),
                 )
                 add(ProgramMenuItem(icon = KpknLineIcons.Edit, label = "Editar nombre, nota y portada", onClick = openEdit))
+                add(
+                    ProgramMenuItem(
+                        icon = KpknLineIcons.Calendar,
+                        label = "Duración del ciclo ($cycleLen d)",
+                        detail = if (isRollingCycle) "Ciclo rotativo · Hoy Día $todayCycleDay" else "Semana L–D · ampliar hasta 21 días",
+                        onClick = { showCycleSheet = true },
+                    ),
+                )
                 add(
                     ProgramMenuItem(
                         icon = ProgramLineIcons.Upload,
@@ -1346,6 +1485,7 @@ private fun TrainingPanel(
     onOpenProgram: (String) -> Unit = {},
     onOpenSplitPage: () -> Unit = {},
     onOpenHighEnergyDay: () -> Unit = {},
+    onOpenCycleSheet: () -> Unit = {},
     copiedWeekState: MutableState<String?> = remember(program.id) { mutableStateOf(null) },
     exerciseTmSheetState: MutableState<Boolean> = remember(program.id) { mutableStateOf(false) },
 ) {
@@ -1704,6 +1844,7 @@ private fun TrainingPanel(
                         restoreBlockedSessionIds = restoreBlockedSessionIds,
                         completedSessionIds = completedSessionIds,
                         highEnergyDay = program.highEnergyDay ?: program.startDay,
+                        onReanchorTodayAsDay = viewModel::reanchorTodayAsCycleDay,
                     )
                     val activeEnergyDay = program.highEnergyDay ?: program.startDay ?: 1
                     val energyDayName = when (activeEnergyDay) {
@@ -1715,16 +1856,35 @@ private fun TrainingPanel(
                         6 -> "Sábado"
                         else -> "Domingo"
                     }
-                    Row(
+                    val panelCycleLen = com.example.kpkn.domain.training.CycleScheduleEngine.normalizedCycleLength(program)
+                    val panelRolling = panelCycleLen > 7
+                    val panelTodayCycle = if (panelRolling) {
+                        com.example.kpkn.domain.training.CycleScheduleEngine.dayIndexForDate(
+                            anchorDate = com.example.kpkn.domain.training.CycleScheduleEngine.effectiveAnchorDate(program),
+                            targetDate = java.time.LocalDate.now(),
+                            cycleLengthDays = panelCycleLen,
+                        )
+                    } else {
+                        null
+                    }
+                    @OptIn(ExperimentalLayoutApi::class)
+                    FlowRow(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)
                             .padding(top = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         com.example.kpkn.ui.design.KpknChip(
                             text = "⚡ Día con más energía · $energyDayName",
                             selected = program.highEnergyDay != null,
                             onClick = onOpenHighEnergyDay,
+                        )
+                        com.example.kpkn.ui.design.KpknChip(
+                            text = if (panelTodayCycle != null) "Ciclo ${panelCycleLen}d · Hoy D$panelTodayCycle" else "Ciclo ${panelCycleLen}d",
+                            selected = panelRolling,
+                            onClick = onOpenCycleSheet,
                         )
                     }
                     if (selectedWeekMeta != null) {
@@ -1881,6 +2041,7 @@ private fun TrainingPanel(
                 var showCalibrationSheet by rememberSaveable(program.id) { mutableStateOf(false) }
                 var expandExercises by rememberSaveable(program.id) { mutableStateOf(true) }
                 var expandMuscleVolume by rememberSaveable(program.id) { mutableStateOf(true) }
+                var expandMuscleIntensity by rememberSaveable(program.id) { mutableStateOf(true) }
                 var expandWorkAndTonnage by rememberSaveable(program.id) { mutableStateOf(!progressUi.early) }
                 var expandAdherence by rememberSaveable(program.id) { mutableStateOf(!progressUi.early) }
                 var expandEffortAndDiscomfort by rememberSaveable(program.id) { mutableStateOf(progressUi.discomforts != null || !progressUi.early) }
@@ -1965,6 +2126,108 @@ private fun TrainingPanel(
                             rangesOrigin = rangesOrigin,
                             onOpenRanges = { showRangesSheet = true },
                         )
+                    }
+                    Spacer(Modifier.height(12.dp))
+
+                    // 2b. Intensidad media ponderada por músculo y factores limitantes
+                    val intensityScopedLogs = remember(progLogs, volumeWeeks, progressScope) {
+                        if (progressScope == ProgressScope.PROGRAM) {
+                            progLogs
+                        } else {
+                            val allowedWeekIds = volumeWeeks.mapTo(HashSet()) { it.id }
+                            progLogs.filter { log ->
+                                log.weekId in allowedWeekIds ||
+                                    allowedWeekIds.any { wid -> log.weekInstanceId?.endsWith("_$wid") == true }
+                            }
+                        }
+                    }
+                    val muscleIntensitySummary = remember(intensityScopedLogs) {
+                        com.example.kpkn.domain.training.insights.MuscleIntensityAccounting.computeForLogs(intensityScopedLogs)
+                    }
+                    val intensitySummaryText = when {
+                        muscleIntensitySummary.top3Muscles.isNotEmpty() -> {
+                            val top = muscleIntensitySummary.top3Muscles.first()
+                            "Top: ${top.muscleName} · RPE ${com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.formatDecimal1(top.weightedRpeMean)}"
+                        }
+                        muscleIntensitySummary.limitingFactorTallies.isNotEmpty() ->
+                            "${muscleIntensitySummary.limitingFactorTallies.size} limitantes"
+                        else -> "RIR global · sin registros"
+                    }
+                    com.example.kpkn.screens.programdetail.design.progress.ProgramCollapsibleModule(
+                        title = "Intensidad por músculo y limitantes",
+                        summary = intensitySummaryText,
+                        expanded = expandMuscleIntensity,
+                        onToggle = { expandMuscleIntensity = !expandMuscleIntensity },
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            if (muscleIntensitySummary.top3Muscles.isNotEmpty()) {
+                                Text(
+                                    "TOP 3 MAYOR INTENSIDAD MEDIA",
+                                    style = com.example.kpkn.ui.design.KpknType.eyebrow,
+                                    color = WizardColors.textMuted,
+                                )
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    muscleIntensitySummary.top3Muscles.forEachIndexed { idx, row ->
+                                        Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                            Text(
+                                                "#${idx + 1} ${row.muscleName}",
+                                                style = com.example.kpkn.ui.design.KpknType.caption,
+                                                color = WizardColors.textMuted,
+                                                maxLines = 1,
+                                            )
+                                            Text(
+                                                "RPE ${com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.formatDecimal1(row.weightedRpeMean)}",
+                                                style = com.example.kpkn.ui.design.KpknType.bodyStrong,
+                                                color = WizardColors.text,
+                                            )
+                                            Text(
+                                                "RIR ${com.example.kpkn.screens.progress.design.MuscleIntensityHeatmapModel.formatDecimal1(row.weightedRirMean)}" +
+                                                    if (row.failureSetCount > 0) " · Fallo ×${row.failureSetCount}" else "",
+                                                style = com.example.kpkn.ui.design.KpknType.caption,
+                                                color = WizardColors.textMuted,
+                                            )
+                                        }
+                                    }
+                                }
+                            } else {
+                                Text(
+                                    "Registra RIR, RPE o Fallo en tus series para ver la intensidad ponderada por músculo.",
+                                    style = com.example.kpkn.ui.design.KpknType.caption,
+                                    color = WizardColors.textMuted,
+                                )
+                            }
+                            if (muscleIntensitySummary.limitingFactorTallies.isNotEmpty()) {
+                                Text(
+                                    "CUELLOS DE BOTELLA RECURRENTES",
+                                    style = com.example.kpkn.ui.design.KpknType.eyebrow,
+                                    color = WizardColors.textMuted,
+                                )
+                                @OptIn(ExperimentalLayoutApi::class)
+                                FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    muscleIntensitySummary.limitingFactorTallies.take(6).forEach { tally ->
+                                        val note = if (tally.linkedMuscleNames.isNotEmpty()) " → ${tally.linkedMuscleNames.joinToString(", ")}" else ""
+                                        com.example.kpkn.ui.design.KpknChip(
+                                            text = "${tally.label} (×${tally.count})$note",
+                                            selected = tally.autoLinkedCoreCount > 0,
+                                            onClick = {},
+                                        )
+                                    }
+                                }
+                            }
+                            openFourWeeks?.let { opener ->
+                                com.example.kpkn.ui.design.KpknChip(
+                                    text = "Ver mapa de calor completo",
+                                    selected = false,
+                                    onClick = { opener(program.id) },
+                                )
+                            }
+                        }
                     }
                     Spacer(Modifier.height(12.dp))
 
@@ -2283,10 +2546,12 @@ private fun TrainingPanel(
         )
     }
 
-    // «Añadir sesión»: elige el día de la semana elegida.
+    // «Añadir sesión»: elige el día de la semana o ciclo elegida.
     addSessionMenu?.let { anchor ->
+        val menuCycleLen = com.example.kpkn.domain.training.CycleScheduleEngine.normalizedCycleLength(program)
+        val menuAnchor = if (menuCycleLen > 7) com.example.kpkn.domain.training.CycleScheduleEngine.effectiveAnchorDate(program) else null
         ProgramItemMenu(
-            items = getDynamicDays(program.startDay ?: 1, program.weekDays ?: 7).map { day ->
+            items = getDynamicDays(program.startDay ?: 1, menuCycleLen, menuAnchor).map { day ->
                 ProgramAnchoredMenuItem(label = day.name, onClick = { addSessionOnDay(day.id) }, icon = KpknLineIcons.Calendar)
             },
             anchor = anchor,
@@ -2404,7 +2669,7 @@ private fun dayLabelFull(dayOfWeek: Int): String = when (dayOfWeek) {
     5 -> "Viernes"
     6 -> "Sábado"
     7 -> "Domingo"
-    else -> "día"
+    else -> if (dayOfWeek in 8..21) "Día $dayOfWeek" else "día"
 }
 
 

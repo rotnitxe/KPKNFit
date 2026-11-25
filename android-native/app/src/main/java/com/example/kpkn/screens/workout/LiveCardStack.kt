@@ -103,12 +103,22 @@ internal fun liveCardStackTransform(offset: Float, stride: Float, density: Float
 internal fun liveCardStackZ(offset: Float): Float = if (offset < 0f) 20f - offset * 0.5f else 20f - offset
 
 /** Rótulo del borde de una tarjeta en la pila: «Serie 4 · 100 × 8», «Descanso», «Aproximaciones»… */
-internal fun liveCardStackLabel(page: WorkoutSetSwipePage, exercise: Exercise): String = when (page.type) {
+internal fun liveCardStackLabel(
+    page: WorkoutSetSwipePage,
+    exercise: Exercise,
+    suggestedWeight: Double? = null,
+    loadStepKg: Double? = null,
+): String = when (page.type) {
     LivePageType.NORMAL -> {
         val set = exercise.sets.getOrNull(page.setIndex)
         val side = when (page.side) { "left" -> " · izquierda"; "right" -> " · derecha"; else -> "" }
         val dose = set?.let {
-            val weight = it.weight?.takeIf { w -> w > 0.0 }?.let(::formatDecimal)
+            val resolvedWeight = suggestedWeight?.takeIf { w -> w > 0.0 }
+                ?: it.weight?.takeIf { w -> w > 0.0 }?.let { w ->
+                    val safeStep = loadStepKg?.takeIf { s -> s.isFinite() && s > 0.0 }
+                    if (safeStep != null) com.example.kpkn.domain.calculations.LoadRounding.roundToStep(w, safeStep) else w
+                }
+            val weight = resolvedWeight?.let(::formatDecimal)
             val reps = it.targetReps?.toString()
             when {
                 weight != null && reps != null -> " · $weight × $reps"

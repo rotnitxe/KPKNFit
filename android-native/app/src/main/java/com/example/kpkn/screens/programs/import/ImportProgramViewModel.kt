@@ -1339,7 +1339,7 @@ class ImportProgramViewModel @JvmOverloads constructor(
         val committed = if (findExistingProgram(program.id) != null) {
             Result.success(Unit)
         } else {
-            saveProgram(program)
+            saveProgram(com.example.kpkn.domain.training.ProgramLineageNormalizer.ensureSessionLineageIds(program))
         }
         return committed.fold(
             onSuccess = {

@@ -1444,7 +1444,8 @@ class ProgramDetailViewModel(
         dayOfWeek: Int,
         startWeekOnThisDay: Boolean,
     ) {
-        val normalized = dayOfWeek.coerceIn(1, 7)
+        val maxDay = program.value?.let(com.example.kpkn.domain.training.CycleScheduleEngine::normalizedCycleLength) ?: 7
+        val normalized = dayOfWeek.coerceIn(1, maxDay)
         val current = program.value ?: return
         val baseUpdated = if (startWeekOnThisDay) {
             SplitApplicationEngine.applyStartDayChange(
@@ -1463,9 +1464,18 @@ class ProgramDetailViewModel(
         }
     }
 
+    fun updateCycleLengthDays(cycleLengthDays: Int) {
+        repository.updateProgramCycleLength(programId, cycleLengthDays)
+    }
+
+    fun reanchorTodayAsCycleDay(dayIndex: Int) {
+        repository.reanchorProgramCycleToday(programId, dayIndex)
+    }
+
     fun addWeekToSimpleProgram(sourceWeekId: String? = null, name: String? = null, description: String? = null) {
-        val current = program.value ?: return
-        if (!current.isSimpleTemporalProgram && current.structure != ProgramStructure.SIMPLE) return
+        val rawCurrent = program.value ?: return
+        if (!rawCurrent.isSimpleTemporalProgram && rawCurrent.structure != ProgramStructure.SIMPLE) return
+        val current = com.example.kpkn.domain.training.ProgramLineageNormalizer.ensureSessionLineageIds(rawCurrent)
         val copiedSessions = sourceWeekId
             ?.let { id -> findWeek(current, id)?.sessions }
             ?.let { SplitApplicationEngine.copySessionsWithNewIds(it) }
@@ -1719,7 +1729,8 @@ class ProgramDetailViewModel(
 
     fun updateWeekTrainingDayDate(weekId: String, dayOfWeek: Int, isoDate: String?) {
         val current = program.value ?: return
-        if (dayOfWeek !in 1..7) return
+        val maxDay = com.example.kpkn.domain.training.CycleScheduleEngine.normalizedCycleLength(current)
+        if (dayOfWeek !in 1..maxDay) return
         val normalized = isoDate?.trim()?.takeIf { it.isNotBlank() }
         val parsed = normalized?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() }
         if (normalized != null && parsed == null) return
@@ -2492,7 +2503,9 @@ class ProgramDetailViewModel(
         targetWeekIds: Set<String>,
         replaceWeekIds: Set<String>,
     ): Boolean {
-        val current = program.value ?: return false
+        val current = com.example.kpkn.domain.training.ProgramLineageNormalizer.ensureSessionLineageIds(
+            program.value ?: return false,
+        )
         val source = findWeek(current, sourceWeekId) ?: return false
         val targets = targetWeekIds - sourceWeekId
         if (source.sessions.isEmpty() || targets.isEmpty()) return false

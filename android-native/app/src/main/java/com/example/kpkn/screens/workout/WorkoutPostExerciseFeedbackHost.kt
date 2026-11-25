@@ -122,6 +122,7 @@ internal fun feedbackSave(
     canonicalKeyOf: (Exercise) -> String,
     onSave: (List<PostExerciseFeedback>) -> Unit,
 ): () -> Unit = {
+    val catalogIndex = com.example.kpkn.data.exercises.catalogExerciseIndex()
     onSave(
         buildPostExerciseFeedbackPayloads(
             feedbackExercises = feedbackExercises,
@@ -130,6 +131,11 @@ internal fun feedbackSave(
             linked = linked,
             canonicalKeyOf = canonicalKeyOf,
             nameOf = ::displayWorkoutExerciseName,
+            primaryMusclesOf = { ex ->
+                com.example.kpkn.domain.exercises.ExerciseMuscleResolver.effectiveMuscles(ex, catalogIndex)
+                    .filter { it.role == com.example.kpkn.data.models.MuscleRole.PRIMARY }
+                    .map { it.muscle }
+            },
         ),
     )
 }
@@ -267,8 +273,17 @@ internal fun PostExerciseFeedbackPanel(
         linkedDiscomfortsFor(feedbackExercises, postExerciseFeedbackByExerciseId, ::feedbackArticulationsOf)
     }
     var discomfortsOpen by remember { mutableStateOf(false) }
+    var limitingFactorsOpen by remember { mutableStateOf(false) }
     val focusName = remember(feedbackExercises) {
         if (feedbackExercises.size == 1) displayWorkoutExerciseName(feedbackExercises.first()) else "esta superserie"
+    }
+    val primaryMuscles = remember(feedbackExercises) {
+        val index = com.example.kpkn.data.exercises.catalogExerciseIndex()
+        feedbackExercises.flatMap { ex ->
+            com.example.kpkn.domain.exercises.ExerciseMuscleResolver.effectiveMuscles(ex, index)
+                .filter { it.role == com.example.kpkn.data.models.MuscleRole.PRIMARY }
+                .map { it.muscle }
+        }.distinct()
     }
     val save = feedbackSave(
         feedbackExercises = feedbackExercises,
@@ -287,6 +302,7 @@ internal fun PostExerciseFeedbackPanel(
             wide = true,
             compact = false,
             onOpenDiscomforts = { discomfortsOpen = true },
+            onOpenLimitingFactors = { limitingFactorsOpen = true },
         )
         if (bounded) Spacer(Modifier.weight(1f))
         if (onDefer != null) {
@@ -306,6 +322,14 @@ internal fun PostExerciseFeedbackPanel(
             nowMs = nowMs,
             animated = true,
             onDismiss = { discomfortsOpen = false },
+        )
+    }
+    if (limitingFactorsOpen) {
+        com.example.kpkn.screens.workout.components.LimitingFactorSheet(
+            draft = liveDraft,
+            focusName = focusName,
+            primaryMuscles = primaryMuscles,
+            onDismiss = { limitingFactorsOpen = false },
         )
     }
 }

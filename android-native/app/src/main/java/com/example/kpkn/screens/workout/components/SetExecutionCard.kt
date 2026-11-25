@@ -823,9 +823,15 @@ private fun quickLoadIncrementFor(
     currentSet: ExerciseSet,
     inventory: com.example.kpkn.data.models.EquipmentInventory? = null,
     customLoadStepKg: Double? = null,
+    defaultLoadStepKg: Double? = null,
 ): Double =
     customLoadStepKg?.takeIf { it.isFinite() && it in 0.1..25.0 }
-        ?: com.example.kpkn.screens.workout.calibrationIncrement(exercise, currentSet, inventory)
+        ?: com.example.kpkn.screens.workout.calibrationIncrement(
+            exercise = exercise,
+            set = currentSet,
+            inventory = inventory,
+            defaultStepKg = defaultLoadStepKg,
+        )
 
 @Composable
 internal fun WorkoutMiniTextField(
@@ -965,6 +971,10 @@ internal fun SetInputCardV2(
     availableSubTags: List<com.example.kpkn.data.models.WorkoutSubTag> = emptyList(),
     activeSubTagIds: List<String> = emptyList(),
     onToggleSubTag: ((String) -> Unit)? = null,
+    defaultLoadStepKg: Double = com.example.kpkn.domain.calculations.LoadRounding.DEFAULT_INCREMENT_KG,
+    preferredInputDockMode: com.example.kpkn.domain.workout.LiveInputDockMode =
+        com.example.kpkn.domain.workout.LiveInputDockMode.LENS,
+    onPreferredInputDockModeChange: (com.example.kpkn.domain.workout.LiveInputDockMode) -> Unit = {},
 ) {
     val context = LocalContext.current
     val liveBootCount = liveClockBootCount(context)
@@ -978,11 +988,18 @@ internal fun SetInputCardV2(
     val isNarrowScreen = LocalLivePagerShouldReflow.current
     val liveApreBlock = remember(exercise.id, exercise.apreBlock, exercise.sets) { resolveLiveApreBlock(exercise) }
     val invalidApreMarker = exercise.apreBlock != null && liveApreBlock == null
+    val resolvedLoadStepKg = quickLoadIncrementFor(
+        exercise = exercise,
+        currentSet = currentSet,
+        inventory = equipmentInventory,
+        customLoadStepKg = customLoadStepKg,
+        defaultLoadStepKg = defaultLoadStepKg,
+    )
     val apreSetNumber = liveApreBlock?.setIds?.indexOf(currentSet.id)?.takeIf { it >= 0 }?.plus(1)
     val resolvedWeightSuggestion = weightSuggestion.takeUnless { exercise.trainingMode == TrainingMode.SOLO_RPE }
-    val suggestedWeightText: String? = resolvedWeightSuggestion?.let { suggestion ->
-        suggestion.suggestedWeight.toLiveNumberString()
-    }
+    val suggestedWeightText: String? = resolvedWeightSuggestion?.suggestedWeight
+        ?.takeIf { it.isFinite() && it > 0.0 }
+        ?.toLiveNumberString()
     val completedWeightText = sessionCompletedSet
         ?.let { it.originalLoad ?: it.weight }
         ?.takeIf { it > 0.0 }
@@ -993,15 +1010,30 @@ internal fun SetInputCardV2(
         completedWeightText != null -> completedWeightText
         calibrationWeight != null -> calibrationWeight.toLiveNumberString()
         exercise.trainingMode == TrainingMode.SOLO_RPE -> ""
+        suggestedWeightText != null -> suggestedWeightText
         currentSet.targetPercentageRM != null -> {
-            val baseText = liveRmValues(exercise, currentSet, currentSet.targetPercentageRM,
-                liveRmReference(exercise, ghostSet)).weight?.toLiveNumberString()
-                ?: currentSet.weight?.takeIf { it > 0 }?.toLiveNumberString()
+            val baseText = liveRmValues(
+                exercise = exercise,
+                set = currentSet,
+                percent = currentSet.targetPercentageRM,
+                oneRm = liveRmReference(exercise, ghostSet),
+                roundStepKg = resolvedLoadStepKg,
+            ).weight?.toLiveNumberString()
+                ?: currentSet.weight?.takeIf { it > 0 }?.let {
+                    com.example.kpkn.domain.calculations.LoadRounding.roundToStep(it, resolvedLoadStepKg).toLiveNumberString()
+                }
             baseText.orEmpty()
         }
         else -> {
-            val baseText = ghostSet?.weight?.takeIf { it > 0 }?.toLiveNumberString()
-                ?: currentSet.weight?.takeIf { it > 0 }?.toLiveNumberString()
+            val baseText = ghostSet?.weight?.takeIf { it > 0 }?.let {
+                com.example.kpkn.domain.calculations.LoadRounding.roundToStep(it, resolvedLoadStepKg).toLiveNumberString()
+            }
+                ?: currentSet.weight?.takeIf { it > 0 }?.let {
+                    com.example.kpkn.domain.calculations.LoadRounding.roundToStep(it, resolvedLoadStepKg).toLiveNumberString()
+                }
+                ?: thisSessionPreviousWorkingWeight?.takeIf { it > 0.0 }?.let {
+                    com.example.kpkn.domain.calculations.LoadRounding.roundToStep(it, resolvedLoadStepKg).toLiveNumberString()
+                }
             baseText.orEmpty()
         }
     }
@@ -1217,18 +1249,18 @@ internal fun SetInputCardV2(
     var quantityError by remember(exercise.id, setIndex, sideKey) { mutableStateOf<String?>(null) }
     val pristineRmReference = liveRmReference(exercise, ghostSet)
     val prescribedRmPercent = currentSet.targetPercentageRM ?: estimatePercent1RM(currentSet.plannedRepAnchor() ?: 1)
-    val pristineRmLoadReference = liveRmValues(exercise, currentSet, prescribedRmPercent, pristineRmReference).loadReference
+    val pristineRmLoadReference = liveRmValues(exercise, currentSet, prescribedRmPercent, pristineRmReference, roundStepKg = resolvedLoadStepKg).loadReference
     val pristineRmPercent = completedWeightText?.replace(',', '.')?.toDoubleOrNull()?.let { weight ->
         pristineRmLoadReference?.let { weight / it * 100 }
     } ?: prescribedRmPercent
     var rmReference by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) { mutableStateOf(restoredDraft?.rmReference1RM ?: pristineRmReference) }
     var rmPercent by remember(exercise.id, setIndex, lockedSide, activeTag, sessionCompletedSet) {
-        val reference = liveRmValues(exercise, currentSet, pristineRmPercent, rmReference).loadReference
+        val reference = liveRmValues(exercise, currentSet, pristineRmPercent, rmReference, roundStepKg = resolvedLoadStepKg).loadReference
         val restoredWeight = draftWeightText?.replace(',', '.')?.toDoubleOrNull()?.takeIf { it.isFinite() && it > 0 }
         mutableDoubleStateOf(restoredDraft?.rmPercent ?: if (restoredWeight != null && reference != null) restoredWeight / reference * 100 else pristineRmPercent)
     }
     val activeRmWeightText = if (!supportsIndependentSides) weightText else if (selectedSide == "left") leftWeightText else rightWeightText
-    val rmValues = liveRmValues(exercise, currentSet, rmPercent, rmReference, activeRmWeightText.replace(',', '.').toDoubleOrNull())
+    val rmValues = liveRmValues(exercise, currentSet, rmPercent, rmReference, activeRmWeightText.replace(',', '.').toDoubleOrNull(), roundStepKg = resolvedLoadStepKg)
     val clearTechniqueStateOnSideChangeRef = remember { arrayOf<(() -> Unit)?>(null) }
 
     fun valueTextForSide(side: String): String = if (side == "left") leftValueText else rightValueText
@@ -1300,15 +1332,35 @@ internal fun SetInputCardV2(
     }
     val manualLoadRequiredNow = liveMode == LiveSetCardMode.SOLO_RPE || manualMarkerForSide ||
         (exercise.nativeProgressionManaged && sidePlanWeight == null && loadMode != LoadModeV2.BODYWEIGHT)
+    val suggestionCompatibleForGhost = resolvedWeightSuggestion?.let { suggestion ->
+        if (isBodyweightLoadSpectrum(loadMode)) suggestion.suggestedLoadMode == null || isBodyweightLoadSpectrum(suggestion.suggestedLoadMode)
+        else suggestion.suggestedLoadMode == null || suggestion.suggestedLoadMode == LoadModeV2.LOAD
+    } ?: false
+    val suggestedGhostWeight = resolvedWeightSuggestion?.takeIf { suggestionCompatibleForGhost }?.suggestedWeight?.takeIf { it > 0.0 }
     val plannedWeightGhost = if (manualLoadRequiredNow) {
         null
     } else if (calibrationWeight != null) {
         calibrationWeight.toLiveNumberString()
+    } else if (suggestedGhostWeight != null) {
+        suggestedGhostWeight.toLiveNumberString()
     } else if (liveMode == LiveSetCardMode.RM) {
-        rmValues.weight?.toLiveNumberString() ?: sidePlanWeight?.takeIf { it > 0 }?.toLiveNumberString()
+        rmValues.weight?.toLiveNumberString()
+            ?: sidePlanWeight?.takeIf { it > 0 }?.let {
+                com.example.kpkn.domain.calculations.LoadRounding.roundToStep(it, resolvedLoadStepKg).toLiveNumberString()
+            }
+            ?: thisSessionPreviousWorkingWeight?.takeIf { it > 0.0 }?.let {
+                com.example.kpkn.domain.calculations.LoadRounding.roundToStep(it, resolvedLoadStepKg).toLiveNumberString()
+            }
     } else {
-        sidePlanWeight?.takeIf { it > 0.0 }?.toLiveNumberString()
-            ?: ghostSet?.weight?.takeIf { it > 0.0 }?.toLiveNumberString()
+        sidePlanWeight?.takeIf { it > 0.0 }?.let {
+            com.example.kpkn.domain.calculations.LoadRounding.roundToStep(it, resolvedLoadStepKg).toLiveNumberString()
+        }
+            ?: ghostSet?.weight?.takeIf { it > 0.0 }?.let {
+                com.example.kpkn.domain.calculations.LoadRounding.roundToStep(it, resolvedLoadStepKg).toLiveNumberString()
+            }
+            ?: thisSessionPreviousWorkingWeight?.takeIf { it > 0.0 }?.let {
+                com.example.kpkn.domain.calculations.LoadRounding.roundToStep(it, resolvedLoadStepKg).toLiveNumberString()
+            }
     }
     LaunchedEffect(loadMode) {
         if (loadMode != LoadModeV2.ASSISTED) showBodyWeightPrompt = false
@@ -1972,7 +2024,7 @@ internal fun SetInputCardV2(
         UnitModeV2.CUSTOM -> "Cantidad registrada · ${exercise.customUnit?.takeIf { it.isNotBlank() } ?: "u"}"
         UnitModeV2.REPS -> "Repeticiones"
     }
-    val cardKeyboardStepKg = quickLoadIncrementFor(exercise, currentSet, equipmentInventory, customLoadStepKg)
+    val cardKeyboardStepKg = resolvedLoadStepKg
     val cardQtyKind = when {
         isTimeMode -> com.example.kpkn.domain.workout.LiveInputFieldKind.TIME_MM_SS
         resolvedPlannedUnitMode == UnitModeV2.REPS -> com.example.kpkn.domain.workout.LiveInputFieldKind.REPS
@@ -1982,11 +2034,14 @@ internal fun SetInputCardV2(
         WorkoutKeyboardField(
             label = "KG",
             title = "Carga · kg",
-            initialValue = reportWeightText.ifBlank { plannedWeightGhost.orEmpty() },
+            initialValue = reportWeightText.ifBlank {
+                plannedWeightGhost ?: thisSessionPreviousWorkingWeight?.takeIf { it > 0.0 }?.toLiveNumberString().orEmpty()
+            },
             allowDecimal = true,
             stepDelta = cardKeyboardStepKg,
             kind = com.example.kpkn.domain.workout.LiveInputFieldKind.WEIGHT,
-            previousValue = ghostSet?.weight?.takeIf { it > 0 }?.toLiveNumberString(),
+            previousValue = ghostSet?.weight?.takeIf { it > 0 }?.toLiveNumberString()
+                ?: thisSessionPreviousWorkingWeight?.takeIf { it > 0.0 }?.toLiveNumberString(),
         ),
         WorkoutKeyboardField(
             label = cardQtyUnitLabel,
@@ -2057,7 +2112,7 @@ internal fun SetInputCardV2(
     }
     fun applyRmPercent(next: Double) {
         rmPercent = if (rmValues.usesTrainingMax) next.coerceAtLeast(.01) else next.coerceIn(40.0, 100.0)
-        liveRmValues(exercise, currentSet, rmPercent, rmReference).weight?.let { updateActiveWeightText(it.toLiveNumberString()) }
+        liveRmValues(exercise, currentSet, rmPercent, rmReference, roundStepKg = resolvedLoadStepKg).weight?.let { updateActiveWeightText(it.toLiveNumberString()) }
     }
     val quickLoadOptions = quickLoadOptionsFor(
         loadMode = loadMode,
@@ -2068,7 +2123,7 @@ internal fun SetInputCardV2(
         }?.suggestedWeight,
         suggestedLoadMode = resolvedWeightSuggestion?.suggestedLoadMode,
         previousSessionFirstSetWeight = thisSessionPreviousWorkingWeight?.takeIf { it > 0.0 } ?: previousSessionFirstSetWeight,
-        loadIncrementKg = quickLoadIncrementFor(exercise, currentSet, equipmentInventory, customLoadStepKg),
+        loadIncrementKg = resolvedLoadStepKg,
         previousSessionTagLabel = activeTag,
     )
     val quickLoadsForMenu = if (liveMode == LiveSetCardMode.SOLO_RPE) emptyList() else quickLoadOptions
@@ -2361,6 +2416,87 @@ internal fun SetInputCardV2(
                 )
             }
 
+            val activeGuidedPhase = if (!showAmrapResult && !currentSet.isInlineEditorScheduledTechnique()) guidedPhase else null
+            if (activeGuidedPhase != null) {
+                val guidedTitle = when (activeGuidedPhase) {
+                    is GuidedTechniquePhase.DropSet -> "Drop-set · tramo ${activeGuidedPhase.index + 1} de ${activeGuidedPhase.total}"
+                    is GuidedTechniquePhase.RestPauseCountdown ->
+                        "${if (currentSet.isMyoReps()) "Myo-reps" else "Rest-pause"} · tramo ${activeGuidedPhase.index + 1} de ${activeGuidedPhase.total}"
+                    is GuidedTechniquePhase.RestPauseReps ->
+                        "${if (currentSet.isMyoReps()) "Myo-reps" else "Rest-pause"} · tramo ${activeGuidedPhase.index + 1} de ${activeGuidedPhase.total}"
+                }
+                val principalLine = guidedMainCapture?.let { cap ->
+                    val effortNote = cap.intensity?.let { valText -> " · ${if (cap.amrapOverride) "AMRAP" else valText.toLiveNumberString()}" }.orEmpty()
+                    "Principal: ${cap.weight.toLiveNumberString()} kg × ${cap.value.roundToInt()}$effortNote"
+                } ?: "Principal: ${reportWeightText.ifBlank { plannedWeightGhost ?: "—" }} kg × ${reportValueText.ifBlank { "—" }}"
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = cardInset, vertical = 4.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(sessionAccentColor.copy(alpha = 0.12f))
+                        .border(1.dp, sessionAccentColor.copy(alpha = 0.36f), RoundedCornerShape(12.dp))
+                        .padding(horizontal = 10.dp, vertical = 7.dp)
+                        .testTag("guided-technique-inline-banner"),
+                    verticalArrangement = Arrangement.spacedBy(3.dp),
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                    ) {
+                        Text(
+                            text = guidedTitle,
+                            style = KpknType.eyebrow.copy(fontSize = 11.sp, fontWeight = FontWeight.Bold),
+                            color = sessionAccentColor,
+                            modifier = Modifier.weight(1f),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                        Text(
+                            text = "Terminar técnica con lo realizado",
+                            style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.sp, fontWeight = FontWeight.SemiBold),
+                            color = WizardColors.textMuted,
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .clickable(role = Role.Button) { guidedSkipAction[0]?.invoke() }
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                                .testTag("guided-technique-finish"),
+                            maxLines = 1,
+                        )
+                    }
+                    Text(
+                        text = principalLine,
+                        style = TextStyle(fontFamily = WizardFonts.body, fontSize = 10.5.sp),
+                        color = WizardColors.textMuted,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (activeGuidedPhase is GuidedTechniquePhase.RestPauseCountdown) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().padding(top = 2.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        ) {
+                            Text(
+                                text = "Pausa · ${activeGuidedPhase.secondsLeft} s",
+                                style = TextStyle(fontFamily = WizardFonts.display, fontSize = 13.sp, fontWeight = FontWeight.Bold),
+                                color = WizardColors.text,
+                            )
+                            androidx.compose.material3.LinearProgressIndicator(
+                                progress = {
+                                    (activeGuidedPhase.secondsLeft.toFloat() / activeRestPauseSeconds.coerceAtLeast(1).toFloat())
+                                        .coerceIn(0f, 1f)
+                                },
+                                modifier = Modifier.weight(1f).height(4.dp).clip(RoundedCornerShape(999.dp)),
+                                color = sessionAccentColor,
+                                trackColor = Color.White.copy(alpha = 0.12f),
+                            )
+                        }
+                    }
+                }
+            }
+
             if (isTimeMode && timeModeClockFullscreen) {
                 SetCardTimeModeFace(
                     running = timerRunning,
@@ -2385,6 +2521,95 @@ internal fun SetInputCardV2(
                     modifier = Modifier.weight(1f),
                 )
             } else {
+            val activeHeroWeightText = when (activeGuidedPhase) {
+                is GuidedTechniquePhase.DropSet -> guidedDropWeightText
+                is GuidedTechniquePhase.RestPauseCountdown,
+                is GuidedTechniquePhase.RestPauseReps,
+                -> guidedMainCapture?.weight?.takeIf { it > 0.0 }?.toLiveNumberString() ?: reportWeightText
+                null -> reportWeightText
+            }
+            val activeHeroWeightGhost = if (activeGuidedPhase is GuidedTechniquePhase.DropSet) {
+                activeGuidedPhase.suggestedWeight.toLiveNumberString()
+            } else {
+                plannedWeightGhost
+            }
+            val activeHeroValueText = when (activeGuidedPhase) {
+                is GuidedTechniquePhase.DropSet -> guidedDropRepsText
+                is GuidedTechniquePhase.RestPauseCountdown,
+                is GuidedTechniquePhase.RestPauseReps,
+                -> guidedRestPauseRepsText
+                null -> reportValueText
+            }
+            val activeHeroValueGhost = when (activeGuidedPhase) {
+                is GuidedTechniquePhase.DropSet -> RestPausePlanDefaults.Reps.toString()
+                is GuidedTechniquePhase.RestPauseCountdown,
+                is GuidedTechniquePhase.RestPauseReps,
+                -> activeRestReps.toString()
+                null -> plannedValueGhost
+            }
+            val onHeroWeightChanged: (String) -> Unit = { next ->
+                when (activeGuidedPhase) {
+                    is GuidedTechniquePhase.DropSet -> guidedDropWeightText = next
+                    is GuidedTechniquePhase.RestPauseCountdown,
+                    is GuidedTechniquePhase.RestPauseReps,
+                    -> Unit
+                    null -> updateActiveWeightText(next)
+                }
+            }
+            val onHeroValueChanged: (String) -> Unit = { next ->
+                when (activeGuidedPhase) {
+                    is GuidedTechniquePhase.DropSet -> guidedDropRepsText = next
+                    is GuidedTechniquePhase.RestPauseCountdown,
+                    is GuidedTechniquePhase.RestPauseReps,
+                    -> guidedRestPauseRepsText = next
+                    null -> updateActiveValueText(next)
+                }
+            }
+            val heroKeyboardFields = when (activeGuidedPhase) {
+                is GuidedTechniquePhase.DropSet -> listOf(
+                    WorkoutKeyboardField(
+                        label = "KG",
+                        title = "Carga drop · kg",
+                        initialValue = guidedDropWeightText.ifBlank { activeHeroWeightGhost.orEmpty() },
+                        allowDecimal = true,
+                        stepDelta = cardKeyboardStepKg,
+                        kind = com.example.kpkn.domain.workout.LiveInputFieldKind.WEIGHT,
+                    ),
+                    WorkoutKeyboardField(
+                        label = "REPS",
+                        title = "Repeticiones drop",
+                        initialValue = guidedDropRepsText,
+                        allowDecimal = false,
+                        kind = com.example.kpkn.domain.workout.LiveInputFieldKind.REPS,
+                    ),
+                )
+                is GuidedTechniquePhase.RestPauseCountdown,
+                is GuidedTechniquePhase.RestPauseReps,
+                -> listOf(
+                    WorkoutKeyboardField(
+                        label = "REPS",
+                        title = "Repeticiones tramo",
+                        initialValue = guidedRestPauseRepsText,
+                        allowDecimal = false,
+                        kind = com.example.kpkn.domain.workout.LiveInputFieldKind.REPS,
+                    ),
+                )
+                null -> cardKeyboardFields
+            }
+            val onHeroApplyFields: (List<String>) -> Unit = { values ->
+                when (activeGuidedPhase) {
+                    is GuidedTechniquePhase.DropSet -> {
+                        guidedDropWeightText = values.getOrElse(0) { guidedDropWeightText }
+                        guidedDropRepsText = values.getOrElse(1) { guidedDropRepsText }
+                    }
+                    is GuidedTechniquePhase.RestPauseCountdown,
+                    is GuidedTechniquePhase.RestPauseReps,
+                    -> {
+                        guidedRestPauseRepsText = values.getOrElse(0) { guidedRestPauseRepsText }
+                    }
+                    null -> applyCardKeyboardFields(values)
+                }
+            }
             if (legacyModeLayout) {
                 LegacyLoadHero(
                     plateHint = plateHint,
@@ -2392,23 +2617,25 @@ internal fun SetInputCardV2(
                     cardInset = cardInset,
                     tightCard = tightCard,
                     roomExtra = roomExtra,
-                    reportWeightText = reportWeightText,
-                    plannedWeightGhost = plannedWeightGhost,
+                    reportWeightText = activeHeroWeightText,
+                    plannedWeightGhost = activeHeroWeightGhost,
                     exercise = exercise,
                     setIndex = setIndex,
                     currentSet = currentSet,
                     numericKeyboardTarget = numericKeyboardTarget,
                     onNumericKeyboardTargetChange = { numericKeyboardTarget = it },
-                    cardKeyboardFields = cardKeyboardFields,
-                    onApplyCardKeyboardFields = { values -> applyCardKeyboardFields(values) },
+                    cardKeyboardFields = heroKeyboardFields,
+                    onApplyCardKeyboardFields = onHeroApplyFields,
                     onWeightKeyboardApplied = { typed ->
-                        loadMode = loadModeAfterEnteredWeight(loadMode, typed)
-                        updateActiveWeightText(typed)
+                        if (activeGuidedPhase == null) {
+                            loadMode = loadModeAfterEnteredWeight(loadMode, typed)
+                        }
+                        onHeroWeightChanged(typed)
                     },
                     equipmentInventory = equipmentInventory,
                     customLoadStepKg = customLoadStepKg,
                     onCustomLoadStepChange = onCustomLoadStepChange,
-                    onUpdateActiveWeightText = { updateActiveWeightText(it) },
+                    onUpdateActiveWeightText = onHeroWeightChanged,
                     bodyWeightText = bodyWeightText,
                     liveMode = liveMode,
                     rmValues = rmValues,
@@ -2437,12 +2664,16 @@ internal fun SetInputCardV2(
                     },
                     onRmReferenceChanged = { reference ->
                         rmReference = reference
-                        liveRmValues(exercise, currentSet, rmPercent, reference).weight?.let { updateActiveWeightText(it.toLiveNumberString()) }
+                        liveRmValues(exercise, currentSet, rmPercent, reference, roundStepKg = resolvedLoadStepKg).weight?.let { updateActiveWeightText(it.toLiveNumberString()) }
                     },
                     prLabel = exercise.prFor1RM?.takeIf { rmReference == pristineRmReference }?.let {
                         "PR: ${it.weight.toLiveNumberString()} kg × ${it.reps}"
                     },
                     modeButton = renderModeLoadButton,
+                    resolvedLoadStepKg = resolvedLoadStepKg,
+                    previousSessionLoadHint = thisSessionPreviousWorkingWeight,
+                    preferredInputDockMode = preferredInputDockMode,
+                    onPreferredInputDockModeChange = onPreferredInputDockModeChange,
                 )
             }
 
@@ -2462,12 +2693,12 @@ internal fun SetInputCardV2(
                         sideKey = sideKey,
                         supportsIndependentSides = supportsIndependentSides,
                         selectedSide = selectedSide,
-                        leftValueGhost = leftValueGhost,
-                        rightValueGhost = rightValueGhost,
-                        plannedValueGhost = plannedValueGhost,
-                        reportValueText = reportValueText,
+                        leftValueGhost = if (activeGuidedPhase != null) activeHeroValueGhost else leftValueGhost,
+                        rightValueGhost = if (activeGuidedPhase != null) activeHeroValueGhost else rightValueGhost,
+                        plannedValueGhost = activeHeroValueGhost,
+                        reportValueText = activeHeroValueText,
                         isFailedSet = isFailedSet,
-                        isAmrap = isAmrap,
+                        isAmrap = isAmrap && activeGuidedPhase == null,
                         amrapMinimumReps = amrapMinimumReps,
                         plannedRepRange = plannedRepRange,
                         plannedTarget = plannedTarget,
@@ -2485,7 +2716,7 @@ internal fun SetInputCardV2(
                         onDismissDetails = { showFeedbackExtrasPopup = false },
                         onApplyVideoResult = { result ->
                             if (sessionCompletedSet == null && resolvedPlannedUnitMode == UnitModeV2.REPS && !isFailedSet) {
-                                updateActiveValueText(result.reps.toString())
+                                onHeroValueChanged(result.reps.toString())
                                 repsWheelCenterIndex.intValue = result.reps
                                 // El centro viejo no puede sobrescribir el borrador tras «Usar».
                                 repsInputGeneration++
@@ -2505,9 +2736,9 @@ internal fun SetInputCardV2(
                         onOpenAnalysis = onOpenAnalysis,
                         onRetryAnalysis = onRetryAnalysis,
                         onToggleTimer = { toggleSetTimer() },
-                        cardKeyboardFields = cardKeyboardFields,
-                        onApplyCardKeyboardFields = { values -> applyCardKeyboardFields(values) },
-                        onUpdateActiveValueText = { value -> updateActiveValueText(value) },
+                        cardKeyboardFields = heroKeyboardFields,
+                        onApplyCardKeyboardFields = onHeroApplyFields,
+                        onUpdateActiveValueText = { value -> onHeroValueChanged(value) },
                         onManualTimeEntered = { seconds ->
                             if (!timerState.running) {
                                 timerState = LiveSetClockState(accumulatedMs = seconds * 1_000L)
@@ -2520,24 +2751,28 @@ internal fun SetInputCardV2(
                         hapticFeedbackEnabled = hapticFeedbackEnabled,
                         reducedMotion = reducedMotion,
                         detailSheetHost = renderSetDetailSheetHost,
+                        preferredInputDockMode = preferredInputDockMode,
+                        onPreferredInputDockModeChange = onPreferredInputDockModeChange,
                         modifier = Modifier.fillMaxWidth().padding(top = roomExtra * .1f)
                             .voiceFlightTarget(voiceFieldTargetKey(exercise.id, setIndex, VoiceFlightField.QUANTITY)),
                     )
-                    EffortBlock(
-                        effortScale = effortScale,
-                        selectedIndex = effortIndex,
-                        onSelect = { index -> onEffortSelected(index) },
-                        compact = tightCard,
-                        exerciseId = exercise.id,
-                        setIndex = setIndex,
-                        hapticFeedbackEnabled = hapticFeedbackEnabled,
-                        animate = effortAnimate && effortFireSecondsOverride == null,
-                        onClear = {
-                            effortIndex = null
-                            intensityText = ""
-                            reachedFailure = false
-                        },
-                    )
+                    if (activeGuidedPhase == null) {
+                        EffortBlock(
+                            effortScale = effortScale,
+                            selectedIndex = effortIndex,
+                            onSelect = { index -> onEffortSelected(index) },
+                            compact = tightCard,
+                            exerciseId = exercise.id,
+                            setIndex = setIndex,
+                            hapticFeedbackEnabled = hapticFeedbackEnabled,
+                            animate = effortAnimate && effortFireSecondsOverride == null,
+                            onClear = {
+                                effortIndex = null
+                                intensityText = ""
+                                reachedFailure = false
+                            },
+                        )
+                    }
                     if (availableSubTags.isNotEmpty() || activeSubTagIds.isNotEmpty()) {
                         Row(
                             modifier = Modifier
@@ -2587,23 +2822,25 @@ internal fun SetInputCardV2(
                             }
                         }
                     }
-                    LegacyDetailRow(
-                        partials = partialSets.sum().coerceAtLeast(0),
-                        romValue = romValue,
-                        onRomChange = { romValue = it },
-                        assistedReps = assistedRepsValue,
-                        tightCard = tightCard,
-                        quantityError = quantityError,
-                        effortHintVisible = effortHintVisible,
-                        hasChosenReportedEffort = hasChosenReportedEffort,
-                        reducedMotion = reducedMotion,
-                        hapticFeedbackEnabled = hapticFeedbackEnabled,
-                        onOpenDetails = { showFeedbackExtrasPopup = true },
-                        detailSheetHost = renderSetDetailSheetHost,
-                        plannedRom = currentSet.plannedRom ?: exercise.plannedRom,
-                        recordedRomTarget = recordedRomTarget,
-                        onRecordedRomTargetChange = { recordedRomTarget = it },
-                    )
+                    if (activeGuidedPhase == null) {
+                        LegacyDetailRow(
+                            partials = partialSets.sum().coerceAtLeast(0),
+                            romValue = romValue,
+                            onRomChange = { romValue = it },
+                            assistedReps = assistedRepsValue,
+                            tightCard = tightCard,
+                            quantityError = quantityError,
+                            effortHintVisible = effortHintVisible,
+                            hasChosenReportedEffort = hasChosenReportedEffort,
+                            reducedMotion = reducedMotion,
+                            hapticFeedbackEnabled = hapticFeedbackEnabled,
+                            onOpenDetails = { showFeedbackExtrasPopup = true },
+                            detailSheetHost = renderSetDetailSheetHost,
+                            plannedRom = currentSet.plannedRom ?: exercise.plannedRom,
+                            recordedRomTarget = recordedRomTarget,
+                            onRecordedRomTargetChange = { recordedRomTarget = it },
+                        )
+                    }
                     modeResultContent?.invoke(liveMode)
                 }
             }
@@ -3112,7 +3349,7 @@ internal fun SetInputCardV2(
                 rows: List<DropSetEntry> = emptyList()): WorkoutTechniqueProgressDraft = WorkoutTechniqueProgressDraft(
                 kind = WorkoutTechniqueDraftKind.GUIDED_DROP, phaseIndex = index, phaseCount = total,
                 dropRows = rows.map { DropSetData(it.weight, it.reps) },
-                dropWeightText = suggestDropWeightForThreeReps(capture.weight, capture.value.roundToInt(), index, guide.dropPcts, capture.loadMode).toLiveNumberString(),
+                dropWeightText = suggestDropWeightForThreeReps(capture.weight, capture.value.roundToInt(), index, guide.dropPcts, capture.loadMode, resolvedLoadStepKg).toLiveNumberString(),
                 dropRepsText = RestPausePlanDefaults.Reps.toString())
 
             fun beginDropPhase(index: Int, total: Int, capture: GuidedMainCapture, guide: PlannedTechniqueGuide) {
@@ -3122,6 +3359,7 @@ internal fun SetInputCardV2(
                     dropIndex = index,
                     dropPcts = guide.dropPcts,
                     loadMode = capture.loadMode,
+                    stepKg = resolvedLoadStepKg,
                 )
                 guidedDropWeightText = suggested.toLiveNumberString()
                 guidedDropRepsText = RestPausePlanDefaults.Reps.toString()
@@ -3652,6 +3890,7 @@ internal fun SetInputCardV2(
                         if (enabled) dropSetEnabled = false
                     },
                     activeRestPauseSeconds = activeRestPauseSeconds,
+                    resolvedLoadStepKg = resolvedLoadStepKg,
                     onOpenPrMedia = { cardFace = SetCardFace.ExerciseMedia },
                     onCompleteTechniques = { drops, pauses ->
                         dropSetEnabled = drops.isNotEmpty() || dropSetEnabled
@@ -3751,44 +3990,6 @@ private fun BoxScope.SetInputCardGuidedOverlays(
             Text("Terminar técnica con lo realizado")
         }
     }
-    var heldGuidedPhase by remember { mutableStateOf(guidedPhaseNow) }
-    if (guidedPhaseNow != null) heldGuidedPhase = guidedPhaseNow
-    AnimatedVisibility(
-        visible = !showAmrapResult && guidedPhaseNow != null && !isInlineEditorScheduledTechnique,
-        modifier = modifier,
-        enter = if (reducedMotion) androidx.compose.animation.EnterTransition.None
-        else fadeIn(tween(220, easing = FastOutSlowInEasing)) + slideInVertically(tween(280, easing = FastOutSlowInEasing)) { it / 6 },
-        exit = if (reducedMotion) androidx.compose.animation.ExitTransition.None
-        else fadeOut(tween(160, easing = FastOutSlowInEasing)) + slideOutVertically(tween(220, easing = FastOutSlowInEasing)) { it / 6 },
-    ) {
-        heldGuidedPhase?.let { shownPhase ->
-            BoxWithConstraints(modifier = Modifier.matchParentSize()) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                        .heightIn(max = (maxHeight - GuidedPanelTopReserve).coerceAtLeast(160.dp)),
-                ) {
-                    GuidedTechniquePanel(
-                        phase = shownPhase,
-                        loadMode = loadMode,
-                        restPauseStyle = if (isMyoReps) "myo" else null,
-                        pauseSeconds = activeRestPauseSeconds,
-                        targetRestReps = activeRestReps,
-                        accentColor = sessionAccentColor,
-                        dropWeightText = guidedDropWeightText,
-                        dropRepsText = guidedDropRepsText,
-                        restPauseRepsText = guidedRestPauseRepsText,
-                        onDropWeightChange = onDropWeightChange,
-                        onDropRepsChange = onDropRepsChange,
-                        onRestPauseRepsChange = onRestPauseRepsChange,
-                        onSkipTechnique = onSkipGuided,
-                        principal = principalSummary,
-                    )
-                }
-            }
-        }
-    }
 }
 
 @Composable
@@ -3834,6 +4035,7 @@ private fun SetInputCardBackFace(
     onDropEnabledChange: (Boolean) -> Unit,
     onRestPauseEnabledChange: (Boolean) -> Unit,
     activeRestPauseSeconds: Int,
+    resolvedLoadStepKg: Double,
     onOpenPrMedia: () -> Unit,
     onCompleteTechniques: (List<DropSetData>, List<RestPauseData>) -> Unit,
 ) {
@@ -3891,7 +4093,7 @@ private fun SetInputCardBackFace(
                     showPrMediaShortcut = LiveSetPrPolicy.shouldShowMediaShortcut(isPrSeries),
                     onOpenPrMedia = onOpenPrMedia,
                     setNumber = setIndex + 1,
-                    loadStepKg = quickLoadIncrementFor(exercise, currentSet),
+                    loadStepKg = resolvedLoadStepKg,
                     onCompleteTechniques = onCompleteTechniques,
                 )
             }
@@ -4048,6 +4250,11 @@ private fun LegacyLoadHero(
     equipmentInventory: com.example.kpkn.data.models.EquipmentInventory? = null,
     customLoadStepKg: Double? = null,
     onCustomLoadStepChange: ((Double?) -> Unit)? = null,
+    resolvedLoadStepKg: Double = com.example.kpkn.domain.calculations.LoadRounding.DEFAULT_INCREMENT_KG,
+    previousSessionLoadHint: Double? = null,
+    preferredInputDockMode: com.example.kpkn.domain.workout.LiveInputDockMode =
+        com.example.kpkn.domain.workout.LiveInputDockMode.LENS,
+    onPreferredInputDockModeChange: (com.example.kpkn.domain.workout.LiveInputDockMode) -> Unit = {},
 ) {
     // `.v2-load` del prototipo 02: «CARGA» (o «LASTRE» / «AYUDA EXTERNA») con el modo a la derecha, la cifra en Syne con «kg» pegado y
     // −/+ en cuadros de 36, y debajo la referencia con el icono de historial. Filete inferior al 6 %.
@@ -4086,7 +4293,7 @@ private fun LegacyLoadHero(
             letterSpacing = (-1.5).sp,
             fontFeatureSettings = "'lnum' 1, 'tnum' 1",
         )
-        val increment = quickLoadIncrementFor(exercise, currentSet, equipmentInventory, customLoadStepKg)
+        val increment = resolvedLoadStepKg
         if (loadMode == LoadModeV2.BODYWEIGHT) {
             Row(
                 modifier = Modifier
@@ -4183,14 +4390,17 @@ private fun LegacyLoadHero(
             }
         }
         if (numericKeyboardTarget == "weight") {
-            val initialDockWeight = reportWeightText.ifBlank { plannedWeightGhost.orEmpty() }
+            val initialDockWeight = reportWeightText.ifBlank {
+                plannedWeightGhost ?: previousSessionLoadHint?.takeIf { it > 0.0 }?.toLiveNumberString().orEmpty()
+            }
             val weightOnlyField = WorkoutKeyboardField(
                 label = "KG",
                 title = "Carga · kg",
                 initialValue = initialDockWeight,
                 allowDecimal = true,
                 kind = com.example.kpkn.domain.workout.LiveInputFieldKind.WEIGHT,
-                previousValue = ghostSet?.weight?.takeIf { it > 0 }?.toLiveNumberString(),
+                previousValue = ghostSet?.weight?.takeIf { it > 0 }?.toLiveNumberString()
+                    ?: previousSessionLoadHint?.takeIf { it > 0.0 }?.toLiveNumberString(),
                 stepDelta = increment,
             )
             WorkoutNumericKeyboardDialog(
@@ -4200,10 +4410,11 @@ private fun LegacyLoadHero(
                 fields = listOf(weightOnlyField),
                 initialFieldIndex = 0,
                 showFieldTabs = false,
-                initialMode = com.example.kpkn.domain.workout.LiveInputDockMode.LENS,
+                initialMode = preferredInputDockMode,
                 allowCustomLoadStep = true,
                 loadStepKg = increment,
                 onLoadStepKgChange = { onCustomLoadStepChange?.invoke(it) },
+                onModeChange = onPreferredInputDockModeChange,
                 onDismiss = { onNumericKeyboardTargetChange(null) },
                 onApply = { typed ->
                     onWeightKeyboardApplied(typed)
@@ -4309,6 +4520,10 @@ private fun SetDetailSheetHost(
     availableSubTags: List<com.example.kpkn.data.models.WorkoutSubTag> = emptyList(),
     activeSubTagIds: List<String> = emptyList(),
     onToggleSubTag: ((String) -> Unit)? = null,
+    defaultLoadStepKg: Double = com.example.kpkn.domain.calculations.LoadRounding.DEFAULT_INCREMENT_KG,
+    preferredInputDockMode: com.example.kpkn.domain.workout.LiveInputDockMode =
+        com.example.kpkn.domain.workout.LiveInputDockMode.LENS,
+    onPreferredInputDockModeChange: (com.example.kpkn.domain.workout.LiveInputDockMode) -> Unit = {},
 ) {
     if (!visible) return
     LiveSetDetailSheet(
@@ -4456,6 +4671,9 @@ private fun ValueStepperBlock(
     reducedMotion: Boolean,
     detailSheetHost: @Composable () -> Unit,
     modifier: Modifier = Modifier,
+    preferredInputDockMode: com.example.kpkn.domain.workout.LiveInputDockMode =
+        com.example.kpkn.domain.workout.LiveInputDockMode.LENS,
+    onPreferredInputDockModeChange: (com.example.kpkn.domain.workout.LiveInputDockMode) -> Unit = {},
 ) {
     val density = LocalDensity.current
     Column(
@@ -4674,6 +4892,8 @@ private fun ValueStepperBlock(
                 initialFieldIndex = 1,
                 onApplyFields = onApplyCardKeyboardFields,
                 enabled = !isFailedSet && !timerRunning,
+                preferredInputDockMode = preferredInputDockMode,
+                onPreferredInputDockModeChange = onPreferredInputDockModeChange,
                 onValueChange = {
                     onUpdateActiveValueText(it)
                     if (isTimeMode) {
@@ -4724,8 +4944,9 @@ private fun ValueStepperBlock(
                     fields = listOf(repsOnlyField),
                     initialFieldIndex = 0,
                     showFieldTabs = false,
-                    initialMode = com.example.kpkn.domain.workout.LiveInputDockMode.KEYPAD,
+                    initialMode = preferredInputDockMode,
                     allowCustomLoadStep = false,
+                    onModeChange = onPreferredInputDockModeChange,
                     onDismiss = { onNumericKeyboardTargetChange(null) },
                     onApply = { typed ->
                         onUpdateActiveValueText(typed)
@@ -4797,6 +5018,9 @@ private fun Ref02QuantityInput(
     onApplyFields: ((List<String>) -> Unit)? = null,
     contextValues: List<Pair<String, String>> = emptyList(),
     activeContextIndex: Int? = null,
+    preferredInputDockMode: com.example.kpkn.domain.workout.LiveInputDockMode =
+        com.example.kpkn.domain.workout.LiveInputDockMode.LENS,
+    onPreferredInputDockModeChange: (com.example.kpkn.domain.workout.LiveInputDockMode) -> Unit = {},
 ) {
     var keyboardOpen by remember(unit, allowColon) { mutableStateOf(false) }
     val style = TextStyle(
@@ -4883,10 +5107,11 @@ private fun Ref02QuantityInput(
             fields = listOf(qtyOnlyField),
             initialFieldIndex = 0,
             showFieldTabs = false,
-            initialMode = com.example.kpkn.domain.workout.LiveInputDockMode.LENS,
+            initialMode = preferredInputDockMode,
             allowCustomLoadStep = false,
             contextValues = contextValues,
             activeContextIndex = activeContextIndex,
+            onModeChange = onPreferredInputDockModeChange,
             onDismiss = { keyboardOpen = false },
             onApply = onValueChange,
         )

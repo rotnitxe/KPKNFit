@@ -188,6 +188,7 @@ internal fun WorkoutNumericKeyboardDialog(
     onApplyFields: ((List<String>) -> Unit)? = null,
     onDismiss: () -> Unit,
     onApply: (String) -> Unit,
+    onModeChange: ((LiveInputDockMode) -> Unit)? = null,
 ) {
     val effectiveFields = remember(fields, title, initialValue, allowDecimal, allowColon) {
         if (fields.isNotEmpty()) fields
@@ -477,6 +478,7 @@ internal fun WorkoutNumericKeyboardDialog(
                                     .clickable(role = Role.RadioButton) {
                                         currentMode = LiveInputDockMode.LENS
                                         stepDrawerOpen = false
+                                        onModeChange?.invoke(LiveInputDockMode.LENS)
                                     }
                                     .padding(horizontal = 8.dp, vertical = 3.dp),
                                 contentAlignment = Alignment.Center,
@@ -500,6 +502,7 @@ internal fun WorkoutNumericKeyboardDialog(
                                         currentMode = LiveInputDockMode.KEYPAD
                                         stepDrawerOpen = false
                                         updateDraft(activeDraft.copy(pendingReplace = true))
+                                        onModeChange?.invoke(LiveInputDockMode.KEYPAD)
                                     }
                                     .padding(horizontal = 8.dp, vertical = 3.dp),
                                 contentAlignment = Alignment.Center,
@@ -535,7 +538,7 @@ internal fun WorkoutNumericKeyboardDialog(
                             horizontalArrangement = Arrangement.spacedBy(5.dp),
                             verticalArrangement = Arrangement.spacedBy(5.dp),
                         ) {
-                            LiveInputDockEngine.PRESET_LOAD_STEPS_KG.forEach { preset ->
+                            (listOf(0.25) + LiveInputDockEngine.PRESET_LOAD_STEPS_KG).forEach { preset ->
                                 val isSelected = !showingCustomInput && abs(currentLoadStepKg - preset) < 1e-4
                                 val label = if (preset % 1.0 == 0.0) "${preset.toInt()}" else preset.toString().replace('.', ',')
                                 Box(

@@ -85,19 +85,37 @@ val DAYS_OF_WEEK = listOf(
     DayInfo(7, "Domingo", "Dom"),
 )
 
-fun getDynamicDays(startDay: Int, weekDays: Int): List<DayInfo> {
-    val safeDayIndex = if (startDay in 1..7) startDay - 1 else 0
-    val rotated = DAYS_OF_WEEK.drop(safeDayIndex) + DAYS_OF_WEEK.take(safeDayIndex)
-    val week = rotated.take(7)
-
-    if (weekDays <= 7) return week
-
-    val extras = mutableListOf<DayInfo>()
-    for (i in 7 until weekDays) {
-        val base = DAYS_OF_WEEK[i % 7]
-        extras.add(DayInfo(i, "${base.name} ${i / 7 + 1}", "${base.short}${i / 7 + 1}"))
+fun getDynamicDays(
+    startDay: Int,
+    weekDays: Int,
+    anchorDate: LocalDate? = null,
+    referenceDate: LocalDate = LocalDate.now(),
+): List<DayInfo> {
+    if (weekDays <= 7) {
+        val safeDayIndex = if (startDay in 1..7) startDay - 1 else 0
+        val rotated = DAYS_OF_WEEK.drop(safeDayIndex) + DAYS_OF_WEEK.take(safeDayIndex)
+        return rotated.take(weekDays.coerceIn(1, 7))
     }
-    return week + extras
+    val cycleLen = weekDays.coerceIn(
+        com.example.kpkn.domain.training.CycleScheduleEngine.MIN_CYCLE_DAYS,
+        com.example.kpkn.domain.training.CycleScheduleEngine.MAX_CYCLE_DAYS,
+    )
+    if (anchorDate != null) {
+        return com.example.kpkn.domain.training.CycleScheduleEngine.projectedCycleDates(
+            anchorDate = anchorDate,
+            cycleLengthDays = cycleLen,
+            referenceDate = referenceDate,
+        ).map { slot ->
+            DayInfo(
+                id = slot.dayIndex,
+                name = com.example.kpkn.domain.training.CycleScheduleEngine.dayFullLabel(slot.dayIndex, slot.date),
+                short = com.example.kpkn.domain.training.CycleScheduleEngine.dayShortLabel(slot.dayIndex),
+            )
+        }
+    }
+    return (1..cycleLen).map { dayIndex ->
+        DayInfo(id = dayIndex, name = "Día $dayIndex", short = "D$dayIndex")
+    }
 }
 
 private data class DaySessionEntry(
@@ -160,11 +178,18 @@ fun DayView(
     /** «Sesión» en cada descanso, también en los tramos plegados (la rutina, s-simple). */
     addSessionOnRest: Boolean = false,
     highEnergyDay: Int? = null,
+    onReanchorTodayAsDay: ((Int) -> Unit)? = null,
     modifier: Modifier = Modifier,
 ) {
     val startDay = program.startDay ?: 1
-    val weekDays = program.weekDays ?: 7
-    val days = remember(startDay, weekDays) { getDynamicDays(startDay, weekDays) }
+    val cycleLength = com.example.kpkn.domain.training.CycleScheduleEngine.normalizedCycleLength(program)
+    val isRollingCycle = cycleLength > 7
+    val anchorDate = remember(program, isRollingCycle) {
+        if (isRollingCycle) com.example.kpkn.domain.training.CycleScheduleEngine.effectiveAnchorDate(program) else null
+    }
+    val days = remember(startDay, cycleLength, anchorDate) {
+        getDynamicDays(startDay, cycleLength, anchorDate)
+    }
     var dayLayout by remember(sessions) {
         mutableStateOf(
             sessions.map { session ->
@@ -217,9 +242,18 @@ fun DayView(
     }
 
     val todayIso = remember { LocalDate.now().toString() }
-    val todayDayId = remember(trainingDayDates, days) {
-        trainingDayDates.entries.firstOrNull { it.value == todayIso }?.key
-            ?: LocalDate.now().dayOfWeek.value.takeIf { dow -> days.any { it.id == dow } }
+    val todayDayId = remember(trainingDayDates, days, isRollingCycle, anchorDate) {
+        when {
+            isRollingCycle && anchorDate != null -> {
+                com.example.kpkn.domain.training.CycleScheduleEngine.dayIndexForDate(
+                    anchorDate = anchorDate,
+                    targetDate = LocalDate.now(),
+                    cycleLengthDays = cycleLength,
+                )
+            }
+            else -> trainingDayDates.entries.firstOrNull { it.value == todayIso }?.key
+                ?: LocalDate.now().dayOfWeek.value.takeIf { dow -> days.any { it.id == dow } }
+        }
     }
     // Cada tarjeta de sesión se despliega en su sitio.
     var expandedSessions by rememberSaveable(selectedWeekId, stateSaver = ExpandedSessionsSaver) { mutableStateOf(emptySet<String>()) }
@@ -366,9 +400,20 @@ fun DayView(
         dragState = DayDragState()
     }
 
-    // La fecha de cada día: la de su semana o, si no la trae, la del calendario. Con ella salen las filas de la agenda.
+    // La fecha de cada día: la de su semana, ciclo rotativo anclado, o calendario proyectado.
+    val rollingDates: Map<Int, String> = remember(isRollingCycle, anchorDate, cycleLength) {
+        if (isRollingCycle && anchorDate != null) {
+            com.example.kpkn.domain.training.CycleScheduleEngine.projectedCycleDates(
+                anchorDate = anchorDate,
+                cycleLengthDays = cycleLength,
+                referenceDate = LocalDate.now(),
+            ).associate { it.dayIndex to it.date.toString() }
+        } else {
+            emptyMap()
+        }
+    }
     val scheduledDates: Map<Int, String?> = days.associate { day ->
-        day.id to (trainingDayDates[day.id] ?: projectedWeekDates[day.id]?.toString())
+        day.id to (trainingDayDates[day.id] ?: projectedWeekDates[day.id]?.toString() ?: rollingDates[day.id])
     }
     val dayUis = days.map { day ->
         val scheduledDate = scheduledDates[day.id]
@@ -402,7 +447,16 @@ fun DayView(
                 ),
             )
         }
-        if (!isCalendarized && dayId != startDay) {
+        if (isRollingCycle && onReanchorTodayAsDay != null) {
+            add(
+                ProgramAnchoredMenuItem(
+                    label = "Marcar hoy como Día $dayId",
+                    onClick = { onReanchorTodayAsDay(dayId) },
+                    icon = KpknLineIcons.Flag,
+                    dividerBefore = isNotEmpty(),
+                ),
+            )
+        } else if (!isCalendarized && dayId != startDay) {
             add(
                 ProgramAnchoredMenuItem(
                     label = "Empezar la semana este día",
@@ -535,7 +589,7 @@ fun DayView(
     if (!isCalendarized) {
         pendingStartDay?.let { dayId ->
             ProgramStartDayDialog(
-                dayName = DAYS_OF_WEEK.firstOrNull { it.id == dayId }?.name ?: "este día",
+                dayName = days.firstOrNull { it.id == dayId }?.name ?: "Día $dayId",
                 scope = startDayScope,
                 sessionMode = startDaySessionMode,
                 onScopeChange = { startDayScope = it },

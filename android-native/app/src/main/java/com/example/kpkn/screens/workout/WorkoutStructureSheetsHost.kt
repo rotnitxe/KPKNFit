@@ -1058,9 +1058,9 @@ internal fun WorkoutStructureSheetsHost(
             onDismiss = { viewModel.dismissPendingReplacementPersistencePrompt() }, tag = "live-replace-scope", footer = null) { close ->
             com.example.kpkn.screens.workout.components.LiveSheetSubtitle(
                 if (prompt.sourceLogicalLineageId == null) {
-                    "Este ejercicio no tiene un linaje verificable. Guardar en el programa solo cambiará la sesión de origen. Lo ya registrado se conserva."
+                    "Guardar en el programa actualiza esta sesión dentro de tu plan. Lo ya registrado se conserva."
                 } else {
-                    "Guardar en el programa actualiza esta sesión y sus futuras ocurrencias del mismo origen y variante. Lo ya registrado se conserva."
+                    "Guardar en el programa actualiza esta sesión y sus futuras ocurrencias equivalentes. Lo ya registrado se conserva."
                 }
             )
             options.filter { it != ReplacementPersistenceScopeV2.MESOCYCLE_MATCHING }.forEach { scope ->
@@ -1142,9 +1142,9 @@ internal fun WorkoutStructureSheetsHost(
                             }
                             is PendingStructuralChange.UpdateExercisePrescription -> {
                                 if (change.sourceLogicalLineageId == null) {
-                                    "Se actualizó la prescripción de «${change.exerciseName}». Esta sesión no tiene un linaje verificable; al guardar en el programa solo se cambiará la sesión de origen."
+                                    "Se actualizó la prescripción de «${change.exerciseName}». ¿Cómo quieres guardar este cambio en tu programa?"
                                 } else {
-                                    "Se actualizó la prescripción de «${change.exerciseName}». ¿Quieres aplicar este cambio a las futuras ocurrencias del mismo origen y variante?"
+                                    "Se actualizó la prescripción de «${change.exerciseName}». ¿Quieres aplicar este cambio a las futuras ocurrencias equivalentes?"
                                 }
                             }
                         }

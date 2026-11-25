@@ -325,6 +325,9 @@ internal fun WorkoutV2Body(
             val paceWork = remember(visibleExercises, uiState.completedSets, uiState.omittedSetKeys) {
                 sessionPaceWork(visibleExercises, uiState.completedSets, uiState.omittedSetKeys)
             }
+            val remainingPlannedRestSeconds = remember(visibleExercises, uiState.completedSets, uiState.omittedSetKeys) {
+                remainingPlannedRestSeconds(visibleExercises, uiState.completedSets, uiState.omittedSetKeys)
+            }
             val isCurrentCardio = liveSessionView != LiveSessionView.LIST && currentExercise?.let { cardioDetailsOrNull(it) != null } == true
             WorkoutHeaderBar(
                 exerciseName = headerExerciseName,
@@ -409,6 +412,8 @@ internal fun WorkoutV2Body(
                 cardioLayout = isCurrentCardio,
                 exerciseContextAlpha = if (isCurrentCardio && cardioLocked) 0.5f else 1f,
                 glassCapsule = liveSessionView == LiveSessionView.LIST,
+                remainingPlannedRestSeconds = remainingPlannedRestSeconds,
+                onOpenExerciseOptions = currentExercise?.let { ex -> { onOpenExerciseOptions(ex.id) } },
             )
             }
             Spacer(Modifier.height(0.dp))
@@ -1883,7 +1888,27 @@ internal fun WorkoutV2Body(
                                 // Posición de la página respecto de la actual: > 0 las siguientes (en la pila), < 0 las anteriores.
                                 val stackOffset = (page - pagerState.currentPage) - pagerState.currentPageOffsetFraction
                                 val stackExercise = pageSpec.exerciseId?.let { id -> visibleExercises.firstOrNull { it.id == id } } ?: currentExercise
-                                val stackLabel = liveCardStackLabel(pageSpec, stackExercise)
+                                val stackLoadStepKg = pageSpec.takeIf { it.type == LivePageType.NORMAL }?.let { normalPage ->
+                                    val stackSet = stackExercise.sets.getOrNull(normalPage.setIndex)
+                                    stackSet?.let { set ->
+                                        com.example.kpkn.screens.workout.calibrationIncrement(
+                                            exercise = stackExercise,
+                                            set = set,
+                                            inventory = settings.resolvedEquipmentInventory(),
+                                            customIncrementsKg = settings.exerciseLoadIncrementsKg,
+                                            defaultStepKg = com.example.kpkn.domain.calculations.LoadRounding.defaultStepKg(settings),
+                                        )
+                                    }
+                                } ?: com.example.kpkn.domain.calculations.LoadRounding.defaultStepKg(settings)
+                                val stackSuggestedWeight = if (pageSpec.type == LivePageType.NORMAL) {
+                                    uiState.loadSuggestions[workoutSetKey(stackExercise.id, pageSpec.setIndex, pageSpec.side)]?.suggestedWeight
+                                } else null
+                                val stackLabel = liveCardStackLabel(
+                                    page = pageSpec,
+                                    exercise = stackExercise,
+                                    suggestedWeight = stackSuggestedWeight,
+                                    loadStepKg = stackLoadStepKg,
+                                )
                                 val stackMeasurer = rememberTextMeasurer()
                                 val stackLabelStyle = KpknType.caption.copy(fontSize = 10.sp, lineHeight = 13.sp, color = WizardColors.textFaint)
                                 val pageStride = with(LocalDensity.current) { (availableWidth - peekPadding * 2 + 14.dp).toPx() }
@@ -2524,6 +2549,9 @@ internal fun WorkoutV2Body(
                                                 onCustomLoadStepChange = { step ->
                                                     viewModel.setExerciseLoadIncrementKg(loadStepKey, step)
                                                 },
+                                                defaultLoadStepKg = com.example.kpkn.domain.calculations.LoadRounding.defaultStepKg(settings),
+                                                preferredInputDockMode = uiState.preferredInputDockMode,
+                                                onPreferredInputDockModeChange = viewModel::setPreferredLiveInputDockMode,
                                     exercise = targetExercise,
                                     setIndex = activeSetIndex,
                                     currentSet = activeSet,
@@ -2565,7 +2593,8 @@ internal fun WorkoutV2Body(
                                                 val parsed = parseCompletedSetKey(key) ?: return@mapNotNull null
                                                 if (parsed.exerciseId != targetExercise.id) return@mapNotNull null
                                                 if (parsed.setIdx >= activeSetIndex) return@mapNotNull null
-                                                if (set.isWarmup || set.weight <= 0.0) return@mapNotNull null
+                                                if (cardSide != null && parsed.side != null && parsed.side != cardSide) return@mapNotNull null
+                                                if (set.isWarmup || set.skipped || set.weight <= 0.0) return@mapNotNull null
                                                 if (!activeTagToken.isNullOrBlank() || !activeTagId.isNullOrBlank()) {
                                                     val id = set.tagId.orEmpty()
                                                     val name = set.tagName.orEmpty()

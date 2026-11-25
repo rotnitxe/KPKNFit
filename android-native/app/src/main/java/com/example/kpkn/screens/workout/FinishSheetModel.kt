@@ -8,6 +8,8 @@ import com.example.kpkn.data.models.WorkoutLog
 import com.example.kpkn.domain.workout.CompletedSetLoadSemantics
 import com.example.kpkn.domain.training.ExerciseProgress
 import com.example.kpkn.domain.performance.StrengthModel
+import com.example.kpkn.domain.training.insights.MuscleIntensityAccounting
+import com.example.kpkn.domain.training.insights.MuscleIntensitySummary
 import com.example.kpkn.domain.training.insights.MuscleVolumeAccounting
 import java.time.LocalDate
 import kotlin.math.abs
@@ -244,6 +246,7 @@ internal data class FinishModel(
     val liftProgress: List<FinishLiftProgress> = emptyList(),
     val targetMinutes: Int?,
     val empty: Boolean,
+    val intensitySummary: MuscleIntensitySummary = MuscleIntensitySummary(emptyList(), emptyList(), emptyList(), emptyList()),
 ) {
     /** Vuelta de reloj de 60 min, o el avance hacia el objetivo de tiempo si lo había (decisión aprobada «En vivo · más»). */
     val durationFraction: Float
@@ -319,6 +322,14 @@ internal fun buildFinishModel(
     val direct = MuscleVolumeAccounting.sessionDirectSets(strength)
     val muscles = MuscleVolumeAccounting.sessionSets(strength).entries.sortedByDescending { it.value }
         .map { FinishMuscle(it.key, it.value, direct[it.key] ?: 0.0) }
+    val intensitySummary = if (strength.isEmpty()) {
+        MuscleIntensitySummary(emptyList(), emptyList(), emptyList(), emptyList())
+    } else {
+        MuscleIntensityAccounting.computeForSession(
+            exercises = strength,
+            limitingFactorsByExerciseId = presentation.postExerciseFeedbackByExerciseId.mapValues { it.value.limitingFactors },
+        )
+    }
     val chips = lifts.filter {
         val best = it.best
         best != null && it.previous != null &&
@@ -385,5 +396,6 @@ internal fun buildFinishModel(
         liftProgress = lifts,
         targetMinutes = targetMinutes,
         empty = isFinishBlockedForEmptySession(completedExercises),
+        intensitySummary = intensitySummary,
     )
 }

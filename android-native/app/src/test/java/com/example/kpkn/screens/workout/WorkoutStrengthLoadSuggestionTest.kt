@@ -14,43 +14,49 @@ import org.junit.Test
 class WorkoutStrengthLoadSuggestionTest {
     // POST-RINGS preserves authored loads and explicit calibration; perceived fatigue cannot rewrite them.
     @Test
-    fun `tres series rectas mantienen la carga planificada al cumplir el plan`() = runTest {
-        (1..2).forEach { prior ->
-            val result = suggestion(List(prior) { CompletedSet("press_$it", weight = 100.0, reps = 5, rir = 2) })
-            assertEquals(100.0, result.suggestedWeight, 0.0)
-            assertTrue(result.suggestedWeight > 80.0)
-        }
+    fun `tres series rectas pesadas reducen progresivamente la carga al avanzar`() = runTest {
+        val afterSet1 = suggestion(listOf(CompletedSet("press_0", weight = 100.0, reps = 5, rir = 2)))
+        assertEquals(97.5, afterSet1.suggestedWeight, 0.0)
+        val afterSet2 = suggestion(
+            listOf(
+                CompletedSet("press_0", weight = 100.0, reps = 5, rir = 2),
+                CompletedSet("press_1", weight = 97.5, reps = 5, rir = 2),
+            ),
+        )
+        assertTrue(afterSet2.suggestedWeight < 97.5)
+        assertTrue(afterSet2.suggestedWeight > 80.0)
     }
 
     @Test
-    fun `cumplir el plan sin RIR tampoco baja por conteo de series`() = runTest {
+    fun `cumplir el plan sin esfuerzo registrado mantiene la carga redondeada`() = runTest {
         assertEquals(100.0, suggestion(listOf(CompletedSet("press_0", weight = 100.0, reps = 5)), plannedRir = null).suggestedWeight, 0.0)
         assertEquals(100.0, suggestion(listOf(CompletedSet("press_0", weight = 100.0, reps = 5))).suggestedWeight, 0.0)
     }
 
     @Test
-    fun `la caida de reps conserva la carga prescrita sin inferir fatiga`() = runTest {
+    fun `la caida de reps bajo el objetivo reduce la carga un 20 por ciento`() = runTest {
         val result = suggestion(listOf(CompletedSet("press_0", weight = 100.0, reps = 2, rir = 2)))
-        assertEquals(100.0, result.suggestedWeight, 0.0)
-        assertTrue(!result.reason.contains("Fatiga detectada"))
+        assertEquals(80.0, result.suggestedWeight, 0.0)
+        assertTrue(result.isRecalculated)
     }
 
     @Test
-    fun `RPE mayor que el plan no reescribe la carga prescrita`() = runTest {
+    fun `RPE mayor que el plan reduce la carga en pasos de disco`() = runTest {
         val result = suggestion(listOf(CompletedSet("press_0", weight = 100.0, reps = 5, rpe = 10.0)))
+        assertEquals(85.0, result.suggestedWeight, 0.0)
+        assertTrue(result.isRecalculated)
+    }
+
+    @Test
+    fun `una etiqueta back off sigue solo el esfuerzo real de la serie previa`() = runTest {
+        val result = suggestion(listOf(CompletedSet("press_0", weight = 100.0, reps = 5, rir = 4, tagName = "back-off")), tag = "back-off")
         assertEquals(100.0, result.suggestedWeight, 0.0)
     }
 
     @Test
-    fun `una etiqueta back off no inventa una bajada por conteo`() = runTest {
-        val result = suggestion(listOf(CompletedSet("press_0", weight = 100.0, reps = 5, rir = 2, tagName = "back-off")), tag = "back-off")
-        assertEquals(100.0, result.suggestedWeight, 0.0)
-    }
-
-    @Test
-    fun `una marca drop sin carga distinta no inventa un porcentaje`() = runTest {
+    fun `una marca drop sin carga distinta ajusta por esfuerzo acumulado`() = runTest {
         val result = suggestion(listOf(CompletedSet("press_0", weight = 100.0, reps = 5, rir = 2)), drop = true)
-        assertEquals(100.0, result.suggestedWeight, 0.0)
+        assertEquals(97.5, result.suggestedWeight, 0.0)
     }
 
     @Test

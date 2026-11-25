@@ -74,18 +74,21 @@ class LiveSessionSheetsTest {
             assertNull(selected)
         }
     }
-    @Test fun timerStartsPausesAndResetsAndSurvivesClosingTheSheet() {
-        var selected by mutableStateOf<LiveSessionDestination?>(LiveSessionDestination.TIMER)
-        val timer = LiveSessionTimerState()
-        content { LiveSessionSheetsHost(selected, { selected = it }, timer = timer) }
-        tap("Iniciar")
-        rule.onNodeWithText("Pausar").assertIsDisplayed()
-        rule.runOnIdle { assertNotNull(timer.startedAtMillis); selected = null }
-        rule.runOnIdle { selected = LiveSessionDestination.TIMER }
-        tap("Pausar")
-        rule.runOnIdle { assertNull(timer.startedAtMillis) }
-        tap("Reiniciar")
-        rule.onNodeWithTag("live-session-timer-value", true).assertTextEquals("0:00")
+    @Test fun routeExposesAddExerciseQuickActionWithoutScrollingPastExercises() {
+        var added = 0
+        val exercises = (1..8).map { idx ->
+            Exercise("ex_$idx", "Ejercicio $idx", sets = listOf(ExerciseSet("s_${idx}_0")))
+        }
+        content {
+            LiveSessionSheetsHost(
+                destination = LiveSessionDestination.ROUTE,
+                onDestination = {},
+                exercises = exercises,
+                onAddExercise = { added++ },
+            )
+        }
+        rule.onNodeWithTag("live-route-add", useUnmergedTree = true).assertIsDisplayed().performClick()
+        rule.runOnIdle { assertEquals(1, added) }
     }
     @Test fun rmSheetUsesTheCommonHybridAndKeepsAllTenRmRows() {
         content { LiveSessionSheetsHost(LiveSessionDestination.RM, {}) }
@@ -194,21 +197,5 @@ class LiveSessionSheetsTest {
         rule.runOnIdle { assertEquals(first.id, options) }
         rule.onNodeWithText("Superserie de 2").performScrollTo().performClick()
         rule.runOnIdle { assertEquals("super", selected) }
-    }
-}
-
-class LiveSessionTimerStateTest {
-    @Test fun monotonicClockKeepsElapsedAcrossSheetAbsenceAndPausesExactly() {
-        val timer = LiveSessionTimerState()
-        timer.toggle(1_000)
-        assertEquals(12_000L, timer.elapsedMillis(13_000))
-        timer.toggle(13_000)
-        assertEquals(12_000L, timer.elapsedMillis(90_000))
-        timer.toggle(100_000)
-        assertEquals(15_000L, timer.elapsedMillis(103_000))
-        val restored = LiveSessionTimerState(timer.pausedMillis, timer.startedAtMillis)
-        assertEquals(15_000L, restored.elapsedMillis(103_000))
-        restored.reset()
-        assertEquals(0L, restored.elapsedMillis(999_000)); assertNull(restored.startedAtMillis)
     }
 }

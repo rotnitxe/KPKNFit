@@ -207,6 +207,7 @@ internal fun WorkoutChronometer(
     /** Pestaña con la que se abre la hoja «Tiempo» (0 Sesión · 1 Cronómetro · 2 Temporizador); la franja del fin del temporizador abre la 2. */
     initialClockTab: Int = 0,
     onInitialClockTabConsumed: () -> Unit = {},
+    remainingPlannedRestSeconds: Long? = null,
 ) {
     var elapsedSeconds by remember(startTimeMs) { androidx.compose.runtime.mutableIntStateOf(0) }
     var showAdjustDialog by remember { mutableStateOf(false) }
@@ -350,6 +351,7 @@ internal fun WorkoutChronometer(
             onRevertUltraFast = onRevertUltraFast?.let { callback -> { closeOverlay(); callback() } },
             onDismiss = ::closeOverlay,
             freeClock = freeClock, clockActions = freeClockActions, initialTab = initialClockTab,
+            remainingPlannedRestSeconds = remainingPlannedRestSeconds,
         )
     }
 
@@ -439,6 +441,8 @@ internal fun WorkoutHeaderBar(
     statusBarInsets: WindowInsets = WindowInsets.statusBars,
     /** Cada incremento abre «Tiempo de sesión» (lo pide el menú ⋯ de la sesión). */
     sessionTimeRequest: Int = 0,
+    remainingPlannedRestSeconds: Long? = null,
+    onOpenExerciseOptions: (() -> Unit)? = null,
 ) {
     val headerScale = headerCompactScale()
     val typeScale = headerViewportScale()
@@ -546,6 +550,7 @@ internal fun WorkoutHeaderBar(
                         openSessionTimeRequest = openSessionTimeRequest,
                         initialClockTab = clockTab,
                         onInitialClockTabConsumed = { clockTab = 0 },
+                        remainingPlannedRestSeconds = remainingPlannedRestSeconds,
                     )
                     onMoreClick?.let { more ->
                         KpknIconButton(KpknLineIcons.More, "Más opciones de sesión", more,
@@ -573,6 +578,7 @@ internal fun WorkoutHeaderBar(
                     onOpenTagList = onOpenTagList,
                     onToggleVoice = onToggleVoice,
                     voiceSessionEnabled = voiceSessionEnabled,
+                    onOpenExerciseOptions = onOpenExerciseOptions,
                     modifier = Modifier.padding(start = 6.dp, top = if (cardioLayout) 0.dp else if (compactHeader) 4.dp else 8.dp)
                         .graphicsLayer { alpha = exerciseContextAlpha },
                     cardioLayout = cardioLayout,
@@ -602,6 +608,7 @@ internal fun WorkoutExerciseContextBlock(
     /** En la Lista cada ejercicio ya lleva su cabecera: el título grande repetía el primero y se quedaba fijo, así que no se pinta. */
     showTitle: Boolean = true,
     cardioLayout: Boolean = false,
+    onOpenExerciseOptions: (() -> Unit)? = null,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
@@ -644,6 +651,24 @@ internal fun WorkoutExerciseContextBlock(
                     contentDescription = null,
                     modifier = Modifier.size(19.dp),
                     tint = if (voiceSessionEnabled) HeaderMicOnInk else WizardColors.textMuted,
+                )
+            }
+        }
+        onOpenExerciseOptions?.let { openOptions ->
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(CircleShape)
+                    .clickable(role = androidx.compose.ui.semantics.Role.Button, onClick = openOptions)
+                    .semantics { contentDescription = "Opciones del ejercicio" }
+                    .testTag("live-exercise-options-button"),
+                contentAlignment = Alignment.Center,
+            ) {
+                Icon(
+                    KpknLineIcons.More,
+                    contentDescription = null,
+                    modifier = Modifier.size(19.dp),
+                    tint = WizardColors.textMuted,
                 )
             }
         }

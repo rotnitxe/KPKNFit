@@ -145,6 +145,7 @@ fun SessionClockDial(
     modifier: Modifier = Modifier,
     range: IntRange = SESSION_DIAL_RANGE,
     step: Int = SESSION_DIAL_STEP,
+    declared: Boolean = true,
 ) {
     val reduced = weekReducedMotion()
     val shown = minutes.coerceIn(range.first, range.last)
@@ -172,12 +173,13 @@ fun SessionClockDial(
                 step = step,
                 onMinutesChange = onMinutesChange,
                 onDragging = { dragging = it },
+                declared = declared,
             )
         }
         Spacer(Modifier.height(6.dp))
         // Los atajos se componen un cuadro después de la esfera (con su sitio ya reservado): ver `rememberProgressiveCount`.
         if (rememberProgressiveCount(total = 1, first = 0) > 0) {
-            DialShortcuts(minutes = shown, range = range, step = step, reduced = reduced, onMinutesChange = onMinutesChange)
+            DialShortcuts(minutes = shown, range = range, step = step, reduced = reduced, declared = declared, onMinutesChange = onMinutesChange)
         } else {
             Spacer(Modifier.height(DIAL_SHORTCUTS_HEIGHT))
         }
@@ -198,6 +200,7 @@ private fun DialFace(
     step: Int,
     onMinutesChange: (Int) -> Unit,
     onDragging: (Boolean) -> Unit,
+    declared: Boolean = true,
 ) {
     val density = LocalDensity.current
     val haptics = LocalHapticFeedback.current
@@ -296,7 +299,7 @@ private fun DialFace(
             drawDialHands(value = animatedMinutes.value, grab = grab.value, range = range, numerals = numerals)
         }
         // Centro: los minutos en grande y, debajo, la lectura humana.
-        DialReadout(minutes = minutes, side = side, range = range, reduced = reduced)
+        DialReadout(minutes = minutes, side = side, range = range, reduced = reduced, declared = declared)
     }
 }
 
@@ -306,7 +309,7 @@ private fun DialFace(
  * enorme se encoge lo justo y, si aun así no cabe, la fila entera se escala.
  */
 @Composable
-private fun DialReadout(minutes: Int, side: Dp, range: IntRange, reduced: Boolean) {
+private fun DialReadout(minutes: Int, side: Dp, range: IntRange, reduced: Boolean, declared: Boolean = true) {
     val density = LocalDensity.current
     val measurer = rememberTextMeasurer()
     val designScale = side / DialMaxSide
@@ -336,7 +339,7 @@ private fun DialReadout(minutes: Int, side: Dp, range: IntRange, reduced: Boolea
     )
     val hero = heroStyleOf(maxSp * heroScale)
     // «Con hora y minutos» solo aporta algo desde 1 h; por debajo repetiría la cifra, pero su sitio se reserva.
-    val reading = if (minutes >= 60) formatDuration(minutes) else " "
+    val reading = if (!declared) "Mueve o toca" else if (minutes >= 60) formatDuration(minutes) else " "
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
         Row(modifier = Modifier.shrinkToWidth(hole)) {
             Text(
@@ -529,6 +532,7 @@ private fun DialShortcuts(
     range: IntRange,
     step: Int,
     reduced: Boolean,
+    declared: Boolean = true,
     onMinutesChange: (Int) -> Unit,
 ) {
     val values = remember(range, step) { sessionShortcuts(range, step) }
@@ -544,7 +548,7 @@ private fun DialShortcuts(
             if (index > 0) {
                 Canvas(Modifier.padding(horizontal = 2.dp).size(4.dp)) { drawCircle(WeekPalette.faint.copy(alpha = 0.6f)) }
             }
-            DialShortcut(value = value, selected = minutes == value, reduced = reduced, onClick = { onMinutesChange(value) })
+            DialShortcut(value = value, selected = declared && minutes == value, reduced = reduced, onClick = { onMinutesChange(value) })
         }
     }
 }

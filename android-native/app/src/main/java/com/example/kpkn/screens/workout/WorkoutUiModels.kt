@@ -477,6 +477,9 @@ data class WorkoutUiState(
     /** Veredicto diario AUGE (`calculateDailyReadiness` vía snapshot). */
     /** Wellbeing de hoy (`getTodayWellbeing`), no solo sleepQuality del sheet. */
     val todayWellbeing: DailyWellbeingLog? = null,
+    /** Último modo usado en el dock numérico en vivo (Deslizar ↔ Teclado). */
+    val preferredInputDockMode: com.example.kpkn.domain.workout.LiveInputDockMode =
+        com.example.kpkn.domain.workout.LiveInputDockMode.LENS,
 )
 
 data class SeriesTypeTarget(

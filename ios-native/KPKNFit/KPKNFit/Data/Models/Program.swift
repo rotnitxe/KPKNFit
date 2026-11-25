@@ -668,6 +668,36 @@ public struct ProgramKeyDate: Identifiable, Codable {
     }
 }
 
+// ─── ProgramSchedulePlan ─────────────────────────────────────────────────────
+
+public struct ProgramSchedulePlan: Codable {
+    public let anchorDate: String?
+    public let weekStartDay: Int?
+    public let trainingDays: [Int]
+    public let targetEndDate: String?
+    public let mode: String?
+    public let cycleLengthDays: Int?
+    public let cycleAnchorDate: String?
+
+    public init(
+        anchorDate: String? = nil,
+        weekStartDay: Int? = nil,
+        trainingDays: [Int] = [],
+        targetEndDate: String? = nil,
+        mode: String? = nil,
+        cycleLengthDays: Int? = nil,
+        cycleAnchorDate: String? = nil
+    ) {
+        self.anchorDate = anchorDate
+        self.weekStartDay = weekStartDay
+        self.trainingDays = trainingDays
+        self.targetEndDate = targetEndDate
+        self.mode = mode
+        self.cycleLengthDays = cycleLengthDays
+        self.cycleAnchorDate = cycleAnchorDate
+    }
+}
+
 // ─── Main Program Struct ──────────────────────────────────────────────────────
 
 public struct Program: Identifiable, Codable {
@@ -709,6 +739,7 @@ public struct Program: Identifiable, Codable {
     public let volumeSetupPromptSeen: Bool
     public let splitTrialSeen: Bool
     public let isDraft: Bool
+    public let schedulePlan: ProgramSchedulePlan?
     public let opaqueFields: [String: JSONValue]
 
     public init(
@@ -750,6 +781,7 @@ public struct Program: Identifiable, Codable {
         volumeSetupPromptSeen: Bool = false,
         splitTrialSeen: Bool = false,
         isDraft: Bool = false,
+        schedulePlan: ProgramSchedulePlan? = nil,
         opaqueFields: [String: JSONValue] = [:]
     ) {
         self.id = id
@@ -790,6 +822,7 @@ public struct Program: Identifiable, Codable {
         self.volumeSetupPromptSeen = volumeSetupPromptSeen
         self.splitTrialSeen = splitTrialSeen
         self.isDraft = isDraft
+        self.schedulePlan = schedulePlan
         self.opaqueFields = opaqueFields
     }
 
@@ -799,7 +832,7 @@ public struct Program: Identifiable, Codable {
         "autoVolumeEnabled", "startDay", "weekDays", "selectedSplitId", "customSplitPattern", "customSplitName",
         "customSplitDescription", "blockSplitSelections", "structureTemplateId", "timelineStartDate", "calendarization",
         "simpleProgramKind", "pausedCyclicSnapshot", "keyDates", "volumeRecommendations", "athleteProfileScore",
-        "volumeAlertsEnabled", "volumeSetupPromptSeen", "splitTrialSeen", "isDraft",
+        "volumeAlertsEnabled", "volumeSetupPromptSeen", "splitTrialSeen", "isDraft", "schedulePlan",
     ]
 
     public init(from decoder: Decoder) throws {
@@ -842,6 +875,7 @@ public struct Program: Identifiable, Codable {
         volumeSetupPromptSeen = try c.decode(Bool.self, "volumeSetupPromptSeen", default: false)
         splitTrialSeen = try c.decode(Bool.self, "splitTrialSeen", default: false)
         isDraft = try c.decode(Bool.self, "isDraft", default: false)
+        schedulePlan = try c.decodeOptional(ProgramSchedulePlan.self, "schedulePlan")
         opaqueFields = try decodeOpaqueFields(from: c, excluding: Self.knownCodingKeys)
     }
 
@@ -885,6 +919,7 @@ public struct Program: Identifiable, Codable {
         try c.encode(volumeSetupPromptSeen, forKey: DynamicCodingKey("volumeSetupPromptSeen"))
         try c.encode(splitTrialSeen, forKey: DynamicCodingKey("splitTrialSeen"))
         try c.encode(isDraft, forKey: DynamicCodingKey("isDraft"))
+        try c.encodeIfPresent(schedulePlan, forKey: DynamicCodingKey("schedulePlan"))
         try encodeOpaqueFields(opaqueFields, to: &c, excluding: Self.knownCodingKeys)
     }
 
@@ -927,6 +962,7 @@ public struct Program: Identifiable, Codable {
         volumeSetupPromptSeen: Bool? = nil,
         splitTrialSeen: Bool? = nil,
         isDraft: Bool? = nil,
+        schedulePlan: ProgramSchedulePlan? = nil,
         opaqueFields: [String: JSONValue]? = nil
     ) -> Program {
         Program(
@@ -968,6 +1004,7 @@ public struct Program: Identifiable, Codable {
             volumeSetupPromptSeen: volumeSetupPromptSeen ?? self.volumeSetupPromptSeen,
             splitTrialSeen: splitTrialSeen ?? self.splitTrialSeen,
             isDraft: isDraft ?? self.isDraft,
+            schedulePlan: schedulePlan ?? self.schedulePlan,
             opaqueFields: opaqueFields ?? self.opaqueFields
         )
     }

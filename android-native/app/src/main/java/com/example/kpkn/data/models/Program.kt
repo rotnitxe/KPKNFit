@@ -690,6 +690,9 @@ val Program.primaryLoopLengthWeeks: Int?
     }
 
 fun Program.resolvedSchedulePlan(): ProgramSchedulePlan {
+    val fallbackCycleLength = weekDays?.takeIf {
+        it in com.example.kpkn.domain.training.CycleScheduleEngine.MIN_CYCLE_DAYS..com.example.kpkn.domain.training.CycleScheduleEngine.MAX_CYCLE_DAYS
+    } ?: com.example.kpkn.domain.training.CycleScheduleEngine.MIN_CYCLE_DAYS
     schedulePlan?.let { existing ->
         // schedulePlan is the SSoT. Legacy fields only fill nulls while a record
         // is in memory; ProgramMigrationEngine persists the same reconciliation.
@@ -697,6 +700,10 @@ fun Program.resolvedSchedulePlan(): ProgramSchedulePlan {
             anchorDate = existing.anchorDate ?: timelineStartDate,
             weekStartDay = existing.weekStartDay ?: startDay,
             targetEndDate = existing.targetEndDate ?: calendarization?.manualEndDate,
+            cycleLengthDays = existing.cycleLengthDays.takeIf {
+                it in com.example.kpkn.domain.training.CycleScheduleEngine.MIN_CYCLE_DAYS..com.example.kpkn.domain.training.CycleScheduleEngine.MAX_CYCLE_DAYS
+            } ?: fallbackCycleLength,
+            cycleAnchorDate = existing.cycleAnchorDate ?: existing.anchorDate ?: timelineStartDate,
         )
     }
     return ProgramSchedulePlan(
@@ -708,6 +715,8 @@ fun Program.resolvedSchedulePlan(): ProgramSchedulePlan {
             calendarization != null && !timelineStartDate.isNullOrBlank() -> ScheduleMode.DATED
             else -> ScheduleMode.FLOATING
         },
+        cycleLengthDays = fallbackCycleLength,
+        cycleAnchorDate = timelineStartDate,
     )
 }
 
@@ -745,7 +754,8 @@ fun Program.validateTemporalStructure(): List<TemporalStructureIssue> {
             "Programa por bloques sin macrociclos.",
         )
     }
-    val invalidDays = resolvedSchedulePlan().trainingDays.filterNot { it in 1..7 }
+    val maxCycleDay = com.example.kpkn.domain.training.CycleScheduleEngine.normalizedCycleLength(this)
+    val invalidDays = resolvedSchedulePlan().trainingDays.filterNot { it in 1..maxCycleDay }
     if (invalidDays.isNotEmpty()) {
         issues += TemporalStructureIssue(
             TemporalStructureIssueType.INVALID_TRAINING_DAYS,

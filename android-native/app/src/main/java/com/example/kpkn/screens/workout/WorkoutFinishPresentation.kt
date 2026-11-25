@@ -26,6 +26,7 @@ internal data class FinishPresentationContext(
     val sessionId: String? = null,
     val currentExercises: List<CompletedExercise> = emptyList(),
     val sessionStartMs: Long? = null,
+    val postExerciseFeedbackByExerciseId: Map<String, com.example.kpkn.data.models.PostExerciseFeedback> = emptyMap(),
 )
 
 /** The session belongs to its local start date even if the athlete finishes after midnight. */

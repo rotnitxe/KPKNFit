@@ -165,6 +165,7 @@ class WorkoutSetRecorderDurableRoomTest {
     private lateinit var state: WorkoutUiState
     private var advances = 0
     private var rests = 0
+    private val restDurations = mutableListOf<Int>()
     private var profileWrites = 0
     private var failAncillary = false
     private var failFirstPublication = false
@@ -225,7 +226,7 @@ class WorkoutSetRecorderDurableRoomTest {
                     }
                     Unit
                 }
-                "startRestTimer" -> { rests++; Unit }
+                "startRestTimer" -> { rests++; restDurations += (args[0] as Int); Unit }
                 "persistLoadModeToProfile", "registerManualLoadOverride" -> {
                     if (failAncillary) error("injected profile failure")
                     profileWrites++; Unit
@@ -733,6 +734,65 @@ class WorkoutSetRecorderDurableRoomTest {
         assertTrue(record(advanced=SetAdvancedFeedback(restPauses=List(2) { RestPauseData(20,6) })) is RecordSetResult.Created)
         val rows=room().completedSets.getValue("exercise_0").restPauses
         assertEquals(2,rows.size);assertTrue(rows.all { it.style==null && it.reps==6 && it.restTime==20 })
+    }
+
+    @Test fun ultrafastStackedDropSetOnSet2PreservesShortenedRestAfterSet1() = runBlocking {
+        val original = state.session!!
+        val stackedDrop = ExerciseSet(
+            id = "s2",
+            targetReps = 6,
+            restAfterSeconds = 90,
+            isDropSet = true,
+            plannedIntensityTechniques = listOf(
+                PlannedTechnique(
+                    id = "uf-drop",
+                    type = TechniqueType.DROP_SET,
+                    params = mapOf("weightDropKg" to "5", "reps" to "3", "count" to "2"),
+                ),
+            ),
+        )
+        state = state.copy(
+            session = original.copy(
+                exercises = listOf(
+                    original.exercises.single().copy(
+                        restTime = 90,
+                        sets = listOf(ExerciseSet(id = "s1", targetReps = 6, restAfterSeconds = 90), stackedDrop),
+                    ),
+                ),
+            ),
+        )
+        assertTrue(record(index = 0) is RecordSetResult.Created)
+        assertEquals(1, rests)
+        assertEquals(listOf(90), restDurations)
+    }
+
+    @Test fun volumeReplacedChainedDropSetStillSuppressesRestBetweenSets() = runBlocking {
+        val original = state.session!!
+        val chainedDrop = ExerciseSet(
+            id = "s2",
+            targetReps = 6,
+            isDropSet = true,
+            plannedIntensityTechniques = listOf(
+                PlannedTechnique(
+                    id = "vr-drop",
+                    type = TechniqueType.DROP_SET,
+                    params = mapOf("betweenMarked" to "true"),
+                ),
+            ),
+        )
+        state = state.copy(
+            session = original.copy(
+                exercises = listOf(
+                    original.exercises.single().copy(
+                        restTime = 90,
+                        sets = listOf(ExerciseSet(id = "s1", targetReps = 6, restAfterSeconds = 90), chainedDrop),
+                    ),
+                ),
+            ),
+        )
+        assertTrue(record(index = 0) is RecordSetResult.Created)
+        assertEquals(0, rests)
+        assertTrue(restDurations.isEmpty())
     }
 
 }

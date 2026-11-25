@@ -1,5 +1,6 @@
 package com.example.kpkn.screens.workout.components
 
+import android.os.SystemClock
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -148,6 +149,37 @@ internal fun rememberFrameNowMs(active: Boolean): State<Long> {
         }
     }
     return now
+}
+
+/**
+ * Tiempo monotónico (`elapsedRealtime`) actualizado cuadro a cuadro mientras [active].
+ * Coincide con la base de tiempo que usa [com.example.kpkn.services.workout.FreeClockHub].
+ */
+@Composable
+internal fun rememberElapsedFrameNowMs(
+    active: Boolean,
+    clock: () -> Long = SystemClock::elapsedRealtime,
+): State<Long> {
+    val now = remember { mutableLongStateOf(clock()) }
+    val owner = LocalLifecycleOwner.current
+    LaunchedEffect(active, owner) {
+        now.longValue = clock()
+        if (!active) return@LaunchedEffect
+        owner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
+            while (true) withFrameMillis { now.longValue = clock() }
+        }
+    }
+    return now
+}
+
+/** Convierte un instante monotónico (`elapsedRealtime`) de fin en hora de pared `HH:mm`. */
+internal fun formatMonotonicEndClock(
+    endAtMs: Long,
+    elapsedNowMs: Long = SystemClock.elapsedRealtime(),
+    wallNowMs: Long = System.currentTimeMillis(),
+): String {
+    val remainingMs = (endAtMs - elapsedNowMs).coerceAtLeast(0L)
+    return SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(wallNowMs + remainingMs))
 }
 
 // ---------------------------------------------------------------------------------------------------------------------------------
@@ -397,11 +429,11 @@ private fun LapTable(state: FreeClockState, nowMs: State<Long>, modifier: Modifi
             }
             return@Column
         }
-        Row(Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, bottom = 4.dp)) {
+        Row(Modifier.fillMaxWidth().padding(start = 10.dp, end = 10.dp, bottom = 4.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             val head = Lx.inter(10.5.sp, FontWeight.SemiBold, 1.3.sp)
-            Text("VUELTA", Modifier.weight(1.35f), style = head, color = Lx.Faint)
-            Text("PARCIAL", Modifier.weight(1f), style = head, color = Lx.Faint, textAlign = TextAlign.End)
-            Text("TOTAL", Modifier.weight(1f), style = head, color = Lx.Faint, textAlign = TextAlign.End)
+            Text("VUELTA", Modifier.weight(1.25f), style = head, color = Lx.Faint, maxLines = 1, softWrap = false)
+            Text("PARCIAL", Modifier.weight(1f), style = head, color = Lx.Faint, textAlign = TextAlign.End, maxLines = 1, softWrap = false)
+            Text("TOTAL", Modifier.weight(1f), style = head, color = Lx.Faint, textAlign = TextAlign.End, maxLines = 1, softWrap = false)
         }
         // `mask-image: linear-gradient(#000 calc(100% - 22px), transparent)`: la tabla se desvanece en su borde inferior (lx-X05).
         LazyColumn(
@@ -425,19 +457,20 @@ private fun LapLine(row: LapRow) {
         Modifier.fillMaxWidth().heightIn(min = 40.dp)
             .then(if (row.live) Modifier.clip(RoundedCornerShape(12.dp)).background(Color(0x0DFFFFFF)) else Modifier.topLine())
             .padding(horizontal = 10.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Column(Modifier.weight(1.35f), verticalArrangement = Arrangement.Center) {
-            Text("Vuelta ${row.number}", style = Lx.inter(13.5.sp, FontWeight.Medium, line = 16.sp), color = if (row.live) Lx.Ink else Lx.Muted)
+        Column(Modifier.weight(1.25f), verticalArrangement = Arrangement.Center) {
+            Text("Vuelta ${row.number}", style = Lx.inter(13.5.sp, FontWeight.Medium, line = 16.sp), color = if (row.live) Lx.Ink else Lx.Muted, maxLines = 1, softWrap = false)
             // La marca lleva TEXTO además de color (accesibilidad).
             when (row.mark) {
-                LapMark.FASTEST -> Text("más rápida", style = Lx.inter(11.sp, FontWeight.SemiBold, line = 13.sp), color = Lx.Done)
-                LapMark.SLOWEST -> Text("más lenta", style = Lx.inter(11.sp, FontWeight.SemiBold, line = 13.sp), color = Lx.Mus)
+                LapMark.FASTEST -> Text("más rápida", style = Lx.inter(11.sp, FontWeight.SemiBold, line = 13.sp), color = Lx.Done, maxLines = 1)
+                LapMark.SLOWEST -> Text("más lenta", style = Lx.inter(11.sp, FontWeight.SemiBold, line = 13.sp), color = Lx.Mus, maxLines = 1)
                 LapMark.NONE -> Unit
             }
         }
-        Text(FreeClock.formatLap(row.partialMs), Modifier.weight(1f), style = Lx.num(13.5.sp), color = partialColor, textAlign = TextAlign.End)
-        Text(FreeClock.formatLap(row.totalMs), Modifier.weight(1f), style = Lx.num(13.5.sp), color = Lx.Muted, textAlign = TextAlign.End)
+        Text(FreeClock.formatLap(row.partialMs), Modifier.weight(1f), style = Lx.num(13.5.sp), color = partialColor, textAlign = TextAlign.End, maxLines = 1, softWrap = false)
+        Text(FreeClock.formatLap(row.totalMs), Modifier.weight(1f), style = Lx.num(13.5.sp), color = Lx.Muted, textAlign = TextAlign.End, maxLines = 1, softWrap = false)
     }
 }
 
@@ -486,7 +519,7 @@ internal fun TimerPane(state: FreeClockState, nowMs: State<Long>, actions: FreeC
                         TimerCenter(left, if (paused) "En pausa" else "restante", strong = false)
                     }
                 }
-                val endLabel = remember(t.endAtMs) { SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(t.endAtMs)) }
+                val endLabel = remember(t.endAtMs, t.phase) { formatMonotonicEndClock(t.endAtMs) }
                 Text(
                     androidx.compose.ui.text.buildAnnotatedString {
                         if (paused) append("En pausa · de ${FreeClock.formatClock(t.totalMs / 1000)}") else {

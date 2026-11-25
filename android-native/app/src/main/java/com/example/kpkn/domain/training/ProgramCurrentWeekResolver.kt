@@ -192,7 +192,15 @@ object ProgramCurrentWeekResolver {
             if (exact != null) return itemForLocation(exact)
         }
 
-        val targetDay = dayOfWeek.coerceIn(1, 7)
+        val targetDay = if (CycleScheduleEngine.isRollingCycle(program)) {
+            CycleScheduleEngine.dayIndexForDate(
+                anchorDate = CycleScheduleEngine.effectiveAnchorDate(program, today),
+                targetDate = today,
+                cycleLengthDays = CycleScheduleEngine.normalizedCycleLength(program),
+            )
+        } else {
+            dayOfWeek.coerceIn(1, 7)
+        }
         val preferred = locations.firstOrNull { location ->
             val sessions = location.week.sessions.filter { session ->
                 session.dayOfWeek == targetDay || targetDay in session.assignedDays

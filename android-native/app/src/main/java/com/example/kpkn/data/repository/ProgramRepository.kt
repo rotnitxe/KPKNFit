@@ -1173,7 +1173,25 @@ class ProgramRepository private constructor(
     }
 
     fun startProgram(programId: String) = whenHybridCalendarCommitFree {
-        val program = _programs.value.find { it.id == programId }
+        val rawProgram = _programs.value.find { it.id == programId }
+        val program = if (rawProgram != null &&
+            com.example.kpkn.domain.training.CycleScheduleEngine.isRollingCycle(rawProgram) &&
+            rawProgram.schedulePlan?.cycleAnchorDate.isNullOrBlank()
+        ) {
+            val cycleDays = com.example.kpkn.domain.training.CycleScheduleEngine.normalizedCycleLength(rawProgram)
+            val basePlan = rawProgram.resolvedSchedulePlan()
+            val seeded = rawProgram.copy(
+                weekDays = cycleDays,
+                schedulePlan = basePlan.copy(
+                    cycleLengthDays = cycleDays,
+                    cycleAnchorDate = java.time.LocalDate.now().toString(),
+                ),
+            )
+            updateProgram(seeded)
+            seeded
+        } else {
+            rawProgram
+        }
         // Recurring program completed by the legacy rule: resume the same
         // program on the next cycle (same id/run/history) instead of
         // re-activating it from scratch or switching programs.
@@ -1189,6 +1207,60 @@ class ProgramRepository private constructor(
         _activeProgramState.value = state
         persistActiveProgramStateAsync(state)
         syncRunLifecycle(ProgramRunStatus.ACTIVE)
+    }
+
+    /** Reancla un ciclo rotativo (> 7 días) diciendo qué Día (1..N) corresponde a hoy. */
+    fun reanchorProgramCycleToday(
+        programId: String,
+        targetDayIndex: Int,
+        today: java.time.LocalDate = java.time.LocalDate.now(),
+    ) = whenHybridCalendarCommitFree {
+        val current = _programs.value.find { it.id == programId } ?: return@whenHybridCalendarCommitFree
+        val cycleDays = com.example.kpkn.domain.training.CycleScheduleEngine.normalizedCycleLength(current)
+        val newAnchor = com.example.kpkn.domain.training.CycleScheduleEngine.reanchorTodayAsDay(
+            today = today,
+            targetDayIndex = targetDayIndex,
+            cycleLengthDays = cycleDays,
+        )
+        val basePlan = current.resolvedSchedulePlan()
+        updateProgram(
+            current.copy(
+                weekDays = cycleDays,
+                schedulePlan = basePlan.copy(
+                    cycleLengthDays = cycleDays,
+                    cycleAnchorDate = newAnchor,
+                ),
+            ),
+        )
+    }
+
+    /** Actualiza la duración del microciclo (7..21 días) y garantiza un ancla calendario cuando supera 7 días. */
+    fun updateProgramCycleLength(
+        programId: String,
+        cycleLengthDays: Int,
+        anchorDate: String? = null,
+    ) = whenHybridCalendarCommitFree {
+        val current = _programs.value.find { it.id == programId } ?: return@whenHybridCalendarCommitFree
+        val normalizedDays = cycleLengthDays.coerceIn(
+            com.example.kpkn.domain.training.CycleScheduleEngine.MIN_CYCLE_DAYS,
+            com.example.kpkn.domain.training.CycleScheduleEngine.MAX_CYCLE_DAYS,
+        )
+        val basePlan = current.resolvedSchedulePlan()
+        val resolvedAnchor = when {
+            !anchorDate.isNullOrBlank() -> anchorDate
+            normalizedDays > com.example.kpkn.domain.training.CycleScheduleEngine.MIN_CYCLE_DAYS ->
+                basePlan.cycleAnchorDate ?: basePlan.anchorDate ?: java.time.LocalDate.now().toString()
+            else -> basePlan.cycleAnchorDate
+        }
+        updateProgram(
+            current.copy(
+                weekDays = normalizedDays,
+                schedulePlan = basePlan.copy(
+                    cycleLengthDays = normalizedDays,
+                    cycleAnchorDate = resolvedAnchor,
+                ),
+            ),
+        )
     }
 
     fun resumeRecurringRoutine(programId: String) = whenHybridCalendarCommitFree {

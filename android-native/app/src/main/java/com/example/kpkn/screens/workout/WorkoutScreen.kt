@@ -336,7 +336,6 @@ fun WorkoutScreen(
         }
     }
     var sessionTimeRequest by remember { mutableIntStateOf(0) }
-    val liveSessionTimer = rememberLiveSessionTimer(programId, sessionId, uiState.startTimeMs)
     var storyFromHeader by rememberSaveable { mutableStateOf(false) }
     var headerStoryOptions by rememberSaveable(stateSaver = storyOptionsSaver) { mutableStateOf(WorkoutStoryOptions()) }
     // El roadmap mide 132 dp (B) en ventanas de 820 dp de alto o más y 112 dp (A) en las demás.
@@ -1190,7 +1189,7 @@ fun WorkoutScreen(
         onOpenPhotos = { viewModel.mediaCapture.openAlbumSheet() },
         onOpenVoice = { showVoiceConversation = true },
         onOpenStory = { storyFromHeader = true },
-        timer = liveSessionTimer,
+        ultraFastApplied = uiState.ultraFastApplied,
         sessionAccentColor = sessionAccentColor,
         currentView = liveSessionView,
         onSelectView = {

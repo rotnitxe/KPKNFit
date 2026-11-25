@@ -44,6 +44,7 @@ fun WizardChoiceCard(
     selected: Boolean,
     enabled: Boolean = true,
     onClick: () -> Unit,
+    modifier: Modifier = Modifier,
     footer: (@Composable () -> Unit)? = null,
 ) {
     val minHeight = WizardSpacing.touchTarget + 16.dp
@@ -51,7 +52,7 @@ fun WizardChoiceCard(
     val borderColor = if (selected) WizardColors.selectedBorder else WizardColors.cardBorder
     if (footer == null) {
         WizardChoiceRow(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .defaultMinSize(minHeight = minHeight)
                 .background(WizardColors.cardFill, WizardShapes.card)
@@ -65,7 +66,7 @@ fun WizardChoiceCard(
         )
     } else {
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .fillMaxWidth()
                 .background(WizardColors.cardFill, WizardShapes.card)
                 .border(width = borderWidth, color = borderColor, shape = WizardShapes.card),

@@ -369,10 +369,17 @@ private fun NewProgramPoster(onClick: () -> Unit) {
  */
 internal fun programSummaryLine(program: Program): String? {
     val weeks = program.totalProgramWeeks
-    val days = program.weekDays?.takeIf { it in 1..7 }
+    val days = com.example.kpkn.domain.training.CycleScheduleEngine.normalizedCycleLength(program)
+        .takeIf { it > 7 } ?: program.weekDays?.takeIf { it in 1..21 }
     val parts = buildList {
         if (weeks >= 2) add("$weeks semanas")
-        if (days != null) add(if (days == 1) "1 día" else "$days días")
+        if (days != null) add(
+            when {
+                days == 1 -> "1 día"
+                days > 7 -> "Ciclo $days días"
+                else -> "$days días"
+            },
+        )
     }
     return parts.takeIf { it.isNotEmpty() }?.joinToString(" · ")
 }

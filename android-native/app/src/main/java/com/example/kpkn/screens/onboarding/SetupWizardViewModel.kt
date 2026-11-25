@@ -1889,7 +1889,9 @@ class SetupWizardViewModel @JvmOverloads constructor(
         val program = base.program ?: return PreparedPreview(base, null, null)
         suspend fun finish(outcome: LayoutOutcome): PreparedPreview {
             val composed = withContext(kotlinx.coroutines.Dispatchers.Default) {
-                SetupHybridPlanningBridge.prepare(outcome.program, draft)
+                com.example.kpkn.domain.training.ProgramLineageNormalizer.ensureSessionLineageIds(
+                    SetupHybridPlanningBridge.prepare(outcome.program, draft),
+                )
             }
             return PreparedPreview(SetupPreview(composed, base.report), program, outcome.copy(program = composed))
         }

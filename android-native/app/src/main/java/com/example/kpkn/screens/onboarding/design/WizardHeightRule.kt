@@ -181,17 +181,24 @@ fun WizardHeightRule(
             },
         verticalArrangement = Arrangement.spacedBy(6.dp),
     ) {
-        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+        Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
             Text(
                 text = WizardHeightScale.format(currentCm, unit) +
                     if (unit == WizardHeightUnit.CM) " cm" else "",
                 style = WizardTypography.measure,
-                color = if (touched || cm != null) WizardColors.text else WizardColors.textMuted,
+                color = if (touched || cm != null) WizardColors.text else WizardColors.textMuted.copy(alpha = 0.7f),
                 modifier = Modifier
                     .clickable { confirm() }
                     .testTag("setup-height-rule-value")
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                    .padding(horizontal = 16.dp, vertical = 4.dp),
             )
+            if (!touched && cm == null) {
+                Text(
+                    text = "Toca o desliza para confirmar",
+                    style = WizardTypography.note,
+                    color = WizardColors.textMuted,
+                )
+            }
         }
         BoxWithConstraints(
             Modifier

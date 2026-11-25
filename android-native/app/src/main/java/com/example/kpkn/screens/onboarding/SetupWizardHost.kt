@@ -101,7 +101,10 @@ import com.example.kpkn.screens.programs.ProgramReadyRow
 import com.example.kpkn.screens.programs.programReadyFacts
 import dev.chrisbanes.haze.HazeState
 import dev.chrisbanes.haze.hazeSource
+import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.abs
@@ -311,19 +314,20 @@ private fun WizardLongPage(
     val summaries = remember(state.draft.draftId) { HashMap<SetupStepId, SetupStepSummary>() }
     val staleSummaries = remember(state.draft.draftId) { HashSet<SetupStepId>() }
     val targetPx = WizardPageMetrics.target(metricIndex, chipPx, gapPx)
+    val peekIsReview = currentIndex + 1 < pages.size && pages[currentIndex + 1] == SetupStepId.REVIEW_ACTIVATE
     val lockMaxPx = WizardPageMetrics.lockMax(
         index = metricIndex,
         headerBottomPx = headerBottomPx,
         chipPx = chipPx,
         gapPx = gapPx,
-        // En la última página no hay nada que asome: no se reserva hueco para el siguiente.
-        peekPx = if (currentIndex + 1 < pages.size) peekPx else 0,
+        // En la última página o antes de REVIEW_ACTIVATE (overlay sin contenido de página) no hay asomo útil.
+        peekPx = if (currentIndex + 1 < pages.size && !peekIsReview) peekPx else 0,
         clearancePx = clearancePx,
         viewportPx = viewportPx,
         activeHeightPx = heights[currentPage] ?: 0,
     )
     // El paso siguiente asoma hasta el borde inferior de la pantalla, no a media altura.
-    val peekWindowPx = WizardPageMetrics.peekWindow(
+    val peekWindowPx = if (peekIsReview) 0 else WizardPageMetrics.peekWindow(
         viewportPx = viewportPx,
         focusLinePx = WizardPageMetrics.focusLine(metricIndex, headerBottomPx, chipPx, gapPx),
         activeHeightPx = heights[currentPage] ?: 0,
@@ -356,48 +360,56 @@ private fun WizardLongPage(
     }
     val openExtra by rememberUpdatedState(openExtraPx)
 
-    // Primera vez: colocar la página en el paso del borrador sin animar (reabrir a mitad no
-    // arranca arriba). Después: cada cambio de paso desliza hasta el nuevo, sea hacia delante
-    // (check) o hacia atrás (atrás o tocar una fila-resumen), con la misma duración que el plegado.
+    // Un único coordinador serializado evita carreras entre restaurar, deslizar al siguiente paso, abrir extra o corregir lockMax.
     var restored by remember { mutableStateOf(false) }
-    LaunchedEffect(metricIndex) {
-        // Dónde dejó la página este efecto la última vez: si la persona la movió, ya no se toca.
+    LaunchedEffect(currentPage, metricIndex) {
+        withTimeoutOrNull(1_500L) { snapshotFlow { scroll.maxValue }.first { it >= targetPx } }
+        val initialLimit = lockMax.coerceAtLeast(targetPx).coerceAtMost(scroll.maxValue)
+        val initialTarget = targetPx.coerceIn(0, initialLimit)
         var pinnedAt: Int
-        if (!restored) {
-            withTimeoutOrNull(1_500) { snapshotFlow { scroll.maxValue }.first { it >= targetPx } }
-            scroll.scrollTo(targetPx.coerceAtMost(scroll.maxValue))
+        if (!restored || reducedMotion) {
+            scroll.scrollTo(initialTarget)
             pinnedAt = scroll.value
             restored = true
-        } else if (reducedMotion) {
-            scroll.scrollTo(targetPx.coerceAtMost(scroll.maxValue))
-            pinnedAt = scroll.value
         } else {
-            scroll.animateScrollTo(
-                targetPx,
-                tween(durationMillis = WizardMotion.SlideMillis, easing = FastOutSlowInEasing),
-            )
+            try {
+                scroll.animateScrollTo(
+                    initialTarget,
+                    tween(durationMillis = WizardMotion.SlideMillis, easing = FastOutSlowInEasing),
+                )
+            } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                if (!kotlinx.coroutines.currentCoroutineContext().isActive) throw cancelled
+            }
             pinnedAt = scroll.value
         }
-        // El final del paso, siempre por encima del botón: cuando el paso se compone del todo o crece (el control del paso
-        // que asoma llega tras la animación; PLAN se revela al terminar el barrido) la página sube lo justo, mientras la persona no
-        // la haya movido.
-        snapshotFlow { openExtra }.collect { extra ->
-            val wanted = (targetPx + extra).coerceAtMost(scroll.maxValue)
-            if (wanted != pinnedAt && abs(scroll.value - pinnedAt) <= PIN_TOLERANCE_PX && !scroll.isScrollInProgress) {
-                if (reducedMotion) {
-                    scroll.scrollTo(wanted)
+        snapshotFlow { openExtra to lockMax }
+            .distinctUntilChanged()
+            .collect { (extra, limit) ->
+                if (scroll.isScrollInProgress) return@collect
+                val boundedLimit = limit.coerceAtLeast(0).coerceAtMost(scroll.maxValue)
+                if (scroll.value > boundedLimit) {
+                    try {
+                        scroll.animateScrollTo(boundedLimit)
+                    } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                        if (!kotlinx.coroutines.currentCoroutineContext().isActive) throw cancelled
+                    }
+                    pinnedAt = scroll.value
                 } else {
-                    scroll.animateScrollTo(wanted, tween(durationMillis = OPEN_EXTRA_MILLIS, easing = FastOutSlowInEasing))
+                    val wanted = (targetPx + extra).coerceIn(0, boundedLimit)
+                    if (wanted != pinnedAt && abs(scroll.value - pinnedAt) <= PIN_TOLERANCE_PX) {
+                        try {
+                            if (reducedMotion) {
+                                scroll.scrollTo(wanted)
+                            } else {
+                                scroll.animateScrollTo(wanted, tween(durationMillis = OPEN_EXTRA_MILLIS, easing = FastOutSlowInEasing))
+                            }
+                        } catch (cancelled: kotlinx.coroutines.CancellationException) {
+                            if (!kotlinx.coroutines.currentCoroutineContext().isActive) throw cancelled
+                        }
+                        pinnedAt = scroll.value
+                    }
                 }
-                pinnedAt = scroll.value
             }
-        }
-    }
-    // Si el paso activo se encoge (o se cierra el teclado) y el scroll queda más allá del límite, volver.
-    LaunchedEffect(Unit) {
-        snapshotFlow { lockMax }.collect { limit ->
-            if (scroll.value > limit && !scroll.isScrollInProgress) scroll.animateScrollTo(limit)
-        }
     }
 
     val hazeState = remember { HazeState() }
@@ -437,7 +449,7 @@ private fun WizardLongPage(
                                 modifier = Modifier.testTag("setup-summary-known-basics"),
                             )
                         }
-                        pages.take(currentIndex + 2).forEachIndexed { index, page ->
+                        pages.take(currentIndex + if (peekIsReview) 1 else 2).forEachIndexed { index, page ->
                             key(page) {
                                 val pageMode = when {
                                     index < currentIndex -> WizardPageMode.Completed

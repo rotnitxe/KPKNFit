@@ -13,6 +13,8 @@ import com.example.kpkn.domain.training.MuscleVolumePanelRequest
 import com.example.kpkn.domain.training.MuscleVolumeWindow
 import com.example.kpkn.domain.training.VolumeCalculator
 import com.example.kpkn.domain.training.VolumeCountingMode
+import com.example.kpkn.domain.training.insights.MuscleIntensityAccounting
+import com.example.kpkn.domain.training.insights.MuscleIntensitySummary
 import com.example.kpkn.screens.programdetail.design.ProgramVolumeZones
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -30,6 +32,9 @@ import java.time.ZoneId
 
 /** Vista del panel: la lista (que también es la alternativa accesible al mapa) o el cuerpo coloreado. */
 enum class MuscleVolumeView { LIST, BODY }
+
+/** Métrica principal del panel: series efectivas acumuladas o intensidad media ponderada (RIR global / RPE). */
+enum class MusclePanelMetricMode { VOLUME, INTENSITY }
 
 /** Lado del cuerpo que se ve. */
 enum class BodySide { FRONT, BACK }
@@ -49,6 +54,8 @@ data class MuscleVolumePanelUiState(
     val zones: Map<String, ProgramVolumeZones> = emptyMap(),
     /** Nombre del programa cuando el panel se abrió desde él; null = todos los programas. */
     val scopeName: String? = null,
+    val metricMode: MusclePanelMetricMode = MusclePanelMetricMode.VOLUME,
+    val intensitySummary: MuscleIntensitySummary? = null,
 )
 
 /**
@@ -84,6 +91,7 @@ class MuscleVolumePanelViewModel(
                             panel = computed.panel,
                             zones = computed.zones,
                             scopeName = computed.scopeName,
+                            intensitySummary = computed.intensitySummary,
                         )
                     }
                 }
@@ -99,6 +107,8 @@ class MuscleVolumePanelViewModel(
     fun selectAdjustByIntensity(adjust: Boolean) = updateRequest { it.copy(adjustByIntensity = adjust) }
 
     fun selectView(view: MuscleVolumeView) = _state.update { it.copy(view = view) }
+
+    fun selectMetricMode(metricMode: MusclePanelMetricMode) = _state.update { it.copy(metricMode = metricMode) }
 
     fun selectSide(side: BodySide) = _state.update { it.copy(side = side) }
 
@@ -117,14 +127,24 @@ class MuscleVolumePanelViewModel(
 
     private class Inputs(val logs: List<WorkoutLog>, val programs: List<Program>, val request: MuscleVolumePanelRequest)
 
-    private class Computed(val panel: MuscleVolumePanel, val zones: Map<String, ProgramVolumeZones>, val scopeName: String?)
+    private class Computed(
+        val panel: MuscleVolumePanel,
+        val zones: Map<String, ProgramVolumeZones>,
+        val scopeName: String?,
+        val intensitySummary: MuscleIntensitySummary,
+    )
 
     private fun compute(inputs: Inputs): Computed {
-        val panel = MuscleVolumePanelBuilder.build(inputs.logs, exerciseIndex(), inputs.request, today(), zone())
+        val index = exerciseIndex()
+        val panel = MuscleVolumePanelBuilder.build(inputs.logs, index, inputs.request, today(), zone())
+        val scopedLogs = MuscleVolumePanelBuilder.windowFor(inputs.request, today(), zone())
+            .selectLogs(inputs.logs, inputs.request.programId)
+            .logs
+        val intensitySummary = MuscleIntensityAccounting.computeForLogs(scopedLogs, index)
         val program = programId?.let { id -> inputs.programs.firstOrNull { it.id == id } }
         // Las zonas son semanales: solo tienen sentido con el promedio por semana y con un programa calibrado.
         val zones = if (inputs.request.averagePerWeek && program != null) programZones(program) else emptyMap()
-        return Computed(panel, zones, program?.name)
+        return Computed(panel, zones, program?.name, intensitySummary)
     }
 
     companion object {

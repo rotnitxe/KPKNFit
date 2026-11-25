@@ -16,6 +16,10 @@ data class ProgramSchedulePlan(
     val trainingDays: Set<Int> = emptySet(),
     val targetEndDate: String? = null,
     val mode: ScheduleMode = ScheduleMode.FLOATING,
+    /** Duración del microciclo en días (7 = semana estándar Mon–Dom; 8..21 = ciclo rotativo anclado a calendario). */
+    val cycleLengthDays: Int = 7,
+    /** Fecha ISO (`YYYY-MM-DD`) correspondiente al Día 1 del ciclo rotativo cuando [cycleLengthDays] > 7. */
+    val cycleAnchorDate: String? = null,
 )
 
 /** Semanas excepcionales (break) separadas de la rutina base. */

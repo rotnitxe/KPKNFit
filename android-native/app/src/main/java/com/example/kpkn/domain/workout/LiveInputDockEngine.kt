@@ -106,6 +106,9 @@ object LiveInputDockEngine {
 
     val PRESET_LOAD_STEPS_KG: List<Double> = listOf(0.5, 1.0, 1.25, 2.0, 2.5, 5.0)
 
+    fun parseLiveInputDockMode(raw: String?): LiveInputDockMode =
+        if (raw.equals("KEYPAD", ignoreCase = true)) LiveInputDockMode.KEYPAD else LiveInputDockMode.LENS
+
     /**
      * Limita y normaliza el incremento de carga (0.1 a 25.0 kg, max 2 decimales).
      */

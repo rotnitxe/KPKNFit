@@ -3,6 +3,8 @@ package com.example.kpkn.screens.workout.components
 import com.example.kpkn.data.models.ExerciseSet
 import com.example.kpkn.data.models.PlannedTechnique
 import com.example.kpkn.data.models.TechniqueType
+import com.example.kpkn.domain.calculations.LoadRoundDirection
+import com.example.kpkn.domain.calculations.LoadRounding
 import com.example.kpkn.domain.workout.LoadSuggestionEngine
 import com.example.kpkn.domain.workout.SetTechniqueScope
 import com.example.kpkn.domain.workout.techniqueScope
@@ -95,10 +97,11 @@ internal fun suggestedDropLoadsForMainSet(
     mainReps: Int,
     count: Int = DropSetPlanDefaults.DefaultDrops,
     loadMode: com.example.kpkn.data.models.LoadModeV2 = com.example.kpkn.data.models.LoadModeV2.LOAD,
+    stepKg: Double = LoadRounding.DEFAULT_INCREMENT_KG,
 ): List<Double> {
     val clamped = count.coerceIn(DropSetPlanDefaults.MinDrops, DropSetPlanDefaults.MaxDrops)
     return (0 until clamped).map { index ->
-        suggestDropWeightForThreeReps(mainWeight, mainReps, index, emptyList(), loadMode)
+        suggestDropWeightForThreeReps(mainWeight, mainReps, index, emptyList(), loadMode, stepKg)
     }
 }
 
@@ -111,16 +114,29 @@ internal fun suggestDropWeightForThreeReps(
     dropIndex: Int,
     dropPcts: List<Double>,
     loadMode: com.example.kpkn.data.models.LoadModeV2 = com.example.kpkn.data.models.LoadModeV2.LOAD,
+    stepKg: Double = LoadRounding.DEFAULT_INCREMENT_KG,
 ): Double {
     if (!mainWeight.isFinite() || mainWeight < 0.0) return 0.0
     if (loadMode == com.example.kpkn.data.models.LoadModeV2.BODYWEIGHT) return 0.0
-    if (loadMode == com.example.kpkn.data.models.LoadModeV2.ASSISTED)
-        return LoadSuggestionEngine.roundLoad(mainWeight + DropSetPlanDefaults.DropKg * (dropIndex + 1))
+    val safeStep = stepKg.takeIf { it.isFinite() && it > 0.0 } ?: LoadRounding.DEFAULT_INCREMENT_KG
+    if (loadMode == com.example.kpkn.data.models.LoadModeV2.ASSISTED) {
+        return LoadRounding.roundToStep(mainWeight + DropSetPlanDefaults.DropKg * (dropIndex + 1), safeStep, LoadRoundDirection.NEAREST)
+    }
     if (mainWeight == 0.0) return 0.0
     val fromKg = mainWeight - DropSetPlanDefaults.DropKg * (dropIndex + 1)
     val pct = dropPcts.getOrNull(dropIndex)
-    val candidate = (if (pct != null) mainWeight + pct else fromKg)
-        .coerceAtMost(mainWeight - 0.5)
+    val rawCandidate = when {
+        pct != null && pct <= 0.0 -> mainWeight + pct
+        pct != null && pct > 0.0 -> mainWeight * (1.0 - (pct.coerceAtMost(80.0) / 100.0))
+        else -> fromKg
+    }
+    val clamped = rawCandidate
+        .coerceAtMost((mainWeight - min(0.5, safeStep)).coerceAtLeast(0.5))
         .coerceAtLeast(0.5)
-    return LoadSuggestionEngine.roundLoad(candidate)
+    val rounded = LoadRounding.roundToStep(clamped, safeStep, LoadRoundDirection.NEAREST)
+    return if (rounded >= mainWeight && mainWeight > safeStep) {
+        LoadRounding.roundToStep(mainWeight - safeStep, safeStep, LoadRoundDirection.FLOOR).coerceAtLeast(0.5)
+    } else {
+        rounded.coerceAtLeast(0.5)
+    }
 }

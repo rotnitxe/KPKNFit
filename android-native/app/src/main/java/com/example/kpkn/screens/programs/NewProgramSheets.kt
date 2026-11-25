@@ -181,11 +181,13 @@ internal fun BlankProgramSheet(
     suggestedName: String,
     onDismiss: () -> Unit,
     onCreate: (name: String, coverImage: String, identityLabel: String, description: String) -> Unit,
+    onCreateWithCycle: ((name: String, coverImage: String, identityLabel: String, description: String, cycleLengthDays: Int) -> Unit)? = null,
 ) {
     var name by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var selectedModality by remember { mutableStateOf<String?>(null) }
     var customModality by remember { mutableStateOf("") }
+    var cycleLengthDays by remember { mutableStateOf(com.example.kpkn.domain.training.CycleScheduleEngine.MIN_CYCLE_DAYS) }
     var style by remember { mutableStateOf(BLANK_COVER_STYLES.first()) }
     var background by remember { mutableStateOf(LineCoverBackground.CARBON) }
     KpknSheet(onDismissRequest = onDismiss) {
@@ -233,6 +235,45 @@ internal fun BlankProgramSheet(
                     )
                 }
             }
+            BlankGroup(label = "Duración del ciclo") {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    com.example.kpkn.domain.training.CycleScheduleEngine.CYCLE_LENGTH_PRESETS.forEach { preset ->
+                        com.example.kpkn.ui.design.KpknChip(
+                            text = "${preset}d",
+                            selected = cycleLengthDays == preset,
+                            onClick = { cycleLengthDays = preset },
+                        )
+                    }
+                    if (cycleLengthDays > com.example.kpkn.domain.training.CycleScheduleEngine.MIN_CYCLE_DAYS &&
+                        cycleLengthDays !in com.example.kpkn.domain.training.CycleScheduleEngine.CYCLE_LENGTH_PRESETS
+                    ) {
+                        com.example.kpkn.ui.design.KpknChip(
+                            text = "${cycleLengthDays}d",
+                            selected = true,
+                            onClick = {},
+                        )
+                    }
+                    com.example.kpkn.ui.design.KpknChip(
+                        text = "+1d",
+                        selected = false,
+                        onClick = {
+                            if (cycleLengthDays < com.example.kpkn.domain.training.CycleScheduleEngine.MAX_CYCLE_DAYS) {
+                                cycleLengthDays += 1
+                            }
+                        },
+                    )
+                }
+                if (cycleLengthDays > 7) {
+                    Text(
+                        text = "Ciclo rotativo de $cycleLengthDays días: los días avanzan en calendario al terminar cada vuelta.",
+                        style = KpknType.caption,
+                        color = WizardColors.textMuted,
+                    )
+                }
+            }
             BlankGroup(label = "Portada") {
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     BLANK_COVER_STYLES.forEach { option ->
@@ -266,12 +307,14 @@ internal fun BlankProgramSheet(
                 onClick = {
                     val modality = selectedModality?.let { if (it == "Personalizada") customModality.trim() else it }
                         ?.takeIf(String::isNotBlank) ?: return@KpknPrimaryPill
-                    onCreate(
-                        name.trim().ifBlank { suggestedName },
-                        lineCoverValue(style, background),
-                        modality,
-                        description.trim(),
-                    )
+                    val resolvedName = name.trim().ifBlank { suggestedName }
+                    val resolvedCover = lineCoverValue(style, background)
+                    val resolvedDesc = description.trim()
+                    if (onCreateWithCycle != null) {
+                        onCreateWithCycle(resolvedName, resolvedCover, modality, resolvedDesc, cycleLengthDays)
+                    } else {
+                        onCreate(resolvedName, resolvedCover, modality, resolvedDesc)
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 tag = "blank-program-create",

@@ -61,20 +61,23 @@ internal fun SessionTimeSheet(
     freeClock: FreeClockState = FreeClockState(),
     clockActions: FreeClockActions = FreeClockActions(),
     initialTab: Int = 0,
+    remainingPlannedRestSeconds: Long? = null,
 ) {
     LiveSheetWindow {
         // La hoja del lienzo es `.pl-sheet`: #1B1B1D opaco (no el #141513 de las demás hojas de la sesión).
         HeaderSheet(onDismiss = onDismiss, showDragHandle = false, scrim = Color(0xA8000000), panelTint = Color(0xFF1B1B1D)) { _ ->
             var tab by remember { mutableIntStateOf(initialTab.coerceIn(0, 2)) }
             val running = freeClock.stopwatch.running || freeClock.timer.phase == FreeTimerPhase.RUNNING
-            val nowMs = rememberFrameNowMs(active = tab == 0 || running)
+            val sessionNowMs = rememberFrameNowMs(active = tab == 0)
+            val clockNowMs = rememberElapsedFrameNowMs(active = running || tab == 1 || tab == 2)
             TimeSheetBody(
-                tab = tab, onTab = { tab = it }, nowMs = nowMs, freeClock = freeClock, clockActions = clockActions,
+                tab = tab, onTab = { tab = it }, nowMs = clockNowMs, freeClock = freeClock, clockActions = clockActions,
                 session = {
                     SessionTimeSheetContent(elapsedSeconds, startTimeMs, targetMinutes, accent, completedWorkingSets, totalWorkingSets,
                         selectedMinutes, pendingDescription, onProposeMinutes, onAssignTime, onClear, onApplyPending,
                         alertMode, onAlertMode, ultraFastApplied, ultraFastSavedSeconds, onUltraFastPreview, onRevertUltraFast,
-                        sessionMs = { if (startTimeMs > 0L) (nowMs.value - startTimeMs).coerceAtLeast(0L) else elapsedSeconds * 1_000L })
+                        sessionMs = { if (startTimeMs > 0L) (sessionNowMs.value - startTimeMs).coerceAtLeast(0L) else elapsedSeconds * 1_000L },
+                        remainingPlannedRestSeconds = remainingPlannedRestSeconds)
                 },
             )
         }
@@ -129,6 +132,7 @@ internal fun SessionTimeSheetContent(
     ultraFastApplied: Boolean, ultraFastSavedSeconds: Int,
     onUltraFastPreview: (() -> Unit)?, onRevertUltraFast: (() -> Unit)?,
     sessionMs: () -> Long = { elapsedSeconds * 1_000L },
+    remainingPlannedRestSeconds: Long? = null,
 ) {
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -139,7 +143,7 @@ internal fun SessionTimeSheetContent(
                     modifier = Modifier.testTag("session-time-readout"))
                 Text(targetMinutes?.let { "Tiempo transcurrido · objetivo $it min" } ?: "Tiempo transcurrido",
                     Modifier.padding(top = 4.dp), style = Lx.inter(12.sp), color = Lx.Muted)
-                projectSessionPace(elapsedSeconds.toLong(), completedWorkingSets, totalWorkingSets, targetMinutes)?.let {
+                projectSessionPace(elapsedSeconds.toLong(), completedWorkingSets, totalWorkingSets, targetMinutes, remainingPlannedRestSeconds, ultraFastApplied)?.let {
                     Box(Modifier.padding(top = 10.dp)) { PaceLines(it, startTimeMs) }
                 }
             }
@@ -210,6 +214,10 @@ private fun ClockRow(label: String, icon: ImageVector, onClick: () -> Unit, modi
     }
 }
 
+private fun formatRemainingPaceHeadline(remainingSeconds: Long): String =
+    if (remainingSeconds <= 0L) "Por terminar"
+    else "A este ritmo terminas en ${ceil(remainingSeconds / 60.0).toLong().coerceAtLeast(1L)} min"
+
 /** La proyección de ritmo con el texto del lienzo: negrita de 13 sp y líneas de 12 sp (la de «sobre tu plan» en coral si se pasa). */
 @Composable
 private fun PaceLines(projection: SessionPaceProjection, startTimeMs: Long) {
@@ -217,7 +225,7 @@ private fun PaceLines(projection: SessionPaceProjection, startTimeMs: Long) {
         SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(startTimeMs + projection.totalSeconds * 1_000))
     } else null
     Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-        Text("A este ritmo terminas en ${ceil(projection.totalSeconds / 60.0).toLong()} min", style = Lx.inter(13.sp, FontWeight.SemiBold, line = 17.sp), color = Lx.Ink)
+        Text(formatRemainingPaceHeadline(projection.remainingSeconds), style = Lx.inter(13.sp, FontWeight.SemiBold, line = 17.sp), color = Lx.Ink)
         end?.let { Text("Fin estimado $it", style = Lx.inter(12.sp), color = Lx.Faint) }
         projection.overTargetSeconds?.let { delta ->
             val minutes = ceil(kotlin.math.abs(delta) / 60.0).toLong()
@@ -233,7 +241,7 @@ internal fun PaceProjectionLines(projection: SessionPaceProjection, startTimeMs:
         SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(startTimeMs + projection.totalSeconds * 1_000))
     } else null
     Column(verticalArrangement = Arrangement.spacedBy(3.dp)) {
-        Text("A este ritmo terminas en ${ceil(projection.totalSeconds / 60.0).toLong()} min", style = KpknType.bodyStrong, color = WizardColors.text)
+        Text(formatRemainingPaceHeadline(projection.remainingSeconds), style = KpknType.bodyStrong, color = WizardColors.text)
         end?.let { Text("Fin estimado $it", style = KpknType.caption, color = WizardColors.textMuted) }
         projection.overTargetSeconds?.let { delta ->
             val minutes = ceil(kotlin.math.abs(delta) / 60.0).toLong()
@@ -244,7 +252,14 @@ internal fun PaceProjectionLines(projection: SessionPaceProjection, startTimeMs:
 
 /** Same pure estimator as the time sheet; clock is scoped to this visible cockpit section. */
 @Composable
-internal fun SessionPaceEstimate(startTimeMs: Long, completed: Int, total: Int, targetMinutes: Int?) {
+internal fun SessionPaceEstimate(
+    startTimeMs: Long,
+    completed: Int,
+    total: Int,
+    targetMinutes: Int?,
+    remainingPlannedRestSeconds: Long? = null,
+    ultraFastApplied: Boolean = false,
+) {
     var now by remember(startTimeMs) { mutableLongStateOf(System.currentTimeMillis()) }
     val owner = LocalLifecycleOwner.current
     val visibility = rememberFeedbackAnimationVisibility()
@@ -255,6 +270,13 @@ internal fun SessionPaceEstimate(startTimeMs: Long, completed: Int, total: Int, 
         }
     }
     Box(Modifier.fillMaxWidth().then(visibility.modifier)) {
-        if (startTimeMs > 0) projectSessionPace((now - startTimeMs) / 1_000, completed, total, targetMinutes)?.let { PaceProjectionLines(it, startTimeMs) }
+        if (startTimeMs > 0) projectSessionPace(
+            elapsedSeconds = (now - startTimeMs) / 1_000,
+            completedWorkingSets = completed,
+            totalWorkingSets = total,
+            targetMinutes = targetMinutes,
+            remainingPlannedRestSeconds = remainingPlannedRestSeconds,
+            ultraFastApplied = ultraFastApplied,
+        )?.let { PaceProjectionLines(it, startTimeMs) }
     }
 }

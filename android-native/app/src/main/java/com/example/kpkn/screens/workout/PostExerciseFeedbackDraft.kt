@@ -11,6 +11,7 @@ import com.example.kpkn.data.models.DISCOMFORT_CATALOG_BY_ID
 import com.example.kpkn.data.models.Exercise
 import com.example.kpkn.data.models.PostExerciseFeedback
 import com.example.kpkn.data.models.unresolvedDiscomfortIds
+import com.example.kpkn.domain.training.insights.LimitingFactorCatalog
 
 /**
  * Lo que la persona va eligiendo en el feedback tras el ejercicio (LV6, B1 y B3): la técnica de cada ejercicio, las molestias y qué
@@ -24,12 +25,16 @@ internal class PostExerciseFeedbackDraft(
     initialTechnical: Map<String, Int> = emptyMap(),
     initialDiscomfortIds: Collection<String> = emptyList(),
     initialQuery: String = "",
+    initialLimitingFactorIds: Collection<String> = emptyList(),
 ) {
     private val technicalValues = mutableStateMapOf<String, Int>()
     private val stillPresentById = mutableStateMapOf<String, Boolean>()
 
     /** Molestias elegidas para estos ejercicios, en el orden en que se eligieron. Nunca contiene `"none"`. */
     val discomfortIds = mutableStateListOf<String>()
+
+    /** Factores limitantes elegidos tras este ejercicio/superserie. */
+    val limitingFactorIds = mutableStateListOf<String>()
 
     /** Lo escrito en el buscador de molestias. */
     var query by mutableStateOf(initialQuery)
@@ -41,6 +46,9 @@ internal class PostExerciseFeedbackDraft(
         initialDiscomfortIds
             .filter { it.isNotBlank() && it != NONE }
             .forEach { id -> if (id !in discomfortIds) discomfortIds.add(id) }
+        initialLimitingFactorIds
+            .filter { it.isNotBlank() }
+            .forEach { id -> if (id !in limitingFactorIds) limitingFactorIds.add(id) }
     }
 
     /** Calidad técnica (1–10) del ejercicio. */
@@ -68,6 +76,21 @@ internal class PostExerciseFeedbackDraft(
         if (isSelected(discomfortId)) deselect(discomfortId) else select(discomfortId)
     }
 
+    fun isLimitingFactorSelected(factorId: String): Boolean = factorId in limitingFactorIds
+
+    fun selectLimitingFactor(factorId: String) {
+        if (factorId.isBlank() || factorId in limitingFactorIds) return
+        limitingFactorIds.add(factorId)
+    }
+
+    fun deselectLimitingFactor(factorId: String) {
+        limitingFactorIds.remove(factorId)
+    }
+
+    fun toggleLimitingFactor(factorId: String) {
+        if (isLimitingFactorSelected(factorId)) deselectLimitingFactor(factorId) else selectLimitingFactor(factorId)
+    }
+
     /** Una molestia de otro ejercicio sigue presente mientras no se marque «Resuelta». */
     fun stillPresent(discomfortId: String): Boolean = stillPresentById[discomfortId] ?: true
 
@@ -84,6 +107,7 @@ internal class PostExerciseFeedbackDraft(
                 exerciseIds = exercises.map { it.id },
                 initialTechnical = exercises.mapNotNull { ex -> saved[ex.id]?.let { ex.id to it.technicalQuality } }.toMap(),
                 initialDiscomfortIds = exercises.flatMap { saved[it.id]?.discomfortIds.orEmpty() }.distinct(),
+                initialLimitingFactorIds = exercises.flatMap { saved[it.id]?.limitingFactors.orEmpty().map { lf -> lf.id } }.distinct(),
             )
     }
 }
@@ -144,15 +168,21 @@ internal fun buildPostExerciseFeedbackPayloads(
     linked: List<LinkedDiscomfort>,
     canonicalKeyOf: (Exercise) -> String,
     nameOf: (Exercise) -> String,
+    primaryMusclesOf: (Exercise) -> List<String> = { emptyList() },
 ): List<PostExerciseFeedback> {
     val stillLinkedIds = linked.map { it.id }.filter { draft.stillPresent(it) }
     val resolvedIds = linked.map { it.id }.filter { !draft.stillPresent(it) }.toSet()
     val chosen = draft.discomfortIds.filter { it != PostExerciseFeedbackDraft.NONE }
     val stillForCurrent = (chosen + stillLinkedIds).distinct().ifEmpty { listOf(PostExerciseFeedbackDraft.NONE) }
+    val chosenFactorIds = draft.limitingFactorIds.distinct()
 
     val payloads = mutableListOf<PostExerciseFeedback>()
     feedbackExercises.forEach { exercise ->
         val before = previousFeedback[exercise.id]
+        val primaries = primaryMusclesOf(exercise)
+        val resolvedFactors = chosenFactorIds.map { factorId ->
+            LimitingFactorCatalog.resolveReport(factorId = factorId, primaryMuscles = primaries)
+        }
         payloads += PostExerciseFeedback(
             exerciseId = exercise.id,
             exerciseDbId = exercise.exerciseDbId ?: canonicalKeyOf(exercise),
@@ -164,6 +194,7 @@ internal fun buildPostExerciseFeedbackPayloads(
             perceivedIntensityRpe = before?.perceivedIntensityRpe,
             perceivedFailure = before?.perceivedFailure ?: false,
             stillPresentDiscomfortIds = stillForCurrent,
+            limitingFactors = resolvedFactors,
         )
     }
     val feedbackIds = feedbackExercises.map { it.id }.toSet()

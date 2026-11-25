@@ -200,7 +200,14 @@ class WorkoutViewModel(
     private val cardioHealthProvider = CardioHealthProviderFactory.create(appContext)
     private val cardioCuePlayer = CardioCuePlayer(appContext)
 
-    private val _uiState = MutableStateFlow(WorkoutUiState(programId = programId))
+    private val _uiState = MutableStateFlow(
+        WorkoutUiState(
+            programId = programId,
+            preferredInputDockMode = com.example.kpkn.domain.workout.LiveInputDockEngine.parseLiveInputDockMode(
+                repository.settings.value.preferredLiveInputDockMode,
+            ),
+        ),
+    )
     val uiState: StateFlow<WorkoutUiState> = _uiState.asStateFlow()
     // Solo memoria: conserva la intención al recrear la composición, sin abrir un chooser tras muerte de proceso.
     internal var pendingFinishStoryShare: Pair<WorkoutStoryData, WorkoutStoryOptions>? = null
@@ -716,10 +723,19 @@ class WorkoutViewModel(
             ) = this@WorkoutViewModel.lastComparableSetForLoad(exercise, setIdx, side, tagId, loadMode, unitMode)
 
             override fun loadIncrementKg(exercise: Exercise, setIdx: Int): Double? {
-                val inventory = repository.settings.value.resolvedEquipmentInventory()
-                return inventory?.machines?.singleOrNull {
+                val currentSettings = repository.settings.value
+                val inventory = currentSettings.resolvedEquipmentInventory()
+                val machineInc = inventory?.machines?.singleOrNull {
                     it.configurationId != null && it.configurationId == exercise.catalogConfigurationId
-                }?.incrementKg?.takeIf { it.isFinite() && it > 0.0 }
+                }?.incrementKg
+                val key = exerciseLoadIncrementKey(exercise)
+                val overrideInc = currentSettings.exerciseLoadIncrementsKg[key]
+                    ?: currentSettings.exerciseLoadIncrementsKg[exercise.id]
+                return com.example.kpkn.domain.calculations.LoadRounding.resolveStepKg(
+                    exerciseOverrideKg = overrideInc,
+                    machineStepKg = machineInc,
+                    defaultStepKg = com.example.kpkn.domain.calculations.LoadRounding.defaultStepKg(currentSettings),
+                )
             }
         },
     )
@@ -1263,6 +1279,25 @@ class WorkoutViewModel(
                     )
                 }
             }
+        }
+        viewModelScope.launch {
+            repository.settings
+                .map { com.example.kpkn.domain.workout.LiveInputDockEngine.parseLiveInputDockMode(it.preferredLiveInputDockMode) }
+                .distinctUntilChanged()
+                .collect { mode ->
+                    updateUiState { if (it.preferredInputDockMode == mode) it else it.copy(preferredInputDockMode = mode) }
+                }
+        }
+        viewModelScope.launch {
+            repository.settings
+                .map { Triple(it.weightUnit, it.defaultLoadIncrementKg, it.defaultLoadIncrementLb) }
+                .distinctUntilChanged()
+                .collect {
+                    val state = _uiState.value
+                    if (state.session != null) {
+                        loadSuggestionController.refreshLoadSuggestions(state)
+                    }
+                }
         }
         // Fase 4.4: aplicar el flag AEC en caliente al cambiar el setting (solo si la
         // voz está activa; en arranque startListening ya lo aplica vía provider).
@@ -2804,6 +2839,14 @@ class WorkoutViewModel(
         repository.updateSettings { if (it.liveSessionView == view) it else it.copy(liveSessionView = view) }
     }
 
+    /** Guarda el último modo del dock numérico usado en vivo (Deslizar ↔ Teclado). */
+    fun setPreferredLiveInputDockMode(mode: com.example.kpkn.domain.workout.LiveInputDockMode) {
+        updateUiState { if (it.preferredInputDockMode == mode) it else it.copy(preferredInputDockMode = mode) }
+        repository.updateSettings {
+            if (it.preferredLiveInputDockMode == mode.name) it else it.copy(preferredLiveInputDockMode = mode.name)
+        }
+    }
+
     fun setVoiceCaptureMode(mode: VoiceCaptureMode) {
         WorkoutVoiceDiagnosticLogger.event(
             "voice_mode_dialog_chosen",
@@ -3265,9 +3308,28 @@ class WorkoutViewModel(
     private fun Session.reorderExercisesByIds(partId: String?, orderedExerciseIds: List<String>): Session =
         WorkoutStructuralEditor.reorderExercisesByIds(this, partId, orderedExerciseIds)
 
+    private fun resolveWorkoutLoadStepKg(exercise: Exercise): Double {
+        val currentSettings = repository.settings.value
+        val inventory = currentSettings.resolvedEquipmentInventory()
+        val machineInc = inventory?.machines?.singleOrNull {
+            it.configurationId != null && it.configurationId == exercise.catalogConfigurationId
+        }?.incrementKg
+        val key = exerciseLoadIncrementKey(exercise)
+        val overrideInc = currentSettings.exerciseLoadIncrementsKg[key]
+            ?: currentSettings.exerciseLoadIncrementsKg[exercise.id]
+        return com.example.kpkn.domain.calculations.LoadRounding.resolveStepKg(
+            exerciseOverrideKg = overrideInc,
+            machineStepKg = machineInc,
+            defaultStepKg = com.example.kpkn.domain.calculations.LoadRounding.defaultStepKg(currentSettings),
+        )
+    }
+
     private fun ExerciseSet.normalizeWorkoutSet(exercise: Exercise): ExerciseSet {
         val normalized = WorkoutEditingRules.normalizeLiveEditedSet(exercise.trainingMode, this)
-        val autoWeight = calculateSuggestedLoad(exercise, normalized) ?: normalized.weight
+        val rawAuto = calculateSuggestedLoad(exercise, normalized)
+            ?.takeIf { it.isFinite() && it > 0.0 }
+            ?.let { com.example.kpkn.domain.calculations.LoadRounding.roundToStep(it, resolveWorkoutLoadStepKg(exercise)) }
+        val autoWeight = rawAuto ?: normalized.weight
         return normalized.copy(weight = autoWeight ?: normalized.weight)
     }
 
@@ -8160,7 +8222,8 @@ class WorkoutViewModel(
                 .asSequence()
                 .mapNotNull { prevIdx -> _uiState.value.completedSets[workoutSetKey(exercise.id, prevIdx, side)] }
                 .firstOrNull { completed ->
-                    if (completed.isWarmup || completed.skipped || completed.techniqueStatus != null ||
+                    if (completed.isWarmup || completed.skipped ||
+                        completed.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN ||
                         completed.dropSets.isNotEmpty() || completed.restPauses.isNotEmpty()
                     ) return@firstOrNull false
                     val actualMode = completed.loadMode ?: completed.recordedPayloadV3?.loadInputMode
@@ -8188,7 +8251,8 @@ class WorkoutViewModel(
             for ((position, set) in completed.sets.withIndex().reversed()) {
                 val resolvedIndex = set.setIndex ?: position
                 if (resolvedIndex != setIdx || set.side != side || set.isWarmup || set.skipped ||
-                    set.techniqueStatus != null || set.dropSets.isNotEmpty() || set.restPauses.isNotEmpty()
+                    set.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN ||
+                    set.dropSets.isNotEmpty() || set.restPauses.isNotEmpty()
                 ) continue
                 val setTagId = set.tagId ?: set.tagName?.let { name -> tags.firstOrNull { WorkoutTagResolver.namesMatch(it.name, name) }?.id }
                 if (setTagId != null && setTagId != tagId) continue
@@ -8233,7 +8297,8 @@ class WorkoutViewModel(
                     val tags = tagsForExerciseKey(exerciseKey)
                     val projectedDefault = tags.firstOrNull { it.isDefault || WorkoutTagResolver.isDefaultName(it.name) }?.id
                     completed.sets.forEach setLoop@{ set ->
-                        if (set.isWarmup || set.skipped || set.side != null || set.techniqueStatus != null ||
+                        if (set.isWarmup || set.skipped || set.side != null ||
+                            set.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN ||
                             set.dropSets.isNotEmpty() || set.restPauses.isNotEmpty() ||
                             set.performedPurpose() != null && set.performedPurpose() != SetPurpose.NONE ||
                             (set.rom != null && set.rom != 100) || set.reps <= 0
@@ -8550,6 +8615,7 @@ class WorkoutViewModel(
             programId = programId,
             sessionId = sessionId,
             sessionStartMs = state.startTimeMs,
+            postExerciseFeedbackByExerciseId = state.postExerciseFeedbackByExerciseId,
         )
     }
 
@@ -8587,12 +8653,13 @@ class WorkoutViewModel(
         if (LoadSuggestionEngine.shouldDeferToNativeProgression(exercise, setIdx)) return null
         val set = exercise.sets.getOrNull(setIdx) ?: return null
         val mode = effectiveLoadModeForExercise(exercise, setIdx)
-        val value = com.example.kpkn.domain.calculations.calculateSuggestedLoad(exercise, set)
+        val raw = com.example.kpkn.domain.calculations.calculateSuggestedLoad(exercise, set)
             ?: set.weight ?: set.consolidatedWeight ?: exercise.consolidatedWeight?.weightKg
             ?: if (mode == LoadModeV2.BODYWEIGHT) 0.0 else return null
-        return value.takeIf { it.isFinite() && it >= 0.0 }?.let {
-            WeightSuggestion(it, "Carga del plan", suggestedLoadMode = mode)
-        }
+        if (!raw.isFinite() || raw < 0.0) return null
+        val rounded = if (mode == LoadModeV2.BODYWEIGHT || raw <= 0.0) raw
+        else com.example.kpkn.domain.calculations.LoadRounding.roundToStep(raw, resolveWorkoutLoadStepKg(exercise))
+        return WeightSuggestion(rounded, "Carga del plan", suggestedLoadMode = mode)
     }
 
     private fun currentSessionSetsNewestLast(exerciseId: String): List<CompletedSet> =

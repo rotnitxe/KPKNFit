@@ -343,11 +343,8 @@ class LiveHeaderSheetsDeviceTest {
         rule.onNodeWithTag("secondary_pill_historial").assertIsDisplayed().performClick()
         rule.runOnIdle { assertEquals(1, history) }
         rule.onNodeWithTag("workout-more-header").performClick()
-        rule.onNodeWithTag("live-session-menu-timer").performScrollTo().performClick()
-        rule.onNodeWithText("Iniciar").assertIsDisplayed().performClick()
-        rule.onNodeWithText("Pausar").assertIsDisplayed().performClick()
-        rule.onNodeWithText("Reiniciar").performClick()
-        rule.onNodeWithTag("live-session-timer-value", true).assertTextEquals("0:00")
+        rule.onNodeWithTag("live-session-menu-milestones").performScrollTo().performClick()
+        rule.onNodeWithTag("live-session-sheet-milestones", true).assertIsDisplayed()
     }
 
     /** Records focus/IME/viewport evidence before ending text editing. */

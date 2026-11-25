@@ -570,9 +570,17 @@ class WorkoutSetRecorder(
             )
             val completedBeforeApre = recordedAfterAdvanced
 
+            val resolvedTechniqueStatus = when {
+                report.techniqueStatus != null -> report.techniqueStatus
+                state.completedSets[recordingKey]?.techniqueStatus == com.example.kpkn.data.models.RecordedTechniqueStatus.OPEN ->
+                    com.example.kpkn.data.models.RecordedTechniqueStatus.COMPLETED
+                completedBeforeApre.dropSets.isNotEmpty() || completedBeforeApre.restPauses.isNotEmpty() ->
+                    com.example.kpkn.data.models.RecordedTechniqueStatus.COMPLETED
+                else -> null
+            }
             val completedSet = preserveRecordingOrigin(state.completedSets[recordingKey], completedBeforeApre.copy(
                 sourceRef = state.completedSets[recordingKey]?.sourceRef ?: executionRef(state, exercise, targetSetIdx, resolvedSide),
-                techniqueStatus = report.techniqueStatus ?: com.example.kpkn.data.models.RecordedTechniqueStatus.COMPLETED,
+                techniqueStatus = resolvedTechniqueStatus,
                 apreXrm = buildRecordedApreXrm(
                 state, exercise, targetSetIdx, completedBeforeApre, System.currentTimeMillis(),
                 repository.settings.value.resolvedEquipmentInventory())))
@@ -945,11 +953,12 @@ class WorkoutSetRecorder(
                 RestTimerKind.WARMUP -> exercise.warmupSets.getOrNull(targetSetIdx)?.restBetween ?: baseRest
                 RestTimerKind.STANDARD -> {
                     val nextPlannedSet = exercise.sets.getOrNull(targetSetIdx + 1)
+                    val nextIsChained = nextPlannedSet?.isVolumeReplacedTechnique() == true
                     val currentSetRest = exercise.sets.getOrNull(targetSetIdx)?.restAfterSeconds?.takeIf { it >= 0 }
                     when {
                         scheduledRestForCurrent != null -> scheduledRestForCurrent
-                        nextPlannedSet?.isDropSet == true -> 0
-                        nextPlannedSet?.isRestPause == true -> nextPlannedSet.restAfterSeconds?.takeIf { it >= 0 } ?: 15
+                        nextIsChained && nextPlannedSet?.isDropSet == true -> 0
+                        nextIsChained && nextPlannedSet?.isRestPause == true -> nextPlannedSet.restAfterSeconds?.takeIf { it >= 0 } ?: 15
                         else -> currentSetRest ?: baseRest
                     }
                 }
@@ -968,6 +977,7 @@ class WorkoutSetRecorder(
             val adaptiveRest = plannedRestForKind.coerceAtLeast(0)
             if (advancesExecution) {
                 val nextPlannedSet = exercise.sets.getOrNull(targetSetIdx + 1)
+                val nextIsChained = nextPlannedSet?.isVolumeReplacedTechnique() == true
                 val plannedRest = when (restKind) {
                     RestTimerKind.SUPERSET_INTRA,
                     RestTimerKind.SUPERSET_ROUND,
@@ -976,8 +986,8 @@ class WorkoutSetRecorder(
                     -> plannedRestForKind.coerceAtLeast(0)
                     RestTimerKind.STANDARD -> when {
                         wasLastSet && nextStepForRest == null -> plannedRestForKind.coerceAtLeast(0)
-                        nextPlannedSet?.isDropSet == true -> 0
-                        nextPlannedSet?.isRestPause == true -> plannedRestForKind.coerceAtLeast(0)
+                        nextIsChained && nextPlannedSet?.isDropSet == true -> 0
+                        nextIsChained && nextPlannedSet?.isRestPause == true -> plannedRestForKind.coerceAtLeast(0)
                         else -> plannedRestForKind.coerceAtLeast(0)
                     }
                 }
@@ -1087,7 +1097,8 @@ internal fun completedSetContentMatches(
         )
         val newFacts = newPayload.copy(plannedRepRange = null, plannedTargetSnapshot = null)
         return oldFacts == newFacts &&
-            (existing.techniqueStatus ?: com.example.kpkn.data.models.RecordedTechniqueStatus.COMPLETED) == next.techniqueStatus &&
+            (existing.techniqueStatus ?: com.example.kpkn.data.models.RecordedTechniqueStatus.COMPLETED) ==
+                (next.techniqueStatus ?: com.example.kpkn.data.models.RecordedTechniqueStatus.COMPLETED) &&
             existing.dropSets == next.dropSets &&
             existing.restPauses == next.restPauses &&
             existing.isPartial == next.isPartial &&

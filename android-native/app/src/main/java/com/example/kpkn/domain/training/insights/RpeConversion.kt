@@ -64,6 +64,12 @@ object RpeConversion {
         )
     }
 
+    /** Resuelve el RPE efectivo de una serie de trabajo (Fallo = 10, RPE explícito o `10 - RIR`); null si no declaró esfuerzo. */
+    fun resolvedSetRpe(set: CompletedSet): Double? = recordedSetEffort(set)
+
+    /** true si la serie cuenta como trabajo efectivo (excluye calentamientos, saltadas y errores de ejecución). */
+    fun isWorkingSetForIntensity(set: CompletedSet): Boolean = !isNonWorkingExecution(set)
+
     private fun recordedSetEffort(set: CompletedSet): Double? {
         val payload = set.recordedPayloadV3
         val mode = set.actualIntensityMode ?: payload?.actualIntensityMode

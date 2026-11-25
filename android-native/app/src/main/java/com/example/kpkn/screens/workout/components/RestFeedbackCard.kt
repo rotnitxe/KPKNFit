@@ -74,8 +74,17 @@ internal fun RestFeedbackCard(
     val safeTotal = totalSeconds.coerceAtLeast(safeRemaining).coerceAtLeast(1)
     val compact = com.example.kpkn.screens.workout.liveSessionCardHeight() < 440.dp
     var discomfortsOpen by remember { mutableStateOf(false) }
+    var limitingFactorsOpen by remember { mutableStateOf(false) }
     val focusName = remember(feedbackExercises) {
         if (feedbackExercises.size == 1) displayWorkoutExerciseName(feedbackExercises.first()) else "esta superserie"
+    }
+    val primaryMuscles = remember(feedbackExercises) {
+        val index = com.example.kpkn.data.exercises.catalogExerciseIndex()
+        feedbackExercises.flatMap { ex ->
+            com.example.kpkn.domain.exercises.ExerciseMuscleResolver.effectiveMuscles(ex, index)
+                .filter { it.role == com.example.kpkn.data.models.MuscleRole.PRIMARY }
+                .map { it.muscle }
+        }.distinct()
     }
     // `restCard` con el panel `feedback`: «1:32 · DESCANSO» con expandir, el feedback y «Ahora no» / «Guardar feedback» en el pie.
     RestRef02Card(
@@ -92,6 +101,7 @@ internal fun RestFeedbackCard(
             wide = false,
             compact = compact,
             onOpenDiscomforts = { discomfortsOpen = true },
+            onOpenLimitingFactors = { limitingFactorsOpen = true },
         )
     }
     if (discomfortsOpen) {
@@ -103,6 +113,14 @@ internal fun RestFeedbackCard(
             nowMs = nowMs,
             animated = clockActive,
             onDismiss = { discomfortsOpen = false },
+        )
+    }
+    if (limitingFactorsOpen) {
+        LimitingFactorSheet(
+            draft = draft,
+            focusName = focusName,
+            primaryMuscles = primaryMuscles,
+            onDismiss = { limitingFactorsOpen = false },
         )
     }
 }

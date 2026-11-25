@@ -1,14 +1,11 @@
 package com.example.kpkn.screens.workout
 
 import androidx.compose.ui.draw.drawBehind
-import android.os.SystemClock
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.*
 import androidx.compose.runtime.withFrameNanos
-import androidx.compose.runtime.saveable.listSaver
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -17,23 +14,17 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.material3.Text
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.compose.LocalLifecycleOwner
-import androidx.lifecycle.repeatOnLifecycle
 import com.example.kpkn.data.models.*
 import com.example.kpkn.screens.onboarding.design.WizardColors
 import com.example.kpkn.screens.workout.components.*
 import com.example.kpkn.ui.components.icons.KpknLineIcons
 import com.example.kpkn.ui.design.KpknIconButton
-import com.example.kpkn.ui.design.KpknSetFormat
 import com.example.kpkn.ui.design.KpknType
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 
 internal enum class LiveSessionDestination(val title: String) {
     MENU("Sesión"), VIEW("Vista de registro"), VOICE("Conversación de voz"), ROUTE("Ruta de la sesión"), MILESTONES("Hitos"), PHOTOS("Fotos y vídeos"),
-    TIMER("Temporizador"), RM("Calculadora RM"), NOTES("Notas y tareas"),
+    RM("Calculadora RM"), NOTES("Notas y tareas"),
     ASSISTANCE("Asistencia de sesión"), ANALYSIS_HELP("Cómo leer este análisis"),
 }
 
@@ -47,29 +38,6 @@ internal fun effectiveLiveSessionView(session: Session?, preferredName: String?)
     val cardioOnly = exercises.isNotEmpty() && exercises.all { it.isCardio }
     return if (cardioOnly) LiveSessionView.CARDS else preferred
 }
-
-/** Monotonic time survives closing the sheet; paused time never includes time spent away. */
-@Stable
-internal class LiveSessionTimerState(paused: Long = 0L, started: Long? = null) {
-    var pausedMillis by mutableLongStateOf(paused)
-        private set
-    var startedAtMillis by mutableStateOf(started)
-        private set
-    fun elapsedMillis(now: Long): Long = pausedMillis + (startedAtMillis?.let { (now - it).coerceAtLeast(0L) } ?: 0L)
-    fun toggle(now: Long) {
-        if (startedAtMillis == null) startedAtMillis = now else {
-            pausedMillis = elapsedMillis(now)
-            startedAtMillis = null
-        }
-    }
-    fun reset() { pausedMillis = 0L; startedAtMillis = null }
-}
-
-@Composable
-internal fun rememberLiveSessionTimer(vararg inputs: Any?): LiveSessionTimerState = rememberSaveable(*inputs, saver = listSaver(
-    save = { listOf(it.pausedMillis, it.startedAtMillis ?: -1L) },
-    restore = { LiveSessionTimerState(it[0], it[1].takeIf { start -> start >= 0 }) },
-)) { LiveSessionTimerState() }
 
 /** Destinations share the original data/callbacks. Photos delegates to the existing session album. */
 @Composable
@@ -116,7 +84,7 @@ internal fun LiveSessionSheetsHost(
     onOpenPhotos: () -> Unit = {},
     onOpenVoice: () -> Unit = {},
     onOpenStory: () -> Unit = {},
-    timer: LiveSessionTimerState = rememberLiveSessionTimer(),
+    ultraFastApplied: Boolean = false,
     sessionAccentColor: Color = Color(0xFFF49A6E),
     currentView: LiveSessionView = LiveSessionView.CARDS,
     onSelectView: (LiveSessionView) -> Unit = {},
@@ -183,8 +151,6 @@ internal fun LiveSessionSheetsHost(
                     LiveSheetMenuRow("Álbum de sesión", { run(onOpenPhotos) }, icon = KpknLineIcons.Camera,
                         modifier = Modifier.testTag("live-session-menu-photos"))
                     LiveSheetSectionLabel("Herramientas")
-                    LiveSheetMenuRow("Cronómetro independiente", { go(LiveSessionDestination.TIMER) }, icon = KpknLineIcons.Clock,
-                        modifier = Modifier.testTag("live-session-menu-timer"))
                     LiveSheetMenuRow("Hitos", { go(LiveSessionDestination.MILESTONES) }, icon = KpknLineIcons.Trophy,
                         modifier = Modifier.testTag("live-session-menu-milestones"))
                     LiveSheetMenuRow("Calculadora RM", { go(LiveSessionDestination.RM) }, icon = KpknLineIcons.Target,
@@ -244,10 +210,10 @@ internal fun LiveSessionSheetsHost(
                     restRemainingSeconds = restRemainingSeconds,
                     activeStepKey = activeStepKey,
                     onSelectStep = { key -> onSelectStep(key); onDestination(null) },
+                    ultraFastApplied = ultraFastApplied,
                 )
                 LiveSessionDestination.MILESTONES -> LiveSessionMilestonesContent(exercises, completedSets, milestones, sessionAccentColor)
                 LiveSessionDestination.PHOTOS -> LaunchedEffect(Unit) { onDestination(null); onOpenPhotos() }
-                LiveSessionDestination.TIMER -> LiveSessionTimerContent(timer)
                 LiveSessionDestination.RM -> WorkoutRmCalcContent(
                     bodyWeight = bodyWeight,
                     currentLoadMode = activeLoadMode,
@@ -272,7 +238,6 @@ internal fun liveSessionSheetTitle(destination: LiveSessionDestination): String 
     LiveSessionDestination.MENU -> "Tu sesión"
     LiveSessionDestination.VIEW -> "Vista de registro"
     LiveSessionDestination.ROUTE -> "Recorrido de la sesión"
-    LiveSessionDestination.TIMER -> "Cronómetro"
     LiveSessionDestination.NOTES -> "Notas de sesión"
     LiveSessionDestination.MILESTONES -> "Hitos de la sesión"
     else -> destination.title
@@ -289,26 +254,6 @@ private fun LiveSessionHelpNote(title: String, body: String) {
     ) {
         Text(title, style = KpknType.bodyStrong.copy(fontSize = 13.sp), color = WizardColors.text)
         Text(body, Modifier.padding(top = 8.dp), style = KpknType.caption.copy(fontSize = 12.sp, lineHeight = 20.sp), color = WizardColors.textMuted)
-    }
-}
-
-@Composable
-internal fun LiveSessionTimerContent(timer: LiveSessionTimerState, clock: () -> Long = SystemClock::elapsedRealtime) {
-    var now by remember { mutableLongStateOf(clock()) }
-    val owner = LocalLifecycleOwner.current
-    LaunchedEffect(timer.startedAtMillis, owner) {
-        now = clock()
-        if (timer.startedAtMillis != null) owner.lifecycle.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-            while (isActive) { now = clock(); delay(250) }
-        }
-    }
-    Column(Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
-        Text(KpknSetFormat.rest((timer.elapsedMillis(now) / 1000).toInt()),
-            style = KpknType.display.copy(fontSize = 52.sp, lineHeight = 58.sp, fontFeatureSettings = "'tnum' 1"),
-            color = WizardColors.text, modifier = Modifier.padding(vertical = 18.dp).testTag("live-session-timer-value"))
-        LiveSheetSubtitle("Independiente del descanso entre series.")
-        LiveSheetPrimary(if (timer.startedAtMillis == null) "Iniciar" else "Pausar", { now = clock(); timer.toggle(now) })
-        LiveSheetTextAction("Reiniciar", { timer.reset() })
     }
 }
 

@@ -691,6 +691,7 @@ internal fun RestRef02FeedbackBody(
     compact: Boolean,
     onOpenDiscomforts: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenLimitingFactors: (() -> Unit)? = null,
 ) {
     val single = feedbackExercises.size == 1
     val name = if (single) displayWorkoutExerciseName(feedbackExercises.first()) else "Superserie"
@@ -755,6 +756,31 @@ internal fun RestRef02FeedbackBody(
             Text(if (labels.isEmpty()) "Sin seleccionar" else labels.joinToString(", "), Modifier.widthIn(max = 160.dp),
                 style = body(10.sp), color = RestRef02Tokens.Muted, textAlign = TextAlign.End)
             Icon(KpknLineIcons.ChevronRight, null, Modifier.size(12.dp), tint = RestRef02Tokens.Muted)
+        }
+        if (onOpenLimitingFactors != null) {
+            val factorLabels = draft.limitingFactorIds.mapNotNull { com.example.kpkn.domain.training.insights.LimitingFactorCatalog.findById(it)?.label }
+            Row(
+                Modifier.fillMaxWidth()
+                    .drawBehind {
+                        drawLine(Color(0x10FFFFFF), Offset(0f, size.height), Offset(size.width, size.height), 1.dp.toPx())
+                    }
+                    .heightIn(min = 46.dp).clickable(role = Role.Button, onClick = onOpenLimitingFactors).padding(horizontal = 4.dp)
+                    .testTag("rest-feedback-limiting-factors"),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text("Factor limitante", style = body(11.sp, FontWeight.Medium), color = RestRef02Tokens.Ink)
+                Spacer(Modifier.weight(1f))
+                Text(
+                    if (factorLabels.isEmpty()) "Sin seleccionar" else factorLabels.joinToString(", "),
+                    Modifier.widthIn(max = 160.dp),
+                    style = body(10.sp),
+                    color = RestRef02Tokens.Muted,
+                    textAlign = TextAlign.End,
+                    maxLines = 1,
+                )
+                Icon(KpknLineIcons.ChevronRight, null, Modifier.size(12.dp), tint = RestRef02Tokens.Muted)
+            }
         }
         linked.forEach { item ->
             val stillPresent = draft.stillPresent(item.id)

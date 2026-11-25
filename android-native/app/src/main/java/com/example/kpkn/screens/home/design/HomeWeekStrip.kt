@@ -8,12 +8,15 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -28,6 +31,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -71,6 +75,62 @@ fun HomeWeekStrip(
     // Solo se anima mientras la tira está a la vista (el reloj de «en curso» también depende de esto).
     var visible by remember { mutableStateOf(false) }
     val selectedIndex = days.indexOfFirst { it.date == selected }
+    val isRollingStrip = days.size > 7 || days.any { it.cycleDayLabel != null }
+    if (isRollingStrip) {
+        val scrollState = rememberScrollState()
+        val columnWidth = 52.dp
+        val density = LocalDensity.current
+        LaunchedEffect(selectedIndex, days.size) {
+            if (selectedIndex >= 0) {
+                val colPx = with(density) { columnWidth.toPx() }
+                val targetPx = (selectedIndex * colPx - colPx * 2f).toInt().coerceAtLeast(0)
+                scrollState.animateScrollTo(targetPx.coerceAtMost(scrollState.maxValue))
+            }
+        }
+        val spec: AnimationSpec<Dp> = if (reduced) snap() else tween(420, easing = FastOutSlowInEasing)
+        val underlineX by animateDpAsState(
+            targetValue = columnWidth * selectedIndex.coerceAtLeast(0) + (columnWidth - UnderlineWidth) / 2,
+            animationSpec = spec,
+            label = "homeWeekUnderlineRolling",
+        )
+        Box(
+            modifier = modifier
+                .fillMaxWidth()
+                .padding(contentPadding)
+                .testTag("home-week")
+                .onSymbolsVisible { visible = it },
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(scrollState),
+            ) {
+                Row {
+                    days.forEach { day ->
+                        HomeDayColumn(
+                            day = day,
+                            selected = day.date == selected,
+                            animate = visible && !reduced,
+                            onSelect = onSelect,
+                            modifier = Modifier.width(columnWidth),
+                        )
+                    }
+                }
+                Spacer(Modifier.height(6.dp))
+                Box(modifier = Modifier.width(columnWidth * days.size).height(2.dp)) {
+                    if (selectedIndex >= 0) {
+                        Box(
+                            modifier = Modifier
+                                .offset { IntOffset(underlineX.roundToPx(), 0) }
+                                .size(width = UnderlineWidth, height = 2.dp)
+                                .background(SymbolPalette.musculo, RoundedCornerShape(1.dp)),
+                        )
+                    }
+                }
+            }
+        }
+        return
+    }
     BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
@@ -132,6 +192,14 @@ private fun HomeDayColumn(
             .clearAndSetSemantics { contentDescription = description },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        if (day.cycleDayLabel != null) {
+            Text(
+                text = day.cycleDayLabel,
+                style = HomeTypography.eyebrow,
+                color = if (day.isToday) SymbolPalette.musculo else WizardColors.textMuted,
+            )
+            Spacer(Modifier.height(2.dp))
+        }
         Text(
             text = day.letter,
             style = HomeTypography.eyebrow,
@@ -226,6 +294,7 @@ private fun homeDayDescription(day: HomeWeekDay): String {
         HomeDayKind.REST -> null
     }
     return buildList {
+        day.cycleDayIndex?.let { add("Día $it del ciclo") }
         add("$weekday ${day.date.dayOfMonth}")
         if (day.isToday) add("hoy")
         add(day.sessionName ?: "descanso")

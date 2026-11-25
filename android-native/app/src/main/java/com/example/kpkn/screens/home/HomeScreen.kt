@@ -199,7 +199,7 @@ fun HomeScreen(
         if (activeProgram == null || uiState.todaySessions.isEmpty()) {
             emptyList<HomeWeekDay>()
         } else {
-            HomeWeekResolver.week(uiState.todaySessions, activeProgram.startDay, todayDate)
+            HomeWeekResolver.weekForProgram(activeProgram, uiState.todaySessions, todayDate)
         }
     }
     val programLine = remember(uiState.todaySessions, activeProgram, todayDate) {
@@ -672,6 +672,10 @@ private fun HomeWithProgram(
         // «Esta semana» y la sesión del día son un solo módulo (I10a): la semana arriba y, separada por un filete, la sesión.
         item(key = "week-session") {
             val showWeek = hasActiveProgram && weekDays.isNotEmpty()
+            val activeProgramObj = remember(programs, activeProgramId) { programs.firstOrNull { it.id == activeProgramId } }
+            val isRollingCycle = activeProgramObj?.let(com.example.kpkn.domain.training.CycleScheduleEngine::isRollingCycle) == true
+            val cycleLengthDays = activeProgramObj?.let(com.example.kpkn.domain.training.CycleScheduleEngine::normalizedCycleLength) ?: 7
+            var showReanchorSheet by remember { mutableStateOf(false) }
             KpknModule(
                 modifier = Modifier
                     .homeGapAbove(HomePageGap)
@@ -681,11 +685,61 @@ private fun HomeWithProgram(
             ) {
                 if (showWeek) {
                     KpknModuleHeader(
-                        label = "Esta semana",
-                        action = if (activeProgramId == null) null else {
-                            { KpknTextAction(text = "Programa", onClick = { onNavigateToProgram(activeProgramId) }) }
+                        label = if (isRollingCycle) "Ciclo de $cycleLengthDays días" else "Esta semana",
+                        action = when {
+                            activeProgramId == null -> null
+                            isRollingCycle -> {
+                                {
+                                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                        KpknTextAction(text = "Hoy es Día…", onClick = { showReanchorSheet = true })
+                                        KpknTextAction(text = "Programa", onClick = { onNavigateToProgram(activeProgramId) })
+                                    }
+                                }
+                            }
+                            else -> {
+                                { KpknTextAction(text = "Programa", onClick = { onNavigateToProgram(activeProgramId) }) }
+                            }
                         },
                     )
+                    if (showReanchorSheet && isRollingCycle) {
+                        val todayDayIdx = weekDays.firstOrNull { it.isToday }?.cycleDayIndex ?: 1
+                        com.example.kpkn.ui.components.KpknSheet(onDismissRequest = { showReanchorSheet = false }) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(horizontal = 20.dp, vertical = 12.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                            ) {
+                                Text(
+                                    text = "¿Qué día del ciclo es hoy?",
+                                    style = com.example.kpkn.ui.design.KpknType.dialogTitle,
+                                    color = WizardColors.text,
+                                )
+                                Text(
+                                    text = "Las fechas del calendario se ajustan tomando hoy como el día que elijas.",
+                                    style = com.example.kpkn.ui.design.KpknType.caption,
+                                    color = WizardColors.textMuted,
+                                )
+                                @OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
+                                androidx.compose.foundation.layout.FlowRow(
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                                ) {
+                                    (1..cycleLengthDays).forEach { dayIdx ->
+                                        com.example.kpkn.ui.design.KpknChip(
+                                            text = "Día $dayIdx",
+                                            selected = dayIdx == todayDayIdx,
+                                            onClick = {
+                                                viewModel.reanchorActiveProgramToday(dayIdx)
+                                                showReanchorSheet = false
+                                            },
+                                        )
+                                    }
+                                }
+                                Spacer(Modifier.height(12.dp))
+                            }
+                        }
+                    }
                     Spacer(Modifier.height(12.dp))
                     HomeWeekStrip(
                         days = weekDays,

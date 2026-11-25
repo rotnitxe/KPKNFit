@@ -231,6 +231,11 @@ import java.util.Calendar
         .distinctUntilChanged()
         .stateIn(viewModelScope, SharingStarted.Lazily, false)
 
+    fun reanchorActiveProgramToday(dayIndex: Int) {
+        val programId = activeProgramId.value ?: return
+        repository.reanchorProgramCycleToday(programId, dayIndex)
+    }
+
     /** «Métricas de tu entreno»: cuatro semanas de la métrica elegida y el aviso de la sesión de hoy. */
     val trainingMetrics: StateFlow<HomeTrainingMetrics> = combine(
         repository.history,

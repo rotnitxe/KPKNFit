@@ -1,17 +1,22 @@
 package com.example.kpkn.screens.onboarding.entreno
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
@@ -65,10 +70,13 @@ internal fun EntrenoMusclesStep(state: SetupWizardState, vm: SetupWizardViewMode
 /** «Omitir»: un texto discreto alineado a la derecha, con un objetivo táctil de 48 dp y sin caja ni resplandor. */
 @Composable
 private fun MusclesSkip(onSkip: () -> Unit) {
-    Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.CenterEnd) {
-        Box(
+    Box(modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp), contentAlignment = Alignment.CenterEnd) {
+        Row(
             modifier = Modifier
                 .testTag(MUSCLES_SKIP_TAG)
+                .clip(RoundedCornerShape(999.dp))
+                .background(WizardColors.glassFill, RoundedCornerShape(999.dp))
+                .border(1.dp, WizardColors.glassBorder, RoundedCornerShape(999.dp))
                 .clickable(
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
@@ -76,11 +84,11 @@ private fun MusclesSkip(onSkip: () -> Unit) {
                     onClickLabel = "Omitir los músculos",
                     onClick = onSkip,
                 )
-                .defaultMinSize(minWidth = 48.dp, minHeight = 48.dp)
-                .padding(horizontal = 4.dp),
-            contentAlignment = Alignment.Center,
+                .defaultMinSize(minWidth = 48.dp, minHeight = 44.dp)
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(text = "Omitir", style = WizardTypography.controlLabel, color = WizardColors.textMuted)
+            Text(text = "Omitir", style = WizardTypography.controlLabel, color = WizardColors.text)
         }
     }
 }
